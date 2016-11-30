@@ -1,0 +1,27 @@
+*.class
+
+# Package Files #
+*.jar
+*.war
+*.ear
+
+#Maven
+target/
+
+# OS generated files #
+######################
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+ehthumbs.db
+Thumbs.db
+
+# IntelliJIdea files#
+*.iml
+.idea
+
+# Maven build overlays #
+overlays

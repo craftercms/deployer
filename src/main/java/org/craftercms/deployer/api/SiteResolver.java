@@ -16,15 +16,15 @@
  */
 package org.craftercms.deployer.api;
 
+import java.util.List;
+
 import org.craftercms.deployer.api.exception.DeploymentException;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public interface DeploymentErrorHandler {
+public interface SiteResolver {
 
-    void handleError(Site site, DeploymentException exception);
-
-    void handleError(Site site, ChangeSet changeSet, DeploymentException exception);
+    List<SiteContext> resolveAll() throws DeploymentException;
 
 }

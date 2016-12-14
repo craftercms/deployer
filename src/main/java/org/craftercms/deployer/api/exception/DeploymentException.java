@@ -19,7 +19,7 @@ package org.craftercms.deployer.api.exception;
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public class DeploymentException extends Exception {
+public class DeploymentException extends RuntimeException {
 
     public DeploymentException(String message) {
         super(message);

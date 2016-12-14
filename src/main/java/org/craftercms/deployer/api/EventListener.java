@@ -16,13 +16,13 @@
  */
 package org.craftercms.deployer.api;
 
-import org.craftercms.deployer.api.exception.DeploymentException;
+import org.craftercms.deployer.api.event.Event;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Created by alfonsovasquez on 1/12/16.
  */
-public interface DeploymentDetector {
+public interface EventListener {
 
-    ChangeSet detectChanges(Site site) throws DeploymentException;
+    void onEvent(Event event);
 
 }

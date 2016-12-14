@@ -14,15 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
+package org.craftercms.deployer.api.event;
 
-import java.util.List;
+import org.craftercms.deployer.api.SiteContext;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Created by alfonsovasquez on 1/12/16.
  */
-public interface SiteFinder {
+public class ErrorEvent extends Event {
 
-    List<Site> find();
+    protected Exception exception;
+
+    public ErrorEvent(SiteContext siteContext, Exception exception) {
+        super(siteContext);
+        this.exception = exception;
+    }
+
+    public Exception getException() {
+        return exception;
+    }
 
 }

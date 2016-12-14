@@ -5,7 +5,7 @@
 
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>0.0.1-SNAPSHOT</version>
+	<version>2.6.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>crafter-deployer</name>
@@ -25,15 +25,29 @@
 	</properties>
 
 	<dependencies>
+		<!-- Crafter -->
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-utilities</artifactId>
+			<version>2.6.0-SNAPSHOT</version>
+		</dependency>
+
+		<!-- Spring -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-web</artifactId>
 		</dependency>
-
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter-test</artifactId>
 			<scope>test</scope>
+		</dependency>
+
+		<!-- Git -->
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit</artifactId>
+			<version>4.5.0.201609210915-r</version>
 		</dependency>
 	</dependencies>
 

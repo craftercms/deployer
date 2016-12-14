@@ -16,15 +16,13 @@
  */
 package org.craftercms.deployer.api;
 
-import java.nio.file.Path;
+import org.craftercms.deployer.api.exception.DeploymentException;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public interface Site {
+public interface Deployer {
 
-    String getName();
-
-    Path getPath();
+    ChangeSet deploy() throws DeploymentException;
 
 }

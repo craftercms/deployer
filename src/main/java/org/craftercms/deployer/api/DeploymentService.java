@@ -16,13 +16,11 @@
  */
 package org.craftercms.deployer.api;
 
-import org.craftercms.deployer.api.exception.DeploymentException;
-
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public interface DeploymentProcessor {
+public interface DeploymentService {
 
-    ChangeSet process(Site site, ChangeSet changeSet) throws DeploymentException;
+    void deployAllSites();
 
 }

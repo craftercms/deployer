@@ -16,15 +16,21 @@
  */
 package org.craftercms.deployer.api;
 
-import java.util.List;
+import org.craftercms.deployer.api.event.Event;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public interface DeploymentContext {
+public interface SiteContext {
 
-    List<DeploymentProcessor> getProcessors();
+    String getName();
 
-    DeploymentErrorHandler getErrorHandler();
+    Deployer getDeployer();
+
+    void fireEvent(Event event);
+
+    long getDateCreated();
+
+    void close();
 
 }

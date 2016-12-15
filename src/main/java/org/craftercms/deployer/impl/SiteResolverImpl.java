@@ -29,7 +29,6 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.Deployer;
 import org.craftercms.deployer.api.EventListener;
 import org.craftercms.deployer.api.SiteContext;
@@ -46,10 +45,12 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.env.PropertiesPropertySource;
 import org.springframework.core.io.Resource;
+import org.springframework.stereotype.Component;
 
 /**
  * Created by alfonsovasquez on 5/12/16.
  */
+@Component("siteResolver")
 public class SiteResolverImpl implements SiteResolver {
 
     private static final Logger logger = LoggerFactory.getLogger(SiteResolverImpl.class);
@@ -62,10 +63,10 @@ public class SiteResolverImpl implements SiteResolver {
     protected Resource configResource;
     @Value("${crafter.deployer.baseSiteContextLocation}")
     protected Resource baseSiteAppContextResource;
-    @Value("${crafter.deployer.listeners.postDeployListenersPropertyName}")
-    protected String postDeployListenersPropertyName;
-    @Value("${crafter.deployer.listeners.errorListenersPropertyName}")
-    protected String errorListenersPropertyName;
+    @Value("${crafter.deployer.listeners.postDeployListenersBeanName}")
+    protected String postDeployListenersBeanName;
+    @Value("${crafter.deployer.listeners.errorListenersBeanName}")
+    protected String errorListenersBeanName;
     @Autowired
     protected ApplicationContext mainApplicationContext;
 
@@ -147,7 +148,7 @@ public class SiteResolverImpl implements SiteResolver {
 
             return siteContext;
         } catch (Exception e) {
-            throw new DeploymentException("Unable resolve context for site '" + siteName + "'", e);
+            throw new DeploymentException("Error while resolving context for site '" + siteName + "': " + e.getMessage(), e);
         }
     }
 
@@ -155,8 +156,8 @@ public class SiteResolverImpl implements SiteResolver {
         Properties siteProperties = loadSitePropertiesFile(siteName, sitePropertiesFile);
         ConfigurableApplicationContext siteAppContext = loadSiteAppContext(siteName, siteProperties, siteAppContextResource);
         Deployer deployer = getDeployer(siteAppContext);
-        List<EventListener> postDeployListeners = getEvenListeners(siteAppContext, siteProperties, postDeployListenersPropertyName);
-        List<EventListener> errorListeners = getEvenListeners(siteAppContext, siteProperties, errorListenersPropertyName);
+        List<EventListener> postDeployListeners = getEvenListeners(siteAppContext, postDeployListenersBeanName);
+        List<EventListener> errorListeners = getEvenListeners(siteAppContext, errorListenersBeanName);
 
         return new SiteContextImpl(siteName, deployer, postDeployListeners, errorListeners, siteAppContext);
     }
@@ -206,21 +207,9 @@ public class SiteResolverImpl implements SiteResolver {
         return applicationContext.getBean(Deployer.class);
     }
 
-    protected List<EventListener> getEvenListeners(ApplicationContext applicationContext, Properties siteProperties,
-                                                   String listenersPropertyName) {
-        if (siteProperties.containsKey(listenersPropertyName)) {
-            String listenerNamesStr = siteProperties.getProperty(listenersPropertyName);
-            String[] listenerNames = StringUtils.split(listenerNamesStr, ',');
-            List<EventListener> listeners = new ArrayList<>();
-
-            for (String name : listenerNames) {
-                listeners.add(applicationContext.getBean(name, EventListener.class));
-            }
-
-            return listeners;
-        } else {
-            throw new IllegalStateException("No '" + listenersPropertyName + "' property specified");
-        }
+    @SuppressWarnings("unchecked")
+    protected List<EventListener> getEvenListeners(ApplicationContext applicationContext, String beanName) {
+        return applicationContext.getBean(beanName, List.class);
     }
 
 }

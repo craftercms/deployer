@@ -39,6 +39,7 @@ import org.eclipse.jgit.revwalk.RevWalk;
 import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Created by alfonsovasquez on 1/12/16.
@@ -53,10 +54,12 @@ public class GitDeployer implements Deployer {
     protected String remoteRepositoryUrl;
     protected Git git;
 
+    @Required
     public void setLocalRepositoryPath(String localRepositoryPath) {
         this.localRepositoryPath = localRepositoryPath;
     }
 
+    @Required
     public void setRemoteRepositoryUrl(String remoteRepositoryUrl) {
         this.remoteRepositoryUrl = remoteRepositoryUrl;
     }
@@ -106,7 +109,7 @@ public class GitDeployer implements Deployer {
                 }
             }
         } catch (Exception e) {
-            throw new DeploymentException("Deployment for Git repository " + localRepositoryPath + " failed", e);
+            throw new DeploymentException("Deployment for Git repository " + localRepositoryPath + " failed: " + e.getMessage(), e);
         }
 
         logger.debug("Deployment for Git repository {} finished", localRepositoryPath);

@@ -16,14 +16,21 @@
  */
 package org.craftercms.deployer.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.SiteContext;
 import org.craftercms.deployer.api.SiteResolver;
 import org.craftercms.deployer.api.event.ErrorEvent;
 import org.craftercms.deployer.api.event.PostDeployEvent;
+import org.craftercms.deployer.api.result.DeploymentFailure;
+import org.craftercms.deployer.api.result.DeploymentResult;
+import org.craftercms.deployer.api.result.DeploymentSuccess;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -33,24 +40,47 @@ import org.springframework.stereotype.Component;
 @Component("deploymentService")
 public class DeploymentServiceImpl implements DeploymentService {
 
+    private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
+
     @Autowired
     protected SiteResolver siteResolver;
 
     @Override
-    public void deployAllSites() {
+    public  List<DeploymentResult> deployAllSites() {
         List<SiteContext> siteContexts = siteResolver.resolveAll();
+        List<DeploymentResult> results = new ArrayList<>();
 
-        siteContexts.forEach(this::deploySite);
+        if (CollectionUtils.isNotEmpty(siteContexts)) {
+            siteContexts.forEach(context -> deploySite(context, results));
+        }
+
+        return results;
     }
 
-    protected void deploySite(SiteContext siteContext) {
+    protected void deploySite(SiteContext siteContext, List<DeploymentResult> results) {
         try {
             ChangeSet changeSet = siteContext.getDeployer().deploy();
 
             siteContext.fireEvent(new PostDeployEvent(siteContext, changeSet));
+
+            registerDeploymentSuccess(siteContext.getName(), results);
         } catch (Exception e) {
             siteContext.fireEvent(new ErrorEvent(siteContext, e));
+
+            registerDeploymentFailure(siteContext.getName(), e, results);
         }
+    }
+
+    protected void registerDeploymentSuccess(String siteName, List<DeploymentResult> results) {
+        results.add(new DeploymentSuccess(siteName));
+
+        logger.info("Deployment of site '{}' successful", siteName);
+    }
+
+    protected void registerDeploymentFailure(String siteName, Exception exception, List<DeploymentResult> results) {
+        results.add(new DeploymentFailure(siteName, exception.toString()));
+
+        logger.error("Deployment of site '" + siteName + "' failed", exception);
     }
 
 }

@@ -14,23 +14,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.event;
+package org.craftercms.deployer.impl.rest;
 
-import org.craftercms.deployer.api.SiteContext;
+import java.util.List;
+
+import org.craftercms.deployer.api.DeploymentService;
+import org.craftercms.deployer.api.result.DeploymentResult;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 /**
- * Created by alfonsovasquez on 7/12/16.
+ * Created by alfonsovasquez on 12/14/16.
  */
-public abstract class Event {
+@RestController
+@RequestMapping("/api/1/deploy")
+public class DeployController {
 
-    protected SiteContext siteContext;
+    @Autowired
+    protected DeploymentService deploymentService;
 
-    public Event(SiteContext siteContext) {
-        this.siteContext = siteContext;
-    }
-
-    public SiteContext getSiteContext() {
-        return siteContext;
+    @RequestMapping("/all")
+    public List<DeploymentResult> deployAll() {
+        return deploymentService.deployAllSites();
     }
 
 }

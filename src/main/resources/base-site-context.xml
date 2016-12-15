@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder location="${crafter.deployer.configLocation}/base-site.properties"
+                                  ignore-resource-not-found="true"/>
+
+    <bean id="deployer" class="org.craftercms.deployer.impl.GitDeployer">
+        <property name="localRepositoryPath" value="${localRepositoryPath}"/>
+        <property name="remoteRepositoryUrl" value="${remoteRepositoryUrl}"/>
+    </bean>
+
+    <bean id="postDeployListeners" class="org.craftercms.commons.spring.BeanListFactoryBean">
+        <property name="beanNames" value="${postDeployListeners}"/>
+    </bean>
+
+    <bean id="errorListeners" class="org.craftercms.commons.spring.BeanListFactoryBean">
+        <property name="beanNames" value="${errorListeners}"/>
+    </bean>
+
+    <import resource="${crafter.deployer.configLocation}/base-site-context.xml"/>
+
+</beans>

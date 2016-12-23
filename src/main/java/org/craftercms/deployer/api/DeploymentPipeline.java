@@ -14,15 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.result;
+package org.craftercms.deployer.api;
+
+import org.craftercms.deployer.api.exceptions.DeploymentException;
 
 /**
- * Created by alfonsovasquez on 12/15/16.
+ * Created by alfonsovasquez on 12/18/16.
  */
-public class DeploymentSuccess extends DeploymentResult {
+public interface DeploymentPipeline {
 
-    public DeploymentSuccess(String siteName) {
-        super(siteName, true);
-    }
+    ChangeSet execute(DeploymentContext context) throws DeploymentException;
+
+    void destroy() throws DeploymentException;
 
 }

@@ -14,15 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
-
-import org.craftercms.deployer.api.exception.DeploymentException;
+package org.craftercms.deployer.api.exceptions;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Created by alfonsovasquez on 12/22/16.
  */
-public interface Deployer {
+public class MissingConfigurationPropertyException extends DeploymentConfigurationException {
 
-    ChangeSet deploy() throws DeploymentException;
+    public MissingConfigurationPropertyException(String message) {
+        super(message);
+    }
+
+    public MissingConfigurationPropertyException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

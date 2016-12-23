@@ -16,13 +16,11 @@
  */
 package org.craftercms.deployer.api;
 
-import org.craftercms.deployer.api.event.Event;
-
 /**
- * Created by alfonsovasquez on 1/12/16.
+ * Created by alfonsovasquez on 12/18/16.
  */
-public interface EventListener {
+public interface ErrorHandler {
 
-    void onEvent(Event event);
+    void onError(DeploymentContext context, Exception exception);
 
 }

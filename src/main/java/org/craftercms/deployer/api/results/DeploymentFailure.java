@@ -14,22 +14,22 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.result;
+package org.craftercms.deployer.api.results;
 
 /**
  * Created by alfonsovasquez on 12/15/16.
  */
 public class DeploymentFailure extends DeploymentResult {
 
-    protected String errorMessage;
+    protected String message;
 
-    public DeploymentFailure(String siteName, String errorMessage) {
-        super(siteName, false);
-        this.errorMessage = errorMessage;
+    public DeploymentFailure(String deploymentId, String message) {
+        super(deploymentId, false);
+        this.message = message;
     }
 
-    public String getErrorMessage() {
-        return errorMessage;
+    public String getMessage() {
+        return message;
     }
 
 }

@@ -14,27 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.result;
+package org.craftercms.deployer.api;
+
+import java.util.List;
+
+import org.craftercms.deployer.api.exceptions.DeploymentException;
 
 /**
- * Created by alfonsovasquez on 12/15/16.
+ * Created by alfonsovasquez on 30/11/16.
  */
-public abstract class DeploymentResult {
+public interface DeploymentResolver {
 
-    protected String siteName;
-    protected boolean success;
-
-    public DeploymentResult(String siteName, boolean success) {
-        this.siteName = siteName;
-        this.success = success;
-    }
-
-    public String getSiteName() {
-        return siteName;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
+    List<DeploymentContext> resolveAll() throws DeploymentException;
 
 }

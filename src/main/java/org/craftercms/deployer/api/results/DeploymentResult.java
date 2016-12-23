@@ -14,23 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
-
-import org.craftercms.deployer.api.event.Event;
+package org.craftercms.deployer.api.results;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Created by alfonsovasquez on 12/15/16.
  */
-public interface SiteContext {
+public abstract class DeploymentResult {
 
-    String getName();
+    protected String deploymentId;
+    protected boolean success;
 
-    Deployer getDeployer();
+    public DeploymentResult(String deploymentId, boolean success) {
+        this.deploymentId = deploymentId;
+        this.success = success;
+    }
 
-    void fireEvent(Event event);
+    public String getDeploymentId() {
+        return deploymentId;
+    }
 
-    long getDateCreated();
-
-    void close();
+    public boolean isSuccess() {
+        return success;
+    }
 
 }

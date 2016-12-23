@@ -14,17 +14,15 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
-
-import java.util.List;
-
-import org.craftercms.deployer.api.exception.DeploymentException;
+package org.craftercms.deployer.api.results;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Created by alfonsovasquez on 12/15/16.
  */
-public interface SiteResolver {
+public class DeploymentSuccess extends DeploymentResult {
 
-    List<SiteContext> resolveAll() throws DeploymentException;
+    public DeploymentSuccess(String deploymentId) {
+        super(deploymentId, true);
+    }
 
 }

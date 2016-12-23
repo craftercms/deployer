@@ -14,29 +14,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.rest;
+package org.craftercms.deployer.api.exceptions;
 
-import java.util.List;
-
-import org.craftercms.deployer.api.DeploymentService;
-import org.craftercms.deployer.api.results.DeploymentResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.core.NestedExceptionUtils;
 
 /**
- * Created by alfonsovasquez on 12/14/16.
+ * Created by alfonsovasquez on 30/11/16.
  */
-@RestController
-@RequestMapping("/api/1/deploy")
-public class DeployController {
+public class DeploymentException extends RuntimeException {
 
-    @Autowired
-    protected DeploymentService deploymentService;
+    public DeploymentException(String message) {
+        super(message);
+    }
 
-    @RequestMapping("/all")
-    public List<DeploymentResult> deployAll() {
-        return deploymentService.deployAllSites();
+    public DeploymentException(String message, Throwable cause) {
+        super(message, cause);
+    }
+
+    /**
+     * Return the detail message, including the message from the nested exception if there is one.
+     */
+    @Override
+    public String getMessage() {
+        return NestedExceptionUtils.buildMessage(super.getMessage(), getCause());
     }
 
 }

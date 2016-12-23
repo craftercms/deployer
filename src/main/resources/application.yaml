@@ -1,0 +1,12 @@
+server:
+  port: 9191
+
+deployer:
+  configLocation: file:config
+  baseDeploymentConfig:
+    yamlLocation: classpath:base-deployment.yaml
+    yamlOverrideLocation: ${deployer.configLocation}/base-deployment.yaml
+    appContextLocation: classpath:base-deployment-context.xml
+    appContextOverrideLocation: ${deployer.configLocation}/base-deployment-context.xml
+
+logging.level.org.craftercms: DEBUG

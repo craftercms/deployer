@@ -14,24 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.event;
+package org.craftercms.deployer.api;
 
-import org.craftercms.deployer.api.SiteContext;
+import org.apache.commons.configuration2.Configuration;
+import org.craftercms.deployer.api.exceptions.DeploymentException;
 
 /**
- * Created by alfonsovasquez on 1/12/16.
+ * Created by alfonsovasquez on 12/15/16.
  */
-public class ErrorEvent extends Event {
+public interface DeploymentProcessor {
 
-    protected Exception exception;
+    void init(Configuration configuration) throws DeploymentException;
 
-    public ErrorEvent(SiteContext siteContext, Exception exception) {
-        super(siteContext);
-        this.exception = exception;
-    }
+    void destroy() throws DeploymentException;
 
-    public Exception getException() {
-        return exception;
-    }
+    ChangeSet execute(DeploymentContext context, ChangeSet changeSet) throws DeploymentException;
 
 }

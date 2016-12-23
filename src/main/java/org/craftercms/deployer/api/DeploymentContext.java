@@ -14,19 +14,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.exception;
+package org.craftercms.deployer.api;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public class DeploymentException extends RuntimeException {
+public interface DeploymentContext {
 
-    public DeploymentException(String message) {
-        super(message);
-    }
+    String getId();
 
-    public DeploymentException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    DeploymentPipeline getDeploymentPipeline();
+
+    ErrorHandler getErrorHandler();
+
+    long getDateCreated();
+
+    void destroy();
 
 }

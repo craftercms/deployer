@@ -14,25 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.event;
+package org.craftercms.deployer.impl;
 
-import org.craftercms.deployer.api.ChangeSet;
-import org.craftercms.deployer.api.SiteContext;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.deployer.api.DeploymentPipeline;
+import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.springframework.beans.factory.BeanFactory;
 
 /**
- * Created by alfonsovasquez on 1/12/16.
+ * Created by alfonsovasquez on 12/22/16.
  */
-public class PostDeployEvent extends Event {
+public interface DeploymentPipelineFactory {
 
-    protected ChangeSet changeSet;
-
-    public PostDeployEvent(SiteContext siteContext, ChangeSet changeSet) {
-        super(siteContext);
-        this.changeSet = changeSet;
-    }
-
-    public ChangeSet getChangeSet() {
-        return changeSet;
-    }
+    DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, BeanFactory beanFactory) throws DeploymentException;
 
 }

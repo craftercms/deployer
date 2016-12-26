@@ -141,8 +141,8 @@ public class DeploymentResolverImpl implements DeploymentResolver {
                deploymentContext = deploymentContextCache.get(deploymentId);
 
                 // Check if the YAML config file or the app context file have changed since the context was created.
-                long yamlLastModified = customConfigFile.lastModified();
-                long appContextLastModified = deploymentAppContextResource.lastModified();
+                long yamlLastModified = customConfigFile.exists() ? customConfigFile.lastModified() : 0;
+                long appContextLastModified = deploymentAppContextResource.exists()? deploymentAppContextResource.lastModified() : 0;
                 long contextDateCreated = deploymentContext.getDateCreated();
 
                 // Refresh if the files have been modified.

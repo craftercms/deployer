@@ -16,8 +16,11 @@
  */
 package org.craftercms.deployer.impl;
 
+import java.io.BufferedInputStream;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.Collections;
@@ -50,6 +53,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
+import org.xml.sax.InputSource;
 
 /**
  * Created by alfonsovasquez on 5/12/16.
@@ -60,58 +64,64 @@ public class DeploymentResolverImpl implements DeploymentResolver {
     private static final Logger logger = LoggerFactory.getLogger(DeploymentResolverImpl.class);
 
     public static final String APP_CONTEXT_FILENAME_SUFFIX = "-context.xml";
+    public static final String YAML_FILE_EXTENSION = "yaml";
+
     public static final String ERROR_HANDLER_BEAN_NAME = "errorHandler";
 
-    @Value("${deployer.configLocation}")
-    protected Resource configResource;
-    @Value("${deployer.baseDeploymentConfig.yamlLocation}")
+    protected File configFolder;
     protected Resource baseDeploymentYamlConfigResource;
-    @Value("${deployer.baseDeploymentConfig.yamlOverrideLocation}")
     protected Resource baseDeploymentYamlConfigOverrideResource;
-    @Value("${deployer.baseDeploymentConfig.appContextLocation}")
     protected Resource baseDeploymentAppContextResource;
-    @Value("${deployer.baseDeploymentConfig.appContextOverrideLocation}")
     protected Resource baseDeploymentAppContextOverrideResource;
-
-    @Autowired
-    protected ApplicationContext mainApplicationContext;
-    @Autowired
-    protected DeploymentPipelineFactory deploymentPipelineFactory;
-
+    protected final ApplicationContext mainApplicationContext;
+    protected final DeploymentPipelineFactory deploymentPipelineFactory;
     protected Map<String, DeploymentContext> deploymentContextCache;
 
-    public DeploymentResolverImpl() {
+    public DeploymentResolverImpl(
+        @Value("${deployer.configLocation}") Resource configResource,
+        @Value("${deployer.baseDeploymentConfig.yamlLocation}") Resource baseDeploymentYamlConfigResource,
+        @Value("${deployer.baseDeploymentConfig.yamlOverrideLocation}") Resource baseDeploymentYamlConfigOverrideResource,
+        @Value("${deployer.baseDeploymentConfig.appContextLocation}") Resource baseDeploymentAppContextResource,
+        @Value("${deployer.baseDeploymentConfig.appContextOverrideLocation}") Resource baseDeploymentAppContextOverrideResource,
+        @Autowired ApplicationContext mainApplicationContext,
+        @Autowired DeploymentPipelineFactory deploymentPipelineFactory) throws IOException {
+        this.configFolder = configResource.getFile();
+        this.baseDeploymentYamlConfigResource = baseDeploymentYamlConfigResource;
+        this.baseDeploymentYamlConfigOverrideResource = baseDeploymentYamlConfigOverrideResource;
+        this.baseDeploymentAppContextResource = baseDeploymentAppContextResource;
+        this.baseDeploymentAppContextOverrideResource = baseDeploymentAppContextOverrideResource;
+        this.mainApplicationContext = mainApplicationContext;
+        this.deploymentPipelineFactory = deploymentPipelineFactory;
+
         deploymentContextCache = new HashMap<>();
     }
 
     @PreDestroy
     public void destroy() {
+        logger.info("Destroying all deployment contexts...");
+
         deploymentContextCache.values().forEach(DeploymentContext::destroy);
     }
 
     @Override
     public List<DeploymentContext> resolveAll() throws DeploymentException {
         Collection<File> configFiles = getCustomConfigFiles();
-        List<DeploymentContext> deploymentContexts = new ArrayList<>();
+        List<DeploymentContext> deploymentContexts = Collections.emptyList();
 
         if (CollectionUtils.isNotEmpty(configFiles)) {
-            configFiles.forEach(file -> {
-                String deploymentId = getDeploymentIdFromFilename(file);
-                DeploymentContext deploymentContext = getDeploymentContext(deploymentId, file);
+            destroyContextsWithNoCustomConfigFile(configFiles);
 
-                deploymentContexts.add(deploymentContext);
-            });
+            deploymentContexts = resolveContextsFromCustomConfigFile(configFiles);
         }
+
 
         return deploymentContexts;
     }
 
     protected Collection<File> getCustomConfigFiles() {
         try {
-            File configFolder = configResource.getFile();
-            
             if (configFolder.exists()) {
-                Collection<File> yamlFiles = FileUtils.listFiles(configFolder, new String[] {"yaml"}, false);
+                Collection<File> yamlFiles = FileUtils.listFiles(configFolder, new String[] {YAML_FILE_EXTENSION}, false);
                 
                 if (CollectionUtils.isEmpty(yamlFiles)) {
                     logger.warn("No YAML config files found under {}", configFolder.getAbsolutePath());
@@ -124,7 +134,7 @@ public class DeploymentResolverImpl implements DeploymentResolver {
                 return Collections.emptyList();
             }
         } catch (Exception e) {
-            throw new DeploymentException("Error while retrieving YAML config files from " + configResource, e);
+            throw new DeploymentException("Error while retrieving YAML config files from " + configFolder, e);
         }
     }
 
@@ -132,9 +142,45 @@ public class DeploymentResolverImpl implements DeploymentResolver {
         return FilenameUtils.getBaseName(file.getName());
     }
 
+    protected File getConfigFileFromDeploymentId(String deploymentId) {
+        String filename = deploymentId + "." + YAML_FILE_EXTENSION;
+
+        return new File(configFolder, filename);
+    }
+
+    protected List<DeploymentContext> resolveContextsFromCustomConfigFile(Collection<File> configFiles) {
+        List<DeploymentContext> deploymentContexts = new ArrayList<>();
+
+        // Get current contexts
+        configFiles.forEach(file -> {
+            String deploymentId = getDeploymentIdFromFilename(file);
+            DeploymentContext deploymentContext = getDeploymentContext(deploymentId, file);
+
+            deploymentContexts.add(deploymentContext);
+        });
+
+        return deploymentContexts;
+    }
+
+    protected void destroyContextsWithNoCustomConfigFile(Collection<File> configFiles) {
+        deploymentContextCache.values().removeIf(context -> {
+            String contextId = context.getId();
+            if (!configFiles.contains(getConfigFileFromDeploymentId(contextId))) {
+                logger.info("No YAML config file found for deployment '{}' under {}. Destroying deployment context...",
+                            contextId, configFolder);
+
+                context.destroy();
+
+                return true;
+            } else {
+                return false;
+            }
+        });
+    }
+
     protected DeploymentContext getDeploymentContext(String deploymentId, File customConfigFile) {
         try {
-            Resource deploymentAppContextResource = configResource.createRelative(deploymentId + APP_CONTEXT_FILENAME_SUFFIX);
+            File customAppContextResource = new File(configFolder, deploymentId + APP_CONTEXT_FILENAME_SUFFIX);
             DeploymentContext deploymentContext = null;
 
             if (deploymentContextCache.containsKey(deploymentId)) {
@@ -142,7 +188,7 @@ public class DeploymentResolverImpl implements DeploymentResolver {
 
                 // Check if the YAML config file or the app context file have changed since the context was created.
                 long yamlLastModified = customConfigFile.exists() ? customConfigFile.lastModified() : 0;
-                long appContextLastModified = deploymentAppContextResource.exists()? deploymentAppContextResource.lastModified() : 0;
+                long appContextLastModified = customAppContextResource.exists()? customAppContextResource.lastModified() : 0;
                 long contextDateCreated = deploymentContext.getDateCreated();
 
                 // Refresh if the files have been modified.
@@ -161,7 +207,7 @@ public class DeploymentResolverImpl implements DeploymentResolver {
             if (deploymentContext == null) {
                 logger.info("Creating deployment context for '{}'", deploymentId);
 
-                deploymentContext = createDeploymentContext(deploymentId, customConfigFile, deploymentAppContextResource);
+                deploymentContext = createDeploymentContext(deploymentId, customConfigFile, customAppContextResource);
 
                 deploymentContextCache.put(deploymentId, deploymentContext);
             }
@@ -173,9 +219,9 @@ public class DeploymentResolverImpl implements DeploymentResolver {
     }
 
     protected DeploymentContext createDeploymentContext(String deploymentId, File customConfigFile,
-                                                        Resource customAppContextResource) throws IOException {
+                                                        File customAppContextFile) throws IOException {
         HierarchicalConfiguration config = loadConfiguration(customConfigFile);
-        ConfigurableApplicationContext appContext = loadApplicationContext(config, customAppContextResource);
+        ConfigurableApplicationContext appContext = loadApplicationContext(config, customAppContextFile);
 
         DeploymentPipeline deploymentPipeline = getDeploymentPipeline(config, appContext);
         ErrorHandler errorHandler = getErrorHandler(appContext);
@@ -215,7 +261,7 @@ public class DeploymentResolverImpl implements DeploymentResolver {
     }
 
     protected ConfigurableApplicationContext loadApplicationContext(HierarchicalConfiguration config,
-                                                                    Resource customDeploymentAppContextResource) {
+                                                                    File customDeploymentAppContextFile) throws IOException {
         GenericApplicationContext appContext = new GenericApplicationContext(mainApplicationContext);
 
         MutablePropertySources propertySources = appContext.getEnvironment().getPropertySources();
@@ -234,10 +280,12 @@ public class DeploymentResolverImpl implements DeploymentResolver {
 
             reader.loadBeanDefinitions(baseDeploymentAppContextResource);
         }
-        if (customDeploymentAppContextResource.exists()) {
-            logger.debug("Loading custom deployment application context at {}", customDeploymentAppContextResource);
+        if (customDeploymentAppContextFile.exists()) {
+            logger.debug("Loading custom deployment application context at {}", customDeploymentAppContextFile);
 
-            reader.loadBeanDefinitions(customDeploymentAppContextResource);
+            try (InputStream in = new BufferedInputStream(new FileInputStream(customDeploymentAppContextFile))) {
+                reader.loadBeanDefinitions(new InputSource(in));
+            }
         }
 
         appContext.refresh();

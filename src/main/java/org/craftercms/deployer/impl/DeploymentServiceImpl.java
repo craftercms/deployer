@@ -40,8 +40,12 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
+    protected final DeploymentResolver deploymentResolver;
+
     @Autowired
-    protected DeploymentResolver deploymentResolver;
+    public DeploymentServiceImpl(DeploymentResolver deploymentResolver) {
+        this.deploymentResolver = deploymentResolver;
+    }
 
     @Override
     public  List<DeploymentResult> deployAllSites() throws DeploymentException {

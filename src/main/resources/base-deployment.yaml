@@ -1,0 +1,10 @@
+search:
+  serverUrl: http://localhost:8080/crafter-search
+  binaryFiles:
+    supportedMimeTypes:
+      - application/pdf
+      - application/msword
+      - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+      - application/vnd.ms-excel
+      - application/vnd.ms-powerpoint
+      - application/vnd.openxmlformats-officedocument.presentationml.presentation

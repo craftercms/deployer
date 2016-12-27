@@ -44,15 +44,16 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.craftercms.deployer.impl.GlobalConfigurationProperties.*;
+
 /**
  * Created by alfonsovasquez on 1/12/16.
  */
 public class GitPullProcessor implements DeploymentProcessor {
 
-    public static final String LOCAL_REPOSITORY_PATH_PROPERTY = "localRepository.path";
-    public static final String REMOTE_REPOSITORY_URL_PROPERTY = "remoteRepository.url";
-    public static final String REMOTE_REPOSITORY_USERNAME_PROPERTY = "remoteRepository.username";
-    public static final String REMOTE_REPOSITORY_PASSWORD_PROPERTY = "remoteRepository.password";
+    public static final String REMOTE_REPOSITORY_URL_PROPERTY_NAME = "remoteRepository.url";
+    public static final String REMOTE_REPOSITORY_USERNAME_PROPERTY_NAME = "remoteRepository.username";
+    public static final String REMOTE_REPOSITORY_PASSWORD_PROPERTY_NAME = "remoteRepository.password";
 
     public static final String GIT_FOLDER_NAME = ".git";
 
@@ -65,8 +66,8 @@ public class GitPullProcessor implements DeploymentProcessor {
     protected Git git;
 
     @Override
-    public void init(Configuration configuration) throws DeploymentException {
-        initProperties(configuration);
+    public void init(Configuration globalConfig, Configuration processorConfig) throws DeploymentException {
+        initProperties(globalConfig, processorConfig);
 
         File gitFolder = new File(localRepositoryFolder, GIT_FOLDER_NAME);
 
@@ -119,11 +120,11 @@ public class GitPullProcessor implements DeploymentProcessor {
         return changeSet;
     }
 
-    protected void initProperties(Configuration configuration) {
-        localRepositoryFolder = new File(ConfigurationUtils.getString(configuration, LOCAL_REPOSITORY_PATH_PROPERTY, true));
-        remoteRepositoryUrl = ConfigurationUtils.getString(configuration, REMOTE_REPOSITORY_URL_PROPERTY, true);
-        remoteRepositoryUsername = ConfigurationUtils.getString(configuration, REMOTE_REPOSITORY_USERNAME_PROPERTY, false);
-        remoteRepositoryPassword = ConfigurationUtils.getString(configuration, REMOTE_REPOSITORY_PASSWORD_PROPERTY, false);
+    protected void initProperties(Configuration globalConfig, Configuration processorConfig) {
+        localRepositoryFolder = new File(ConfigurationUtils.getRequiredString(globalConfig, DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME));
+        remoteRepositoryUrl = ConfigurationUtils.getRequiredString(processorConfig, REMOTE_REPOSITORY_URL_PROPERTY_NAME);
+        remoteRepositoryUsername = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_USERNAME_PROPERTY_NAME);
+        remoteRepositoryPassword = ConfigurationUtils.getRequiredString(processorConfig, REMOTE_REPOSITORY_PASSWORD_PROPERTY_NAME);
     }
 
     protected void openLocalRepository() {

@@ -16,9 +16,9 @@
  */
 package org.craftercms.deployer.impl;
 
-import org.craftercms.deployer.api.ErrorHandler;
-import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentContext;
+import org.craftercms.deployer.api.DeploymentPipeline;
+import org.craftercms.deployer.api.ErrorHandler;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
@@ -44,6 +44,7 @@ public class DeploymentContextImpl implements DeploymentContext {
         return id;
     }
 
+    @Override
     public DeploymentPipeline getDeploymentPipeline() {
         return deploymentPipeline;
     }
@@ -63,7 +64,5 @@ public class DeploymentContextImpl implements DeploymentContext {
         deploymentPipeline.destroy();
         applicationContext.close();
     }
-
-
 
 }

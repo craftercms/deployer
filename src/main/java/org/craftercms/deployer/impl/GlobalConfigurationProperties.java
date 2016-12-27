@@ -14,20 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
-
-import org.apache.commons.configuration2.Configuration;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+package org.craftercms.deployer.impl;
 
 /**
- * Created by alfonsovasquez on 12/15/16.
+ * Created by alfonsovasquez on 12/26/16.
  */
-public interface DeploymentProcessor {
+public class GlobalConfigurationProperties {
 
-    void init(Configuration globalConfig, Configuration processorConfig) throws DeploymentException;
+    private GlobalConfigurationProperties() {
+    }
 
-    void destroy() throws DeploymentException;
-
-    ChangeSet execute(DeploymentContext context, ChangeSet changeSet) throws DeploymentException;
+    public static final String DEPLOYMENT_ID_PROPERTY_NAME = "deployment.id";
+    public static final String DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME = "deployment.rootFolder";
+    public static final String DEPLOYMENT_PIPELINE_PROPERTY_NAME = "deployment.pipeline";
 
 }

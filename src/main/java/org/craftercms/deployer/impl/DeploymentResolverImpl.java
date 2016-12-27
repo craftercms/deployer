@@ -55,6 +55,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
+import static org.craftercms.deployer.impl.GlobalConfigurationProperties.*;
+
 /**
  * Created by alfonsovasquez on 5/12/16.
  */
@@ -65,6 +67,7 @@ public class DeploymentResolverImpl implements DeploymentResolver {
 
     public static final String APP_CONTEXT_FILENAME_SUFFIX = "-context.xml";
     public static final String YAML_FILE_EXTENSION = "yaml";
+    public static final String CONFIG_PROPERTY_SOURCE_NAME = "deploymentConfig";
 
     public static final String ERROR_HANDLER_BEAN_NAME = "errorHandler";
 
@@ -223,6 +226,8 @@ public class DeploymentResolverImpl implements DeploymentResolver {
         HierarchicalConfiguration config = loadConfiguration(customConfigFile);
         ConfigurableApplicationContext appContext = loadApplicationContext(config, customAppContextFile);
 
+        config.setProperty(DEPLOYMENT_ID_PROPERTY_NAME, deploymentId);
+
         DeploymentPipeline deploymentPipeline = getDeploymentPipeline(config, appContext);
         ErrorHandler errorHandler = getErrorHandler(appContext);
 
@@ -230,28 +235,26 @@ public class DeploymentResolverImpl implements DeploymentResolver {
     }
 
     protected HierarchicalConfiguration loadConfiguration(File customConfigFile) throws IOException {
-        logger.debug("Loading custom deployment YAML config at {}", customConfigFile);
+        String customConfigFilename = customConfigFile.getPath();
+
+        logger.debug("Loading custom deployment YAML config at {}", customConfigFilename);
 
         HierarchicalConfiguration customConfig = ConfigurationUtils.loadYamlConfiguration(customConfigFile);
 
-        if (!baseDeploymentYamlConfigResource.exists() && !baseDeploymentYamlConfigOverrideResource.exists()) {
+        if (baseDeploymentYamlConfigResource.exists() || baseDeploymentYamlConfigOverrideResource.exists()) {
             CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
 
             combinedConfig.addConfiguration(customConfig);
 
             if (baseDeploymentYamlConfigOverrideResource.exists()) {
-                File configFile = baseDeploymentYamlConfigOverrideResource.getFile();
-
                 logger.debug("Loading base deployment YAML config override at {}", baseDeploymentYamlConfigOverrideResource);
 
-                combinedConfig.addConfiguration(ConfigurationUtils.loadYamlConfiguration(configFile));
+                combinedConfig.addConfiguration(ConfigurationUtils.loadYamlConfiguration(baseDeploymentYamlConfigOverrideResource));
             }
             if (baseDeploymentYamlConfigResource.exists()) {
-                File configFile = baseDeploymentYamlConfigResource.getFile();
+                logger.debug("Loading base deployment YAML config at {}", baseDeploymentYamlConfigResource);
 
-                logger.debug("Loading base deployment YAML config at {}", baseDeploymentYamlConfigOverrideResource);
-
-                combinedConfig.addConfiguration(ConfigurationUtils.loadYamlConfiguration(configFile));
+                combinedConfig.addConfiguration(ConfigurationUtils.loadYamlConfiguration(baseDeploymentYamlConfigResource));
             }
 
             return combinedConfig;
@@ -265,7 +268,7 @@ public class DeploymentResolverImpl implements DeploymentResolver {
         GenericApplicationContext appContext = new GenericApplicationContext(mainApplicationContext);
 
         MutablePropertySources propertySources = appContext.getEnvironment().getPropertySources();
-        propertySources.addFirst(new ApacheCommonsConfiguration2PropertySource("deploymentConfig", config));
+        propertySources.addFirst(new ApacheCommonsConfiguration2PropertySource(CONFIG_PROPERTY_SOURCE_NAME, config));
 
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(appContext);
         reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);

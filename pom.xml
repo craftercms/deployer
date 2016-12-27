@@ -20,7 +20,6 @@
 
 	<properties>
 		<!-- Version Numbers -->
-		<crafter.version>2.6.0-SNAPSHOT</crafter.version>
 		<commons.configuration.version>2.1</commons.configuration.version>
 		<jgit.version>4.5.0.201609210915-r</jgit.version>
 		<snakeyaml.version>1.17</snakeyaml.version>
@@ -36,7 +35,40 @@
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-utilities</artifactId>
-			<version>${crafter.version}</version>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-search-batch-indexer</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-search-client</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-search-api</artifactId>
+			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<!-- Commmons -->

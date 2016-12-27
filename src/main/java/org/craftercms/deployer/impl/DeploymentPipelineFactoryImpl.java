@@ -31,6 +31,8 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.stereotype.Component;
 
+import static org.craftercms.deployer.impl.GlobalConfigurationProperties.*;
+
 /**
  * Created by alfonsovasquez on 12/22/16.
  */
@@ -39,24 +41,24 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentPipelineFactoryImpl.class);
 
-    public static final String PIPELINE_PROPERTY_NAME = "deployer.pipeline";
     public static final String PROCESSOR_NAME_PROPERTY_NAME = "processorName";
 
     @Override
     public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration,
                                           BeanFactory beanFactory) throws DeploymentException {
-        List<HierarchicalConfiguration> processorConfigs = ConfigurationUtils.configurationsAt(configuration, PIPELINE_PROPERTY_NAME, true);
+        List<HierarchicalConfiguration> processorConfigs = ConfigurationUtils.getRequiredConfigurationsAt(configuration,
+                                                                                                          DEPLOYMENT_PIPELINE_PROPERTY_NAME);
         List<DeploymentProcessor> processors = new ArrayList<>(processorConfigs.size());
 
         for (HierarchicalConfiguration processorConfig : processorConfigs) {
-            String processorName = ConfigurationUtils.getString(processorConfig, PROCESSOR_NAME_PROPERTY_NAME, true);
+            String processorName = ConfigurationUtils.getRequiredString(processorConfig, PROCESSOR_NAME_PROPERTY_NAME);
             DeploymentProcessor processor;
 
             logger.debug("Initializing pipeline processor '{}'", processorName);
 
             try {
                 processor = beanFactory.getBean(processorName, DeploymentProcessor.class);
-                processor.init(processorConfig);
+                processor.init(configuration, processorConfig);
             } catch (NoSuchBeanDefinitionException e) {
                 throw new DeploymentConfigurationException("No processor prototype bean found with name '" + processorName + "'", e);
             } catch (Exception e) {

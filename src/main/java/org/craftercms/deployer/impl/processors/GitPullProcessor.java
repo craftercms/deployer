@@ -124,7 +124,7 @@ public class GitPullProcessor implements DeploymentProcessor {
         localRepositoryFolder = new File(ConfigurationUtils.getRequiredString(globalConfig, DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME));
         remoteRepositoryUrl = ConfigurationUtils.getRequiredString(processorConfig, REMOTE_REPOSITORY_URL_PROPERTY_NAME);
         remoteRepositoryUsername = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_USERNAME_PROPERTY_NAME);
-        remoteRepositoryPassword = ConfigurationUtils.getRequiredString(processorConfig, REMOTE_REPOSITORY_PASSWORD_PROPERTY_NAME);
+        remoteRepositoryPassword = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_PASSWORD_PROPERTY_NAME);
     }
 
     protected void openLocalRepository() {

@@ -81,7 +81,7 @@ public class ConfigurationUtils {
     public static String getRequiredString(Configuration config, String key) throws DeploymentConfigurationException {
         String property = getString(config, key);
         if (StringUtils.isEmpty(property)) {
-            throw new MissingConfigurationPropertyException("Missing required property '" + property + "'");
+            throw new MissingConfigurationPropertyException("Missing required property '" + key + "'");
         } else {
             return property;
         }

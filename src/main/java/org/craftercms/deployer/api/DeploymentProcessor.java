@@ -14,22 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.result;
+package org.craftercms.deployer.api;
+
+import org.apache.commons.configuration2.Configuration;
+import org.craftercms.deployer.api.exceptions.DeploymentException;
 
 /**
  * Created by alfonsovasquez on 12/15/16.
  */
-public class DeploymentFailure extends DeploymentResult {
+public interface DeploymentProcessor {
 
-    protected String errorMessage;
+    void init(Configuration globalConfig, Configuration processorConfig) throws DeploymentException;
 
-    public DeploymentFailure(String siteName, String errorMessage) {
-        super(siteName, false);
-        this.errorMessage = errorMessage;
-    }
+    void destroy() throws DeploymentException;
 
-    public String getErrorMessage() {
-        return errorMessage;
-    }
+    ChangeSet execute(DeploymentContext context, ChangeSet changeSet) throws DeploymentException;
 
 }

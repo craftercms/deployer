@@ -14,29 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.rest;
+package org.craftercms.deployer.api;
 
-import java.util.List;
-
-import org.craftercms.deployer.api.DeploymentService;
-import org.craftercms.deployer.api.result.DeploymentResult;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.craftercms.deployer.api.exceptions.DeploymentException;
 
 /**
- * Created by alfonsovasquez on 12/14/16.
+ * Created by alfonsovasquez on 12/18/16.
  */
-@RestController
-@RequestMapping("/api/1/deploy")
-public class DeployController {
+public interface DeploymentPipeline {
 
-    @Autowired
-    protected DeploymentService deploymentService;
+    ChangeSet execute(DeploymentContext context) throws DeploymentException;
 
-    @RequestMapping("/all")
-    public List<DeploymentResult> deployAll() {
-        return deploymentService.deployAllSites();
-    }
+    void destroy() throws DeploymentException;
 
 }

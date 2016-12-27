@@ -14,18 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
-
-import java.util.List;
-
-import org.craftercms.deployer.api.exceptions.DeploymentException;
-import org.craftercms.deployer.api.results.DeploymentResult;
+package org.craftercms.deployer.api.exceptions;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Created by alfonsovasquez on 12/23/16.
  */
-public interface DeploymentService {
+public class DeploymentConfigurationException extends DeploymentException {
 
-    List<DeploymentResult> deployAllSites() throws DeploymentException;
+    public DeploymentConfigurationException(String message) {
+        super(message);
+    }
+
+    public DeploymentConfigurationException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
 }

@@ -14,23 +14,18 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.event;
+package org.craftercms.deployer.impl.handlers;
 
-import org.craftercms.deployer.api.SiteContext;
+import org.craftercms.deployer.api.DeploymentContext;
+import org.craftercms.deployer.api.ErrorHandler;
 
 /**
- * Created by alfonsovasquez on 7/12/16.
+ * Created by alfonsovasquez on 12/19/16.
  */
-public abstract class Event {
+public class NoOpErrorHandler implements ErrorHandler {
 
-    protected SiteContext siteContext;
-
-    public Event(SiteContext siteContext) {
-        this.siteContext = siteContext;
-    }
-
-    public SiteContext getSiteContext() {
-        return siteContext;
+    @Override
+    public void onError(DeploymentContext context, Exception exception) {
     }
 
 }

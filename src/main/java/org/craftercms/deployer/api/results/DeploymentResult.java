@@ -14,15 +14,27 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.result;
+package org.craftercms.deployer.api.results;
 
 /**
  * Created by alfonsovasquez on 12/15/16.
  */
-public class DeploymentSuccess extends DeploymentResult {
+public abstract class DeploymentResult {
 
-    public DeploymentSuccess(String siteName) {
-        super(siteName, true);
+    protected String deploymentId;
+    protected boolean success;
+
+    public DeploymentResult(String deploymentId, boolean success) {
+        this.deploymentId = deploymentId;
+        this.success = success;
+    }
+
+    public String getDeploymentId() {
+        return deploymentId;
+    }
+
+    public boolean isSuccess() {
+        return success;
     }
 
 }

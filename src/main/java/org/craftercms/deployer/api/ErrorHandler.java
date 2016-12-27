@@ -14,27 +14,13 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.result;
+package org.craftercms.deployer.api;
 
 /**
- * Created by alfonsovasquez on 12/15/16.
+ * Created by alfonsovasquez on 12/18/16.
  */
-public abstract class DeploymentResult {
+public interface ErrorHandler {
 
-    protected String siteName;
-    protected boolean success;
-
-    public DeploymentResult(String siteName, boolean success) {
-        this.siteName = siteName;
-        this.success = success;
-    }
-
-    public String getSiteName() {
-        return siteName;
-    }
-
-    public boolean isSuccess() {
-        return success;
-    }
+    void onError(DeploymentContext context, Exception exception);
 
 }

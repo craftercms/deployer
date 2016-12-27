@@ -20,15 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.deployer.api.ChangeSet;
+import org.craftercms.deployer.api.DeploymentContext;
+import org.craftercms.deployer.api.DeploymentResolver;
 import org.craftercms.deployer.api.DeploymentService;
-import org.craftercms.deployer.api.SiteContext;
-import org.craftercms.deployer.api.SiteResolver;
-import org.craftercms.deployer.api.event.ErrorEvent;
-import org.craftercms.deployer.api.event.PostDeployEvent;
-import org.craftercms.deployer.api.result.DeploymentFailure;
-import org.craftercms.deployer.api.result.DeploymentResult;
-import org.craftercms.deployer.api.result.DeploymentSuccess;
+import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.craftercms.deployer.api.results.DeploymentFailure;
+import org.craftercms.deployer.api.results.DeploymentResult;
+import org.craftercms.deployer.api.results.DeploymentSuccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,45 +40,39 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
+    protected final DeploymentResolver deploymentResolver;
+
     @Autowired
-    protected SiteResolver siteResolver;
+    public DeploymentServiceImpl(DeploymentResolver deploymentResolver) {
+        this.deploymentResolver = deploymentResolver;
+    }
 
     @Override
-    public  List<DeploymentResult> deployAllSites() {
-        List<SiteContext> siteContexts = siteResolver.resolveAll();
+    public  List<DeploymentResult> deployAllSites() throws DeploymentException {
+        List<DeploymentContext> deploymentContexts = deploymentResolver.resolveAll();
         List<DeploymentResult> results = new ArrayList<>();
 
-        if (CollectionUtils.isNotEmpty(siteContexts)) {
-            siteContexts.forEach(context -> deploySite(context, results));
+        if (CollectionUtils.isNotEmpty(deploymentContexts)) {
+            deploymentContexts.forEach(context -> deploySite(context, results));
         }
 
         return results;
     }
 
-    protected void deploySite(SiteContext siteContext, List<DeploymentResult> results) {
+    protected void deploySite(DeploymentContext context, List<DeploymentResult> results) {
         try {
-            ChangeSet changeSet = siteContext.getDeployer().deploy();
+            context.getDeploymentPipeline().execute(context);
 
-            siteContext.fireEvent(new PostDeployEvent(siteContext, changeSet));
+            results.add(new DeploymentSuccess(context.getId()));
 
-            registerDeploymentSuccess(siteContext.getName(), results);
+            logger.info("Deployment of '{}' successful", context.getId());
         } catch (Exception e) {
-            siteContext.fireEvent(new ErrorEvent(siteContext, e));
+            results.add(new DeploymentFailure(context.getId(), e.toString()));
 
-            registerDeploymentFailure(siteContext.getName(), e, results);
+            logger.error("Deployment of '" + context.getId() + "' failed", e);
+
+            context.getErrorHandler().onError(context, e);
         }
-    }
-
-    protected void registerDeploymentSuccess(String siteName, List<DeploymentResult> results) {
-        results.add(new DeploymentSuccess(siteName));
-
-        logger.info("Deployment of site '{}' successful", siteName);
-    }
-
-    protected void registerDeploymentFailure(String siteName, Exception exception, List<DeploymentResult> results) {
-        results.add(new DeploymentFailure(siteName, exception.toString()));
-
-        logger.error("Deployment of site '" + siteName + "' failed", exception);
     }
 
 }

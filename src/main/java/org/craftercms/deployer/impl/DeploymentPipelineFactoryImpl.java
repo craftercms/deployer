@@ -31,7 +31,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.stereotype.Component;
 
-import static org.craftercms.deployer.impl.GlobalConfigurationProperties.*;
+import static org.craftercms.deployer.impl.CommonConfigurationProperties.*;
 
 /**
  * Created by alfonsovasquez on 12/22/16.
@@ -40,8 +40,6 @@ import static org.craftercms.deployer.impl.GlobalConfigurationProperties.*;
 public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentPipelineFactoryImpl.class);
-
-    public static final String PROCESSOR_NAME_PROPERTY_NAME = "processorName";
 
     @Override
     public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration,

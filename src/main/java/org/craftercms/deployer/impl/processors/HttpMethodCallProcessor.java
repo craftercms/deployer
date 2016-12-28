@@ -20,6 +20,7 @@ import java.io.IOException;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpDelete;
@@ -75,7 +76,11 @@ public class HttpMethodCallProcessor extends AbstractDeploymentProcessor {
         try (CloseableHttpResponse response = httpClient.execute(request)) {
             int status = response.getStatusLine().getStatusCode();
             HttpEntity entity = response.getEntity();
-            String body = entity != null? EntityUtils.toString(entity) : "";
+            String body = entity != null? EntityUtils.toString(entity) : null;
+
+            if (StringUtils.isEmpty(body)) {
+                body = "empty";
+            }
 
             if (status >= 200 && status < 300) {
                 logger.info("Successful response for request {}: status = {}, body = {}", status, body);

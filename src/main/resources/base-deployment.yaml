@@ -3,7 +3,7 @@ search:
   indexing:
     xmlFiles:
       includePatterns:
-        - /site/.+
+        - /?site/.+
     binaryFiles:
       supportedMimeTypes:
         - application/pdf

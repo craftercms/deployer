@@ -25,15 +25,20 @@
         </property>
     </bean>
 
+    <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor" scope="prototype"/>
+
     <!-- Search -->
     
     <bean id="flattenedXmlFileBatchIndexer" class="org.craftercms.search.batch.impl.FlattenedXmlFileBatchIndexer">
         <property name="searchService" ref="searchService"/>
+        <property name="includeFileNamePatterns"
+                  value="#{environment.getProperty('search.indexing.xmlFiles.includePatterns', T(java.util.List))}"/>
     </bean>
 
     <bean id="binaryFileBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileBatchIndexer">
         <property name="searchService" ref="searchService"/>
-        <property name="supportedMimeTypes" value="#{environment.getProperty('search.binaryFiles.supportedMimeTypes', T(java.util.List))}"/>
+        <property name="supportedMimeTypes"
+                  value="#{environment.getProperty('search.indexing.binaryFiles.supportedMimeTypes', T(java.util.List))}"/>
     </bean>
 
     <bean id="searchService" class="org.craftercms.search.service.impl.RestClientSearchService">

@@ -24,7 +24,7 @@ import org.craftercms.deployer.api.exceptions.DeploymentException;
  */
 public interface DeploymentProcessor {
 
-    void init(Configuration globalConfig, Configuration processorConfig) throws DeploymentException;
+    void init(Configuration mainConfig, Configuration processorConfig) throws DeploymentException;
 
     void destroy() throws DeploymentException;
 

@@ -16,6 +16,7 @@
  */
 package org.craftercms.deployer.impl;
 
+import java.util.ArrayList;
 import java.util.List;
 
 import org.craftercms.deployer.api.ChangeSet;
@@ -28,6 +29,12 @@ public class ChangeSetImpl implements ChangeSet {
     protected List<String> createdFiles;
     protected List<String> updatedFiles;
     protected List<String> deletedFiles;
+
+    public ChangeSetImpl() {
+        createdFiles = new ArrayList<>();
+        updatedFiles = new ArrayList<>();
+        deletedFiles = new ArrayList<>();
+    }
 
     public ChangeSetImpl(List<String> createdFiles, List<String> updatedFiles, List<String> deletedFiles) {
         this.createdFiles = createdFiles;

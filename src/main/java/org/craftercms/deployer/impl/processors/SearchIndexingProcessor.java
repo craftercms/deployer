@@ -8,26 +8,29 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.DeploymentContext;
-import org.craftercms.deployer.api.DeploymentProcessor;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.craftercms.deployer.utils.ConfigurationUtils;
 import org.craftercms.search.batch.BatchIndexer;
 import org.craftercms.search.service.SearchService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
-import static org.craftercms.deployer.impl.GlobalConfigurationProperties.*;
+import static org.craftercms.deployer.impl.CommonConfigurationProperties.DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME;
 
 /**
  * Created by alfonsovasquez on 12/26/16.
  */
-public class SearchIndexingProcessor implements DeploymentProcessor {
+public class SearchIndexingProcessor extends AbstractDeploymentProcessor {
+
+    private static final Logger logger = LoggerFactory.getLogger(SearchIndexingProcessor.class);
 
     public static final String DEFAULT_INDEX_ID_FORMAT = "%s-default";
 
-    public static final String INDEX_ID_PROPERTY = "indexId";
-    public static final String SITE_NAME_PROPERTY = "siteName";
-    public static final String INDEX_ID_FORMAT_PROPERTY = "indexIdFormat";
-    public static final String IGNORE_INDEX_ID_PROPERTY = "ignoreIndexId";
+    public static final String INDEX_ID_PROPERTY_NAME = "indexId";
+    public static final String SITE_NAME_PROPERTY_NAME = "siteName";
+    public static final String INDEX_ID_FORMAT_PROPERTY_NAME = "indexIdFormat";
+    public static final String IGNORE_INDEX_ID_PROPERTY_NAME = "ignoreIndexId";
 
     protected String rootFolder;
     protected String indexId;
@@ -49,17 +52,17 @@ public class SearchIndexingProcessor implements DeploymentProcessor {
     }
 
     @Override
-    public void init(Configuration globalConfig, Configuration processorConfig) throws DeploymentException {
-        rootFolder = ConfigurationUtils.getRequiredString(globalConfig, DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME);
-        indexId = ConfigurationUtils.getString(processorConfig, INDEX_ID_PROPERTY);
-        siteName = ConfigurationUtils.getString(processorConfig, SITE_NAME_PROPERTY);
+    public void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
+        rootFolder = ConfigurationUtils.getRequiredString(mainConfig, DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME);
+        indexId = ConfigurationUtils.getString(processorConfig, INDEX_ID_PROPERTY_NAME);
+        siteName = ConfigurationUtils.getString(processorConfig, SITE_NAME_PROPERTY_NAME);
 
         if (StringUtils.isEmpty(siteName)) {
-            siteName = ConfigurationUtils.getRequiredString(globalConfig, DEPLOYMENT_ID_PROPERTY_NAME);
+            siteName = deploymentId;
         }
 
-        boolean ignoreIndexId = ConfigurationUtils.getBoolean(processorConfig, IGNORE_INDEX_ID_PROPERTY, false);
-        String indexIdFormat = ConfigurationUtils.getString(processorConfig, INDEX_ID_FORMAT_PROPERTY, DEFAULT_INDEX_ID_FORMAT);
+        boolean ignoreIndexId = ConfigurationUtils.getBoolean(processorConfig, IGNORE_INDEX_ID_PROPERTY_NAME, false);
+        String indexIdFormat = ConfigurationUtils.getString(processorConfig, INDEX_ID_FORMAT_PROPERTY_NAME, DEFAULT_INDEX_ID_FORMAT);
 
         if (ignoreIndexId) {
             indexId = null;
@@ -77,33 +80,41 @@ public class SearchIndexingProcessor implements DeploymentProcessor {
     }
 
     @Override
-    public ChangeSet execute(DeploymentContext context, ChangeSet changeSet) throws DeploymentException {
-        List<String> createdFiles = changeSet.getCreatedFiles();
-        List<String> updatedFiles = changeSet.getUpdatedFiles();
-        List<String> deletedFiles = changeSet.getDeletedFiles();
-        int updateCount = 0;
+    public ChangeSet doExecute(DeploymentContext context, ChangeSet changeSet) throws DeploymentException {
+        logger.info("Performing search indexing...");
 
-        if (CollectionUtils.isNotEmpty(createdFiles)) {
-            for (BatchIndexer indexer : batchIndexers) {
-                updateCount += indexer.updateIndex(indexId, siteName, rootFolder, createdFiles, false);
-            }
-        }
-        if (CollectionUtils.isNotEmpty(updatedFiles)) {
-            for (BatchIndexer indexer : batchIndexers) {
-                updateCount += indexer.updateIndex(indexId, siteName, rootFolder, updatedFiles, false);
-            }
-        }
-        if (CollectionUtils.isNotEmpty(deletedFiles)) {
-            for (BatchIndexer indexer : batchIndexers) {
-                updateCount += indexer.updateIndex(indexId, siteName, rootFolder, deletedFiles, true);
-            }
-        }
+        try {
+            List<String> createdFiles = changeSet.getCreatedFiles();
+            List<String> updatedFiles = changeSet.getUpdatedFiles();
+            List<String> deletedFiles = changeSet.getDeletedFiles();
+            int updateCount = 0;
 
-        if (updateCount > 0) {
-            searchService.commit(indexId);
-        }
+            if (CollectionUtils.isNotEmpty(createdFiles)) {
+                for (BatchIndexer indexer : batchIndexers) {
+                    updateCount += indexer.updateIndex(indexId, siteName, rootFolder, createdFiles, false);
+                }
+            }
+            if (CollectionUtils.isNotEmpty(updatedFiles)) {
+                for (BatchIndexer indexer : batchIndexers) {
+                    updateCount += indexer.updateIndex(indexId, siteName, rootFolder, updatedFiles, false);
+                }
+            }
+            if (CollectionUtils.isNotEmpty(deletedFiles)) {
+                for (BatchIndexer indexer : batchIndexers) {
+                    updateCount += indexer.updateIndex(indexId, siteName, rootFolder, deletedFiles, true);
+                }
+            }
 
-        return changeSet;
+            if (updateCount > 0) {
+                searchService.commit(indexId);
+            } else {
+                logger.info("No files indexed");
+            }
+
+            return changeSet;
+        } catch (Exception e) {
+            throw new DeploymentException("Error while performing search indexing", e);
+        }
     }
 
 }

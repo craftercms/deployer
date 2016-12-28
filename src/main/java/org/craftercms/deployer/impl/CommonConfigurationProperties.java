@@ -19,13 +19,19 @@ package org.craftercms.deployer.impl;
 /**
  * Created by alfonsovasquez on 12/26/16.
  */
-public class GlobalConfigurationProperties {
+public class CommonConfigurationProperties {
 
-    private GlobalConfigurationProperties() {
+    private CommonConfigurationProperties() {
     }
+
+    // Main properties
 
     public static final String DEPLOYMENT_ID_PROPERTY_NAME = "deployment.id";
     public static final String DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME = "deployment.rootFolder";
     public static final String DEPLOYMENT_PIPELINE_PROPERTY_NAME = "deployment.pipeline";
+
+    // Processor properties
+
+    public static final String PROCESSOR_NAME_PROPERTY_NAME = "processorName";
 
 }

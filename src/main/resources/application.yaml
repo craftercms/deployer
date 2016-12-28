@@ -9,4 +9,4 @@ deployer:
     appContextLocation: classpath:base-deployment-context.xml
     appContextOverrideLocation: ${deployer.configLocation}/base-deployment-context.xml
 
-logging.level.org.craftercms: DEBUG
+logging.level.org.craftercms.deployer: DEBUG

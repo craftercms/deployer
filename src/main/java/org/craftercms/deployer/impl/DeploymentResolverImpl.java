@@ -55,7 +55,7 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
-import static org.craftercms.deployer.impl.GlobalConfigurationProperties.*;
+import static org.craftercms.deployer.impl.CommonConfigurationProperties.*;
 
 /**
  * Created by alfonsovasquez on 5/12/16.

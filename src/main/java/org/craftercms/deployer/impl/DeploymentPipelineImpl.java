@@ -38,7 +38,7 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
 
     @Override
     public ChangeSet execute(DeploymentContext context) throws DeploymentException {
-        ChangeSet changeSet = null;
+        ChangeSet changeSet = new ChangeSetImpl();
 
         if (CollectionUtils.isNotEmpty(processors)) {
             for (DeploymentProcessor processor : processors) {

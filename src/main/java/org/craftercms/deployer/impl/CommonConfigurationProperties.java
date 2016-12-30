@@ -26,12 +26,13 @@ public class CommonConfigurationProperties {
 
     // Main properties
 
-    public static final String DEPLOYMENT_ID_PROPERTY_NAME = "deployment.id";
-    public static final String DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME = "deployment.rootFolder";
-    public static final String DEPLOYMENT_PIPELINE_PROPERTY_NAME = "deployment.pipeline";
+    public static final String TARGET_ID_PROPERTY_NAME = "target.id";
+    public static final String TARGET_ROOT_FOLDER_PROPERTY_NAME = "target.rootFolder";
+    public static final String DEPLOYMENT_PIPELINE_PROPERTY_NAME = "target.pipeline";
 
     // Processor properties
 
     public static final String PROCESSOR_NAME_PROPERTY_NAME = "processorName";
+    public static final String EXECUTE_ON_EMPTY_CHANGE_SET_PROPERTY_NAME = "executeOnEmptyChangeSet";
 
 }

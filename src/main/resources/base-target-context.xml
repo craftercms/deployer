@@ -45,8 +45,4 @@
         <property name="serverUrl" value="${search.serverUrl}"/>
     </bean>
 
-    <!-- Error Handler -->
-
-    <bean id="errorHandler" class="org.craftercms.deployer.impl.handlers.NoOpErrorHandler"/>
-
 </beans>

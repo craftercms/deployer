@@ -16,17 +16,16 @@
  */
 package org.craftercms.deployer.impl;
 
+import java.time.Instant;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.deployer.api.DeploymentContext;
-import org.craftercms.deployer.api.DeploymentResolver;
+import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
+import org.craftercms.deployer.api.TargetContext;
+import org.craftercms.deployer.api.TargetResolver;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
-import org.craftercms.deployer.api.results.DeploymentFailure;
-import org.craftercms.deployer.api.results.DeploymentResult;
-import org.craftercms.deployer.api.results.DeploymentSuccess;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -40,39 +39,53 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
-    protected final DeploymentResolver deploymentResolver;
+    protected final TargetResolver targetResolver;
 
     @Autowired
-    public DeploymentServiceImpl(DeploymentResolver deploymentResolver) {
-        this.deploymentResolver = deploymentResolver;
+    public DeploymentServiceImpl(TargetResolver targetResolver) {
+        this.targetResolver = targetResolver;
     }
 
     @Override
-    public  List<DeploymentResult> deployAllSites() throws DeploymentException {
-        List<DeploymentContext> deploymentContexts = deploymentResolver.resolveAll();
-        List<DeploymentResult> results = new ArrayList<>();
+    public  List<Deployment> deployAllSites() throws DeploymentException {
+        List<TargetContext> targetContexts = targetResolver.resolveAll();
+        List<Deployment> deployments = new ArrayList<>();
 
-        if (CollectionUtils.isNotEmpty(deploymentContexts)) {
-            deploymentContexts.forEach(context -> deploySite(context, results));
+        if (CollectionUtils.isNotEmpty(targetContexts)) {
+            for (TargetContext context : targetContexts) {
+                Deployment deployment = deploySite(context);
+
+                deployments.add(deployment);
+            };
         }
 
-        return results;
+        return deployments;
     }
 
-    protected void deploySite(DeploymentContext context, List<DeploymentResult> results) {
+    public Deployment deploySite(TargetContext context) {
+        Deployment deployment = new Deployment(context.getId());
+        deployment.setRunning(true);
+
+        logger.info("**************************************************");
+        logger.info("* Deployment for '{}' started", context.getId());
+        logger.info("**************************************************");
+
         try {
-            context.getDeploymentPipeline().execute(context);
+            context.getDeploymentPipeline().execute(deployment, context);
 
-            results.add(new DeploymentSuccess(context.getId()));
+            if (deployment.getStatus() == null) {
+                deployment.setStatus(Deployment.Status.SUCCESS);
+            }
+        } finally {
+            deployment.setRunning(false);
+            deployment.setEnd(Instant.now());
 
-            logger.info("Deployment of '{}' successful", context.getId());
-        } catch (Exception e) {
-            results.add(new DeploymentFailure(context.getId(), e.toString()));
-
-            logger.error("Deployment of '" + context.getId() + "' failed", e);
-
-            context.getErrorHandler().onError(context, e);
+            logger.info("**************************************************");
+            logger.info("* Deployment for '{}' completed", context.getId());
+            logger.info("**************************************************");
         }
+
+        return deployment;
     }
 
 }

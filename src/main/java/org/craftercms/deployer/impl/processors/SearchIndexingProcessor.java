@@ -7,16 +7,19 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.ChangeSet;
-import org.craftercms.deployer.api.DeploymentContext;
+import org.craftercms.deployer.api.Deployment;
+import org.craftercms.deployer.api.ProcessorExecution;
+import org.craftercms.deployer.api.TargetContext;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.craftercms.deployer.utils.ConfigurationUtils;
 import org.craftercms.search.batch.BatchIndexer;
+import org.craftercms.search.batch.IndexingStatus;
 import org.craftercms.search.service.SearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
-import static org.craftercms.deployer.impl.CommonConfigurationProperties.DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME;
+import static org.craftercms.deployer.impl.CommonConfigurationProperties.TARGET_ROOT_FOLDER_PROPERTY_NAME;
 
 /**
  * Created by alfonsovasquez on 12/26/16.
@@ -53,12 +56,14 @@ public class SearchIndexingProcessor extends AbstractDeploymentProcessor {
 
     @Override
     public void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
-        rootFolder = ConfigurationUtils.getRequiredString(mainConfig, DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME);
+        // Force, we never want to execute on empty change set
+        executeOnEmptyChangeSet = false;
+        rootFolder = ConfigurationUtils.getRequiredString(mainConfig, TARGET_ROOT_FOLDER_PROPERTY_NAME);
         indexId = ConfigurationUtils.getString(processorConfig, INDEX_ID_PROPERTY_NAME);
         siteName = ConfigurationUtils.getString(processorConfig, SITE_NAME_PROPERTY_NAME);
 
         if (StringUtils.isEmpty(siteName)) {
-            siteName = deploymentId;
+            siteName = targetId;
         }
 
         boolean ignoreIndexId = ConfigurationUtils.getBoolean(processorConfig, IGNORE_INDEX_ID_PROPERTY_NAME, false);
@@ -80,41 +85,47 @@ public class SearchIndexingProcessor extends AbstractDeploymentProcessor {
     }
 
     @Override
-    public ChangeSet doExecute(DeploymentContext context, ChangeSet changeSet) throws DeploymentException {
+    public void doExecute(Deployment deployment, ProcessorExecution execution, TargetContext context) throws DeploymentException {
         logger.info("Performing search indexing...");
 
-        try {
-            List<String> createdFiles = changeSet.getCreatedFiles();
-            List<String> updatedFiles = changeSet.getUpdatedFiles();
-            List<String> deletedFiles = changeSet.getDeletedFiles();
-            int updateCount = 0;
+        ChangeSet changeSet = deployment.getChangeSet();
+        List<String> createdFiles = changeSet.getCreatedFiles();
+        List<String> updatedFiles = changeSet.getUpdatedFiles();
+        List<String> deletedFiles = changeSet.getDeletedFiles();
+        IndexingStatus indexingStatus = new IndexingStatus();
 
+        execution.setStatusDetails(indexingStatus);
+
+        try {
             if (CollectionUtils.isNotEmpty(createdFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    updateCount += indexer.updateIndex(indexId, siteName, rootFolder, createdFiles, false);
+                    indexer.updateIndex(indexId, siteName, rootFolder, createdFiles, false, indexingStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(updatedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    updateCount += indexer.updateIndex(indexId, siteName, rootFolder, updatedFiles, false);
+                    indexer.updateIndex(indexId, siteName, rootFolder, updatedFiles, false, indexingStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(deletedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    updateCount += indexer.updateIndex(indexId, siteName, rootFolder, deletedFiles, true);
+                    indexer.updateIndex(indexId, siteName, rootFolder, deletedFiles, true, indexingStatus);
                 }
             }
 
-            if (updateCount > 0) {
+            if (indexingStatus.getAttemptedUpdatesAndDeletes() > 0) {
                 searchService.commit(indexId);
             } else {
                 logger.info("No files indexed");
             }
-
-            return changeSet;
         } catch (Exception e) {
             throw new DeploymentException("Error while performing search indexing", e);
         }
+    }
+
+    @Override
+    protected boolean failDeploymentOnProcessorFailure() {
+        return false;
     }
 
 }

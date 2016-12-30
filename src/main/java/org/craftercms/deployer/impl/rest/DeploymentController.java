@@ -16,18 +16,11 @@
  */
 package org.craftercms.deployer.impl.rest;
 
-import java.util.ArrayList;
-import java.util.Date;
-import java.util.HashMap;
 import java.util.List;
-import java.util.Map;
 
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.lang3.time.DateFormatUtils;
-import org.craftercms.deployer.api.DeploymentContext;
-import org.craftercms.deployer.api.DeploymentResolver;
+import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
-import org.craftercms.deployer.api.results.DeploymentResult;
+import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
@@ -40,36 +33,14 @@ import org.springframework.web.bind.annotation.RestController;
 public class DeploymentController {
 
     protected final DeploymentService deploymentService;
-    protected final DeploymentResolver deploymentResolver;
 
     @Autowired
-    public DeploymentController(DeploymentService deploymentService, DeploymentResolver deploymentResolver) {
+    public DeploymentController(DeploymentService deploymentService) {
         this.deploymentService = deploymentService;
-        this.deploymentResolver = deploymentResolver;
-    }
-
-    @RequestMapping("/list/all")
-    public List<Map<String, Object>> listAll() {
-        List<Map<String, Object>> deploymentInfoList = new ArrayList<>();
-        List<DeploymentContext> deploymentContexts = deploymentResolver.resolveAll();
-
-        if (CollectionUtils.isNotEmpty(deploymentContexts)) {
-            deploymentContexts.forEach(context -> {
-                Date dateCreated = new Date(context.getDateCreated());
-
-                Map<String, Object> deploymentInfo = new HashMap<>(2);
-                deploymentInfo.put("id", context.getId());
-                deploymentInfo.put("dateCreated", DateFormatUtils.ISO_8601_EXTENDED_DATETIME_TIME_ZONE_FORMAT.format(dateCreated));
-
-                deploymentInfoList.add(deploymentInfo);
-            });
-        }
-
-        return deploymentInfoList;
     }
 
     @RequestMapping("/deploy/all")
-    public List<DeploymentResult> deployAll() {
+    public List<Deployment> deployAll() throws DeploymentException {
         return deploymentService.deployAllSites();
     }
 

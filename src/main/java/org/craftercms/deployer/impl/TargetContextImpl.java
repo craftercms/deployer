@@ -16,27 +16,31 @@
  */
 package org.craftercms.deployer.impl;
 
-import org.craftercms.deployer.api.DeploymentContext;
+import java.time.Instant;
+
 import org.craftercms.deployer.api.DeploymentPipeline;
-import org.craftercms.deployer.api.ErrorHandler;
+import org.craftercms.deployer.api.TargetContext;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * Created by alfonsovasquez on 5/12/16.
  */
-public class DeploymentContextImpl implements DeploymentContext {
+public class TargetContextImpl implements TargetContext {
+
+    private static final Logger logger = LoggerFactory.getLogger(TargetContextImpl.class);
 
     protected String id;
     protected DeploymentPipeline deploymentPipeline;
-    protected ErrorHandler errorHandler;
     protected ConfigurableApplicationContext applicationContext;
+    protected Instant dateCreated;
 
-    public DeploymentContextImpl(String id, DeploymentPipeline deploymentPipeline, ErrorHandler errorHandler,
-                                 ConfigurableApplicationContext applicationContext) {
+    public TargetContextImpl(String id, DeploymentPipeline deploymentPipeline, ConfigurableApplicationContext applicationContext) {
         this.id = id;
         this.deploymentPipeline = deploymentPipeline;
-        this.errorHandler = errorHandler;
         this.applicationContext = applicationContext;
+        this.dateCreated = Instant.now();
     }
 
     @Override
@@ -50,19 +54,18 @@ public class DeploymentContextImpl implements DeploymentContext {
     }
 
     @Override
-    public ErrorHandler getErrorHandler() {
-        return errorHandler;
-    }
-
-    @Override
-    public long getDateCreated() {
-        return applicationContext.getStartupDate();
+    public Instant getDateCreated() {
+        return dateCreated;
     }
 
     @Override
     public void destroy() {
-        deploymentPipeline.destroy();
-        applicationContext.close();
+        try {
+            deploymentPipeline.destroy();
+            applicationContext.close();
+        } catch (Exception e) {
+            logger.error("Failed to destroy target context '{}'", id);
+        }
     }
 
 }

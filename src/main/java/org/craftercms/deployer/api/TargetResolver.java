@@ -23,8 +23,8 @@ import org.craftercms.deployer.api.exceptions.DeploymentException;
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public interface DeploymentResolver {
+public interface TargetResolver {
 
-    List<DeploymentContext> resolveAll() throws DeploymentException;
+    List<TargetContext> resolveAll() throws DeploymentException;
 
 }

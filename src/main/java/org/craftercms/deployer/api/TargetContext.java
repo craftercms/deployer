@@ -16,11 +16,22 @@
  */
 package org.craftercms.deployer.api;
 
-/**
- * Created by alfonsovasquez on 12/18/16.
- */
-public interface ErrorHandler {
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-    void onError(DeploymentContext context, Exception exception);
+import java.time.Instant;
+
+/**
+ * Created by alfonsovasquez on 30/11/16.
+ */
+public interface TargetContext {
+
+    String getId();
+
+    DeploymentPipeline getDeploymentPipeline();
+
+    @JsonIgnore
+    Instant getDateCreated();
+
+    void destroy();
 
 }

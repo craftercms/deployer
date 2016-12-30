@@ -19,13 +19,12 @@ package org.craftercms.deployer.api;
 import java.util.List;
 
 import org.craftercms.deployer.api.exceptions.DeploymentException;
-import org.craftercms.deployer.api.results.DeploymentResult;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
 public interface DeploymentService {
 
-    List<DeploymentResult> deployAllSites() throws DeploymentException;
+    List<Deployment> deployAllSites() throws DeploymentException;
 
 }

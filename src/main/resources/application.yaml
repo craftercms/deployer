@@ -10,6 +10,8 @@ deployer:
       yamlOverrideLocation: file:${deployer.main.configFolderPath}/base-target.yaml
       appContextLocation: classpath:base-target-context.xml
       appContextOverrideLocation: file:${deployer.main.configFolderPath}/base-target-context.xml
+    scheduledJob:
+      cron: '0 * * * * *'
 
 spring:
   freemarker:

@@ -46,7 +46,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public  List<Deployment> deployAllSites() throws DeploymentException {
+    public List<Deployment> deployAllSites() throws DeploymentException {
         List<TargetContext> targetContexts = targetResolver.resolveAll();
         List<Deployment> deployments = new ArrayList<>();
 

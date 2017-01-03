@@ -54,7 +54,9 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
-import static org.craftercms.deployer.impl.CommonConfigurationProperties.TARGET_ID_PROPERTY_NAME;
+import static org.craftercms.deployer.impl.CommonConfigurationKeys.DEPLOYMENT_PIPELINE_CONFIG_KEY;
+import static org.craftercms.deployer.impl.CommonConfigurationKeys.POST_DEPLOYMENT_PIPELINE_CONFIG_KEY;
+import static org.craftercms.deployer.impl.CommonConfigurationKeys.TARGET_ID_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 5/12/16.
@@ -68,8 +70,6 @@ public class TargetResolverImpl implements TargetResolver {
     public static final String YAML_FILE_EXTENSION = "yaml";
     public static final String CONFIG_PROPERTY_SOURCE_NAME = "deploymentConfig";
 
-    public static final String ERROR_HANDLER_BEAN_NAME = "errorHandler";
-
     protected File configFolder;
     protected Resource baseTargetYamlConfigResource;
     protected Resource baseTargetYamlConfigOverrideResource;
@@ -80,14 +80,14 @@ public class TargetResolverImpl implements TargetResolver {
     protected Map<String, TargetContext> targetContextCache;
 
     public TargetResolverImpl(
-        @Value("${deployer.configLocation}") Resource configResource,
-        @Value("${deployer.baseTargetConfig.yamlLocation}") Resource baseTargetYamlConfigResource,
-        @Value("${deployer.baseTargetConfig.yamlOverrideLocation}") Resource baseTargetYamlConfigOverrideResource,
-        @Value("${deployer.baseTargetConfig.appContextLocation}") Resource baseTargetAppContextResource,
-        @Value("${deployer.baseTargetConfig.appContextOverrideLocation}") Resource baseTargetAppContextOverrideResource,
+        @Value("${deployer.main.configFolderPath}") String configFolderPath,
+        @Value("${deployer.main.baseTargetConfig.yamlLocation}") Resource baseTargetYamlConfigResource,
+        @Value("${deployer.main.baseTargetConfig.yamlOverrideLocation}") Resource baseTargetYamlConfigOverrideResource,
+        @Value("${deployer.main.baseTargetConfig.appContextLocation}") Resource baseTargetAppContextResource,
+        @Value("${deployer.main.baseTargetConfig.appContextOverrideLocation}") Resource baseTargetAppContextOverrideResource,
         @Autowired ApplicationContext mainApplicationContext,
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory) throws IOException {
-        this.configFolder = configResource.getFile();
+        this.configFolder = new File(configFolderPath);
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
         this.baseTargetAppContextResource = baseTargetAppContextResource;
@@ -189,7 +189,7 @@ public class TargetResolverImpl implements TargetResolver {
                 // Check if the YAML config file or the app context file have changed since the context was created.
                 long yamlLastModified = customConfigFile.exists() ? customConfigFile.lastModified() : 0;
                 long appContextLastModified = customAppContextResource.exists()? customAppContextResource.lastModified() : 0;
-                long contextDateCreated = targetContext.getDateCreated().toEpochMilli();
+                long contextDateCreated = targetContext.getDateCreated().toInstant().toEpochMilli();
 
                 // Refresh if the files have been modified.
                 if (yamlLastModified >= contextDateCreated || appContextLastModified >= contextDateCreated) {
@@ -222,11 +222,12 @@ public class TargetResolverImpl implements TargetResolver {
         HierarchicalConfiguration config = loadConfiguration(customConfigFile);
         ConfigurableApplicationContext appContext = loadApplicationContext(config, customAppContextFile);
 
-        config.setProperty(TARGET_ID_PROPERTY_NAME, targetId);
+        config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
         DeploymentPipeline deploymentPipeline = getDeploymentPipeline(config, appContext);
+        DeploymentPipeline postDeploymentPipeline = getPostDeploymentPipeline(config, appContext);
 
-        return new TargetContextImpl(targetId, deploymentPipeline, appContext);
+        return new TargetContextImpl(targetId, deploymentPipeline, postDeploymentPipeline, appContext);
     }
 
     protected HierarchicalConfiguration loadConfiguration(File customConfigFile) throws IOException, DeploymentException {
@@ -293,7 +294,12 @@ public class TargetResolverImpl implements TargetResolver {
 
     protected DeploymentPipeline getDeploymentPipeline(HierarchicalConfiguration config,
                                                        ApplicationContext appContext) throws DeploymentException {
-        return deploymentPipelineFactory.getPipeline(config, appContext);
+        return deploymentPipelineFactory.getPipeline(config, appContext, DEPLOYMENT_PIPELINE_CONFIG_KEY, true);
+    }
+
+    protected DeploymentPipeline getPostDeploymentPipeline(HierarchicalConfiguration config,
+                                                       ApplicationContext appContext) throws DeploymentException {
+        return deploymentPipelineFactory.getPipeline(config, appContext, POST_DEPLOYMENT_PIPELINE_CONFIG_KEY, false);
     }
 
 }

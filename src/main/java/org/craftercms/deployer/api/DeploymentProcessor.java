@@ -28,6 +28,6 @@ public interface DeploymentProcessor {
 
     void destroy() throws DeploymentException;
 
-    void execute(Deployment deployment, TargetContext context);
+    void execute(Deployment deployment);
 
 }

@@ -18,9 +18,12 @@ package org.craftercms.deployer.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
@@ -29,40 +32,42 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Deployment {
 
-    protected String targetId;
-    protected volatile Instant start;
-    protected volatile Instant end;
+    protected TargetContext targetContext;
+    protected volatile ZonedDateTime start;
+    protected volatile ZonedDateTime end;
     protected volatile boolean running;
     protected volatile Status status;
     protected volatile ChangeSet changeSet;
     protected List<ProcessorExecution> processorExecutions;
     protected Lock statusesLock;
+    protected Map<String, Object> attributes;
 
-    public Deployment(String targetId) {
-        this.targetId = targetId;
-        this.start = Instant.now();
+    public Deployment(TargetContext targetContext) {
+        this.targetContext = targetContext;
+        this.start = ZonedDateTime.now();
         this.running = true;
         this.processorExecutions = new ArrayList<>();
         this.statusesLock = new ReentrantLock();
+        this.attributes = new ConcurrentHashMap<>();
     }
 
-    public String getTargetId() {
-        return targetId;
+    public TargetContext getTargetContext() {
+        return targetContext;
     }
 
-    public Instant getStart() {
+    public ZonedDateTime getStart() {
         return start;
     }
 
-    public void setStart(Instant start) {
+    public void setStart(ZonedDateTime start) {
         this.start = start;
     }
 
-    public Instant getEnd() {
+    public ZonedDateTime getEnd() {
         return end;
     }
 
-    public void setEnd(Instant end) {
+    public void setEnd(ZonedDateTime end) {
         this.end = end;
     }
 
@@ -111,6 +116,23 @@ public class Deployment {
         } finally {
             statusesLock.unlock();
         }
+    }
+
+    @JsonIgnore
+    public Map<String, Object> getAttributes() {
+        return Collections.unmodifiableMap(attributes);
+    }
+
+    public void addAttribute(String name, Object object) {
+        attributes.put(name, object);
+    }
+
+    public Object getAttribute(String name) {
+        return attributes.get(name);
+    }
+
+    public void removeAttribute(String name) {
+        attributes.remove(name);
     }
 
     public enum Status {

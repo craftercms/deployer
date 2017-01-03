@@ -18,7 +18,7 @@ package org.craftercms.deployer.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
@@ -27,10 +27,13 @@ public interface TargetContext {
 
     String getId();
 
+    @JsonIgnore
     DeploymentPipeline getDeploymentPipeline();
 
     @JsonIgnore
-    Instant getDateCreated();
+    DeploymentPipeline getPostDeploymentPipeline();
+
+    ZonedDateTime getDateCreated();
 
     void destroy();
 

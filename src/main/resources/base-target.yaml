@@ -1,14 +1,30 @@
-search:
-  serverUrl: http://localhost:8080/crafter-search
-  indexing:
-    xmlFiles:
-      includePatterns:
-        - /?site/.+
-    binaryFiles:
-      supportedMimeTypes:
-        - application/pdf
-        - application/msword
-        - application/vnd.openxmlformats-officedocument.wordprocessingml.document
-        - application/vnd.ms-excel
-        - application/vnd.ms-powerpoint
-        - application/vnd.openxmlformats-officedocument.presentationml.presentation
+target:
+  search:
+    serverUrl: http://localhost:8080/crafter-search
+    indexing:
+      xmlFiles:
+        includePatterns:
+          - /?site/.+
+      binaryFiles:
+        supportedMimeTypes:
+          - application/pdf
+          - application/msword
+          - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+          - application/vnd.ms-excel
+          - application/vnd.ms-powerpoint
+          - application/vnd.openxmlformats-officedocument.presentationml.presentation
+  output:
+    timestampPattern: yyyyMMddHHmmssSSS
+  notifications:
+    mail:
+      server:
+        host: localhost
+        port: 25
+      protocol: smtp
+      encoding: UTF-8
+      templatesLocation: classpath:mail
+      defaultTemplateName: default-mail-template.ftl
+      defaultFrom: noreply@craftersoftware.com
+      defaultSubject: Deployment Report
+      defaultHtml: false
+      defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z

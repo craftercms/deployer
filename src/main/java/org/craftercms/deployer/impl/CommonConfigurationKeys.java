@@ -19,20 +19,22 @@ package org.craftercms.deployer.impl;
 /**
  * Created by alfonsovasquez on 12/26/16.
  */
-public class CommonConfigurationProperties {
+public class CommonConfigurationKeys {
 
-    private CommonConfigurationProperties() {
+    private CommonConfigurationKeys() {
     }
 
-    // Main properties
+    // Global Properties
 
-    public static final String TARGET_ID_PROPERTY_NAME = "target.id";
-    public static final String TARGET_ROOT_FOLDER_PROPERTY_NAME = "target.rootFolder";
-    public static final String DEPLOYMENT_PIPELINE_PROPERTY_NAME = "target.pipeline";
+    // Target Specific Properties
 
-    // Processor properties
+    public static final String TARGET_ID_CONFIG_KEY = "target.id";
+    public static final String TARGET_ROOT_FOLDER_PATH_CONFIG_KEY = "target.rootFolderPath";
+    public static final String DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
+    public static final String POST_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.postDeployment.pipeline";
 
-    public static final String PROCESSOR_NAME_PROPERTY_NAME = "processorName";
-    public static final String EXECUTE_ON_EMPTY_CHANGE_SET_PROPERTY_NAME = "executeOnEmptyChangeSet";
+    // Processor Properties
+
+    public static final String PROCESSOR_NAME_CONFIG_KEY = "processorName";
 
 }

@@ -16,7 +16,7 @@
  */
 package org.craftercms.deployer.impl;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.TargetContext;
@@ -33,14 +33,17 @@ public class TargetContextImpl implements TargetContext {
 
     protected String id;
     protected DeploymentPipeline deploymentPipeline;
+    protected DeploymentPipeline postDeploymentPipeline;
     protected ConfigurableApplicationContext applicationContext;
-    protected Instant dateCreated;
+    protected ZonedDateTime dateCreated;
 
-    public TargetContextImpl(String id, DeploymentPipeline deploymentPipeline, ConfigurableApplicationContext applicationContext) {
+    public TargetContextImpl(String id, DeploymentPipeline deploymentPipeline, DeploymentPipeline postDeploymentPipeline,
+                             ConfigurableApplicationContext applicationContext) {
         this.id = id;
         this.deploymentPipeline = deploymentPipeline;
+        this.postDeploymentPipeline = postDeploymentPipeline;
         this.applicationContext = applicationContext;
-        this.dateCreated = Instant.now();
+        this.dateCreated = ZonedDateTime.now();
     }
 
     @Override
@@ -54,7 +57,12 @@ public class TargetContextImpl implements TargetContext {
     }
 
     @Override
-    public Instant getDateCreated() {
+    public DeploymentPipeline getPostDeploymentPipeline() {
+        return postDeploymentPipeline;
+    }
+
+    @Override
+    public ZonedDateTime getDateCreated() {
         return dateCreated;
     }
 

@@ -2,11 +2,19 @@ server:
   port: 9191
 
 deployer:
-  configLocation: file:config
-  baseTargetConfig:
-    yamlLocation: classpath:base-target.yaml
-    yamlOverrideLocation: ${deployer.configLocation}/base-target.yaml
-    appContextLocation: classpath:base-target-context.xml
-    appContextOverrideLocation: ${deployer.configLocation}/base-target-context.xml
+  main:
+    configFolderPath: config
+    outputFolderPath: output
+    baseTargetConfig:
+      yamlLocation: classpath:base-target.yaml
+      yamlOverrideLocation: file:${deployer.main.configFolderPath}/base-target.yaml
+      appContextLocation: classpath:base-target-context.xml
+      appContextOverrideLocation: file:${deployer.main.configFolderPath}/base-target-context.xml
 
-logging.level.org.craftercms.deployer: DEBUG
+spring:
+  freemarker:
+    checkTemplateLocation: false
+
+logging:
+  level:
+    org.craftercms.deployer: DEBUG

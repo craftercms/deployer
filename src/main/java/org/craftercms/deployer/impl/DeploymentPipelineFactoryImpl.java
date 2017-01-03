@@ -19,6 +19,7 @@ package org.craftercms.deployer.impl;
 import java.util.ArrayList;
 import java.util.List;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
@@ -31,7 +32,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.stereotype.Component;
 
-import static org.craftercms.deployer.impl.CommonConfigurationProperties.*;
+import static org.craftercms.deployer.impl.CommonConfigurationKeys.PROCESSOR_NAME_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 12/22/16.
@@ -43,30 +44,41 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
 
     @Override
     public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration,
-                                          BeanFactory beanFactory) throws DeploymentException {
-        List<HierarchicalConfiguration> processorConfigs = ConfigurationUtils.getRequiredConfigurationsAt(configuration,
-                                                                                                          DEPLOYMENT_PIPELINE_PROPERTY_NAME);
-        List<DeploymentProcessor> processors = new ArrayList<>(processorConfigs.size());
+                                          BeanFactory beanFactory, String pipelinePropertyName,
+                                          boolean required) throws DeploymentException {
+        List<HierarchicalConfiguration> processorConfigs;
 
-        for (HierarchicalConfiguration processorConfig : processorConfigs) {
-            String processorName = ConfigurationUtils.getRequiredString(processorConfig, PROCESSOR_NAME_PROPERTY_NAME);
-            DeploymentProcessor processor;
-
-            logger.debug("Initializing pipeline processor '{}'", processorName);
-
-            try {
-                processor = beanFactory.getBean(processorName, DeploymentProcessor.class);
-                processor.init(configuration, processorConfig);
-            } catch (NoSuchBeanDefinitionException e) {
-                throw new DeploymentConfigurationException("No processor prototype bean found with name '" + processorName + "'", e);
-            } catch (Exception e) {
-                throw new DeploymentConfigurationException("Failed to initialize pipeline processor '" + processorName + "'", e);
-            }
-
-            processors.add(processor);
+        if (required) {
+            processorConfigs = ConfigurationUtils.getRequiredConfigurationsAt(configuration, pipelinePropertyName);
+        } else {
+            processorConfigs = ConfigurationUtils.getConfigurationsAt(configuration, pipelinePropertyName);
         }
 
-        return new DeploymentPipelineImpl(processors);
+        if (CollectionUtils.isNotEmpty(processorConfigs)) {
+            List<DeploymentProcessor> processors = new ArrayList<>();
+
+            for (HierarchicalConfiguration processorConfig : processorConfigs) {
+                String processorName = ConfigurationUtils.getRequiredString(processorConfig, PROCESSOR_NAME_CONFIG_KEY);
+                DeploymentProcessor processor;
+
+                logger.debug("Initializing pipeline processor '{}'", processorName);
+
+                try {
+                    processor = beanFactory.getBean(processorName, DeploymentProcessor.class);
+                    processor.init(configuration, processorConfig);
+                } catch (NoSuchBeanDefinitionException e) {
+                    throw new DeploymentConfigurationException("No processor prototype bean found with name '" + processorName + "'", e);
+                } catch (Exception e) {
+                    throw new DeploymentConfigurationException("Failed to initialize pipeline processor '" + processorName + "'", e);
+                }
+
+                processors.add(processor);
+            }
+
+            return new DeploymentPipelineImpl(processors);
+        } else {
+            return null;
+        }
     }
 
 }

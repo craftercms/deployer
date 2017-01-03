@@ -16,7 +16,7 @@
  */
 package org.craftercms.deployer.api;
 
-import java.time.Instant;
+import java.time.ZonedDateTime;
 
 import static org.craftercms.deployer.api.Deployment.Status;
 
@@ -26,15 +26,15 @@ import static org.craftercms.deployer.api.Deployment.Status;
 public class ProcessorExecution {
 
     protected String processorName;
-    protected volatile Instant start;
-    protected volatile Instant end;
+    protected volatile ZonedDateTime start;
+    protected volatile ZonedDateTime end;
     protected volatile boolean running;
     protected volatile Status status;
     protected volatile Object statusDetails;
 
     public ProcessorExecution(String processorName) {
         this.processorName = processorName;
-        this.start = Instant.now();
+        this.start = ZonedDateTime.now();
         this.running = true;
     }
 
@@ -42,19 +42,19 @@ public class ProcessorExecution {
         return processorName;
     }
 
-    public Instant getStart() {
+    public ZonedDateTime getStart() {
         return start;
     }
 
-    public void setStart(Instant start) {
+    public void setStart(ZonedDateTime start) {
         this.start = start;
     }
 
-    public Instant getEnd() {
+    public ZonedDateTime getEnd() {
         return end;
     }
 
-    public void setEnd(Instant end) {
+    public void setEnd(ZonedDateTime end) {
         this.end = end;
     }
 

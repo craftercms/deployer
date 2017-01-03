@@ -30,7 +30,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
-import org.craftercms.deployer.api.TargetContext;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.craftercms.deployer.utils.ConfigurationUtils;
 import org.craftercms.deployer.utils.GitUtils;
@@ -47,16 +46,16 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.craftercms.deployer.impl.CommonConfigurationProperties.TARGET_ROOT_FOLDER_PROPERTY_NAME;
+import static org.craftercms.deployer.impl.CommonConfigurationKeys.TARGET_ROOT_FOLDER_PATH_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 1/12/16.
  */
-public class GitPullProcessor extends AbstractDeploymentProcessor {
+public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
-    public static final String REMOTE_REPOSITORY_URL_PROPERTY_NAME = "remoteRepository.url";
-    public static final String REMOTE_REPOSITORY_USERNAME_PROPERTY_NAME = "remoteRepository.username";
-    public static final String REMOTE_REPOSITORY_PASSWORD_PROPERTY_NAME = "remoteRepository.password";
+    public static final String REMOTE_REPOSITORY_URL_CONFIG_KEY = "remoteRepository.url";
+    public static final String REMOTE_REPOSITORY_USERNAME_CONFIG_KEY = "remoteRepository.username";
+    public static final String REMOTE_REPOSITORY_PASSWORD_CONFIG_KEY = "remoteRepository.password";
 
     public static final String GIT_FOLDER_NAME = ".git";
 
@@ -69,20 +68,20 @@ public class GitPullProcessor extends AbstractDeploymentProcessor {
 
     @Override
     public void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
-        // Force, we always want to execute on empty change set
-        executeOnEmptyChangeSet = true;
-        localRepositoryFolder = new File(ConfigurationUtils.getRequiredString(mainConfig, TARGET_ROOT_FOLDER_PROPERTY_NAME));
-        remoteRepositoryUrl = ConfigurationUtils.getRequiredString(processorConfig, REMOTE_REPOSITORY_URL_PROPERTY_NAME);
-        remoteRepositoryUsername = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_USERNAME_PROPERTY_NAME);
-        remoteRepositoryPassword = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_PASSWORD_PROPERTY_NAME);
+        localRepositoryFolder = new File(ConfigurationUtils.getRequiredString(mainConfig, TARGET_ROOT_FOLDER_PATH_CONFIG_KEY));
+        remoteRepositoryUrl = ConfigurationUtils.getRequiredString(processorConfig, REMOTE_REPOSITORY_URL_CONFIG_KEY);
+        remoteRepositoryUsername = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_USERNAME_CONFIG_KEY);
+        remoteRepositoryPassword = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_PASSWORD_CONFIG_KEY);
     }
 
     @Override
-    public void destroy() {
+    protected boolean shouldExecute(Deployment deployment) {
+        // Don't run if the deployment already failed
+        return deployment.getStatus() != Deployment.Status.FAILURE;
     }
 
     @Override
-    public void doExecute(Deployment deployment, ProcessorExecution execution, TargetContext context) throws DeploymentException {
+    public void doExecute(Deployment deployment, ProcessorExecution execution) throws DeploymentException {
         File gitFolder = new File(localRepositoryFolder, GIT_FOLDER_NAME);
         if (localRepositoryFolder.exists() && gitFolder.exists()) {
             doPull(deployment, execution);
@@ -131,7 +130,7 @@ public class GitPullProcessor extends AbstractDeploymentProcessor {
 
                 switch (mergeResult.getMergeStatus()) {
                     case FAST_FORWARD:
-                        details = "Changes successfully pulled from remote " + remoteRepositoryUrl + " for repository " +
+                        details = "Changes successfully pulled from remote " + remoteRepositoryUrl + " into repository " +
                                   localRepositoryFolder;
 
                         logger.info(details);

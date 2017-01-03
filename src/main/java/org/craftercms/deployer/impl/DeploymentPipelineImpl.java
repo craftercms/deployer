@@ -22,7 +22,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
-import org.craftercms.deployer.api.TargetContext;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
 
 /**
@@ -37,19 +36,19 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
     }
 
     @Override
-    public void execute(Deployment deployment, TargetContext context) {
+    public void destroy() throws DeploymentException {
         if (CollectionUtils.isNotEmpty(processors)) {
             for (DeploymentProcessor processor : processors) {
-                processor.execute(deployment, context);
+                processor.destroy();
             }
         }
     }
 
     @Override
-    public void destroy() throws DeploymentException {
+    public void execute(Deployment deployment) {
         if (CollectionUtils.isNotEmpty(processors)) {
             for (DeploymentProcessor processor : processors) {
-                processor.destroy();
+                processor.execute(deployment);
             }
         }
     }

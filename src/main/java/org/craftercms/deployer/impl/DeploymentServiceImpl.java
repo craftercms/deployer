@@ -16,7 +16,6 @@
  */
 package org.craftercms.deployer.impl;
 
-import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -64,7 +63,6 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     public Deployment deploySite(TargetContext context) {
         Deployment deployment = new Deployment(context);
-        deployment.setRunning(true);
 
         logger.info("**************************************************");
         logger.info("* Deployment pipeline  for '{}' started", context.getId());
@@ -72,30 +70,11 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         context.getDeploymentPipeline().execute(deployment);
 
-        deployment.setRunning(false);
-
-        if (deployment.getStatus() == null) {
-            deployment.setStatus(Deployment.Status.SUCCESS);
-        }
-        if (deployment.getEnd() == null) {
-            deployment.setEnd(ZonedDateTime.now());
-        }
+        deployment.endDeployment(Deployment.Status.SUCCESS);
 
         logger.info("**************************************************");
         logger.info("* Deployment pipeline for '{}' finished", context.getId());
         logger.info("**************************************************");
-
-        if (context.getPostDeploymentPipeline() != null) {
-            logger.info("**************************************************");
-            logger.info("* Post deployment pipeline  for '{}' started", context.getId());
-            logger.info("**************************************************");
-
-            context.getPostDeploymentPipeline().execute(deployment);
-
-            logger.info("**************************************************");
-            logger.info("* Post deployment pipeline for '{}' finished", context.getId());
-            logger.info("**************************************************");
-        }
 
         return deployment;
     }

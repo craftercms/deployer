@@ -55,7 +55,6 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
 import static org.craftercms.deployer.impl.CommonConfigurationKeys.DEPLOYMENT_PIPELINE_CONFIG_KEY;
-import static org.craftercms.deployer.impl.CommonConfigurationKeys.POST_DEPLOYMENT_PIPELINE_CONFIG_KEY;
 import static org.craftercms.deployer.impl.CommonConfigurationKeys.TARGET_ID_CONFIG_KEY;
 
 /**
@@ -225,9 +224,8 @@ public class TargetResolverImpl implements TargetResolver {
         config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
         DeploymentPipeline deploymentPipeline = getDeploymentPipeline(config, appContext);
-        DeploymentPipeline postDeploymentPipeline = getPostDeploymentPipeline(config, appContext);
 
-        return new TargetContextImpl(targetId, deploymentPipeline, postDeploymentPipeline, appContext);
+        return new TargetContextImpl(targetId, deploymentPipeline, appContext);
     }
 
     protected HierarchicalConfiguration loadConfiguration(File customConfigFile) throws IOException, DeploymentException {
@@ -295,11 +293,6 @@ public class TargetResolverImpl implements TargetResolver {
     protected DeploymentPipeline getDeploymentPipeline(HierarchicalConfiguration config,
                                                        ApplicationContext appContext) throws DeploymentException {
         return deploymentPipelineFactory.getPipeline(config, appContext, DEPLOYMENT_PIPELINE_CONFIG_KEY, true);
-    }
-
-    protected DeploymentPipeline getPostDeploymentPipeline(HierarchicalConfiguration config,
-                                                       ApplicationContext appContext) throws DeploymentException {
-        return deploymentPipelineFactory.getPipeline(config, appContext, POST_DEPLOYMENT_PIPELINE_CONFIG_KEY, false);
     }
 
 }

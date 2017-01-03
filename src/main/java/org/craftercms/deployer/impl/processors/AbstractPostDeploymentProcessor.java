@@ -30,6 +30,8 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
 
     @Override
     public void execute(Deployment deployment) {
+        deployment.endDeployment(Deployment.Status.SUCCESS);
+
         if (shouldExecute(deployment)) {
             try {
                 logger.info("========== Start of '{}' for target '{}' ==========", processorName, targetId);

@@ -35,7 +35,6 @@ public class Deployment {
     protected TargetContext targetContext;
     protected volatile ZonedDateTime start;
     protected volatile ZonedDateTime end;
-    protected volatile boolean running;
     protected volatile Status status;
     protected volatile ChangeSet changeSet;
     protected List<ProcessorExecution> processorExecutions;
@@ -45,7 +44,6 @@ public class Deployment {
     public Deployment(TargetContext targetContext) {
         this.targetContext = targetContext;
         this.start = ZonedDateTime.now();
-        this.running = true;
         this.processorExecutions = new ArrayList<>();
         this.statusesLock = new ReentrantLock();
         this.attributes = new ConcurrentHashMap<>();
@@ -59,32 +57,16 @@ public class Deployment {
         return start;
     }
 
-    public void setStart(ZonedDateTime start) {
-        this.start = start;
-    }
-
     public ZonedDateTime getEnd() {
         return end;
     }
 
-    public void setEnd(ZonedDateTime end) {
-        this.end = end;
-    }
-
     public boolean isRunning() {
-        return running;
-    }
-
-    public void setRunning(boolean running) {
-        this.running = running;
+        return end == null;
     }
 
     public Status getStatus() {
         return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
     }
 
     public ChangeSet getChangeSet() {
@@ -98,6 +80,13 @@ public class Deployment {
     @JsonIgnore
     public boolean isChangeSetEmpty() {
         return changeSet == null || changeSet.isEmpty();
+    }
+
+    public void endDeployment(Status status) {
+        if (isRunning()) {
+            this.end = ZonedDateTime.now();
+            this.status = status;
+        }
     }
 
     public List<ProcessorExecution> getProcessorExecutions() {

@@ -31,7 +31,6 @@ public class CommonConfigurationKeys {
     public static final String TARGET_ID_CONFIG_KEY = "target.id";
     public static final String TARGET_ROOT_FOLDER_PATH_CONFIG_KEY = "target.rootFolderPath";
     public static final String DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
-    public static final String POST_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.postDeployment.pipeline";
 
     // Processor Properties
 

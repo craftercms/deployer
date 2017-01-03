@@ -3,7 +3,6 @@ package org.craftercms.deployer.impl.processors;
 import java.io.File;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 import java.util.Arrays;
 import java.util.HashMap;
@@ -110,10 +109,6 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
 
     @Override
     protected void doExecute(Deployment deployment) throws DeploymentException {
-        if (deployment.getEnd() == null) {
-            deployment.setEnd(ZonedDateTime.now());
-        }
-
         Map<String, Object> templateModel = new HashMap<>();
         templateModel.put(SERVER_NAME_MODEL_KEY, serverName);
         templateModel.put(TARGET_ID_MODEL_KEY, deployment.getTargetContext().getId());
@@ -138,7 +133,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
 
             logger.info("Deployment notification successfully sent to {}", Arrays.toString(to));
         } catch (Exception e) {
-            throw new DeploymentException("Failed while sending email with deployment report", e);
+            throw new DeploymentException("Error while sending email with deployment report", e);
         }
     }
 

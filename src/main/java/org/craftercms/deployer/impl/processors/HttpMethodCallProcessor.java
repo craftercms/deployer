@@ -89,8 +89,8 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
             } else {
                 logger.error("Error response for request {}: status = {}, body = {}", request, status, body);
 
-                execution.setStatus(Deployment.Status.FAILURE);
                 execution.setStatusDetails("Error response for request " + request + ": status = " + status);
+                execution.endExecution(Deployment.Status.FAILURE);
             }
         } catch (IOException e) {
             throw new DeploymentException("IO error on HTTP request " + request, e);

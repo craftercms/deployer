@@ -28,14 +28,12 @@ public class ProcessorExecution {
     protected String processorName;
     protected volatile ZonedDateTime start;
     protected volatile ZonedDateTime end;
-    protected volatile boolean running;
     protected volatile Status status;
     protected volatile Object statusDetails;
 
     public ProcessorExecution(String processorName) {
         this.processorName = processorName;
         this.start = ZonedDateTime.now();
-        this.running = true;
     }
 
     public String getProcessorName() {
@@ -46,32 +44,16 @@ public class ProcessorExecution {
         return start;
     }
 
-    public void setStart(ZonedDateTime start) {
-        this.start = start;
-    }
-
     public ZonedDateTime getEnd() {
         return end;
     }
 
-    public void setEnd(ZonedDateTime end) {
-        this.end = end;
-    }
-
     public boolean isRunning() {
-        return running;
-    }
-
-    public void setRunning(boolean running) {
-        this.running = running;
+        return end == null;
     }
 
     public Status getStatus() {
         return status;
-    }
-
-    public void setStatus(Status status) {
-        this.status = status;
     }
 
     public Object getStatusDetails() {
@@ -80,6 +62,13 @@ public class ProcessorExecution {
 
     public void setStatusDetails(Object statusDetails) {
         this.statusDetails = statusDetails;
+    }
+
+    public void endExecution(Status status) {
+        if (isRunning()) {
+            this.end = ZonedDateTime.now();
+            this.status = status;
+        }
     }
 
 }

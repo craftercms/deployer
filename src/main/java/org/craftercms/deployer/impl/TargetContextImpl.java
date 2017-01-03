@@ -33,15 +33,12 @@ public class TargetContextImpl implements TargetContext {
 
     protected String id;
     protected DeploymentPipeline deploymentPipeline;
-    protected DeploymentPipeline postDeploymentPipeline;
     protected ConfigurableApplicationContext applicationContext;
     protected ZonedDateTime dateCreated;
 
-    public TargetContextImpl(String id, DeploymentPipeline deploymentPipeline, DeploymentPipeline postDeploymentPipeline,
-                             ConfigurableApplicationContext applicationContext) {
+    public TargetContextImpl(String id, DeploymentPipeline deploymentPipeline, ConfigurableApplicationContext applicationContext) {
         this.id = id;
         this.deploymentPipeline = deploymentPipeline;
-        this.postDeploymentPipeline = postDeploymentPipeline;
         this.applicationContext = applicationContext;
         this.dateCreated = ZonedDateTime.now();
     }
@@ -54,11 +51,6 @@ public class TargetContextImpl implements TargetContext {
     @Override
     public DeploymentPipeline getDeploymentPipeline() {
         return deploymentPipeline;
-    }
-
-    @Override
-    public DeploymentPipeline getPostDeploymentPipeline() {
-        return postDeploymentPipeline;
     }
 
     @Override

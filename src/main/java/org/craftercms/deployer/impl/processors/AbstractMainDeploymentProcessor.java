@@ -16,8 +16,6 @@
  */
 package org.craftercms.deployer.impl.processors;
 
-import java.time.ZonedDateTime;
-
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
@@ -43,32 +41,25 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
 
                 doExecute(deployment, execution);
 
-                if (execution.getStatus() == null) {
-                    execution.setStatus(Deployment.Status.SUCCESS);
-                }
+                execution.endExecution(Deployment.Status.SUCCESS);
             } catch (Exception e) {
                 logger.error("Processor '" + processorName + "' for target '" + targetId + "' failed", e);
 
-                execution.setStatus(Deployment.Status.FAILURE);
                 execution.setStatusDetails(e.toString());
+                execution.endExecution(Deployment.Status.FAILURE);
 
                 if (failDeploymentOnProcessorFailure()) {
-                    deployment.setStatus(Deployment.Status.FAILURE);
+                    deployment.endDeployment(Deployment.Status.FAILURE);
                 }
             } finally {
-                execution.setRunning(false);
-                if (deployment.getEnd() == null) {
-                    execution.setEnd(ZonedDateTime.now());
-                }
-
                 logger.info("=========== End of '{}' for target '{}' ===========", processorName, targetId);
             }
         }
     }
 
     protected boolean shouldExecute(Deployment deployment) {
-        // Don't run if the deployment already failed or if the deployment change set is empty
-        return deployment.getStatus() != Deployment.Status.FAILURE && !deployment.isChangeSetEmpty();
+        // Run if the deployment is running and change set is not empty
+        return deployment.isRunning() && !deployment.isChangeSetEmpty();
     }
 
     protected abstract void doExecute(Deployment deployment, ProcessorExecution execution) throws DeploymentException;

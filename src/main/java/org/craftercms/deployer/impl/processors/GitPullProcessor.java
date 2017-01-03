@@ -76,8 +76,8 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected boolean shouldExecute(Deployment deployment) {
-        // Don't run if the deployment already failed
-        return deployment.getStatus() != Deployment.Status.FAILURE;
+        // Run if the deployment is running
+        return deployment.isRunning();
     }
 
     @Override

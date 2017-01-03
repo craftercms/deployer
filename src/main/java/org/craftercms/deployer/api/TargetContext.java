@@ -30,9 +30,6 @@ public interface TargetContext {
     @JsonIgnore
     DeploymentPipeline getDeploymentPipeline();
 
-    @JsonIgnore
-    DeploymentPipeline getPostDeploymentPipeline();
-
     ZonedDateTime getDateCreated();
 
     void destroy();

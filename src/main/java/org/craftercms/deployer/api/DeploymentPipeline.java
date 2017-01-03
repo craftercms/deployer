@@ -23,8 +23,8 @@ import org.craftercms.deployer.api.exceptions.DeploymentException;
  */
 public interface DeploymentPipeline {
 
-    ChangeSet execute(DeploymentContext context) throws DeploymentException;
-
     void destroy() throws DeploymentException;
+
+    void execute(Deployment deployment);
 
 }

@@ -16,17 +16,45 @@
  */
 package org.craftercms.deployer.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.util.Collections;
 import java.util.List;
+
+import org.apache.commons.collections4.CollectionUtils;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public interface ChangeSet {
+public class ChangeSet {
 
-    List<String> getCreatedFiles();
+    protected List<String> createdFiles;
+    protected List<String> updatedFiles;
+    protected List<String> deletedFiles;
 
-    List<String> getUpdatedFiles();
+    public ChangeSet(List<String> createdFiles, List<String> updatedFiles, List<String> deletedFiles) {
+        this.createdFiles = createdFiles;
+        this.updatedFiles = updatedFiles;
+        this.deletedFiles = deletedFiles;
+    }
 
-    List<String> getDeletedFiles();
+    public List<String> getCreatedFiles() {
+        return Collections.unmodifiableList(createdFiles);
+    }
+
+    public List<String> getUpdatedFiles() {
+        return Collections.unmodifiableList(updatedFiles);
+    }
+
+    public List<String> getDeletedFiles() {
+        return Collections.unmodifiableList(deletedFiles);
+    }
+
+    @JsonIgnore
+    public boolean isEmpty() {
+        return CollectionUtils.isEmpty(createdFiles) &&
+               CollectionUtils.isEmpty(updatedFiles) &&
+               CollectionUtils.isEmpty(deletedFiles);
+    }
 
 }

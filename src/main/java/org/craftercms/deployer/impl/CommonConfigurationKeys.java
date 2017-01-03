@@ -14,13 +14,26 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
+package org.craftercms.deployer.impl;
 
 /**
- * Created by alfonsovasquez on 12/18/16.
+ * Created by alfonsovasquez on 12/26/16.
  */
-public interface ErrorHandler {
+public class CommonConfigurationKeys {
 
-    void onError(DeploymentContext context, Exception exception);
+    private CommonConfigurationKeys() {
+    }
+
+    // Global Properties
+
+    // Target Specific Properties
+
+    public static final String TARGET_ID_CONFIG_KEY = "target.id";
+    public static final String TARGET_ROOT_FOLDER_PATH_CONFIG_KEY = "target.rootFolderPath";
+    public static final String DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
+
+    // Processor Properties
+
+    public static final String PROCESSOR_NAME_CONFIG_KEY = "processorName";
 
 }

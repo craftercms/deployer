@@ -19,8 +19,7 @@ package org.craftercms.deployer.impl;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.craftercms.deployer.api.ChangeSet;
-import org.craftercms.deployer.api.DeploymentContext;
+import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
@@ -37,23 +36,19 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
     }
 
     @Override
-    public ChangeSet execute(DeploymentContext context) throws DeploymentException {
-        ChangeSet changeSet = new ChangeSetImpl();
-
-        if (CollectionUtils.isNotEmpty(processors)) {
-            for (DeploymentProcessor processor : processors) {
-                changeSet = processor.execute(context, changeSet);
-            }
-        }
-
-        return changeSet;
-    }
-
-    @Override
     public void destroy() throws DeploymentException {
         if (CollectionUtils.isNotEmpty(processors)) {
             for (DeploymentProcessor processor : processors) {
                 processor.destroy();
+            }
+        }
+    }
+
+    @Override
+    public void execute(Deployment deployment) {
+        if (CollectionUtils.isNotEmpty(processors)) {
+            for (DeploymentProcessor processor : processors) {
+                processor.execute(deployment);
             }
         }
     }

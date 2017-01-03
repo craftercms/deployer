@@ -28,6 +28,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.ex.ConfigurationException;
+import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.deployer.api.exceptions.DeploymentConfigurationException;
@@ -87,19 +88,28 @@ public class ConfigurationUtils {
         }
     }
 
-    public static boolean getBoolean(Configuration config, String key) throws DeploymentConfigurationException {
-        try {
-            return config.getBoolean(key);
-        } catch (Exception e) {
-            throw new DeploymentConfigurationException("Failed to retrieve property '" + key + "'", e);
-        }
-    }
-
     public static boolean getBoolean(Configuration config, String key, boolean defaultValue) throws DeploymentConfigurationException {
         try {
             return config.getBoolean(key, defaultValue);
         } catch (Exception e) {
             throw new DeploymentConfigurationException("Failed to retrieve property '" + key + "'", e);
+        }
+    }
+
+    public static String[] getStringArray(Configuration config, String key) throws DeploymentConfigurationException {
+        try {
+            return config.getStringArray(key);
+        } catch (Exception e) {
+            throw new DeploymentConfigurationException("Failed to retrieve property '" + key + "'", e);
+        }
+    }
+
+    public static String[] getRequiredStringArray(Configuration config, String key) throws DeploymentConfigurationException {
+        String[] property = getStringArray(config, key);
+        if (ArrayUtils.isEmpty(property)) {
+            throw new MissingConfigurationPropertyException("Missing required property '" + key + "'");
+        } else {
+            return property;
         }
     }
 

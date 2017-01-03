@@ -21,7 +21,7 @@ import org.springframework.core.NestedExceptionUtils;
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public class DeploymentException extends RuntimeException {
+public class DeploymentException extends Exception {
 
     public DeploymentException(String message) {
         super(message);

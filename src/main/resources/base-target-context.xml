@@ -1,0 +1,83 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+       xmlns:context="http://www.springframework.org/schema/context"
+       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+
+    <context:property-placeholder/>
+
+    <!-- Deployment Processors -->
+
+    <!--
+        All processors should be prototypes, so that several instances of them can be used. They will be instanced when the
+        pipeline is created
+    -->
+    <bean id="gitPullProcessor" class="org.craftercms.deployer.impl.processors.GitPullProcessor" scope="prototype"/>
+
+    <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor" scope="prototype">
+        <property name="searchService" ref="searchService"/>
+        <property name="batchIndexers">
+            <list>
+                <ref bean="flattenedXmlFileBatchIndexer"/>
+                <ref bean="binaryFileBatchIndexer"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor" scope="prototype"/>
+    
+    <bean id="fileOutputProcessor" class="org.craftercms.deployer.impl.processors.FileOutputProcessor" scope="prototype">
+        <property name="defaultOutputFolderPath" value="${deployer.main.outputFolderPath}"/>
+        <property name="defaultTimestampPattern" value="${target.output.timestampPattern}"/>
+        <property name="objectMapper" ref="objectMapper"/>
+    </bean>
+
+    <bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.MailNotificationProcessor" scope="prototype">
+        <property name="emailFactory" ref="emailFactory"/>
+        <property name="defaultTemplateName" value="${target.notifications.mail.defaultTemplateName}"/>
+        <property name="defaultFrom" value="${target.notifications.mail.defaultFrom}"/>
+        <property name="defaultSubject" value="${target.notifications.mail.defaultSubject}"/>
+        <property name="defaultHtml" value="${target.notifications.mail.defaultHtml}"/>
+        <property name="defaultDateTimePattern" value="${target.notifications.mail.defaultDateTimePattern}"/>
+    </bean>
+
+    <!-- Search -->
+    
+    <bean id="flattenedXmlFileBatchIndexer" class="org.craftercms.search.batch.impl.FlattenedXmlFileBatchIndexer">
+        <property name="searchService" ref="searchService"/>
+        <property name="includeFileNamePatterns"
+                  value="#{environment.getProperty('target.search.indexing.xmlFiles.includePatterns', T(java.util.List))}"/>
+    </bean>
+
+    <bean id="binaryFileBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileBatchIndexer">
+        <property name="searchService" ref="searchService"/>
+        <property name="supportedMimeTypes"
+                  value="#{environment.getProperty('target.search.indexing.binaryFiles.supportedMimeTypes', T(java.util.List))}"/>
+    </bean>
+
+    <bean id="searchService" class="org.craftercms.search.service.impl.RestClientSearchService">
+        <property name="serverUrl" value="${target.search.serverUrl}"/>
+    </bean>
+
+    <!-- Mail -->
+
+    <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
+        <property name="host" value="${target.notifications.mail.server.host}"/>
+        <property name="port" value="${target.notifications.mail.server.port}"/>
+        <property name="protocol" value="${target.notifications.mail.protocol}"/>
+        <property name="defaultEncoding" value="${target.notifications.mail.encoding}"/>
+    </bean>
+
+    <bean id="mailFreemarkerConfig" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+        <property name="templateLoaderPath" value="${target.notifications.mail.templatesLocation}"/>
+        <property name="defaultEncoding" value="${target.notifications.mail.encoding}"/>
+    </bean>
+
+    <bean id="emailFactory" class="org.craftercms.commons.mail.impl.EmailFactoryImpl">
+        <property name="mailSender" ref="mailSender"/>
+        <property name="freeMarkerConfig" ref="mailFreemarkerConfig"/>
+        <property name="templateEncoding" value="${target.notifications.mail.encoding}"/>
+    </bean>
+
+</beans>

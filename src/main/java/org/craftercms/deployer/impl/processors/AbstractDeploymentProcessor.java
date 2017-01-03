@@ -17,47 +17,33 @@
 package org.craftercms.deployer.impl.processors;
 
 import org.apache.commons.configuration2.Configuration;
-import org.craftercms.deployer.api.ChangeSet;
-import org.craftercms.deployer.api.DeploymentContext;
 import org.craftercms.deployer.api.DeploymentProcessor;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.craftercms.deployer.utils.ConfigurationUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
-import static org.craftercms.deployer.impl.CommonConfigurationProperties.*;
+import static org.craftercms.deployer.impl.CommonConfigurationKeys.PROCESSOR_NAME_CONFIG_KEY;
+import static org.craftercms.deployer.impl.CommonConfigurationKeys.TARGET_ID_CONFIG_KEY;
 
 /**
- * Created by alfonsovasquez on 12/27/16.
+ * Created by alfonsovasquez on 12/30/16.
  */
 public abstract class AbstractDeploymentProcessor implements DeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractDeploymentProcessor.class);
-
-    protected String deploymentId;
+    protected String targetId;
     protected String processorName;
 
     @Override
     public void init(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
-        deploymentId = ConfigurationUtils.getRequiredString(mainConfig, DEPLOYMENT_ID_PROPERTY_NAME);
-        processorName = ConfigurationUtils.getRequiredString(processorConfig, PROCESSOR_NAME_PROPERTY_NAME);
+        targetId = ConfigurationUtils.getRequiredString(mainConfig, TARGET_ID_CONFIG_KEY);
+        processorName = ConfigurationUtils.getRequiredString(processorConfig, PROCESSOR_NAME_CONFIG_KEY);
 
         doInit(mainConfig, processorConfig);
     }
 
     @Override
-    public ChangeSet execute(DeploymentContext context, ChangeSet changeSet) throws DeploymentException {
-        try {
-            logger.info("========== Start of processor '{}' for deployment '{}' ==========", processorName, deploymentId);
-
-            return doExecute(context, changeSet);
-        } finally {
-            logger.info("=========== End of processor '{}' for deployment '{}' ===========", processorName, deploymentId);
-        }
+    public void destroy() throws DeploymentException {
     }
 
     protected abstract void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException;
-
-    protected abstract ChangeSet doExecute(DeploymentContext context, ChangeSet changeSet) throws DeploymentException;
 
 }

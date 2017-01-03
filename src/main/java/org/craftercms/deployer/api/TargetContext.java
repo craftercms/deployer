@@ -14,24 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl;
+package org.craftercms.deployer.api;
+
+import com.fasterxml.jackson.annotation.JsonIgnore;
+
+import java.time.ZonedDateTime;
 
 /**
- * Created by alfonsovasquez on 12/26/16.
+ * Created by alfonsovasquez on 30/11/16.
  */
-public class CommonConfigurationProperties {
+public interface TargetContext {
 
-    private CommonConfigurationProperties() {
-    }
+    String getId();
 
-    // Main properties
+    @JsonIgnore
+    DeploymentPipeline getDeploymentPipeline();
 
-    public static final String DEPLOYMENT_ID_PROPERTY_NAME = "deployment.id";
-    public static final String DEPLOYMENT_ROOT_FOLDER_PROPERTY_NAME = "deployment.rootFolder";
-    public static final String DEPLOYMENT_PIPELINE_PROPERTY_NAME = "deployment.pipeline";
+    ZonedDateTime getDateCreated();
 
-    // Processor properties
-
-    public static final String PROCESSOR_NAME_PROPERTY_NAME = "processorName";
+    void destroy();
 
 }

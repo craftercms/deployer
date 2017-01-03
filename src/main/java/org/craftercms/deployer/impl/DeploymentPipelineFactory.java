@@ -26,6 +26,7 @@ import org.springframework.beans.factory.BeanFactory;
  */
 public interface DeploymentPipelineFactory {
 
-    DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, BeanFactory beanFactory) throws DeploymentException;
+    DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, BeanFactory beanFactory,
+                                   String pipelinePropertyName, boolean required) throws DeploymentException;
 
 }

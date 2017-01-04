@@ -3,20 +3,21 @@ server:
 
 deployer:
   main:
-    configFolderPath: config
-    outputFolderPath: output
-    baseTargetConfig:
-      yamlLocation: classpath:base-target.yaml
-      yamlOverrideLocation: file:${deployer.main.configFolderPath}/base-target.yaml
-      appContextLocation: classpath:base-target-context.xml
-      appContextOverrideLocation: file:${deployer.main.configFolderPath}/base-target-context.xml
+    config:
+      path: ./config
+      target:
+        base:
+          yamlLocation: classpath:base-target.yaml
+          yamlOverrideLocation: file:${deployer.main.config.path}/base-target.yaml
+          appContextLocation: classpath:base-target-context.xml
+          appContextOverrideLocation: file:${deployer.main.config.path}/base-target-context.xml
+    output:
+      path: ./output
+    logging:
+      path: ./logs
     scheduledJob:
       cron: '0 * * * * *'
 
 spring:
   freemarker:
     checkTemplateLocation: false
-
-logging:
-  level:
-    org.craftercms.deployer: DEBUG

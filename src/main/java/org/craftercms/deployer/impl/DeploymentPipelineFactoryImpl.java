@@ -32,7 +32,7 @@ import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.stereotype.Component;
 
-import static org.craftercms.deployer.impl.CommonConfigurationKeys.PROCESSOR_NAME_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 12/22/16.

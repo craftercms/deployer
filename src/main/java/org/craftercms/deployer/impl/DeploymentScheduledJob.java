@@ -20,8 +20,6 @@ public class DeploymentScheduledJob {
 
     @Scheduled(cron = "${deployer.main.scheduledJob.cron}")
     public void run() {
-        logger.debug("Executing deployment cron job...");
-
         try {
             deploymentService.deployAllSites();
         } catch (Exception e) {

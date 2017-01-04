@@ -43,6 +43,7 @@ import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.craftercms.deployer.utils.ConfigurationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -54,8 +55,8 @@ import org.springframework.core.io.Resource;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
-import static org.craftercms.deployer.impl.CommonConfigurationKeys.DEPLOYMENT_PIPELINE_CONFIG_KEY;
-import static org.craftercms.deployer.impl.CommonConfigurationKeys.TARGET_ID_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.DEPLOYMENT_PIPELINE_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_ID_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 5/12/16.
@@ -79,14 +80,14 @@ public class TargetResolverImpl implements TargetResolver {
     protected Map<String, TargetContext> targetContextCache;
 
     public TargetResolverImpl(
-        @Value("${deployer.main.configFolderPath}") String configFolderPath,
-        @Value("${deployer.main.baseTargetConfig.yamlLocation}") Resource baseTargetYamlConfigResource,
-        @Value("${deployer.main.baseTargetConfig.yamlOverrideLocation}") Resource baseTargetYamlConfigOverrideResource,
-        @Value("${deployer.main.baseTargetConfig.appContextLocation}") Resource baseTargetAppContextResource,
-        @Value("${deployer.main.baseTargetConfig.appContextOverrideLocation}") Resource baseTargetAppContextOverrideResource,
+        @Value("${deployer.main.config.path}") String configPath,
+        @Value("${deployer.main.config.target.base.yamlLocation}") Resource baseTargetYamlConfigResource,
+        @Value("${deployer.main.config.target.base.yamlOverrideLocation}") Resource baseTargetYamlConfigOverrideResource,
+        @Value("${deployer.main.config.target.base.appContextLocation}") Resource baseTargetAppContextResource,
+        @Value("${deployer.main.config.target.base.appContextOverrideLocation}") Resource baseTargetAppContextOverrideResource,
         @Autowired ApplicationContext mainApplicationContext,
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory) throws IOException {
-        this.configFolder = new File(configFolderPath);
+        this.configFolder = new File(configPath);
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
         this.baseTargetAppContextResource = baseTargetAppContextResource;
@@ -178,6 +179,7 @@ public class TargetResolverImpl implements TargetResolver {
     }
 
     protected TargetContext getTargetContext(String targetId, File customConfigFile) throws DeploymentException {
+        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, targetId);
         try {
             File customAppContextResource = new File(configFolder, targetId + APP_CONTEXT_FILENAME_SUFFIX);
             TargetContext targetContext = null;
@@ -213,6 +215,8 @@ public class TargetResolverImpl implements TargetResolver {
             return targetContext;
         } catch (Exception e) {
             throw new DeploymentException("Error while resolving context for target '" + targetId + "'", e);
+        } finally {
+            MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
         }
     }
 

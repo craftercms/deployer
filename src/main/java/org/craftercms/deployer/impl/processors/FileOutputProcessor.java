@@ -27,7 +27,6 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
-import org.craftercms.deployer.utils.ConfigurationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -39,25 +38,21 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(FileOutputProcessor.class);
 
-    public static final String OUTPUT_FOLDER_PATH_CONFIG_KEY = "outputFolderPath";
-    public static final String TIMESTAMP_PATTERN_CONFIG_KEY = "timestampPattern";
-
     public static final String OUTPUT_FILE_ATTRIBUTE_NAME = "outputFile";
 
     protected File outputFolder;
-    protected String defaultOutputFolderPath;
-    protected String defaultTimestampPattern;
+    protected String timestampPattern;
     protected DateTimeFormatter timestampFormatter;
     protected ObjectMapper objectMapper;
 
     @Required
-    public void setDefaultOutputFolderPath(String defaultOutputFolderPath) {
-        this.defaultOutputFolderPath = defaultOutputFolderPath;
+    public void setOutputFolder(File outputFolder) {
+        this.outputFolder = outputFolder;
     }
 
     @Required
-    public void setDefaultTimestampPattern(String defaultTimestampPattern) {
-        this.defaultTimestampPattern = defaultTimestampPattern;
+    public void setTimestampPattern(String timestampPattern) {
+        this.timestampPattern = timestampPattern;
     }
 
     @Required
@@ -67,10 +62,6 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     @Override
     protected void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
-        String outputFolderPath = ConfigurationUtils.getString(processorConfig, OUTPUT_FOLDER_PATH_CONFIG_KEY, defaultOutputFolderPath);
-        String timestampPattern = ConfigurationUtils.getString(processorConfig, TIMESTAMP_PATTERN_CONFIG_KEY, defaultTimestampPattern);
-
-        outputFolder = new File(outputFolderPath);
         timestampFormatter = DateTimeFormatter.ofPattern(timestampPattern);
 
         if (!outputFolder.exists()) {

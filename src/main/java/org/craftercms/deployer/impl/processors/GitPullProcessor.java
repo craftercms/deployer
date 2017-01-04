@@ -46,7 +46,7 @@ import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.craftercms.deployer.impl.CommonConfigurationKeys.TARGET_ROOT_FOLDER_PATH_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_PATH_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 1/12/16.
@@ -68,7 +68,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     public void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
-        localRepositoryFolder = new File(ConfigurationUtils.getRequiredString(mainConfig, TARGET_ROOT_FOLDER_PATH_CONFIG_KEY));
+        localRepositoryFolder = new File(ConfigurationUtils.getRequiredString(mainConfig, TARGET_PATH_CONFIG_KEY));
         remoteRepositoryUrl = ConfigurationUtils.getRequiredString(processorConfig, REMOTE_REPOSITORY_URL_CONFIG_KEY);
         remoteRepositoryUsername = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_USERNAME_CONFIG_KEY);
         remoteRepositoryPassword = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_PASSWORD_CONFIG_KEY);

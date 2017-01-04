@@ -28,8 +28,8 @@
     <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor" scope="prototype"/>
     
     <bean id="fileOutputProcessor" class="org.craftercms.deployer.impl.processors.FileOutputProcessor" scope="prototype">
-        <property name="defaultOutputFolderPath" value="${deployer.main.outputFolderPath}"/>
-        <property name="defaultTimestampPattern" value="${target.output.timestampPattern}"/>
+        <property name="outputFolder" value="${deployer.main.output.path}"/>
+        <property name="timestampPattern" value="${target.output.timestampPattern}"/>
         <property name="objectMapper" ref="objectMapper"/>
     </bean>
 

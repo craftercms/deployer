@@ -27,6 +27,7 @@ import org.craftercms.deployer.api.TargetResolver;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -62,21 +63,26 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     public Deployment deploySite(TargetContext context) {
-        Deployment deployment = new Deployment(context);
+        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, context.getId());
+        try {
+            Deployment deployment = new Deployment(context);
 
-        logger.info("**************************************************");
-        logger.info("* Deployment pipeline  for '{}' started", context.getId());
-        logger.info("**************************************************");
+            logger.info("**************************************************");
+            logger.info("* Deployment pipeline  for '{}' started", context.getId());
+            logger.info("**************************************************");
 
-        context.getDeploymentPipeline().execute(deployment);
+            context.getDeploymentPipeline().execute(deployment);
 
-        deployment.endDeployment(Deployment.Status.SUCCESS);
+            deployment.endDeployment(Deployment.Status.SUCCESS);
 
-        logger.info("**************************************************");
-        logger.info("* Deployment pipeline for '{}' finished", context.getId());
-        logger.info("**************************************************");
+            logger.info("**************************************************");
+            logger.info("* Deployment pipeline for '{}' finished", context.getId());
+            logger.info("**************************************************");
 
-        return deployment;
+            return deployment;
+        } finally {
+            MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
+        }
     }
 
 }

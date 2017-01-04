@@ -19,21 +19,23 @@ package org.craftercms.deployer.impl;
 /**
  * Created by alfonsovasquez on 12/26/16.
  */
-public class CommonConfigurationKeys {
+public class DeploymentConstants {
 
-    private CommonConfigurationKeys() {
+    private DeploymentConstants() {
     }
 
-    // Global Properties
-
-    // Target Specific Properties
+    // Target-specific Configuration Keys
 
     public static final String TARGET_ID_CONFIG_KEY = "target.id";
-    public static final String TARGET_ROOT_FOLDER_PATH_CONFIG_KEY = "target.rootFolderPath";
+    public static final String TARGET_PATH_CONFIG_KEY = "target.path";
     public static final String DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
 
-    // Processor Properties
+    // Processor-specific Configuration Keys
 
     public static final String PROCESSOR_NAME_CONFIG_KEY = "processorName";
+
+    // Logging MDC Keys
+
+    public static final String TARGET_ID_MDC_KEY = "targetId";
 
 }

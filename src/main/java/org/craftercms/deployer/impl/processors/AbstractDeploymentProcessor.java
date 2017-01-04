@@ -21,8 +21,8 @@ import org.craftercms.deployer.api.DeploymentProcessor;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.craftercms.deployer.utils.ConfigurationUtils;
 
-import static org.craftercms.deployer.impl.CommonConfigurationKeys.PROCESSOR_NAME_CONFIG_KEY;
-import static org.craftercms.deployer.impl.CommonConfigurationKeys.TARGET_ID_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_ID_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 12/30/16.

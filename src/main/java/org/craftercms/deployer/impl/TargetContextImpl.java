@@ -22,6 +22,7 @@ import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.TargetContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.slf4j.MDC;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
@@ -60,11 +61,16 @@ public class TargetContextImpl implements TargetContext {
 
     @Override
     public void destroy() {
+        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
         try {
+            logger.info("Destroying target context '{}'...", id);
+
             deploymentPipeline.destroy();
             applicationContext.close();
         } catch (Exception e) {
             logger.error("Failed to destroy target context '{}'", id);
+        } finally {
+            MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
         }
     }
 

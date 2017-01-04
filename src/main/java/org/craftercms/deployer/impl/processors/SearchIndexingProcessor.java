@@ -18,7 +18,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
-import static org.craftercms.deployer.impl.CommonConfigurationKeys.TARGET_ROOT_FOLDER_PATH_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_PATH_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 12/26/16.
@@ -34,7 +34,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
 
-    protected String rootFolder;
+    protected String targetFolder;
     protected String indexId;
     protected String siteName;
     protected SearchService searchService;
@@ -55,7 +55,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     public void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
-        rootFolder = ConfigurationUtils.getRequiredString(mainConfig, TARGET_ROOT_FOLDER_PATH_CONFIG_KEY);
+        targetFolder = ConfigurationUtils.getRequiredString(mainConfig, TARGET_PATH_CONFIG_KEY);
         indexId = ConfigurationUtils.getString(processorConfig, INDEX_ID_CONFIG_KEY);
         siteName = ConfigurationUtils.getString(processorConfig, SITE_NAME_CONFIG_KEY);
 
@@ -92,17 +92,17 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         try {
             if (CollectionUtils.isNotEmpty(createdFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(indexId, siteName, rootFolder, createdFiles, false, indexingStatus);
+                    indexer.updateIndex(indexId, siteName, targetFolder, createdFiles, false, indexingStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(updatedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(indexId, siteName, rootFolder, updatedFiles, false, indexingStatus);
+                    indexer.updateIndex(indexId, siteName, targetFolder, updatedFiles, false, indexingStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(deletedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(indexId, siteName, rootFolder, deletedFiles, true, indexingStatus);
+                    indexer.updateIndex(indexId, siteName, targetFolder, deletedFiles, true, indexingStatus);
                 }
             }
 

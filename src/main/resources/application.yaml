@@ -4,7 +4,7 @@ server:
 deployer:
   main:
     config:
-      path: ./config
+      path: config
       target:
         base:
           yamlLocation: classpath:base-target.yaml
@@ -12,9 +12,9 @@ deployer:
           appContextLocation: classpath:base-target-context.xml
           appContextOverrideLocation: file:${deployer.main.config.path}/base-target-context.xml
     output:
-      path: ./output
+      path: output
     logging:
-      path: ./logs
+      path: logs
     scheduledJob:
       cron: '0 * * * * *'
 

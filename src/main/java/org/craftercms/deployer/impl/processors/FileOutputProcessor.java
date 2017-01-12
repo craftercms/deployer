@@ -89,7 +89,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     protected File getOutputFile(Deployment deployment) {
-        String targetId = deployment.getTargetContext().getId();
+        String targetId = deployment.getTarget().getId();
         ZonedDateTime start = deployment.getStart();
         String filenameTimestamp = start.format(timestampFormatter);
         String outputFilename = targetId + "-deployment-" + filenameTimestamp;

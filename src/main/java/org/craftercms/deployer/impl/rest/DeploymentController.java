@@ -41,7 +41,7 @@ public class DeploymentController {
 
     @RequestMapping("/deploy/all")
     public List<Deployment> deployAll() throws DeploymentException {
-        return deploymentService.deployAllSites();
+        return deploymentService.deployAllTargets();
     }
 
 }

@@ -32,7 +32,7 @@ import java.util.concurrent.locks.ReentrantLock;
  */
 public class Deployment {
 
-    protected TargetContext targetContext;
+    protected Target target;
     protected volatile ZonedDateTime start;
     protected volatile ZonedDateTime end;
     protected volatile Status status;
@@ -41,16 +41,16 @@ public class Deployment {
     protected Lock statusesLock;
     protected Map<String, Object> attributes;
 
-    public Deployment(TargetContext targetContext) {
-        this.targetContext = targetContext;
+    public Deployment(Target target) {
+        this.target = target;
         this.start = ZonedDateTime.now();
         this.processorExecutions = new ArrayList<>();
         this.statusesLock = new ReentrantLock();
         this.attributes = new ConcurrentHashMap<>();
     }
 
-    public TargetContext getTargetContext() {
-        return targetContext;
+    public Target getTarget() {
+        return target;
     }
 
     public ZonedDateTime getStart() {

@@ -25,6 +25,6 @@ import org.craftercms.deployer.api.exceptions.DeploymentException;
  */
 public interface DeploymentService {
 
-    List<Deployment> deployAllSites() throws DeploymentException;
+    List<Deployment> deployAllTargets() throws DeploymentException;
 
 }

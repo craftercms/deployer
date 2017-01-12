@@ -16,22 +16,22 @@
  */
 package org.craftercms.deployer.api;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
+import java.util.List;
+import java.util.Map;
 
-import java.time.ZonedDateTime;
+import org.craftercms.deployer.api.exceptions.DeploymentException;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public interface TargetContext {
+public interface TargetManager {
 
-    String getId();
+    List<Target> getAllTargets() throws DeploymentException;
 
-    @JsonIgnore
-    DeploymentPipeline getDeploymentPipeline();
+    Target getTarget(String targetId) throws DeploymentException;
 
-    ZonedDateTime getDateCreated();
+    Target getTarget(String targetId, boolean create, String templateName, Map<String, Object> parameters) throws DeploymentException;
 
-    void destroy();
+    boolean deleteTarget(String targetId) throws DeploymentException;
 
 }

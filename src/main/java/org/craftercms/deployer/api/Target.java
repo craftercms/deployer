@@ -16,15 +16,29 @@
  */
 package org.craftercms.deployer.api;
 
-import java.util.List;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+import java.time.ZonedDateTime;
+
+import org.apache.commons.configuration2.Configuration;
+import org.springframework.scheduling.TaskScheduler;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public interface TargetResolver {
+public interface Target {
 
-    List<TargetContext> resolveAll() throws DeploymentException;
+    String getId();
+
+    ZonedDateTime getLoadDate();
+
+    @JsonIgnore
+    Configuration getConfiguration();
+    
+    Deployment deploy();
+
+    void scheduleDeployment(TaskScheduler scheduler, String cronExpression);
+
+    void close();
 
 }

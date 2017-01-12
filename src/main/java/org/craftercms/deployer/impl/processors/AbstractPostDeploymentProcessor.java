@@ -46,8 +46,8 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
     }
 
     protected boolean shouldExecute(Deployment deployment) {
-        // Don't run if the deployment change set is empty
-        return !deployment.isChangeSetEmpty();
+        // Run if there was a failure or the change set is not empty
+        return deployment.getStatus() == Deployment.Status.FAILURE || !deployment.isChangeSetEmpty();
     }
 
     protected abstract void doExecute(Deployment deployment) throws DeploymentException;

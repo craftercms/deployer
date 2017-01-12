@@ -5,18 +5,33 @@ deployer:
   main:
     config:
       path: config
-      target:
-        base:
-          yamlLocation: classpath:base-target.yaml
-          yamlOverrideLocation: file:${deployer.main.config.path}/base-target.yaml
-          appContextLocation: classpath:base-target-context.xml
-          appContextOverrideLocation: file:${deployer.main.config.path}/base-target-context.xml
-    output:
-      path: output
+    target:
+      idPattern: (\w+)\-?(\w?)
+      config:
+        path: ${deployer.main.config.path}/targets
+        baseYaml:
+          location: classpath:base-target.yaml
+          overrideLocation: file:${deployer.main.target.config.path}/base-target.yaml
+        baseContext:
+          location: classpath:base-target-context.xml
+          overrideLocation: file:${deployer.main.target.config.path}/base-target-context.xml
+        templates:
+          location: classpath:templates/targets
+          overrideLocation: file:${deployer.main.config.path}/templates/targets
+          encoding: UTF-8
+          default: default
+          suffix: -target-template.yaml
+      scan:
+        scheduling:
+          enabled: true
+          cron: '0 * * * * *'
+    deployment:
+      output:
+        path: output
     logging:
       path: logs
-    scheduledJob:
-      cron: '0 * * * * *'
+    scheduling:
+      poolSize: 10
 
 spring:
   freemarker:

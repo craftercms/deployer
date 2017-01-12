@@ -1,0 +1,6 @@
+target:
+    deployment:
+        pipeline:
+            - processorName: gitPullProcessor
+            - processorName: searchIndexingProcessor
+            - processorName: fileOutputProcessor

@@ -34,8 +34,6 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class ExceptionHandlers extends ResponseEntityExceptionHandler {
 
-    public static final String MESSAGE_PROPERTY_NAME = "message";
-
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception exception, WebRequest webRequest) {
         return handleExceptionInternal(exception, null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, webRequest);
@@ -47,7 +45,7 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
         logger.error("Request " + ((ServletWebRequest) request).getRequest().getRequestURI() + " failed with status " + status, ex);
 
         Map<String, String> responseBody = new HashMap<>(1);
-        responseBody.put(MESSAGE_PROPERTY_NAME, ex.toString());
+        responseBody.put(RestConstants.MESSAGE_PROPERTY_NAME, ex.toString());
 
         return new ResponseEntity<>(responseBody, headers, status);
     }

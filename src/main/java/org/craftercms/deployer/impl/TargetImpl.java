@@ -17,31 +17,40 @@
 package org.craftercms.deployer.impl;
 
 import java.time.ZonedDateTime;
+import java.util.concurrent.ScheduledFuture;
 
+import org.apache.commons.configuration2.Configuration;
+import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
-import org.craftercms.deployer.api.TargetContext;
+import org.craftercms.deployer.api.Target;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.support.CronTrigger;
 
 /**
  * Created by alfonsovasquez on 5/12/16.
  */
-public class TargetContextImpl implements TargetContext {
+public class TargetImpl implements Target {
 
-    private static final Logger logger = LoggerFactory.getLogger(TargetContextImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(TargetImpl.class);
 
     protected String id;
     protected DeploymentPipeline deploymentPipeline;
+    protected Configuration configuration;
     protected ConfigurableApplicationContext applicationContext;
-    protected ZonedDateTime dateCreated;
+    protected ZonedDateTime loadDate;
+    protected ScheduledFuture<?> scheduledFuture;
 
-    public TargetContextImpl(String id, DeploymentPipeline deploymentPipeline, ConfigurableApplicationContext applicationContext) {
+    public TargetImpl(String id, DeploymentPipeline deploymentPipeline, Configuration configuration,
+                      ConfigurableApplicationContext applicationContext) {
         this.id = id;
         this.deploymentPipeline = deploymentPipeline;
+        this.configuration = configuration;
         this.applicationContext = applicationContext;
-        this.dateCreated = ZonedDateTime.now();
+        this.loadDate = ZonedDateTime.now();
     }
 
     @Override
@@ -50,25 +59,36 @@ public class TargetContextImpl implements TargetContext {
     }
 
     @Override
-    public DeploymentPipeline getDeploymentPipeline() {
-        return deploymentPipeline;
+    public ZonedDateTime getLoadDate() {
+        return loadDate;
     }
 
     @Override
-    public ZonedDateTime getDateCreated() {
-        return dateCreated;
+    public Configuration getConfiguration() {
+        return configuration;
     }
 
     @Override
-    public void destroy() {
+    public synchronized Deployment deploy() {
+        return deploymentPipeline.execute(this);
+    }
+
+    @Override
+    public synchronized void scheduleDeployment(TaskScheduler scheduler, String cronExpression) {
+        scheduledFuture = scheduler.schedule(this::deploy, new CronTrigger(cronExpression));
+    }
+
+    @Override
+    public synchronized void close() {
         MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
         try {
-            logger.info("Destroying target context '{}'...", id);
+            logger.info("Closing target '{}'...", id);
 
+            scheduledFuture.cancel(true);
             deploymentPipeline.destroy();
             applicationContext.close();
         } catch (Exception e) {
-            logger.error("Failed to destroy target context '{}'", id);
+            logger.error("Failed to close '" + id + "'", e);
         } finally {
             MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
         }

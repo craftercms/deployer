@@ -27,8 +27,14 @@ public class DeploymentConstants {
     // Target-specific Configuration Keys
 
     public static final String TARGET_ID_CONFIG_KEY = "target.id";
+    public static final String TARGET_SITE_NAME_CONFIG_KEY = "target.siteName";
+    public static final String TARGET_ENVIRONMENT_CONFIG_KEY = "target.environment";
     public static final String TARGET_PATH_CONFIG_KEY = "target.path";
-    public static final String DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
+    public static final String TARGET_REMOTE_REPOSITORY_URL_CONFIG_KEY = "target.remoteRepository.url";
+    public static final String TARGET_REMOTE_REPOSITORY_USERNAME_CONFIG_KEY = "target.remoteRepository.username";
+    public static final String TARGET_REMOTE_REPOSITORY_PASSWORD_CONFIG_KEY = "target.remoteRepository.password";
+    public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
+    public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
 
     // Processor-specific Configuration Keys
 

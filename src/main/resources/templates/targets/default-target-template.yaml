@@ -1,0 +1,16 @@
+target:
+    deployment:
+        pipeline:
+            - processorName: gitPullProcessor
+            - processorName: searchIndexingProcessor
+            - processorName: httpMethodCallProcessor
+              method: GET
+              url: {{#if clearCacheUrl}}{{clearCacheUrl}}{{else}}http://localhost:8080/api/1/cache/clear_all.json{{/if}}
+            - processorName: fileOutputProcessor
+            {{#if notificationAddresses}}
+            - processorName: mailNotificationProcessor
+              to:
+                {{#list notificationAddresses}}
+                - {{this}}
+                {{/list}}
+            {{/if}}

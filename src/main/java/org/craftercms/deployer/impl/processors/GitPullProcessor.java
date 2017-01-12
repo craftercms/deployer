@@ -18,6 +18,7 @@ package org.craftercms.deployer.impl.processors;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.format.DateTimeFormatter;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -47,6 +48,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_PATH_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_REMOTE_REPOSITORY_PASSWORD_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_REMOTE_REPOSITORY_URL_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_REMOTE_REPOSITORY_USERNAME_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 1/12/16.
@@ -65,13 +69,26 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     protected String remoteRepositoryUrl;
     protected String remoteRepositoryUsername;
     protected String remoteRepositoryPassword;
+    protected DateTimeFormatter backupTimestampFormatter;
 
     @Override
     public void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
         localRepositoryFolder = new File(ConfigurationUtils.getRequiredString(mainConfig, TARGET_PATH_CONFIG_KEY));
-        remoteRepositoryUrl = ConfigurationUtils.getRequiredString(processorConfig, REMOTE_REPOSITORY_URL_CONFIG_KEY);
+
+        remoteRepositoryUrl = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_URL_CONFIG_KEY);
+        if (StringUtils.isEmpty(remoteRepositoryUrl)) {
+            remoteRepositoryUrl = ConfigurationUtils.getRequiredString(mainConfig, TARGET_REMOTE_REPOSITORY_URL_CONFIG_KEY);
+        }
+
         remoteRepositoryUsername = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_USERNAME_CONFIG_KEY);
+        if (StringUtils.isEmpty(remoteRepositoryUsername)) {
+            remoteRepositoryUsername = ConfigurationUtils.getString(mainConfig, TARGET_REMOTE_REPOSITORY_USERNAME_CONFIG_KEY);
+        }
+
         remoteRepositoryPassword = ConfigurationUtils.getString(processorConfig, REMOTE_REPOSITORY_PASSWORD_CONFIG_KEY);
+        if (StringUtils.isEmpty(remoteRepositoryPassword)) {
+            remoteRepositoryPassword = ConfigurationUtils.getString(mainConfig, TARGET_REMOTE_REPOSITORY_PASSWORD_CONFIG_KEY);
+        }
     }
 
     @Override
@@ -130,7 +147,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
                 switch (mergeResult.getMergeStatus()) {
                     case FAST_FORWARD:
-                        details = "Changes successfully pulled from remote " + remoteRepositoryUrl + " into repository " +
+                        details = "Changes successfully pulled from remote " + remoteRepositoryUrl + " into local repository " +
                                   localRepositoryFolder;
 
                         logger.info(details);
@@ -141,20 +158,30 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
                         execution.setStatusDetails(details);
                         break;
                     case ALREADY_UP_TO_DATE:
-                        details = "Git repository " + localRepositoryFolder + " up to date (no changes pulled from remote " +
+                        details = "Local repository " + localRepositoryFolder + " up to date (no changes pulled from remote " +
                                   remoteRepositoryUrl + ")";
 
                         logger.info(details);
 
                         execution.setStatusDetails(details);
                         break;
+                    case MERGED:
+                        details = "Changes from remote " + remoteRepositoryUrl + " merged into local repository " + localRepositoryFolder;
+
+                        logger.info(details);
+
+                        changeSet = resolveChangeSetFromPull(git, head, mergeResult.getNewHead());
+
+                        deployment.setChangeSet(changeSet);
+                        execution.setStatusDetails(details);
+                        break;
                     default:
-                        // Not supported merge results
+                        // Non-supported merge results
                         throw new DeploymentException("Received unsupported merge result after executing pull command: " +
                                                       mergeResult.getMergeStatus());
                 }
             }
-        } catch (Exception e) {
+        } catch (IOException | GitAPIException e) {
             throw new DeploymentException("Git pull for repository " + localRepositoryFolder + " failed", e);
         }
     }
@@ -171,11 +198,11 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     protected Git cloneRemoteRepository() throws DeploymentException {
         try {
             if (localRepositoryFolder.exists()) {
-                logger.debug("Deleting existing folder '{}' before cloning", localRepositoryFolder);
+                logger.debug("Deleting existing folder {} before cloning", localRepositoryFolder);
 
                 FileUtils.forceDelete(localRepositoryFolder);
             } else {
-                logger.debug("Creating folder '{}' and any nonexistent parents before cloning", localRepositoryFolder);
+                logger.debug("Creating folder {} and any nonexistent parents before cloning", localRepositoryFolder);
 
                 FileUtils.forceMkdir(localRepositoryFolder);
             }
@@ -189,14 +216,15 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
                 return GitUtils.cloneRemoteRepository(remoteRepositoryUrl, localRepositoryFolder);
             }
         } catch (IOException | GitAPIException e) {
+            // Force delete so there's no invalid remains
+            FileUtils.deleteQuietly(localRepositoryFolder);
+
             throw new DeploymentException("Failed to clone Git remote repository " + remoteRepositoryUrl + " into " +
                                           localRepositoryFolder, e);
         }
     }
 
     protected void resolveChangesFromClone(Deployment deployment, ProcessorExecution execution) {
-        logger.info("Adding entire cloned repository to change set...");
-
         List<String> createdFiles = new ArrayList<>();
         addClonedFilesToChangeSet(localRepositoryFolder, "", createdFiles);
 

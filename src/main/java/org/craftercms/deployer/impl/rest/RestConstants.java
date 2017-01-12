@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -14,17 +14,16 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
-
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+package org.craftercms.deployer.impl.rest;
 
 /**
- * Created by alfonsovasquez on 12/18/16.
+ * Created by alfonsovasquez on 1/12/17.
  */
-public interface DeploymentPipeline {
+public class RestConstants {
 
-    void destroy() throws DeploymentException;
+    public static final String MESSAGE_PROPERTY_NAME = "message";
 
-    Deployment execute(Target target);
+    private RestConstants() {
+    }
 
 }

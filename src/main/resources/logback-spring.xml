@@ -22,6 +22,8 @@
         </sift>
     </appender>
 
+    <logger name="org.springframework" level="WARN"/>
+
     <root level="INFO">
         <appender-ref ref="CONSOLE" />
         <appender-ref ref="SIFT" />

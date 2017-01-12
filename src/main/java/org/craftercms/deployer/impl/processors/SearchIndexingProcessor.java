@@ -19,6 +19,7 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_PATH_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 12/26/16.
@@ -60,7 +61,10 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         siteName = ConfigurationUtils.getString(processorConfig, SITE_NAME_CONFIG_KEY);
 
         if (StringUtils.isEmpty(siteName)) {
-            siteName = targetId;
+            siteName = ConfigurationUtils.getString(mainConfig, TARGET_SITE_NAME_CONFIG_KEY);
+            if (StringUtils.isEmpty(siteName)) {
+                siteName = targetId;
+            }
         }
 
         boolean ignoreIndexId = ConfigurationUtils.getBoolean(processorConfig, IGNORE_INDEX_ID_CONFIG_KEY, false);

@@ -111,7 +111,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     protected void doExecute(Deployment deployment) throws DeploymentException {
         Map<String, Object> templateModel = new HashMap<>();
         templateModel.put(SERVER_NAME_MODEL_KEY, serverName);
-        templateModel.put(TARGET_ID_MODEL_KEY, deployment.getTargetContext().getId());
+        templateModel.put(TARGET_ID_MODEL_KEY, deployment.getTarget().getId());
         templateModel.put(START_MODEL_KEY, deployment.getStart().format(dateTimeFormatter));
         templateModel.put(END_MODEL_KEY, deployment.getEnd().format(dateTimeFormatter));
         templateModel.put(STATUS_MODEL_KEY, deployment.getStatus());

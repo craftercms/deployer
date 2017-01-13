@@ -26,8 +26,6 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping("/api/1/target")
 public class TargetController {
 
-    public static final String TARGET_ID_PATH_VAR = "targetId";
-
     public static final String CREATE_PARAM = "create";
     public static final String TEMPLATE_NAME_PARAM = "templateName";
 
@@ -46,7 +44,7 @@ public class TargetController {
         return targetManager.getAllTargets();
     }
 
-    @RequestMapping("/{" + TARGET_ID_PATH_VAR + "}")
+    @RequestMapping("/{" + RestConstants.TARGET_ID_PATH_VAR + "}")
     public Target getTarget(@PathVariable String targetId,
                             @RequestParam(value = CREATE_PARAM, required = false) boolean create,
                             @RequestParam(value = TEMPLATE_NAME_PARAM, required = false) String templateName,
@@ -58,7 +56,7 @@ public class TargetController {
         return targetManager.getTarget(targetId, create, templateName, params);
     }
 
-    @RequestMapping(value = "/{" + TARGET_ID_PATH_VAR + "}/delete", method = RequestMethod.POST)
+    @RequestMapping(value = "/{" + RestConstants.TARGET_ID_PATH_VAR + "}/delete", method = RequestMethod.POST)
     public ResponseEntity<Map<String, String>> deleteTarget(@PathVariable String targetId) throws DeploymentException {
         Map<String, String> body = new HashMap<>(1);
         HttpStatus status;

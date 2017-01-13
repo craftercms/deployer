@@ -22,6 +22,7 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -42,6 +43,11 @@ public class DeploymentController {
     @RequestMapping("/deploy/all")
     public List<Deployment> deployAll() throws DeploymentException {
         return deploymentService.deployAllTargets();
+    }
+
+    @RequestMapping("/deploy/{" + RestConstants.TARGET_ID_PATH_VAR + "}")
+    public Deployment deployTarget(@PathVariable String targetId) throws DeploymentException {
+        return deploymentService.deployTarget(targetId);
     }
 
 }

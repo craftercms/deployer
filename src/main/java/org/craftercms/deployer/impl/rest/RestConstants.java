@@ -21,6 +21,8 @@ package org.craftercms.deployer.impl.rest;
  */
 public class RestConstants {
 
+    public static final String TARGET_ID_PATH_VAR = "targetId";
+
     public static final String MESSAGE_PROPERTY_NAME = "message";
 
     private RestConstants() {

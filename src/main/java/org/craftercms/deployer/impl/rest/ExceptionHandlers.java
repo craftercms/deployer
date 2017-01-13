@@ -19,6 +19,7 @@ package org.craftercms.deployer.impl.rest;
 import java.util.HashMap;
 import java.util.Map;
 
+import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +34,11 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
  */
 @ControllerAdvice
 public class ExceptionHandlers extends ResponseEntityExceptionHandler {
+
+    @ExceptionHandler(TargetNotFoundException.class)
+    public ResponseEntity<Object> handleTargetNotFoundException(TargetNotFoundException exception, WebRequest webRequest) {
+        return handleExceptionInternal(exception, null, new HttpHeaders(), HttpStatus.NOT_FOUND, webRequest);
+    }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception exception, WebRequest webRequest) {

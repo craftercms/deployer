@@ -25,3 +25,7 @@ Thumbs.db
 
 # Maven build overlays #
 overlays
+
+# Configuration and Logging
+config/*
+logs/*

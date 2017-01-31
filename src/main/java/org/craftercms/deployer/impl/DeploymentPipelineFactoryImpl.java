@@ -19,17 +19,16 @@ package org.craftercms.deployer.impl;
 import java.util.ArrayList;
 import java.util.List;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
-import org.craftercms.deployer.api.exceptions.DeploymentConfigurationException;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
-import org.craftercms.deployer.utils.ConfigurationUtils;
+import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
+import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.BeanFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
@@ -43,42 +42,29 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentPipelineFactoryImpl.class);
 
     @Override
-    public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration,
-                                          BeanFactory beanFactory, String pipelinePropertyName,
-                                          boolean required) throws DeploymentException {
-        List<HierarchicalConfiguration> processorConfigs;
+    public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ConfigurableApplicationContext applicationContext,
+                                          String pipelinePropertyName) throws DeployerException {
+        List<HierarchicalConfiguration> processorConfigs = ConfigUtils.getRequiredConfigurationsAt(configuration, pipelinePropertyName);
+        List<DeploymentProcessor> processors = new ArrayList<>();
 
-        if (required) {
-            processorConfigs = ConfigurationUtils.getRequiredConfigurationsAt(configuration, pipelinePropertyName);
-        } else {
-            processorConfigs = ConfigurationUtils.getConfigurationsAt(configuration, pipelinePropertyName);
-        }
+        for (HierarchicalConfiguration processorConfig : processorConfigs) {
+            String processorName = ConfigUtils.getRequiredStringProperty(processorConfig, PROCESSOR_NAME_CONFIG_KEY);
 
-        if (CollectionUtils.isNotEmpty(processorConfigs)) {
-            List<DeploymentProcessor> processors = new ArrayList<>();
+            logger.debug("Initializing pipeline processor '{}'", processorName);
 
-            for (HierarchicalConfiguration processorConfig : processorConfigs) {
-                String processorName = ConfigurationUtils.getRequiredString(processorConfig, PROCESSOR_NAME_CONFIG_KEY);
-                DeploymentProcessor processor;
-
-                logger.debug("Initializing pipeline processor '{}'", processorName);
-
-                try {
-                    processor = beanFactory.getBean(processorName, DeploymentProcessor.class);
-                    processor.init(configuration, processorConfig);
-                } catch (NoSuchBeanDefinitionException e) {
-                    throw new DeploymentConfigurationException("No processor prototype bean found with name '" + processorName + "'", e);
-                } catch (Exception e) {
-                    throw new DeploymentConfigurationException("Failed to initialize pipeline processor '" + processorName + "'", e);
-                }
+            try {
+                DeploymentProcessor processor = applicationContext.getBean(processorName, DeploymentProcessor.class);
+                processor.configure(processorConfig);
 
                 processors.add(processor);
+            } catch (NoSuchBeanDefinitionException e) {
+                throw new DeployerConfigurationException("No processor prototype bean found with name '" + processorName + "'", e);
+            } catch (Exception e) {
+                throw new DeployerConfigurationException("Failed to initialize pipeline processor '" + processorName + "'", e);
             }
-
-            return new DeploymentPipelineImpl(processors);
-        } else {
-            return null;
         }
+
+        return new DeploymentPipelineImpl(processors);
     }
 
 }

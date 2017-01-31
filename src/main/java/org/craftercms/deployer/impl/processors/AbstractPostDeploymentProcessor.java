@@ -17,7 +17,7 @@
 package org.craftercms.deployer.impl.processors;
 
 import org.craftercms.deployer.api.Deployment;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -34,13 +34,13 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
 
         if (shouldExecute(deployment)) {
             try {
-                logger.info("========== Start of '{}' for target '{}' ==========", processorName, targetId);
+                logger.info("========== Start of '{}' for target '{}' ==========", name, targetId);
 
                 doExecute(deployment);
             } catch (Exception e) {
-                logger.error("Processor '" + processorName + "' for target '" + targetId + "' failed", e);
+                logger.error("Processor '" + name + "' for target '" + targetId + "' failed", e);
             } finally {
-                logger.info("=========== End of '{}' for target '{}' ===========", processorName, targetId);
+                logger.info("=========== End of '{}' for target '{}' ===========", name, targetId);
             }
         }
     }
@@ -50,6 +50,6 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
         return deployment.getStatus() == Deployment.Status.FAILURE || !deployment.isChangeSetEmpty();
     }
 
-    protected abstract void doExecute(Deployment deployment) throws DeploymentException;
+    protected abstract void doExecute(Deployment deployment) throws DeployerException;
 
 }

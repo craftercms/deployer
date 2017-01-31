@@ -19,14 +19,10 @@ package org.craftercms.deployer.api.exceptions;
 /**
  * Created by alfonsovasquez on 12/22/16.
  */
-public class MissingConfigurationPropertyException extends DeploymentConfigurationException {
+public class MissingConfigurationPropertyException extends DeployerConfigurationException {
 
-    public MissingConfigurationPropertyException(String message) {
-        super(message);
-    }
-
-    public MissingConfigurationPropertyException(String message, Throwable cause) {
-        super(message, cause);
+    public MissingConfigurationPropertyException(String key) {
+        super("Missing required property '" + key + "'");
     }
 
 }

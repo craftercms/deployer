@@ -23,8 +23,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
-import org.craftercms.deployer.api.TargetManager;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.craftercms.deployer.api.TargetService;
+import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -35,16 +35,16 @@ import org.springframework.stereotype.Component;
 @Component("deploymentService")
 public class DeploymentServiceImpl implements DeploymentService {
 
-    protected final TargetManager targetManager;
+    protected final TargetService targetService;
 
     @Autowired
-    public DeploymentServiceImpl(TargetManager targetManager) {
-        this.targetManager = targetManager;
+    public DeploymentServiceImpl(TargetService targetService) {
+        this.targetService = targetService;
     }
 
     @Override
-    public List<Deployment> deployAllTargets() throws DeploymentException {
-        List<Target> targets = targetManager.getAllTargets();
+    public List<Deployment> deployAllTargets() throws DeployerException {
+        List<Target> targets = targetService.getAllTargets();
         List<Deployment> deployments = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(targets)) {
@@ -58,8 +58,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public Deployment deployTarget(String targetId) throws DeploymentException {
-        Target target = targetManager.getTarget(targetId);
+    public Deployment deployTarget(String targetId) throws DeployerException {
+        Target target = targetService.getTarget(targetId);
         if (target != null) {
             return target.deploy();
         } else {

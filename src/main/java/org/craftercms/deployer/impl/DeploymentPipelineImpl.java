@@ -23,10 +23,8 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
 import org.craftercms.deployer.api.Target;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.slf4j.MDC;
 
 /**
  * Created by alfonsovasquez on 12/18/16.
@@ -42,32 +40,18 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
     }
 
     @Override
-    public void destroy() throws DeploymentException {
-        if (CollectionUtils.isNotEmpty(processors)) {
-            for (DeploymentProcessor processor : processors) {
-                processor.destroy();
-            }
-        }
-    }
-
-    @Override
     public Deployment execute(Target target) {
-        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, target.getId());
-        try {
-            Deployment deployment = new Deployment(target);
+        Deployment deployment = new Deployment(target);
 
-            logger.info("############ <DEPLOYMENT PIPELINE  FOR '{}' STARTED> ###########", target.getId());
+        logger.info("############ <DEPLOYMENT PIPELINE  FOR '{}' STARTED> ###########", target.getId());
 
-            executeProcessors(deployment);
+        executeProcessors(deployment);
 
-            deployment.endDeployment(Deployment.Status.SUCCESS);
+        deployment.endDeployment(Deployment.Status.SUCCESS);
 
-            logger.info("########### </DEPLOYMENT PIPELINE  FOR '{}' FINISHED> ##########", target.getId());
+        logger.info("########### </DEPLOYMENT PIPELINE  FOR '{}' FINISHED> ##########", target.getId());
 
-            return deployment;
-        } finally {
-            MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
-        }
+        return deployment;
     }
 
     protected void executeProcessors(Deployment deployment) {

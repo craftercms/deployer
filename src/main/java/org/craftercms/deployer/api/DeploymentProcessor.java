@@ -17,16 +17,14 @@
 package org.craftercms.deployer.api;
 
 import org.apache.commons.configuration2.Configuration;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.craftercms.deployer.api.exceptions.DeployerException;
 
 /**
  * Created by alfonsovasquez on 12/15/16.
  */
 public interface DeploymentProcessor {
 
-    void init(Configuration mainConfig, Configuration processorConfig) throws DeploymentException;
-
-    void destroy() throws DeploymentException;
+    void configure(Configuration config) throws DeployerException;
 
     void execute(Deployment deployment);
 

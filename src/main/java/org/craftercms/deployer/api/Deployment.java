@@ -17,6 +17,7 @@
 package org.craftercms.deployer.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
@@ -49,26 +50,32 @@ public class Deployment {
         this.attributes = new ConcurrentHashMap<>();
     }
 
+    @JsonProperty("target")
     public Target getTarget() {
         return target;
     }
 
+    @JsonProperty("start")
     public ZonedDateTime getStart() {
         return start;
     }
 
+    @JsonProperty("end")
     public ZonedDateTime getEnd() {
         return end;
     }
 
+    @JsonProperty("running")
     public boolean isRunning() {
         return end == null;
     }
 
+    @JsonProperty("status")
     public Status getStatus() {
         return status;
     }
 
+    @JsonProperty("change_set")
     public ChangeSet getChangeSet() {
         return changeSet;
     }
@@ -89,6 +96,7 @@ public class Deployment {
         }
     }
 
+    @JsonProperty("processor_executions")
     public List<ProcessorExecution> getProcessorExecutions() {
         statusesLock.lock();
         try {

@@ -1,75 +1,106 @@
 package org.craftercms.deployer.impl.rest;
 
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-import javax.servlet.http.HttpServletRequest;
-
-import org.craftercms.commons.http.HttpUtils;
+import org.craftercms.deployer.api.Deployment;
+import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
-import org.craftercms.deployer.api.TargetManager;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.craftercms.deployer.api.TargetService;
+import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.utils.RestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+
+import static org.craftercms.deployer.impl.rest.RestConstants.TARGET_ID_PARAM_NAME;
+import static org.craftercms.deployer.impl.rest.RestConstants.TARGET_ID_PATH_VAR_NAME;
 
 /**
  * Created by alfonsovasquez on 12/29/16.
  */
 @RestController
-@RequestMapping("/api/1/target")
+@RequestMapping(TargetController.BASE_URL)
 public class TargetController {
 
-    public static final String CREATE_PARAM = "create";
-    public static final String TEMPLATE_NAME_PARAM = "templateName";
+    public static final String BASE_URL = "/api/1/target";
+    public static final String CREATE_TARGET_URL = "/create";
+    public static final String GET_TARGET_URL = "/get/{" + TARGET_ID_PATH_VAR_NAME + "}";
+    public static final String GET_ALL_TARGETS_URL = "/get_all";
+    public static final String DELETE_TARGET_URL = "/delete/{" + TARGET_ID_PATH_VAR_NAME + "}";
+    public static final String DEPLOY_TARGET_URL = "/deploy/{" + RestConstants.TARGET_ID_PATH_VAR_NAME + "}";
+    public static final String DEPLOY_ALL_TARGETS_URL = "/deploy_all";
 
-    public static final String DELETE_SUCCESS_MESSAGE = "Successfully deleted target '%s'";
-    public static final String DELETE_FAILURE_MESSAGE = "Delete of target '%s' failed";
+    public static final String REPLACE_PARAM_NAME = "replace";
+    public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
 
-    protected TargetManager targetManager;
+    protected TargetService targetService;
+    protected DeploymentService deploymentService;
 
     @Autowired
-    public TargetController(TargetManager targetManager) {
-        this.targetManager = targetManager;
+    public TargetController(TargetService targetService, DeploymentService deploymentService) {
+        this.targetService = targetService;
+        this.deploymentService = deploymentService;
     }
 
-    @RequestMapping("/list/all")
-    public List<Target> listAll() throws DeploymentException {
-        return targetManager.getAllTargets();
+    @RequestMapping(value = CREATE_TARGET_URL, method = RequestMethod.POST)
+    public ResponseEntity<Map<String, String>> createTarget(@RequestBody Map<String, Object> parameters) throws DeployerException {
+        String id = RestUtils.getRequiredStringParam(parameters, TARGET_ID_PARAM_NAME);
+        boolean replace = RestUtils.getBooleanParam(parameters, REPLACE_PARAM_NAME);
+        String templateName = RestUtils.getStringParam(parameters, TEMPLATE_NAME_PARAM_NAME);
+
+        parameters.keySet().removeIf(key -> key.equals(REPLACE_PARAM_NAME) || key.equals(TEMPLATE_NAME_PARAM_NAME));
+
+        targetService.createTarget(id, replace, templateName, parameters);
+
+        return new ResponseEntity<>(RestUtils.createOkMessageResponse(),
+                                    RestUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, id),
+                                    HttpStatus.CREATED);
     }
 
-    @RequestMapping("/{" + RestConstants.TARGET_ID_PATH_VAR + "}")
-    public Target getTarget(@PathVariable String targetId,
-                            @RequestParam(value = CREATE_PARAM, required = false) boolean create,
-                            @RequestParam(value = TEMPLATE_NAME_PARAM, required = false) String templateName,
-                            HttpServletRequest request) throws DeploymentException {
-        Map<String, Object> params = HttpUtils.createRequestParamsMap(request);
-        params.remove(CREATE_PARAM);
-        params.remove(TEMPLATE_NAME_PARAM);
+    @RequestMapping(value = GET_TARGET_URL, method = RequestMethod.GET)
+    public ResponseEntity<Target> getTarget(@PathVariable(TARGET_ID_PATH_VAR_NAME) String id) throws DeployerException {
+        Target target = targetService.getTarget(id);
 
-        return targetManager.getTarget(targetId, create, templateName, params);
+        return new ResponseEntity<>(target,
+                                    RestUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, id),
+                                    HttpStatus.OK);
     }
 
-    @RequestMapping(value = "/{" + RestConstants.TARGET_ID_PATH_VAR + "}/delete", method = RequestMethod.POST)
-    public ResponseEntity<Map<String, String>> deleteTarget(@PathVariable String targetId) throws DeploymentException {
-        Map<String, String> body = new HashMap<>(1);
-        HttpStatus status;
+    @RequestMapping(value = GET_ALL_TARGETS_URL, method = RequestMethod.GET)
+    public ResponseEntity<List<Target>> getAllTargets() throws DeployerException {
+        List<Target> targets = targetService.getAllTargets();
 
-        if (targetManager.deleteTarget(targetId)) {
-            status = HttpStatus.OK;
-            body.put(RestConstants.MESSAGE_PROPERTY_NAME, String.format(DELETE_SUCCESS_MESSAGE, targetId));
-        } else {
-            status = HttpStatus.INTERNAL_SERVER_ERROR;
-            body.put(RestConstants.MESSAGE_PROPERTY_NAME, String.format(DELETE_FAILURE_MESSAGE, targetId));
-        }
+        return new ResponseEntity<>(targets,
+                                    RestUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_ALL_TARGETS_URL),
+                                    HttpStatus.OK);
+    }
 
-        return new ResponseEntity<>(body, status);
+    @RequestMapping(value = DELETE_TARGET_URL, method = RequestMethod.POST)
+    public ResponseEntity<Void> deleteTarget(@PathVariable(TARGET_ID_PATH_VAR_NAME) String id) throws DeployerException {
+        targetService.deleteTarget(id);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    @RequestMapping(value = DEPLOY_TARGET_URL, method = RequestMethod.POST)
+    public ResponseEntity<Deployment> deployTarget(@PathVariable(TARGET_ID_PATH_VAR_NAME) String id) throws DeployerException {
+        Deployment deployment = deploymentService.deployTarget(id);
+
+        return new ResponseEntity<>(deployment, new HttpHeaders(), HttpStatus.OK);
+    }
+
+    @RequestMapping(value = DEPLOY_ALL_TARGETS_URL, method = RequestMethod.POST)
+    public ResponseEntity<List<Deployment>> deployAllTargets() throws DeployerException {
+        List<Deployment> deployments = deploymentService.deployAllTargets();
+
+        return new ResponseEntity<>(deployments, new HttpHeaders(), HttpStatus.OK);
     }
 
 }

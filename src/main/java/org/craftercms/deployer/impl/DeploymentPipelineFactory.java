@@ -18,15 +18,15 @@ package org.craftercms.deployer.impl;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.deployer.api.DeploymentPipeline;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
-import org.springframework.beans.factory.BeanFactory;
+import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * Created by alfonsovasquez on 12/22/16.
  */
 public interface DeploymentPipelineFactory {
 
-    DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, BeanFactory beanFactory,
-                                   String pipelinePropertyName, boolean required) throws DeploymentException;
+    DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ConfigurableApplicationContext applicationContext,
+                                   String pipelinePropertyName) throws DeployerException;
 
 }

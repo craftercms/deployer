@@ -16,14 +16,10 @@
  */
 package org.craftercms.deployer.api;
 
-import org.craftercms.deployer.api.exceptions.DeploymentException;
-
 /**
  * Created by alfonsovasquez on 12/18/16.
  */
 public interface DeploymentPipeline {
-
-    void destroy() throws DeploymentException;
 
     Deployment execute(Target target);
 

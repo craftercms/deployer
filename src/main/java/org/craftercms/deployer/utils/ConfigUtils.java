@@ -31,83 +31,83 @@ import org.apache.commons.configuration2.ex.ConfigurationException;
 import org.apache.commons.lang3.ArrayUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.YamlConfiguration;
-import org.craftercms.deployer.api.exceptions.DeploymentConfigurationException;
+import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.MissingConfigurationPropertyException;
 import org.springframework.core.io.Resource;
 
 /**
  * Created by alfonsovasquez on 12/22/16.
  */
-public class ConfigurationUtils {
+public class ConfigUtils {
 
-    private ConfigurationUtils() {
+    private ConfigUtils() {
     }
 
-    public static YamlConfiguration loadYamlConfiguration(File file) throws DeploymentConfigurationException {
+    public static YamlConfiguration loadYamlConfiguration(File file) throws DeployerConfigurationException {
         try {
             try (Reader reader = new BufferedReader(new FileReader(file))) {
                 return doLoadYamlConfiguration(reader);
             }
         } catch (Exception e) {
-            throw new DeploymentConfigurationException("Failed to load YAML configuration at " + file, e);
+            throw new DeployerConfigurationException("Failed to load YAML configuration at " + file, e);
         }
     }
 
-    public static YamlConfiguration loadYamlConfiguration(Resource resource) throws DeploymentConfigurationException {
+    public static YamlConfiguration loadYamlConfiguration(Resource resource) throws DeployerConfigurationException {
         try {
             try (Reader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), "UTF-8"))) {
                 return doLoadYamlConfiguration(reader);
             }
         } catch (Exception e) {
-            throw new DeploymentConfigurationException("Failed to load YAML configuration at " + resource, e);
+            throw new DeployerConfigurationException("Failed to load YAML configuration at " + resource, e);
         }
     }
 
-    public static String getString(Configuration config, String key) throws DeploymentConfigurationException {
+    public static String getStringProperty(Configuration config, String key) throws DeployerConfigurationException {
         try {
             return config.getString(key);
         } catch (Exception e) {
-            throw new DeploymentConfigurationException("Failed to retrieve property '" + key + "'", e);
+            throw new DeployerConfigurationException("Failed to retrieve property '" + key + "'", e);
         }
     }
 
-    public static String getString(Configuration config, String key, String defaultValue) throws DeploymentConfigurationException {
+    public static String getStringProperty(Configuration config, String key, String defaultValue) throws DeployerConfigurationException {
         try {
             return config.getString(key, defaultValue);
         } catch (Exception e) {
-            throw new DeploymentConfigurationException("Failed to retrieve property '" + key + "'", e);
+            throw new DeployerConfigurationException("Failed to retrieve property '" + key + "'", e);
         }
     }
 
-    public static String getRequiredString(Configuration config, String key) throws DeploymentConfigurationException {
-        String property = getString(config, key);
+    public static String getRequiredStringProperty(Configuration config, String key) throws DeployerConfigurationException {
+        String property = getStringProperty(config, key);
         if (StringUtils.isEmpty(property)) {
-            throw new MissingConfigurationPropertyException("Missing required property '" + key + "'");
+            throw new MissingConfigurationPropertyException(key);
         } else {
             return property;
         }
     }
 
-    public static boolean getBoolean(Configuration config, String key, boolean defaultValue) throws DeploymentConfigurationException {
+    public static boolean getBooleanProperty(Configuration config, String key, boolean defaultValue) throws DeployerConfigurationException {
         try {
             return config.getBoolean(key, defaultValue);
         } catch (Exception e) {
-            throw new DeploymentConfigurationException("Failed to retrieve property '" + key + "'", e);
+            throw new DeployerConfigurationException("Failed to retrieve property '" + key + "'", e);
         }
     }
 
-    public static String[] getStringArray(Configuration config, String key) throws DeploymentConfigurationException {
+    public static String[] getStringArrayProperty(Configuration config, String key) throws DeployerConfigurationException {
         try {
             return config.getStringArray(key);
         } catch (Exception e) {
-            throw new DeploymentConfigurationException("Failed to retrieve property '" + key + "'", e);
+            throw new DeployerConfigurationException("Failed to retrieve property '" + key + "'", e);
         }
     }
 
-    public static String[] getRequiredStringArray(Configuration config, String key) throws DeploymentConfigurationException {
-        String[] property = getStringArray(config, key);
+    public static String[] getRequiredStringArrayProperty(Configuration config, String key) throws DeployerConfigurationException {
+        String[] property = getStringArrayProperty(config, key);
         if (ArrayUtils.isEmpty(property)) {
-            throw new MissingConfigurationPropertyException("Missing required property '" + key + "'");
+            throw new MissingConfigurationPropertyException(key);
         } else {
             return property;
         }
@@ -115,20 +115,20 @@ public class ConfigurationUtils {
 
     @SuppressWarnings("unchecked")
     public static List<HierarchicalConfiguration> getConfigurationsAt(HierarchicalConfiguration config,
-                                                                      String key) throws DeploymentConfigurationException {
+                                                                      String key) throws DeployerConfigurationException {
         try {
             return config.configurationsAt(key);
         } catch (Exception e) {
-            throw new DeploymentConfigurationException("Failed to retrieve sub-configurations at '" + key + "'", e);
+            throw new DeployerConfigurationException("Failed to retrieve sub-configurations at '" + key + "'", e);
         }
     }
 
     @SuppressWarnings("unchecked")
     public static List<HierarchicalConfiguration> getRequiredConfigurationsAt(HierarchicalConfiguration config,
-                                                                              String key) throws DeploymentConfigurationException {
+                                                                              String key) throws DeployerConfigurationException {
         List<HierarchicalConfiguration> configs = getConfigurationsAt(config, key);
         if (CollectionUtils.isEmpty(configs)) {
-            throw new MissingConfigurationPropertyException("Missing required sub-configurations at '" + key + "'");
+            throw new MissingConfigurationPropertyException(key);
         } else {
             return configs;
         }

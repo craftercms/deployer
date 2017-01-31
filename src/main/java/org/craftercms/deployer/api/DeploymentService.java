@@ -18,15 +18,15 @@ package org.craftercms.deployer.api;
 
 import java.util.List;
 
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.craftercms.deployer.api.exceptions.DeployerException;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
 public interface DeploymentService {
 
-    List<Deployment> deployAllTargets() throws DeploymentException;
+    List<Deployment> deployAllTargets() throws DeployerException;
 
-    Deployment deployTarget(String targetId) throws DeploymentException;
+    Deployment deployTarget(String id) throws DeployerException;
 
 }

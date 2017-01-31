@@ -13,8 +13,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.mail.Email;
 import org.craftercms.commons.mail.EmailFactory;
 import org.craftercms.deployer.api.Deployment;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
-import org.craftercms.deployer.utils.ConfigurationUtils;
+import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -86,29 +86,28 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
-        templateName = ConfigurationUtils.getString(processorConfig, TEMPLATE_NAME_CONFIG_KEY, defaultTemplateName);
-        from = ConfigurationUtils.getString(processorConfig, FROM_CONFIG_KEY, defaultFrom);
-        to = ConfigurationUtils.getRequiredStringArray(processorConfig, TO_CONFIG_KEY);
-        subject = ConfigurationUtils.getString(processorConfig, SUBJECT_CONFIG_KEY, defaultSubject);
-        html = ConfigurationUtils.getBoolean(processorConfig, HTML_CONFIG_KEY, defaultHtml);
-        serverName = ConfigurationUtils.getString(processorConfig, SERVER_NAME_CONFIG_KEY);
+    public void configure(Configuration config) throws DeployerException {
+        templateName = ConfigUtils.getStringProperty(config, TEMPLATE_NAME_CONFIG_KEY, defaultTemplateName);
+        from = ConfigUtils.getStringProperty(config, FROM_CONFIG_KEY, defaultFrom);
+        to = ConfigUtils.getRequiredStringArrayProperty(config, TO_CONFIG_KEY);
+        subject = ConfigUtils.getStringProperty(config, SUBJECT_CONFIG_KEY, defaultSubject);
+        html = ConfigUtils.getBooleanProperty(config, HTML_CONFIG_KEY, defaultHtml);
+        serverName = ConfigUtils.getStringProperty(config, SERVER_NAME_CONFIG_KEY);
 
         if (StringUtils.isEmpty(serverName)) {
             try {
                 serverName = InetAddress.getLocalHost().getHostName();
             } catch (UnknownHostException e) {
-                throw new DeploymentException("Unable to retrieve localhost address", e);
+                throw new DeployerException("Unable to retrieve localhost address", e);
             }
         }
 
-        String dateTimePattern = ConfigurationUtils.getString(processorConfig, DATETIME_PATTERN_CONFIG_KEY, defaultDateTimePattern);
-
+        String dateTimePattern = ConfigUtils.getStringProperty(config, DATETIME_PATTERN_CONFIG_KEY, defaultDateTimePattern);
         dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimePattern);
     }
 
     @Override
-    protected void doExecute(Deployment deployment) throws DeploymentException {
+    protected void doExecute(Deployment deployment) throws DeployerException {
         Map<String, Object> templateModel = new HashMap<>();
         templateModel.put(SERVER_NAME_MODEL_KEY, serverName);
         templateModel.put(TARGET_ID_MODEL_KEY, deployment.getTarget().getId());
@@ -133,7 +132,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
 
             logger.info("Deployment notification successfully sent to {}", Arrays.toString(to));
         } catch (Exception e) {
-            throw new DeploymentException("Error while sending email with deployment report", e);
+            throw new DeployerException("Error while sending email with deployment report", e);
         }
     }
 

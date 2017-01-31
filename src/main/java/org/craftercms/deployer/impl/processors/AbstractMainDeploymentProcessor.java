@@ -18,7 +18,7 @@ package org.craftercms.deployer.impl.processors;
 
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -32,18 +32,18 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     @Override
     public void execute(Deployment deployment) {
         if (shouldExecute(deployment)) {
-            ProcessorExecution execution = new ProcessorExecution(processorName);
+            ProcessorExecution execution = new ProcessorExecution(name);
 
             deployment.addProcessorExecution(execution);
 
             try {
-                logger.info("========== Start of '{}' for target '{}' ==========", processorName, targetId);
+                logger.info("========== Start of '{}' for target '{}' ==========", name, targetId);
 
                 doExecute(deployment, execution);
 
                 execution.endExecution(Deployment.Status.SUCCESS);
             } catch (Exception e) {
-                logger.error("Processor '" + processorName + "' for target '" + targetId + "' failed", e);
+                logger.error("Processor '" + name + "' for target '" + targetId + "' failed", e);
 
                 execution.setStatusDetails(e.toString());
                 execution.endExecution(Deployment.Status.FAILURE);
@@ -52,7 +52,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
                     deployment.endDeployment(Deployment.Status.FAILURE);
                 }
             } finally {
-                logger.info("=========== End of '{}' for target '{}' ===========", processorName, targetId);
+                logger.info("=========== End of '{}' for target '{}' ===========", name, targetId);
             }
         }
     }
@@ -62,7 +62,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
         return deployment.isRunning() && !deployment.isChangeSetEmpty();
     }
 
-    protected abstract void doExecute(Deployment deployment, ProcessorExecution execution) throws DeploymentException;
+    protected abstract void doExecute(Deployment deployment, ProcessorExecution execution) throws DeployerException;
 
     protected abstract boolean failDeploymentOnProcessorFailure();
 

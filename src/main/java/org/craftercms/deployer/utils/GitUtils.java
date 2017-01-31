@@ -19,6 +19,8 @@ package org.craftercms.deployer.utils;
 import java.io.File;
 import java.io.IOException;
 
+import org.apache.commons.lang3.StringUtils;
+import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
@@ -35,21 +37,20 @@ public abstract class GitUtils {
         return Git.open(localRepositoryFolder);
     }
 
-    public static Git cloneRemoteRepository(String remoteRepositoryUrl, File localRepositoryFolder) throws GitAPIException {
-        return Git.cloneRepository()
-            .setURI(remoteRepositoryUrl)
-            .setDirectory(localRepositoryFolder)
-            .call();
-    }
+    public static Git cloneRemoteRepository(String repositoryUrl, String branch, String username, String password,
+                                            File localFolder) throws GitAPIException {
+        CloneCommand command=  Git.cloneRepository();
+        command.setURI(repositoryUrl);
+        command.setDirectory(localFolder);
 
-    public static Git cloneRemoteRepository(String remoteRepositoryUrl, String remoteRepositoryUsername, String remoteRepositoryPassword,
-                                            File localRepositoryFolder)
-        throws GitAPIException {
-        return Git.cloneRepository()
-            .setURI(remoteRepositoryUrl)
-            .setDirectory(localRepositoryFolder)
-            .setCredentialsProvider(new UsernamePasswordCredentialsProvider(remoteRepositoryUsername, remoteRepositoryPassword))
-            .call();
+        if (StringUtils.isNotEmpty(branch)) {
+            command.setBranch(branch);
+        }
+        if (StringUtils.isNotEmpty(username)) {
+            command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
+        }
+
+        return command.call();
     }
 
 }

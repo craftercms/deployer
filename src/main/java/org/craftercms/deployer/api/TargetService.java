@@ -14,19 +14,24 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api.exceptions;
+package org.craftercms.deployer.api;
+
+import java.util.List;
+import java.util.Map;
+
+import org.craftercms.deployer.api.exceptions.DeployerException;
 
 /**
- * Created by alfonsovasquez on 12/23/16.
+ * Created by alfonsovasquez on 30/11/16.
  */
-public class DeploymentConfigurationException extends DeploymentException {
+public interface TargetService {
 
-    public DeploymentConfigurationException(String message) {
-        super(message);
-    }
+    Target createTarget(String id, boolean replace, String templateName, Map<String, Object> templateParameters) throws DeployerException;
 
-    public DeploymentConfigurationException(String message, Throwable cause) {
-        super(message, cause);
-    }
+    void deleteTarget(String id) throws DeployerException;
+
+    List<Target> getAllTargets() throws DeployerException;
+
+    Target getTarget(String id) throws DeployerException;
 
 }

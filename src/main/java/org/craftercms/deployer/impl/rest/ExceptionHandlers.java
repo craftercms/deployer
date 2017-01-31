@@ -16,10 +16,10 @@
  */
 package org.craftercms.deployer.impl.rest;
 
-import java.util.HashMap;
-import java.util.Map;
-
+import org.craftercms.deployer.api.exceptions.MissingRequiredParameterException;
+import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.craftercms.deployer.utils.RestUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -35,14 +35,33 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class ExceptionHandlers extends ResponseEntityExceptionHandler {
 
+    @ExceptionHandler(MissingRequiredParameterException.class)
+    public ResponseEntity<Object> handleMissingRequiredParameterException(MissingRequiredParameterException exception, WebRequest request) {
+        return handleExceptionInternal(exception, exception.getMessage(), new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY, request);
+    }
+
     @ExceptionHandler(TargetNotFoundException.class)
-    public ResponseEntity<Object> handleTargetNotFoundException(TargetNotFoundException exception, WebRequest webRequest) {
-        return handleExceptionInternal(exception, null, new HttpHeaders(), HttpStatus.NOT_FOUND, webRequest);
+    public ResponseEntity<Object> handleTargetNotFoundException(TargetNotFoundException exception, WebRequest request) {
+        return handleExceptionInternal(exception, "Target not found", new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    }
+
+    @ExceptionHandler(TargetAlreadyExistsException.class)
+    public ResponseEntity<Object> handleTargetAlreadyExistsException(TargetAlreadyExistsException exception, WebRequest request) {
+        HttpHeaders headers = RestUtils.setLocationHeader(new HttpHeaders(),
+                                                          TargetController.BASE_URL + TargetController.GET_TARGET_URL,
+                                                          exception.getTargetId());
+
+        return handleExceptionInternal(exception, "Target already exists", headers, HttpStatus.CONFLICT, request);
     }
 
     @ExceptionHandler(Exception.class)
     public ResponseEntity<Object> handleGeneralException(Exception exception, WebRequest webRequest) {
-        return handleExceptionInternal(exception, null, new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, webRequest);
+        return handleExceptionInternal(exception, exception.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, webRequest);
+    }
+
+    protected ResponseEntity<Object> handleExceptionInternal(Exception ex, String message, HttpHeaders headers, HttpStatus status,
+                                                             WebRequest request) {
+        return handleExceptionInternal(ex, RestUtils.createMessageResponse(message), headers, status, request);
     }
 
     @Override
@@ -50,10 +69,11 @@ public class ExceptionHandlers extends ResponseEntityExceptionHandler {
                                                              WebRequest request) {
         logger.error("Request " + ((ServletWebRequest) request).getRequest().getRequestURI() + " failed with status " + status, ex);
 
-        Map<String, String> responseBody = new HashMap<>(1);
-        responseBody.put(RestConstants.MESSAGE_PROPERTY_NAME, ex.toString());
+        if (body == null) {
+            body = RestUtils.createMessageResponse(ex.getMessage());
+        }
 
-        return new ResponseEntity<>(responseBody, headers, status);
+        return new ResponseEntity<>(body, headers, status);
     }
 
 }

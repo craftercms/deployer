@@ -2,7 +2,7 @@
 
     <include resource="org/springframework/boot/logging/logback/base.xml" />
 
-    <springProperty scope="context" name="LOGS_PATH" source="deployer.main.logging.path" defaultValue="./logs"/>
+    <springProperty scope="context" name="LOGS_PATH" source="deployer.main.logging.folderPath" defaultValue="./logs"/>
 
     <appender name="SIFT" class="ch.qos.logback.classic.sift.SiftingAppender">
         <!-- in the absence of the class attribute, it is assumed that the

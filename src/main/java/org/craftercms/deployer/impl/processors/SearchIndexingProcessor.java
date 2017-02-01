@@ -9,17 +9,14 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
-import org.craftercms.deployer.utils.ConfigurationUtils;
+import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.search.batch.BatchIndexer;
 import org.craftercms.search.batch.IndexingStatus;
 import org.craftercms.search.service.SearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-
-import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_PATH_CONFIG_KEY;
-import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 12/26/16.
@@ -36,10 +33,16 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
 
     protected String targetFolder;
-    protected String indexId;
-    protected String siteName;
     protected SearchService searchService;
     protected List<BatchIndexer> batchIndexers;
+
+    protected String indexId;
+    protected String siteName;
+
+    @Required
+    public void setTargetFolder(String targetFolder) {
+        this.targetFolder = targetFolder;
+    }
 
     @Required
     public void setSearchService(SearchService searchService) {
@@ -55,20 +58,12 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    public void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
-        targetFolder = ConfigurationUtils.getRequiredString(mainConfig, TARGET_PATH_CONFIG_KEY);
-        indexId = ConfigurationUtils.getString(processorConfig, INDEX_ID_CONFIG_KEY);
-        siteName = ConfigurationUtils.getString(processorConfig, SITE_NAME_CONFIG_KEY);
+    public void configure(Configuration config) throws DeployerException {
+        indexId = ConfigUtils.getStringProperty(config, INDEX_ID_CONFIG_KEY);
+        siteName = ConfigUtils.getRequiredStringProperty(config, SITE_NAME_CONFIG_KEY);
 
-        if (StringUtils.isEmpty(siteName)) {
-            siteName = ConfigurationUtils.getString(mainConfig, TARGET_SITE_NAME_CONFIG_KEY);
-            if (StringUtils.isEmpty(siteName)) {
-                siteName = targetId;
-            }
-        }
-
-        boolean ignoreIndexId = ConfigurationUtils.getBoolean(processorConfig, IGNORE_INDEX_ID_CONFIG_KEY, false);
-        String indexIdFormat = ConfigurationUtils.getString(processorConfig, INDEX_ID_FORMAT_CONFIG_KEY, DEFAULT_INDEX_ID_FORMAT);
+        boolean ignoreIndexId = ConfigUtils.getBooleanProperty(config, IGNORE_INDEX_ID_CONFIG_KEY, false);
+        String indexIdFormat = ConfigUtils.getStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY, DEFAULT_INDEX_ID_FORMAT);
 
         if (ignoreIndexId) {
             indexId = null;
@@ -82,7 +77,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    public void doExecute(Deployment deployment, ProcessorExecution execution) throws DeploymentException {
+    public void doExecute(Deployment deployment, ProcessorExecution execution) throws DeployerException {
         logger.info("Performing search indexing...");
 
         ChangeSet changeSet = deployment.getChangeSet();
@@ -116,7 +111,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
                 logger.info("No files indexed");
             }
         } catch (Exception e) {
-            throw new DeploymentException("Error while performing search indexing", e);
+            throw new DeployerException("Error while performing search indexing", e);
         }
     }
 

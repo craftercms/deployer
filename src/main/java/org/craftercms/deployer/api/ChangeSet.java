@@ -17,6 +17,7 @@
 package org.craftercms.deployer.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.Collections;
 import java.util.List;
@@ -38,14 +39,17 @@ public class ChangeSet {
         this.deletedFiles = deletedFiles;
     }
 
+    @JsonProperty("created_files")
     public List<String> getCreatedFiles() {
         return Collections.unmodifiableList(createdFiles);
     }
 
+    @JsonProperty("updated_files")
     public List<String> getUpdatedFiles() {
         return Collections.unmodifiableList(updatedFiles);
     }
 
+    @JsonProperty("deleted_files")
     public List<String> getDeletedFiles() {
         return Collections.unmodifiableList(deletedFiles);
     }

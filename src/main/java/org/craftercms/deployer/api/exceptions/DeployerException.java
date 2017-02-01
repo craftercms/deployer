@@ -14,24 +14,32 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
+package org.craftercms.deployer.api.exceptions;
 
-import java.util.List;
-import java.util.Map;
-
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.springframework.core.NestedExceptionUtils;
 
 /**
  * Created by alfonsovasquez on 30/11/16.
  */
-public interface TargetManager {
+public class DeployerException extends Exception {
 
-    List<Target> getAllTargets() throws DeploymentException;
+    public DeployerException() {
+    }
 
-    Target getTarget(String targetId) throws DeploymentException;
+    public DeployerException(String message) {
+        super(message);
+    }
 
-    Target getTarget(String targetId, boolean create, String templateName, Map<String, Object> parameters) throws DeploymentException;
+    public DeployerException(String message, Throwable cause) {
+        super(message, cause);
+    }
 
-    boolean deleteTarget(String targetId) throws DeploymentException;
+    /**
+     * Return the detail message, including the message from the nested exception if there is one.
+     */
+    @Override
+    public String getMessage() {
+        return NestedExceptionUtils.buildMessage(super.getMessage(), getCause());
+    }
 
 }

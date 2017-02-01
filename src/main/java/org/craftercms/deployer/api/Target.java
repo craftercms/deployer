@@ -17,7 +17,9 @@
 package org.craftercms.deployer.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
+import java.io.File;
 import java.time.ZonedDateTime;
 
 import org.apache.commons.configuration2.Configuration;
@@ -28,9 +30,14 @@ import org.springframework.scheduling.TaskScheduler;
  */
 public interface Target {
 
+    @JsonProperty("id")
     String getId();
 
+    @JsonProperty("load_date")
     ZonedDateTime getLoadDate();
+
+    @JsonIgnore
+    File getConfigurationFile();
 
     @JsonIgnore
     Configuration getConfiguration();

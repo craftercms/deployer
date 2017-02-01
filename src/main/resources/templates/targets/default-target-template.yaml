@@ -1,16 +1,29 @@
 target:
-    deployment:
-        pipeline:
-            - processorName: gitPullProcessor
-            - processorName: searchIndexingProcessor
-            - processorName: httpMethodCallProcessor
-              method: GET
-              url: {{#if clearCacheUrl}}{{clearCacheUrl}}{{else}}http://localhost:8080/api/1/cache/clear_all.json{{/if}}
-            - processorName: fileOutputProcessor
-            {{#if notificationAddresses}}
-            - processorName: mailNotificationProcessor
-              to:
-                {{#list notificationAddresses}}
-                - {{this}}
-                {{/list}}
-            {{/if}}
+  id: {{target_id}}
+  deployment:
+    pipeline:
+      - processorName: gitPullProcessor
+        remoteRepo:
+          url: {{remote_repo_url}}
+          {{#if remote_repo_branch}}
+          branch: {{remote_repo_branch}}
+          {{/if}}
+          {{#if remote_repo_username}}
+          username: {{remote_repo_username}}
+          {{/if}}
+          {{#if remote_repo_password}}
+          password: {{remote_repo_password}}
+          {{/if}}
+      - processorName: searchIndexingProcessor
+        siteName: {{site_name}}
+      - processorName: httpMethodCallProcessor
+        method: GET
+        url: {{#if clear_cache_url}}{{clear_cache_url}}{{else}}http://localhost:8080/api/1/cache/clear_all.json{{/if}}
+      - processorName: fileOutputProcessor
+      {{#if notification_addresses}}
+      - processorName: mailNotificationProcessor
+        to:
+          {{#list notification_addresses}}
+          - {{this}}
+          {{/list}}
+      {{/if}}

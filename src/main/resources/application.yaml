@@ -4,20 +4,20 @@ server:
 deployer:
   main:
     config:
-      path: config
+      folderPath: config
     target:
       idPattern: (\w+)\-?(\w?)
       config:
-        path: ${deployer.main.config.path}/targets
+        folderPath: ${deployer.main.config.folderPath}/targets
         baseYaml:
           location: classpath:base-target.yaml
-          overrideLocation: file:${deployer.main.target.config.path}/base-target.yaml
+          overrideLocation: file:${deployer.main.target.config.folderPath}/base-target.yaml
         baseContext:
           location: classpath:base-target-context.xml
-          overrideLocation: file:${deployer.main.target.config.path}/base-target-context.xml
+          overrideLocation: file:${deployer.main.target.config.folderPath}/base-target-context.xml
         templates:
           location: classpath:templates/targets
-          overrideLocation: file:${deployer.main.config.path}/templates/targets
+          overrideLocation: file:${deployer.main.config.folderPath}/templates/targets
           encoding: UTF-8
           default: default
           suffix: -target-template.yaml
@@ -26,10 +26,11 @@ deployer:
           enabled: true
           cron: '0 * * * * *'
     deployment:
+      folderPath: deployments
       output:
-        path: output
+        folderPath: output
     logging:
-      path: logs
+      folderPath: logs
     scheduling:
       poolSize: 10
 

@@ -26,7 +26,7 @@ import java.time.format.DateTimeFormatter;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.craftercms.deployer.api.Deployment;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
+import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -61,26 +61,26 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
+    public void configure(Configuration config) throws DeployerException {
         timestampFormatter = DateTimeFormatter.ofPattern(timestampPattern);
 
         if (!outputFolder.exists()) {
             try {
                 FileUtils.forceMkdir(outputFolder);
             } catch (IOException e) {
-                throw new DeploymentException("Failed to create output folder " + outputFolder, e);
+                throw new DeployerException("Failed to create output folder " + outputFolder, e);
             }
         }
     }
 
     @Override
-    protected void doExecute(Deployment deployment) throws DeploymentException {
+    protected void doExecute(Deployment deployment) throws DeployerException {
         File outputFile = getOutputFile(deployment);
 
         try {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(outputFile, deployment);
         } catch (IOException e) {
-            throw new DeploymentException("Error while writing deployment output file " + outputFile, e);
+            throw new DeployerException("Error while writing deployment output file " + outputFile, e);
         }
 
         deployment.addAttribute(OUTPUT_FILE_ATTRIBUTE_NAME, outputFile);

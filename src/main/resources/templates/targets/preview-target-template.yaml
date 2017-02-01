@@ -1,6 +1,15 @@
 target:
-    deployment:
-        pipeline:
-            - processorName: gitPullProcessor
-            - processorName: searchIndexingProcessor
-            - processorName: fileOutputProcessor
+  id: {{target_id}}
+  deployment:
+    scheduling:
+       enabled: false
+    pipeline:
+      - processorName: gitPullProcessor
+        remoteRepo:
+          url: {{remote_repo_url}}
+          {{#if remote_repo_branch}}
+          branch: {{remote_repo_branch}}
+          {{/if}}
+      - processorName: searchIndexingProcessor
+        siteName: {{site_name}}
+      - processorName: fileOutputProcessor

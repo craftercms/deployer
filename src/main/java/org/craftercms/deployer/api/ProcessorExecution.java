@@ -16,6 +16,8 @@
  */
 package org.craftercms.deployer.api;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
+
 import java.time.ZonedDateTime;
 
 import static org.craftercms.deployer.api.Deployment.Status;
@@ -36,26 +38,32 @@ public class ProcessorExecution {
         this.start = ZonedDateTime.now();
     }
 
+    @JsonProperty("processor_name")
     public String getProcessorName() {
         return processorName;
     }
 
+    @JsonProperty("start")
     public ZonedDateTime getStart() {
         return start;
     }
 
+    @JsonProperty("end")
     public ZonedDateTime getEnd() {
         return end;
     }
 
+    @JsonProperty("running")
     public boolean isRunning() {
         return end == null;
     }
 
+    @JsonProperty("status")
     public Status getStatus() {
         return status;
     }
 
+    @JsonProperty("status_details")
     public Object getStatusDetails() {
         return statusDetails;
     }

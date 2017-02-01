@@ -1,8 +1,10 @@
 target:
+  deployToPath: ${deployer.main.deployment.folderPath}/${target.id}
   defaultTimestampPattern: yyyyMMddHHmmssSSS
   defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
   deployment:
     scheduling:
+      enabled: true
       cron: '0 * * * * *'
   search:
     serverUrl: http://localhost:8080/crafter-search
@@ -27,7 +29,7 @@ target:
       encoding: UTF-8
       templates:
         location: classpath:templates/mail
-        overrideLocation: file:${deployer.main.config.path}/templates/mail
+        overrideLocation: file:${deployer.main.config.folderPath}/templates/mail
         default: default
         suffix: -mail-template.ftl
       from: noreply@craftersoftware.com

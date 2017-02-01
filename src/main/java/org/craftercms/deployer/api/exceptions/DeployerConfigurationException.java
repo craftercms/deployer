@@ -14,28 +14,19 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.processors;
-
-import org.craftercms.deployer.api.DeploymentProcessor;
-import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.annotation.Required;
+package org.craftercms.deployer.api.exceptions;
 
 /**
- * Created by alfonsovasquez on 12/30/16.
+ * Created by alfonsovasquez on 12/23/16.
  */
-public abstract class AbstractDeploymentProcessor implements DeploymentProcessor, BeanNameAware  {
+public class DeployerConfigurationException extends DeployerException {
 
-    protected String targetId;
-    protected String name;
-
-    @Required
-    public void setTargetId(String targetId) {
-        this.targetId = targetId;
+    public DeployerConfigurationException(String message) {
+        super(message);
     }
 
-    @Override
-    public void setBeanName(String name) {
-        this.name = name;
+    public DeployerConfigurationException(String message, Throwable cause) {
+        super(message, cause);
     }
 
 }

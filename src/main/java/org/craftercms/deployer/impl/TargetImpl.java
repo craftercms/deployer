@@ -16,6 +16,7 @@
  */
 package org.craftercms.deployer.impl;
 
+import java.io.File;
 import java.time.ZonedDateTime;
 import java.util.concurrent.ScheduledFuture;
 
@@ -39,15 +40,17 @@ public class TargetImpl implements Target {
 
     protected String id;
     protected DeploymentPipeline deploymentPipeline;
+    protected File configurationFile;
     protected Configuration configuration;
     protected ConfigurableApplicationContext applicationContext;
     protected ZonedDateTime loadDate;
     protected ScheduledFuture<?> scheduledFuture;
 
-    public TargetImpl(String id, DeploymentPipeline deploymentPipeline, Configuration configuration,
+    public TargetImpl(String id, DeploymentPipeline deploymentPipeline, File configurationFile, Configuration configuration,
                       ConfigurableApplicationContext applicationContext) {
         this.id = id;
         this.deploymentPipeline = deploymentPipeline;
+        this.configurationFile = configurationFile;
         this.configuration = configuration;
         this.applicationContext = applicationContext;
         this.loadDate = ZonedDateTime.now();
@@ -64,13 +67,23 @@ public class TargetImpl implements Target {
     }
 
     @Override
+    public File getConfigurationFile() {
+        return configurationFile;
+    }
+
+    @Override
     public Configuration getConfiguration() {
         return configuration;
     }
 
     @Override
     public synchronized Deployment deploy() {
-        return deploymentPipeline.execute(this);
+        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
+        try {
+            return deploymentPipeline.execute(this);
+        } finally {
+            MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
+        }
     }
 
     @Override
@@ -84,9 +97,12 @@ public class TargetImpl implements Target {
         try {
             logger.info("Closing target '{}'...", id);
 
-            scheduledFuture.cancel(true);
-            deploymentPipeline.destroy();
-            applicationContext.close();
+            if (scheduledFuture != null) {
+                scheduledFuture.cancel(true);
+            }
+            if (applicationContext != null) {
+                applicationContext.close();
+            }
         } catch (Exception e) {
             logger.error("Failed to close '" + id + "'", e);
         } finally {

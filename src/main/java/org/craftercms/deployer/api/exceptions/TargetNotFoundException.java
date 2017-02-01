@@ -19,10 +19,18 @@ package org.craftercms.deployer.api.exceptions;
 /**
  * Created by alfonsovasquez on 1/12/17.
  */
-public class TargetNotFoundException extends DeploymentException {
+public class TargetNotFoundException extends DeployerException {
 
-    public TargetNotFoundException(String message) {
-        super(message);
+    protected String targetId;
+
+    public TargetNotFoundException(String targetId) {
+        super("Target '" + targetId + "' not found");
+
+        this.targetId = targetId;
+    }
+
+    public String getTargetId() {
+        return targetId;
     }
 
 }

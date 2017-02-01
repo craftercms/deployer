@@ -18,6 +18,8 @@ package org.craftercms.deployer.impl.processors;
 
 import java.io.IOException;
 
+import javax.annotation.PreDestroy;
+
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -36,8 +38,8 @@ import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
-import org.craftercms.deployer.api.exceptions.DeploymentException;
-import org.craftercms.deployer.utils.ConfigurationUtils;
+import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -56,19 +58,19 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
     protected CloseableHttpClient httpClient;
 
     @Override
-    public void destroy() throws DeploymentException {
+    public void configure(Configuration config) throws DeployerException {
+        url = ConfigUtils.getRequiredStringProperty(config, URL_CONFIG_KEY);
+        method = ConfigUtils.getRequiredStringProperty(config, METHOD_CONFIG_KEY);
+        httpClient = HttpClients.createDefault();
+    }
+
+    @PreDestroy
+    public void destroy() throws DeployerException {
         IOUtils.closeQuietly(httpClient);
     }
 
     @Override
-    protected void doInit(Configuration mainConfig, Configuration processorConfig) throws DeploymentException {
-        url = ConfigurationUtils.getRequiredString(processorConfig, URL_CONFIG_KEY);
-        method = ConfigurationUtils.getRequiredString(processorConfig, METHOD_CONFIG_KEY);
-        httpClient = HttpClients.createDefault();
-    }
-
-    @Override
-    protected void doExecute(Deployment deployment, ProcessorExecution execution) throws DeploymentException {
+    protected void doExecute(Deployment deployment, ProcessorExecution execution) throws DeployerException {
         HttpUriRequest request = createRequest();
 
         logger.info("Executing request {}...", request);
@@ -93,7 +95,7 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
                 execution.endExecution(Deployment.Status.FAILURE);
             }
         } catch (IOException e) {
-            throw new DeploymentException("IO error on HTTP request " + request, e);
+            throw new DeployerException("IO error on HTTP request " + request, e);
         }
     }
 
@@ -102,7 +104,7 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
         return false;
     }
 
-    protected HttpUriRequest createRequest() throws DeploymentException {
+    protected HttpUriRequest createRequest() throws DeployerException {
         if (method.equalsIgnoreCase("get")) {
             return new HttpGet(url);
         } else if (method.equalsIgnoreCase("post")) {
@@ -118,7 +120,7 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
         } else if (method.equalsIgnoreCase("trace")) {
             return new HttpTrace(url);
         } else {
-            throw new DeploymentException("HTTP method '" + method + " not recognized");
+            throw new DeployerException("HTTP method '" + method + " not recognized");
         }
     }
 

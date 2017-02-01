@@ -5,6 +5,7 @@
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
        http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
 
+    <context:annotation-config/>
     <context:property-placeholder/>
 
     <!-- Deployment Processors -->
@@ -13,9 +14,17 @@
         All processors should be prototypes, so that several instances of them can be used. They will be instanced when the
         pipeline is created
     -->
-    <bean id="gitPullProcessor" class="org.craftercms.deployer.impl.processors.GitPullProcessor" scope="prototype"/>
+    <bean id="deploymentProcessor" class="org.craftercms.deployer.impl.processors.AbstractDeploymentProcessor" abstract="true"
+          scope="prototype">
+        <property name="targetId" value="${target.id}"/>
+    </bean>
 
-    <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor" scope="prototype">
+    <bean id="gitPullProcessor" class="org.craftercms.deployer.impl.processors.GitPullProcessor" parent="deploymentProcessor">
+        <property name="localRepoFolder" value="${target.deployToPath}"/>
+    </bean>
+
+    <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor" parent="deploymentProcessor">
+        <property name="targetFolder" value="${target.deployToPath}"/>
         <property name="searchService" ref="searchService"/>
         <property name="batchIndexers">
             <list>
@@ -25,15 +34,17 @@
         </property>
     </bean>
 
-    <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor" scope="prototype"/>
-    
-    <bean id="fileOutputProcessor" class="org.craftercms.deployer.impl.processors.FileOutputProcessor" scope="prototype">
-        <property name="outputFolder" value="${deployer.main.deployment.output.path}"/>
+    <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor"
+          parent="deploymentProcessor"/>
+
+    <bean id="fileOutputProcessor" class="org.craftercms.deployer.impl.processors.FileOutputProcessor" parent="deploymentProcessor">
+        <property name="outputFolder" value="${deployer.main.deployment.output.folderPath}"/>
         <property name="timestampPattern" value="${target.defaultTimestampPattern}"/>
         <property name="objectMapper" ref="objectMapper"/>
     </bean>
 
-    <bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.MailNotificationProcessor" scope="prototype">
+    <bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.MailNotificationProcessor"
+          parent="deploymentProcessor">
         <property name="emailFactory" ref="emailFactory"/>
         <property name="defaultTemplateName" value="${target.notifications.mail.templates.default}"/>
         <property name="defaultFrom" value="${target.notifications.mail.from}"/>

@@ -33,6 +33,11 @@ import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
 
+/**
+ * Launcher class and Spring configuration entry point.
+ *
+ * @author avasquez
+ */
 @SpringBootApplication
 @EnableScheduling
 public class DeployerApplication extends WebMvcConfigurerAdapter implements SchedulingConfigurer  {

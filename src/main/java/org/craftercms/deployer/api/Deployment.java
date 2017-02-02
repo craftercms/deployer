@@ -29,7 +29,9 @@ import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
 /**
- * Created by alfonsovasquez on 12/29/16.
+ * Represents a deployment. Contains every important status information of a particular deployment execution.
+ *
+ * @author avasquez
  */
 public class Deployment {
 

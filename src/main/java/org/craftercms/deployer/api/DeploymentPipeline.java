@@ -17,10 +17,19 @@
 package org.craftercms.deployer.api;
 
 /**
- * Created by alfonsovasquez on 12/18/16.
+ * Represents a collection of processors that are executed on each deployment.
+ *
+ * @author avasquez
  */
 public interface DeploymentPipeline {
 
+    /**
+     * Does a deployment.
+     *
+     * @param target    the target that needs to be deployed
+     *
+     * @return the deployment info
+     */
     Deployment execute(Target target);
 
 }

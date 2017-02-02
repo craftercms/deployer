@@ -26,7 +26,9 @@ import org.apache.commons.configuration2.Configuration;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Represents a deployment target.
+ *
+ * @author avasquez
  */
 public interface Target {
 

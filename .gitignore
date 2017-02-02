@@ -26,6 +26,6 @@ Thumbs.db
 # Maven build overlays #
 overlays
 
-# Created by tests
-config/
-logs/
+# Configuration and Logging
+config/*
+logs/*

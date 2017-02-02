@@ -8,7 +8,7 @@
 	<version>2.6.0-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
-	<name>crafter-deployer</name>
+	<name>Crafter Deployer</name>
 	<description>Demo project for Spring Boot</description>
 
 	<parent>

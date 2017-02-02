@@ -23,7 +23,9 @@ import java.time.ZonedDateTime;
 import static org.craftercms.deployer.api.Deployment.Status;
 
 /**
- * Created by alfonsovasquez on 12/29/16.
+ * Represents the info of a single processor execution.
+ *
+ * @author avasquez
  */
 public class ProcessorExecution {
 

@@ -21,12 +21,28 @@ import java.util.List;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Service for doing deployments.
+ *
+ * @author avasquez
  */
 public interface DeploymentService {
 
+    /**
+     * Deploys all targets
+     *
+     * @return  the list of deployment info for each target
+     *
+     * @throws DeployerException if there was an error while doing the deployments
+     */
     List<Deployment> deployAllTargets() throws DeployerException;
 
+    /**
+     * Deploys a single target
+     *
+     * @param id    the ID of the target to be deployed
+     *
+     * @return the deployment info
+     */
     Deployment deployTarget(String id) throws DeployerException;
 
 }

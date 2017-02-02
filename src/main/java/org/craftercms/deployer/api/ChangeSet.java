@@ -25,7 +25,9 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * The set of created, updated and deleted files that have been changed in a deployment.
+ *
+ * @author avasquez
  */
 public class ChangeSet {
 

@@ -20,12 +20,26 @@ import org.apache.commons.configuration2.Configuration;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 
 /**
- * Created by alfonsovasquez on 12/15/16.
+ * Represents a single deployment processor.
+ *
+ * @author avasquez
  */
 public interface DeploymentProcessor {
 
+    /**
+     * Configures the processor with it's own specific configuration.
+     *
+     * @param config    the processor configuration
+     *
+     * @throws DeployerException if a configuration property is missing or if any other error ocurred
+     */
     void configure(Configuration config) throws DeployerException;
 
+    /**
+     * Executes the processor
+     *
+     * @param deployment    the current deployment info
+     */
     void execute(Deployment deployment);
 
 }

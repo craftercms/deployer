@@ -16,13 +16,18 @@
  */
 package org.craftercms.deployer.impl.rest;
 
-import org.craftercms.deployer.api.exceptions.MissingRequiredParameterException;
+import com.fasterxml.jackson.databind.exc.UnrecognizedPropertyException;
+
+import org.apache.commons.lang3.exception.ExceptionUtils;
+import org.craftercms.commons.validation.ValidationException;
+import org.craftercms.commons.validation.ValidationResult;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.utils.RestUtils;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.http.converter.HttpMessageNotReadableException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.ServletWebRequest;
@@ -35,28 +40,51 @@ import org.springframework.web.servlet.mvc.method.annotation.ResponseEntityExcep
 @ControllerAdvice
 public class ExceptionHandlers extends ResponseEntityExceptionHandler {
 
-    @ExceptionHandler(MissingRequiredParameterException.class)
-    public ResponseEntity<Object> handleMissingRequiredParameterException(MissingRequiredParameterException exception, WebRequest request) {
-        return handleExceptionInternal(exception, exception.getMessage(), new HttpHeaders(), HttpStatus.UNPROCESSABLE_ENTITY, request);
+    @ExceptionHandler(ValidationException.class)
+    public ResponseEntity<Object> handleValidationException(ValidationException ex, WebRequest request) {
+        return handleExceptionInternal(ex, ex.getResult(), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
     }
 
     @ExceptionHandler(TargetNotFoundException.class)
-    public ResponseEntity<Object> handleTargetNotFoundException(TargetNotFoundException exception, WebRequest request) {
-        return handleExceptionInternal(exception, "Target not found", new HttpHeaders(), HttpStatus.NOT_FOUND, request);
+    public ResponseEntity<Object> handleTargetNotFoundException(TargetNotFoundException ex, WebRequest request) {
+        return handleExceptionInternal(ex, "Target not found", new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
 
     @ExceptionHandler(TargetAlreadyExistsException.class)
-    public ResponseEntity<Object> handleTargetAlreadyExistsException(TargetAlreadyExistsException exception, WebRequest request) {
+    public ResponseEntity<Object> handleTargetAlreadyExistsException(TargetAlreadyExistsException ex, WebRequest request) {
         HttpHeaders headers = RestUtils.setLocationHeader(new HttpHeaders(),
                                                           TargetController.BASE_URL + TargetController.GET_TARGET_URL,
-                                                          exception.getTargetId());
+                                                          ex.getTargetId());
 
-        return handleExceptionInternal(exception, "Target already exists", headers, HttpStatus.CONFLICT, request);
+        return handleExceptionInternal(ex, "Target already exists", headers, HttpStatus.CONFLICT, request);
     }
 
     @ExceptionHandler(Exception.class)
-    public ResponseEntity<Object> handleGeneralException(Exception exception, WebRequest webRequest) {
-        return handleExceptionInternal(exception, exception.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, webRequest);
+    public ResponseEntity<Object> handleGeneralException(Exception ex, WebRequest webRequest) {
+        Throwable cause = ex.getCause();
+        if (cause instanceof ValidationException) {
+            return handleValidationException((ValidationException)cause, webRequest);
+        } else {
+            return handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR, webRequest);
+        }
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleHttpMessageNotReadable(HttpMessageNotReadableException ex, HttpHeaders headers,
+                                                                  HttpStatus status, WebRequest webRequest) {
+        Throwable cause = ExceptionUtils.getRootCause(ex);
+        if (cause instanceof UnrecognizedPropertyException) {
+            UnrecognizedPropertyException upe = (UnrecognizedPropertyException)cause;
+            String field = upe.getPropertyName();
+
+            ValidationResult result = new ValidationResult();
+            result.addFieldError(field, "Unrecognized field");
+
+            return handleExceptionInternal(ex, result, new HttpHeaders(), HttpStatus.BAD_REQUEST, webRequest);
+        } else {
+            return handleExceptionInternal(ex, "Invalid or missing request body", new HttpHeaders(), HttpStatus.INTERNAL_SERVER_ERROR,
+                                           webRequest);
+        }
     }
 
     protected ResponseEntity<Object> handleExceptionInternal(Exception ex, String message, HttpHeaders headers, HttpStatus status,

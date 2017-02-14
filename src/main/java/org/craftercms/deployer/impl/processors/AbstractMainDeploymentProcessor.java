@@ -16,9 +16,18 @@
  */
 package org.craftercms.deployer.impl.processors;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.ArrayUtils;
+import org.craftercms.commons.lang.RegexUtils;
+import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.impl.DeploymentConstants;
+import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -29,9 +38,22 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractMainDeploymentProcessor.class);
 
+    protected String[] includeFiles;
+    protected String[] excludeFiles;
+
+    @Override
+    public void configure(Configuration config) throws DeployerException {
+        includeFiles = ConfigUtils.getStringArrayProperty(config, DeploymentConstants.PROCESSOR_INCLUDE_FILES_CONFIG_KEY);
+        excludeFiles = ConfigUtils.getStringArrayProperty(config, DeploymentConstants.PROCESSOR_EXCLUDE_FILES_CONFIG_KEY);
+
+        doConfigure(config);
+    }
+
     @Override
     public void execute(Deployment deployment) {
-        if (shouldExecute(deployment)) {
+        ChangeSet filteredChangeSet = getFilteredChangeSet(deployment.getChangeSet());
+        
+        if (shouldExecute(deployment, filteredChangeSet)) {
             ProcessorExecution execution = new ProcessorExecution(name);
 
             deployment.addProcessorExecution(execution);
@@ -39,7 +61,10 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
             try {
                 logger.info("========== Start of '{}' for target '{}' ==========", name, targetId);
 
-                doExecute(deployment, execution);
+                ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet);
+                if (processedChangeSet != null) {
+                    deployment.setChangeSet(processedChangeSet);
+                }
 
                 execution.endExecution(Deployment.Status.SUCCESS);
             } catch (Exception e) {
@@ -57,12 +82,48 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
         }
     }
 
-    protected boolean shouldExecute(Deployment deployment) {
-        // Run if the deployment is running and change set is not empty
-        return deployment.isRunning() && !deployment.isChangeSetEmpty();
+    protected ChangeSet getFilteredChangeSet(ChangeSet changeSet) {
+        if (changeSet != null && (ArrayUtils.isNotEmpty(includeFiles) || ArrayUtils.isNotEmpty(excludeFiles))) {
+            List<String> matchedCreatedFiles = new ArrayList<>();
+            List<String> matchedUpdatedFiles = new ArrayList<>();
+            List<String> matchedDeletedFiles = new ArrayList<>();
+
+            for (String path : changeSet.getCreatedFiles()) {
+                if (shouldIncludeFile(path)) {
+                    matchedCreatedFiles.add(path);
+                }
+            }
+            for (String path : changeSet.getUpdatedFiles()) {
+                if (shouldIncludeFile(path)) {
+                    matchedUpdatedFiles.add(path);
+                }
+            }
+            for (String path : changeSet.getDeletedFiles()) {
+                if (shouldIncludeFile(path)) {
+                    matchedDeletedFiles.add(path);
+                }
+            }
+
+            return new ChangeSet(matchedCreatedFiles, matchedUpdatedFiles, matchedDeletedFiles);
+        } else {
+            return changeSet;
+        }
     }
 
-    protected abstract void doExecute(Deployment deployment, ProcessorExecution execution) throws DeployerException;
+    protected boolean shouldIncludeFile(String file) {
+        return (ArrayUtils.isEmpty(includeFiles) || RegexUtils.matchesAny(file, includeFiles)) &&
+               (ArrayUtils.isEmpty(excludeFiles) || !RegexUtils.matchesAny(file, excludeFiles));
+    }
+
+    protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
+        // Run if the deployment is running and change set is not empty
+        return deployment.isRunning() && filteredChangeSet != null && !filteredChangeSet.isEmpty();
+    }
+
+    protected abstract void doConfigure(Configuration config) throws DeployerException;
+
+    protected abstract ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
+                                           ChangeSet filteredChangeSet) throws DeployerException;
 
     protected abstract boolean failDeploymentOnProcessorFailure();
 

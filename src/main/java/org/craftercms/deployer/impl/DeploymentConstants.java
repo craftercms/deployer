@@ -26,6 +26,8 @@ public class DeploymentConstants {
 
     // Target-specific Configuration Keys
 
+    public static final String TARGET_ENV_CONFIG_KEY = "target.env";
+    public static final String TARGET_SITE_NAME_CONFIG_KEY = "target.siteName";
     public static final String TARGET_ID_CONFIG_KEY = "target.id";
     public static final String TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY = "target.deployment.scheduling.enabled";
     public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
@@ -34,6 +36,8 @@ public class DeploymentConstants {
     // Processor-specific Configuration Keys
 
     public static final String PROCESSOR_NAME_CONFIG_KEY = "processorName";
+    public static final String PROCESSOR_INCLUDE_FILES_CONFIG_KEY = "includeFiles";
+    public static final String PROCESSOR_EXCLUDE_FILES_CONFIG_KEY = "excludeFiles";
 
     // Logging MDC Keys
 

@@ -20,9 +20,6 @@ import java.net.URI;
 import java.util.Collections;
 import java.util.Map;
 
-import org.apache.commons.lang3.BooleanUtils;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.deployer.api.exceptions.MissingRequiredParameterException;
 import org.springframework.http.HttpHeaders;
 import org.springframework.web.util.UriComponentsBuilder;
 
@@ -36,10 +33,6 @@ public class RestUtils {
     private RestUtils() {
     }
 
-    public static Map<String, String> createOkMessageResponse() {
-        return Collections.singletonMap(MESSAGE_PROPERTY_NAME, "OK");
-    }
-
     public static Map<String, String> createMessageResponse(String message) {
         return Collections.singletonMap(MESSAGE_PROPERTY_NAME, message);
     }
@@ -49,37 +42,6 @@ public class RestUtils {
         headers.setLocation(location);
 
         return headers;
-    }
-
-    public static String getRequiredStringParam(Map<String, Object> params, String paramName) throws MissingRequiredParameterException {
-        String value = toString(params.get(paramName));
-        if (StringUtils.isNotEmpty(value)) {
-            return value;
-        } else {
-            throw new MissingRequiredParameterException(paramName);
-        }
-    }
-
-    public static String getStringParam(Map<String, Object> params, String paramName) {
-        return toString(params.get(paramName));
-    }
-
-    public static Boolean getBooleanParam(Map<String, Object> params, String paramName){
-        return toBoolean(params.get(paramName));
-    }
-
-    protected static String toString(Object paramValue) {
-        return paramValue != null? paramValue.toString() : null;
-    }
-
-    protected static Boolean toBoolean(Object paramValue) {
-        if (paramValue instanceof Boolean) {
-            return (Boolean)paramValue;
-        } else if (paramValue != null) {
-            return BooleanUtils.toBooleanObject(paramValue.toString());
-        } else {
-            return null;
-        }
     }
     
 }

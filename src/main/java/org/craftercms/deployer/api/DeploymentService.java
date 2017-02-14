@@ -39,10 +39,11 @@ public interface DeploymentService {
     /**
      * Deploys a single target
      *
-     * @param id    the ID of the target to be deployed
+     * @param env       the target's environment (e.g. dev)
+     * @param siteName  the target's site name (e.g. mysite) 
      *
      * @return the deployment info
      */
-    Deployment deployTarget(String id) throws DeployerException;
+    Deployment deployTarget(String env, String siteName) throws DeployerException;
 
 }

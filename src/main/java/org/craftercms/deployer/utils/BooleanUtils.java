@@ -14,17 +14,23 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.rest;
+package org.craftercms.deployer.utils;
 
 /**
- * Created by alfonsovasquez on 1/12/17.
+ * Created by alfonsovasquez on 2/13/17.
  */
-public class RestConstants {
+public class BooleanUtils extends org.apache.commons.lang3.BooleanUtils {
 
-    public static final String ENV_PATH_VAR_NAME = "env";
-    public static final String SITE_NAME_PATH_VAR_NAME = "site_name";
-
-    private RestConstants() {
+    public static Boolean toBooleanObject(Object obj) {
+        if (obj != null) {
+            if (obj instanceof Boolean) {
+                return (Boolean)obj;
+            } else {
+                return toBooleanObject(obj.toString());
+            }
+        } else {
+            return null;
+        }
     }
 
 }

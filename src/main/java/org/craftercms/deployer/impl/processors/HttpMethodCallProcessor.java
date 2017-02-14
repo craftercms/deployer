@@ -36,6 +36,7 @@ import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.impl.client.CloseableHttpClient;
 import org.apache.http.impl.client.HttpClients;
 import org.apache.http.util.EntityUtils;
+import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -58,7 +59,7 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
     protected CloseableHttpClient httpClient;
 
     @Override
-    public void configure(Configuration config) throws DeployerException {
+    protected void doConfigure(Configuration config) throws DeployerException {
         url = ConfigUtils.getRequiredStringProperty(config, URL_CONFIG_KEY);
         method = ConfigUtils.getRequiredStringProperty(config, METHOD_CONFIG_KEY);
         httpClient = HttpClients.createDefault();
@@ -70,7 +71,8 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    protected void doExecute(Deployment deployment, ProcessorExecution execution) throws DeployerException {
+    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
+                                  ChangeSet filteredChangeSet) throws DeployerException {
         HttpUriRequest request = createRequest();
 
         logger.info("Executing request {}...", request);
@@ -97,6 +99,8 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
         } catch (IOException e) {
             throw new DeployerException("IO error on HTTP request " + request, e);
         }
+
+        return null;
     }
 
     @Override

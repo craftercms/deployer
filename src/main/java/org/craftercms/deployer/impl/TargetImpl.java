@@ -38,6 +38,8 @@ public class TargetImpl implements Target {
 
     private static final Logger logger = LoggerFactory.getLogger(TargetImpl.class);
 
+    protected String env;
+    protected String siteName;
     protected String id;
     protected DeploymentPipeline deploymentPipeline;
     protected File configurationFile;
@@ -46,14 +48,26 @@ public class TargetImpl implements Target {
     protected ZonedDateTime loadDate;
     protected ScheduledFuture<?> scheduledFuture;
 
-    public TargetImpl(String id, DeploymentPipeline deploymentPipeline, File configurationFile, Configuration configuration,
-                      ConfigurableApplicationContext applicationContext) {
+    public TargetImpl(String env, String siteName, String id, DeploymentPipeline deploymentPipeline, File configurationFile,
+                      Configuration configuration, ConfigurableApplicationContext applicationContext) {
+        this.env = env;
+        this.siteName = siteName;
         this.id = id;
         this.deploymentPipeline = deploymentPipeline;
         this.configurationFile = configurationFile;
         this.configuration = configuration;
         this.applicationContext = applicationContext;
         this.loadDate = ZonedDateTime.now();
+    }
+
+    @Override
+    public String getEnv() {
+        return env;
+    }
+
+    @Override
+    public String getSiteName() {
+        return siteName;
     }
 
     @Override

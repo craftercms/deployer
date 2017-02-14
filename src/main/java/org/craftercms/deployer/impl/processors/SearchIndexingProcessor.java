@@ -58,7 +58,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    public void configure(Configuration config) throws DeployerException {
+    protected void doConfigure(Configuration config) throws DeployerException {
         indexId = ConfigUtils.getStringProperty(config, INDEX_ID_CONFIG_KEY);
         siteName = ConfigUtils.getRequiredStringProperty(config, SITE_NAME_CONFIG_KEY);
 
@@ -77,7 +77,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    public void doExecute(Deployment deployment, ProcessorExecution execution) throws DeployerException {
+    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
+                                  ChangeSet filteredChangeSet) throws DeployerException {
         logger.info("Performing search indexing...");
 
         ChangeSet changeSet = deployment.getChangeSet();
@@ -113,6 +114,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);
         }
+
+        return null;
     }
 
     @Override

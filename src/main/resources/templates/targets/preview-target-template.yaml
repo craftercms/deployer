@@ -1,5 +1,7 @@
 target:
-  id: {{target_id}}
+  env: {{env}}
+  siteName: {{site_name}}
+  engineUrl: {{#if engine_url}}{{engine_url}}{{else}}http://localhost:8080{{/if}}
   deployment:
     scheduling:
        enabled: false
@@ -11,5 +13,12 @@ target:
           branch: {{remote_repo_branch}}
           {{/if}}
       - processorName: searchIndexingProcessor
-        siteName: {{site_name}}
+        siteName: ${target.siteName}
+      - processorName: httpMethodCallProcessor
+        includeFiles: ["^/?classes/.*$", "^/?scripts/.*$"]
+        method: GET
+        url: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
+      - processorName: httpMethodCallProcessor
+        method: GET
+        url: ${target.engineUrl}/api/1/site/cache/clear.json?crafterSite=${target.siteName}
       - processorName: fileOutputProcessor

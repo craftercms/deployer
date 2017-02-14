@@ -42,7 +42,6 @@ import javax.annotation.PreDestroy;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.configuration2.CombinedConfiguration;
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.OverrideCombiner;
 import org.apache.commons.io.FileUtils;
@@ -50,6 +49,8 @@ import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
+import org.craftercms.commons.validation.ValidationException;
+import org.craftercms.commons.validation.ValidationResult;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
@@ -58,6 +59,7 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.utils.ConfigUtils;
+import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -73,9 +75,11 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_ENV_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_ID_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY;
 
 /**
  * Created by alfonsovasquez on 5/12/16.
@@ -89,6 +93,7 @@ public class TargetServiceImpl implements TargetService {
     public static final String APPLICATION_CONTEXT_FILENAME_FORMAT = "%s-context.xml";
     public static final String CONFIG_PROPERTY_SOURCE_NAME = "targetConfig";
 
+    public static final String TARGET_ID_FORMAT = "%s-%s";
     public static final String TARGET_ID_MODEL_KEY = "target_id";
 
     protected Pattern targetIdPattern;
@@ -170,8 +175,10 @@ public class TargetServiceImpl implements TargetService {
     }
 
     @Override
-    public synchronized Target getTarget(String id) throws DeployerException {
+    public synchronized Target getTarget(String env, String siteName) throws DeployerException {
+        String id = getTargetId(env, siteName);
         Target target = findLoadedTargetById(id);
+
         if (target != null) {
             return target;
         } else {
@@ -180,9 +187,11 @@ public class TargetServiceImpl implements TargetService {
     }
 
     @Override
-    public synchronized Target createTarget(String id, boolean replace, String templateName,
+    public synchronized Target createTarget(String env, String siteName, boolean replace, String templateName,
                                             Map<String, Object> templateParameters) throws DeployerException {
+        String id = getTargetId(env, siteName);
         File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
+
         if (!replace && configFile.exists()) {
             throw new TargetAlreadyExistsException(id);
         } else {
@@ -193,8 +202,10 @@ public class TargetServiceImpl implements TargetService {
     }
 
     @Override
-    public synchronized void deleteTarget(String id) throws DeployerException {
-        Target target = getTarget(id);
+    public synchronized void deleteTarget(String env, String siteName) throws DeployerException {
+        String id = getTargetId(env, siteName);
+        Target target = getTarget(env, siteName);
+
         target.close();
 
         logger.info("Removing loaded target '{}'", id);
@@ -293,10 +304,15 @@ public class TargetServiceImpl implements TargetService {
 
     protected Target createTarget(File configFile, File contextFile) throws DeployerException {
         HierarchicalConfiguration config = loadConfiguration(configFile);
-        ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
-        String targetId = getTargetIdFromConfig(config);
+        String env = ConfigUtils.getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
+        String siteName = ConfigUtils.getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
+        String targetId = getTargetId(env, siteName);
 
-        Target target = new TargetImpl(targetId, getDeploymentPipeline(config, context), configFile, config, context);
+        config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
+
+        ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
+        Target target = new TargetImpl(env, siteName, targetId, getDeploymentPipeline(config, context), configFile, config, context);
+
         scheduleDeployment(target);
 
         return target;
@@ -374,10 +390,6 @@ public class TargetServiceImpl implements TargetService {
         return context;
     }
 
-    protected String getTargetIdFromConfig(Configuration config) throws DeployerConfigurationException {
-        return ConfigUtils.getRequiredStringProperty(config, TARGET_ID_CONFIG_KEY);
-    }
-
     protected DeploymentPipeline getDeploymentPipeline(HierarchicalConfiguration config,
                                                        ConfigurableApplicationContext appContext) throws DeployerException {
         return deploymentPipelineFactory.getPipeline(config, appContext, TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
@@ -423,6 +435,8 @@ public class TargetServiceImpl implements TargetService {
     }
 
     protected void processConfigTemplate(String templateName, Object templateModel, Writer out) throws DeployerException {
+        MissingValueHelper helper = MissingValueHelper.INSTANCE;
+
         try {
             Template template = targetConfigTemplateEngine.compile(templateName);
             template.apply(templateModel, out);
@@ -433,6 +447,14 @@ public class TargetServiceImpl implements TargetService {
             } else {
                 throw new DeployerException("Processing of configuration template '" + templateName + "' failed", e);
             }
+        }
+
+        ValidationResult result = helper.getValidationResult();
+
+        helper.clearValidationResult();
+
+        if (result != null && CollectionUtils.isNotEmpty(result.getFieldErrors())) {
+            throw new DeployerException(new ValidationException(result));
         }
     }
 
@@ -450,6 +472,10 @@ public class TargetServiceImpl implements TargetService {
         } else {
             return null;
         }
+    }
+
+    protected String getTargetId(String env, String siteName) {
+        return String.format(TARGET_ID_FORMAT, siteName, env);
     }
 
     protected class CustomConfigFileFilter extends AbstractFileFilter {

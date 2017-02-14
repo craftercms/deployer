@@ -31,7 +31,8 @@ public interface TargetService {
     /**
      * Creates a new target with it's own configuration.
      *
-     * @param id                    the ID of the target. The recommended ID is {project/site}-{branch}-{env} (e.g. pluton-sandbox-dev}
+     * @param env                   the target's environment (e.g. dev)
+     * @param siteName              the target's site name (e.g. mysite)
      * @param replace               indicates that if there's a target with the same name, the target config should be replaced.
      * @param templateName          the name of the template used to create the target configuration.
      * @param templateParameters    the parameters that the template needs.
@@ -40,16 +41,18 @@ public interface TargetService {
      *
      * @throws DeployerException if an error occurred
      */
-    Target createTarget(String id, boolean replace, String templateName, Map<String, Object> templateParameters) throws DeployerException;
+    Target createTarget(String env, String siteName, boolean replace, String templateName,
+                        Map<String, Object> templateParameters) throws DeployerException;
 
     /**
      * Deletes a target with the given ID.
      *
-     * @param id    the ID of the target
+     * @param env       the target's environment (e.g. dev)
+     * @param siteName  the target's site name (e.g. mysite)
      *
      * @throws DeployerException if an error occurred
      */
-    void deleteTarget(String id) throws DeployerException;
+    void deleteTarget(String env, String siteName) throws DeployerException;
 
     /**
      * Returns all current loaded targets
@@ -63,12 +66,13 @@ public interface TargetService {
     /**
      * Returns the loaded target with the given ID
      *
-     * @param id    the ID of the target
+     * @param env       the target's environment (e.g. dev)
+     * @param siteName  the target's site name (e.g. mysite) 
      *
      * @return the target info
      *
      * @throws DeployerException if an error occurred
      */
-    Target getTarget(String id) throws DeployerException;
+    Target getTarget(String env, String siteName) throws DeployerException;
 
 }

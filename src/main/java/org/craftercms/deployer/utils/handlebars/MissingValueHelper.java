@@ -21,7 +21,7 @@ import com.github.jknack.handlebars.Options;
 
 import java.io.IOException;
 
-import org.craftercms.deployer.api.exceptions.MissingRequiredParameterException;
+import org.craftercms.commons.validation.ValidationResult;
 
 /**
  * Created by alfonsovasquez on 1/30/17.
@@ -30,9 +30,32 @@ public class MissingValueHelper implements Helper<Object> {
 
     public static final MissingValueHelper INSTANCE = new MissingValueHelper();
 
+    protected ThreadLocal<ValidationResult> validationResult;
+
+    protected MissingValueHelper() {
+        validationResult = new ThreadLocal<>();
+    }
+
+    public ValidationResult getValidationResult() {
+        return validationResult.get();
+    }
+
+    public void clearValidationResult() {
+        validationResult.remove();
+    }
+
     @Override
     public Object apply(Object context, Options options) throws IOException {
-        throw new IOException(new MissingRequiredParameterException(options.helperName));
+        ValidationResult result = getValidationResult();
+        if (result == null) {
+            result = new ValidationResult();
+
+            validationResult.set(result);
+        }
+
+        result.addMissingFieldError(options.helperName);
+
+        return "";
     }
 
 }

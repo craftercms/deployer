@@ -35,6 +35,12 @@ public interface Target {
     @JsonProperty("id")
     String getId();
 
+    @JsonProperty("env")
+    String getEnv();
+
+    @JsonProperty("site_name")
+    String getSiteName();
+
     @JsonProperty("load_date")
     ZonedDateTime getLoadDate();
 

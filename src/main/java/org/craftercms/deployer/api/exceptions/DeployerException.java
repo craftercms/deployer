@@ -26,6 +26,10 @@ public class DeployerException extends Exception {
     public DeployerException() {
     }
 
+    public DeployerException(Throwable cause) {
+        super(cause);
+    }
+
     public DeployerException(String message) {
         super(message);
     }

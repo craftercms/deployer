@@ -73,7 +73,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    public void configure(Configuration config) throws DeployerException {
+    protected void doConfigure(Configuration config) throws DeployerException {
         remoteRepoUrl = ConfigUtils.getRequiredStringProperty(config, REMOTE_REPO_URL_CONFIG_KEY);
         remoteRepoBranch = ConfigUtils.getStringProperty(config, REMOTE_REPO_BRANCH_CONFIG_KEY);
         remoteRepoUsername = ConfigUtils.getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY);
@@ -81,18 +81,19 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    protected boolean shouldExecute(Deployment deployment) {
+    protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
         // Run if the deployment is running
         return deployment.isRunning();
     }
 
     @Override
-    public void doExecute(Deployment deployment, ProcessorExecution execution) throws DeployerException {
+    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
+                                  ChangeSet filteredChangeSet) throws DeployerException {
         File gitFolder = new File(localRepoFolder, GIT_FOLDER_NAME);
         if (localRepoFolder.exists() && gitFolder.exists()) {
-            doPull(deployment, execution);
+            return doPull(execution);
         } else {
-            doClone(deployment, execution);
+            return doClone(execution);
         }
     }
 
@@ -101,10 +102,10 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         return true;
     }
 
-    protected void doPull(Deployment deployment, ProcessorExecution execution) throws DeployerException {
+    protected ChangeSet doPull(ProcessorExecution execution) throws DeployerException {
         Git git = openLocalRepository();
         try {
-            pullChanges(git, deployment, execution);
+            return pullChanges(git, execution);
         } finally {
             if (git != null) {
                 git.close();
@@ -122,7 +123,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         }
     }
 
-    protected void pullChanges(Git git, Deployment deployment, ProcessorExecution execution) throws DeployerException {
+    protected ChangeSet pullChanges(Git git, ProcessorExecution execution) throws DeployerException {
         try {
             logger.info("Executing git pull for repository {}...", localRepoFolder);
 
@@ -142,9 +143,9 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
                         changeSet = resolveChangeSetFromPull(git, head, mergeResult.getNewHead());
 
-                        deployment.setChangeSet(changeSet);
                         execution.setStatusDetails(details);
-                        break;
+
+                        return changeSet;
                     case ALREADY_UP_TO_DATE:
                         details = "Local repository " + localRepoFolder + " up to date (no changes pulled from remote " + remoteRepoUrl +
                                   ")";
@@ -152,7 +153,8 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
                         logger.info(details);
 
                         execution.setStatusDetails(details);
-                        break;
+
+                        return null;
                     case MERGED:
                         details = "Changes from remote " + remoteRepoUrl + " merged into local repository " + localRepoFolder;
 
@@ -160,24 +162,25 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
                         changeSet = resolveChangeSetFromPull(git, head, mergeResult.getNewHead());
 
-                        deployment.setChangeSet(changeSet);
                         execution.setStatusDetails(details);
-                        break;
+
+                        return changeSet;
                     default:
                         // Non-supported merge results
-                        throw new DeployerException("Received unsupported merge result after executing pull command: " +
-                                                    mergeResult.getMergeStatus());
+                        throw new DeployerException("Received unsupported merge result after executing pull " + pullResult);
                 }
+            } else {
+                throw new DeployerException("Git pull for repository " + localRepoFolder + " failed: " + pullResult);
             }
         } catch (IOException | GitAPIException e) {
             throw new DeployerException("Git pull for repository " + localRepoFolder + " failed", e);
         }
     }
 
-    protected void doClone(Deployment deployment, ProcessorExecution execution) throws DeployerException {
+    protected ChangeSet doClone(ProcessorExecution execution) throws DeployerException {
         Git git = cloneRemoteRepository();
         try {
-            resolveChangesFromClone(deployment, execution);
+            return resolveChangesFromClone(execution);
         } finally {
             git.close();
         }
@@ -206,12 +209,16 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         }
     }
 
-    protected void resolveChangesFromClone(Deployment deployment, ProcessorExecution execution) {
+    protected ChangeSet resolveChangesFromClone(ProcessorExecution execution) {
         List<String> createdFiles = new ArrayList<>();
+
         addClonedFilesToChangeSet(localRepoFolder, "", createdFiles);
 
-        deployment.setChangeSet(new ChangeSet(createdFiles, Collections.emptyList(), Collections.emptyList()));
+        ChangeSet changeSet = new ChangeSet(createdFiles, Collections.emptyList(), Collections.emptyList());
+
         execution.setStatusDetails("Successfully cloned Git remote repository " + remoteRepoUrl + " into " + localRepoFolder);
+
+        return changeSet;
     }
 
     protected void addClonedFilesToChangeSet(File parent, String parentPath, List<String> createdFiles) {

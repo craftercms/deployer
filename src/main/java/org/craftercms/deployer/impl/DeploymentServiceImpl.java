@@ -25,7 +25,6 @@ import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -58,13 +57,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public Deployment deployTarget(String targetId) throws DeployerException {
-        Target target = targetService.getTarget(targetId);
-        if (target != null) {
-            return target.deploy();
-        } else {
-            throw new TargetNotFoundException("No target with ID '" + targetId + "' found");
-        }
+    public Deployment deployTarget(String env, String siteName) throws DeployerException {
+        return targetService.getTarget(env, siteName).deploy();
     }
 
 }

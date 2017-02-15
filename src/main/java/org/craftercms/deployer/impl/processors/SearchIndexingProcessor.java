@@ -60,8 +60,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     @Override
     protected void doConfigure(Configuration config) throws DeployerException {
         indexId = ConfigUtils.getStringProperty(config, INDEX_ID_CONFIG_KEY);
-        siteName = ConfigUtils.getRequiredStringProperty(config, SITE_NAME_CONFIG_KEY);
-
+        
         boolean ignoreIndexId = ConfigUtils.getBooleanProperty(config, IGNORE_INDEX_ID_CONFIG_KEY, false);
         String indexIdFormat = ConfigUtils.getStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY, DEFAULT_INDEX_ID_FORMAT);
 

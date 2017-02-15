@@ -25,8 +25,20 @@ import org.springframework.beans.factory.annotation.Required;
  */
 public abstract class AbstractDeploymentProcessor implements DeploymentProcessor, BeanNameAware  {
 
+    protected String env;
+    protected String siteName;
     protected String targetId;
     protected String name;
+
+    @Required
+    public void setEnv(String env) {
+        this.env = env;
+    }
+
+    @Required
+    public void setSiteName(String siteName) {
+        this.siteName = siteName;
+    }
 
     @Required
     public void setTargetId(String targetId) {

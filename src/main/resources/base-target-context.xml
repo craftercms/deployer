@@ -16,6 +16,8 @@
     -->
     <bean id="deploymentProcessor" class="org.craftercms.deployer.impl.processors.AbstractDeploymentProcessor" abstract="true"
           scope="prototype">
+        <property name="env" value="${target.env}"/>
+        <property name="siteName" value="${target.siteName}"/>
         <property name="targetId" value="${target.id}"/>
     </bean>
 

@@ -104,11 +104,11 @@ public class TargetController {
     }
 
     @RequestMapping(value = DELETE_TARGET_URL, method = RequestMethod.POST)
-    public ResponseEntity<OkResult> deleteTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
+    public ResponseEntity<Void> deleteTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
                                                  @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
         targetService.deleteTarget(env, siteName);
 
-        return new ResponseEntity<>(OkResult.INSTANCE, HttpStatus.NO_CONTENT);
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
     @RequestMapping(value = DEPLOY_TARGET_URL, method = RequestMethod.POST)

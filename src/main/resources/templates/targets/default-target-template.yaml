@@ -17,7 +17,6 @@ target:
           password: {{remote_repo_password}}
           {{/if}}
       - processorName: searchIndexingProcessor
-        siteName: ${target.siteName}
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?classes/.*$", "^/?scripts/.*$"]
         method: GET

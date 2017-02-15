@@ -13,7 +13,6 @@ target:
           branch: {{remote_repo_branch}}
           {{/if}}
       - processorName: searchIndexingProcessor
-        siteName: ${target.siteName}
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?classes/.*$", "^/?scripts/.*$"]
         method: GET

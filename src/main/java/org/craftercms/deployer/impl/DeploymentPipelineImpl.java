@@ -43,13 +43,13 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
     public Deployment execute(Target target) {
         Deployment deployment = new Deployment(target);
 
-        logger.info("############ <DEPLOYMENT PIPELINE  FOR '{}' STARTED> ###########", target.getId());
+        logger.info("<############ DEPLOYMENT PIPELINE  FOR '{}' ############>", target.getId());
 
         executeProcessors(deployment);
 
         deployment.endDeployment(Deployment.Status.SUCCESS);
 
-        logger.info("########### </DEPLOYMENT PIPELINE  FOR '{}' FINISHED> ##########", target.getId());
+        logger.info("</############ DEPLOYMENT PIPELINE  FOR '{}' ############>", target.getId());
 
         return deployment;
     }

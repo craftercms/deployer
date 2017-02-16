@@ -21,15 +21,15 @@ package org.craftercms.deployer.utils;
  */
 public class BooleanUtils extends org.apache.commons.lang3.BooleanUtils {
 
-    public static Boolean toBooleanObject(Object obj) {
+    public static boolean toBoolean(Object obj) {
         if (obj != null) {
             if (obj instanceof Boolean) {
                 return (Boolean)obj;
             } else {
-                return toBooleanObject(obj.toString());
+                return toBoolean(obj.toString());
             }
         } else {
-            return null;
+            return false;
         }
     }
 

@@ -55,7 +55,7 @@ public class MissingValueHelper implements Helper<Object> {
 
         result.addMissingFieldError(options.helperName);
 
-        return "";
+        return options.fn.text();
     }
 
 }

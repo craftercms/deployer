@@ -59,7 +59,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
             deployment.addProcessorExecution(execution);
 
             try {
-                logger.info("========== Start of '{}' for target '{}' ==========", name, targetId);
+                logger.info("<{} @ {}>", name, targetId);
 
                 ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet);
                 if (processedChangeSet != null) {
@@ -77,7 +77,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
                     deployment.endDeployment(Deployment.Status.FAILURE);
                 }
             } finally {
-                logger.info("=========== End of '{}' for target '{}' ===========", name, targetId);
+                logger.info("</{} @ {}>", name, targetId);
             }
         }
     }

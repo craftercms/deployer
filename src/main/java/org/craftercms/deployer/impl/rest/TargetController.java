@@ -61,7 +61,7 @@ public class TargetController {
         ValidationException {
         String env = Objects.toString(parameters.get(ENV_PATH_VAR_NAME), "");
         String siteName = Objects.toString(parameters.get(SITE_NAME_PATH_VAR_NAME), "");
-        Boolean replace = BooleanUtils.toBooleanObject(parameters.get(REPLACE_PARAM_NAME));
+        boolean replace = BooleanUtils.toBoolean(parameters.get(REPLACE_PARAM_NAME));
         String templateName = Objects.toString(parameters.get(TEMPLATE_NAME_PARAM_NAME), "");
         ValidationResult validationResult = new ValidationResult();
         

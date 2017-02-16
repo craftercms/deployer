@@ -25,10 +25,9 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(SearchIndexingProcessor.class);
 
-    public static final String DEFAULT_INDEX_ID_FORMAT = "%s-default";
+    public static final String DEFAULT_INDEX_ID_FORMAT = "%s";
 
     public static final String INDEX_ID_CONFIG_KEY = "indexId";
-    public static final String SITE_NAME_CONFIG_KEY = "siteName";
     public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
 
@@ -37,7 +36,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     protected List<BatchIndexer> batchIndexers;
 
     protected String indexId;
-    protected String siteName;
 
     @Required
     public void setTargetFolder(String targetFolder) {
@@ -59,15 +57,16 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected void doConfigure(Configuration config) throws DeployerException {
-        indexId = ConfigUtils.getStringProperty(config, INDEX_ID_CONFIG_KEY);
-        
         boolean ignoreIndexId = ConfigUtils.getBooleanProperty(config, IGNORE_INDEX_ID_CONFIG_KEY, false);
-        String indexIdFormat = ConfigUtils.getStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY, DEFAULT_INDEX_ID_FORMAT);
-
         if (ignoreIndexId) {
             indexId = null;
-        } else if (StringUtils.isEmpty(indexId)) {
-            indexId = String.format(indexIdFormat, siteName);
+        } else {
+            indexId = ConfigUtils.getStringProperty(config, INDEX_ID_CONFIG_KEY);
+            if (StringUtils.isEmpty(indexId)) {
+                String indexIdFormat = ConfigUtils.getStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY, DEFAULT_INDEX_ID_FORMAT);
+
+                indexId = String.format(indexIdFormat, siteName);
+            }
         }
 
         if (CollectionUtils.isEmpty(batchIndexers)) {

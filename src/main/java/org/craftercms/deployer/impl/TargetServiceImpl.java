@@ -146,6 +146,9 @@ public class TargetServiceImpl implements TargetService {
                 throw new DeployerException("Failed to create target config folder at " + targetConfigFolder);
             }
         }
+
+        // Load all targets on startup
+        getAllTargets();
     }
 
     @PreDestroy

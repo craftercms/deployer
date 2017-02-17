@@ -6,12 +6,7 @@ target:
     scheduling:
        enabled: false
     pipeline:
-      - processorName: gitPullProcessor
-        remoteRepo:
-          url: {{remote_repo_url}}
-          {{#if remote_repo_branch}}
-          branch: {{remote_repo_branch}}
-          {{/if}}
+      - processorName: gitDiffProcessor
       - processorName: searchIndexingProcessor
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?classes/.*$", "^/?scripts/.*$"]

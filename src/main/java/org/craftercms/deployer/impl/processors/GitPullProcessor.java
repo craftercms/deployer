@@ -18,14 +18,10 @@ package org.craftercms.deployer.impl.processors;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
-import org.apache.commons.io.FilenameUtils;
-import org.apache.commons.io.filefilter.HiddenFileFilter;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -36,15 +32,11 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.diff.DiffEntry;
-import org.eclipse.jgit.lib.Constants;
-import org.eclipse.jgit.lib.ObjectId;
-import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
+
+import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSED_COMMIT_FILE_EXTENSION;
 
 /**
  * Created by alfonsovasquez on 1/12/16.
@@ -61,6 +53,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 
     protected File localRepoFolder;
+    protected File processedCommitsFolder;
 
     protected String remoteRepoUrl;
     protected String remoteRepoBranch;
@@ -70,6 +63,11 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     @Required
     public void setLocalRepoFolder(File localRepoFolder) {
         this.localRepoFolder = localRepoFolder;
+    }
+
+    @Required
+    public void setProcessedCommitsFolder(File processedCommitsFolder) {
+        this.processedCommitsFolder = processedCommitsFolder;
     }
 
     @Override
@@ -90,11 +88,15 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
                                   ChangeSet filteredChangeSet) throws DeployerException {
         File gitFolder = new File(localRepoFolder, GIT_FOLDER_NAME);
+
         if (localRepoFolder.exists() && gitFolder.exists()) {
-            return doPull(execution);
+            doPull(execution);
         } else {
-            return doClone(execution);
+            deleteStoredProcessedCommitId();
+            doClone(execution);
         }
+
+        return null;
     }
 
     @Override
@@ -102,69 +104,42 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         return true;
     }
 
-    protected ChangeSet doPull(ProcessorExecution execution) throws DeployerException {
-        Git git = openLocalRepository();
-        try {
-            return pullChanges(git, execution);
-        } finally {
-            if (git != null) {
-                git.close();
-            }
-        }
-    }
-
-    protected Git openLocalRepository() throws DeployerException {
-        try {
-            logger.info("Opening local Git repository at {}", localRepoFolder);
-
-            return GitUtils.openRepository(localRepoFolder);
-        } catch (IOException e) {
-            throw new DeployerException("Failed to open Git repository at " + localRepoFolder, e);
-        }
-    }
-
-    protected ChangeSet pullChanges(Git git, ProcessorExecution execution) throws DeployerException {
-        try {
+    protected void doPull(ProcessorExecution execution) throws DeployerException {
+        try (Git git = openLocalRepository()) {
             logger.info("Executing git pull for repository {}...", localRepoFolder);
 
-            ObjectId head = git.getRepository().resolve(Constants.HEAD);
             PullResult pullResult = git.pull().call();
-
             if (pullResult.isSuccessful()) {
                 MergeResult mergeResult = pullResult.getMergeResult();
-                ChangeSet changeSet;
                 String details;
 
                 switch (mergeResult.getMergeStatus()) {
                     case FAST_FORWARD:
-                        details = "Changes successfully pulled from remote " + remoteRepoUrl + " into local repository " + localRepoFolder;
+                        details = "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " +
+                                  localRepoFolder;
 
                         logger.info(details);
 
-                        changeSet = resolveChangeSetFromPull(git, head, mergeResult.getNewHead());
-
                         execution.setStatusDetails(details);
 
-                        return changeSet;
+                        break;
                     case ALREADY_UP_TO_DATE:
-                        details = "Local repository " + localRepoFolder + " up to date (no changes pulled from remote " + remoteRepoUrl +
-                                  ")";
+                        details = "Local repository " + localRepoFolder + " up to date (no changes pulled from remote repo " +
+                                  remoteRepoUrl + ")";
 
                         logger.info(details);
 
                         execution.setStatusDetails(details);
 
-                        return null;
+                        break;
                     case MERGED:
-                        details = "Changes from remote " + remoteRepoUrl + " merged into local repository " + localRepoFolder;
+                        details = "Changes from remote repo " + remoteRepoUrl + " merged into local repo " + localRepoFolder;
 
                         logger.info(details);
 
-                        changeSet = resolveChangeSetFromPull(git, head, mergeResult.getNewHead());
-
                         execution.setStatusDetails(details);
 
-                        return changeSet;
+                        break;
                     default:
                         // Non-supported merge results
                         throw new DeployerException("Received unsupported merge result after executing pull " + pullResult);
@@ -172,17 +147,28 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
             } else {
                 throw new DeployerException("Git pull for repository " + localRepoFolder + " failed: " + pullResult);
             }
-        } catch (IOException | GitAPIException e) {
+        } catch (GitAPIException e) {
             throw new DeployerException("Git pull for repository " + localRepoFolder + " failed", e);
         }
     }
 
-    protected ChangeSet doClone(ProcessorExecution execution) throws DeployerException {
-        Git git = cloneRemoteRepository();
+    protected Git openLocalRepository() throws DeployerException {
         try {
-            return resolveChangesFromClone(execution);
-        } finally {
-            git.close();
+            logger.debug("Opening local Git repository at {}", localRepoFolder);
+
+            return GitUtils.openRepository(localRepoFolder);
+        } catch (IOException e) {
+            throw new DeployerException("Failed to open Git repository at " + localRepoFolder, e);
+        }
+    }
+
+    protected void doClone(ProcessorExecution execution) throws DeployerException {
+        try (Git git = cloneRemoteRepository()) {
+            String details = "Successfully cloned Git remote repository " + remoteRepoUrl + " into " + localRepoFolder;
+
+            logger.info(details);
+
+            execution.setStatusDetails(details);
         }
     }
 
@@ -209,85 +195,8 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         }
     }
 
-    protected ChangeSet resolveChangesFromClone(ProcessorExecution execution) {
-        List<String> createdFiles = new ArrayList<>();
-
-        addClonedFilesToChangeSet(localRepoFolder, "", createdFiles);
-
-        ChangeSet changeSet = new ChangeSet(createdFiles, Collections.emptyList(), Collections.emptyList());
-
-        execution.setStatusDetails("Successfully cloned Git remote repository " + remoteRepoUrl + " into " + localRepoFolder);
-
-        return changeSet;
-    }
-
-    protected void addClonedFilesToChangeSet(File parent, String parentPath, List<String> createdFiles) {
-        String[] filenames = parent.list(HiddenFileFilter.VISIBLE);
-        if (filenames != null) {
-            for (String filename : filenames) {
-                File file = new File(parent, filename);
-                String path = FilenameUtils.concat(parentPath, filename);
-
-                if (file.isDirectory()) {
-                    addClonedFilesToChangeSet(file, path, createdFiles);
-                } else {
-                    logger.debug("New file: {}", path);
-
-                    createdFiles.add(path);
-                }
-            }
-        }
-    }
-
-    protected ChangeSet resolveChangeSetFromPull(Git git, ObjectId oldHead, ObjectId newHead) throws IOException, GitAPIException {
-        List<String> createdFiles = new ArrayList<>();
-        List<String> updatedFiles = new ArrayList<>();
-        List<String> deletedFiles = new ArrayList<>();
-        RevWalk revWalk = new RevWalk(git.getRepository());
-        ObjectId oldHeadTree = revWalk.parseCommit(oldHead).getTree().getId();
-        ObjectId newHeadTree = revWalk.parseCommit(newHead).getTree().getId();
-
-        // prepare the two iterators to compute the diff between
-        try (ObjectReader reader = git.getRepository().newObjectReader()) {
-            CanonicalTreeParser oldTreeIter = new CanonicalTreeParser();
-            CanonicalTreeParser newTreeIter = new CanonicalTreeParser();
-
-            oldTreeIter.reset(reader, oldHeadTree);
-            newTreeIter.reset(reader, newHeadTree);
-
-            // finally get the list of changed files
-            List<DiffEntry> diffs = git.diff()
-                .setNewTree(newTreeIter)
-                .setOldTree(oldTreeIter)
-                .call();
-            for (DiffEntry entry : diffs) {
-                switch (entry.getChangeType()) {
-                    case MODIFY:
-                        updatedFiles.add(entry.getNewPath());
-                        logger.debug("Updated file: {}", entry.getNewPath());
-                        break;
-                    case DELETE:
-                        deletedFiles.add(entry.getOldPath());
-                        logger.debug("Deleted file: {}", entry.getOldPath());
-                        break;
-                    case RENAME:
-                        deletedFiles.add(entry.getOldPath());
-                        createdFiles.add(entry.getNewPath());
-                        logger.debug("Renamed file: {} -> {}", entry.getOldPath(), entry.getNewPath());
-                        break;
-                    case COPY:
-                        createdFiles.add(entry.getNewPath());
-                        logger.debug("Copied file: {} -> {}", entry.getOldPath(), entry.getNewPath());
-                        break;
-                    default: // ADD
-                        createdFiles.add(entry.getNewPath());
-                        logger.debug("New file: {}", entry.getNewPath());
-                        break;
-                }
-            }
-        }
-
-        return new ChangeSet(createdFiles, updatedFiles, deletedFiles);
+    protected void deleteStoredProcessedCommitId() {
+        FileUtils.deleteQuietly(new File(processedCommitsFolder, targetId + "." + PROCESSED_COMMIT_FILE_EXTENSION));
     }
 
 }

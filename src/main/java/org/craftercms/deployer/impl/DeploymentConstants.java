@@ -43,4 +43,8 @@ public class DeploymentConstants {
 
     public static final String TARGET_ID_MDC_KEY = "targetId";
 
+    // Other constants
+
+    public static final String PROCESSED_COMMIT_FILE_EXTENSION = "commit";
+
 }

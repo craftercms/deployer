@@ -16,6 +16,7 @@ target:
           {{#if remote_repo_password}}
           password: {{remote_repo_password}}
           {{/if}}
+      - processorName: gitDiffProcessor
       - processorName: searchIndexingProcessor
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?classes/.*$", "^/?scripts/.*$"]

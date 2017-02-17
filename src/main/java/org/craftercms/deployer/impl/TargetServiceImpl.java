@@ -289,11 +289,11 @@ public class TargetServiceImpl implements TargetService {
                     target = null;
                 }
             } else {
-                logger.info("No loaded target found for configuration file '{}'", configFile);
+                logger.info("No loaded target found for configuration file {}", configFile);
             }
 
             if (target == null) {
-                logger.info("Loading target for configuration file '{}'", configFile);
+                logger.info("Loading target for configuration file {}", configFile);
 
                 target = createTarget(configFile, contextFile);
                 targets.add(target);

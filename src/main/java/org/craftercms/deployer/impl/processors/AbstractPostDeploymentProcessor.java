@@ -34,13 +34,13 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
 
         if (shouldExecute(deployment)) {
             try {
-                logger.info("========== Start of '{}' for target '{}' ==========", name, targetId);
+                logger.info("<===== {} @ {} =====>", name, targetId);
 
                 doExecute(deployment);
             } catch (Exception e) {
                 logger.error("Processor '" + name + "' for target '" + targetId + "' failed", e);
             } finally {
-                logger.info("=========== End of '{}' for target '{}' ===========", name, targetId);
+                logger.info("</===== {} @ {} =====>", name, targetId);
             }
         }
     }

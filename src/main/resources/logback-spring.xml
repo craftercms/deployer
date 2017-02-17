@@ -23,6 +23,7 @@
     </appender>
 
     <logger name="org.springframework" level="WARN"/>
+    <logger name="org.craftercms.deployer" level="DEBUG"/>
 
     <root level="INFO">
         <appender-ref ref="CONSOLE" />

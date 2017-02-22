@@ -32,11 +32,12 @@
     </bean>
 
     <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor" parent="deploymentProcessor">
-        <property name="targetFolder" value="${target.deployToPath}"/>
+        <property name="targetFolderPath" value="${target.deployToPath}"/>
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="searchService" ref="searchService"/>
         <property name="batchIndexers">
             <list>
-                <ref bean="flattenedXmlFileBatchIndexer"/>
+                <ref bean="xmlFileBatchIndexer"/>
                 <ref bean="binaryFileBatchIndexer"/>
             </list>
         </property>
@@ -63,10 +64,11 @@
 
     <!-- Search -->
     
-    <bean id="flattenedXmlFileBatchIndexer" class="org.craftercms.search.batch.impl.FlattenedXmlFileBatchIndexer">
+    <bean id="xmlFileBatchIndexer" class="org.craftercms.search.batch.impl.XmlFileBatchIndexer">
         <property name="searchService" ref="searchService"/>
         <property name="includeFileNamePatterns"
                   value="#{environment.getProperty('target.search.indexing.xmlFiles.includePatterns', T(java.util.List))}"/>
+        <property name="itemProcessor" ref="includeDescriptorsProcessor"/>
     </bean>
 
     <bean id="binaryFileBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileBatchIndexer">

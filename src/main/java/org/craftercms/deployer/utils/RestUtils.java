@@ -28,13 +28,7 @@ import org.springframework.web.util.UriComponentsBuilder;
  */
 public class RestUtils {
 
-    public static final String MESSAGE_PROPERTY_NAME = "message";
-
     private RestUtils() {
-    }
-
-    public static Map<String, String> createMessageResponse(String message) {
-        return Collections.singletonMap(MESSAGE_PROPERTY_NAME, message);
     }
 
     public static HttpHeaders setLocationHeader(HttpHeaders headers, String url, Object... variables) {

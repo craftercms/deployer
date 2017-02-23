@@ -3,9 +3,14 @@ package org.craftercms.deployer.impl.processors;
 import java.util.Collections;
 import java.util.List;
 
+import javax.annotation.PostConstruct;
+
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.core.service.ContentStoreService;
+import org.craftercms.core.service.Context;
+import org.craftercms.core.store.impl.filesystem.FileSystemContentStoreAdapter;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -31,15 +36,21 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
 
-    protected String targetFolder;
+    protected String targetFolderUrl;
+    protected ContentStoreService contentStoreService;
     protected SearchService searchService;
     protected List<BatchIndexer> batchIndexers;
-
+    protected Context context;
     protected String indexId;
 
     @Required
-    public void setTargetFolder(String targetFolder) {
-        this.targetFolder = targetFolder;
+    public void setTargetFolderUrl(String targetFolderUrl) {
+        this.targetFolderUrl = targetFolderUrl;
+    }
+
+    @Required
+    public void setContentStoreService(ContentStoreService contentStoreService) {
+        this.contentStoreService = contentStoreService;
     }
 
     @Required
@@ -53,6 +64,17 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     public void setBatchIndexers(List<BatchIndexer> batchIndexers) {
         this.batchIndexers = batchIndexers;
+    }
+
+    @PostConstruct
+    public void init() throws DeployerException {
+        context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, targetFolderUrl,
+                                                    false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
+    }
+
+    @PostConstruct
+    public void destroy() {
+        contentStoreService.destroyContext(context);
     }
 
     @Override
@@ -90,17 +112,17 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         try {
             if (CollectionUtils.isNotEmpty(createdFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(indexId, siteName, targetFolder, createdFiles, false, indexingStatus);
+                    indexer.updateIndex(indexId, siteName, contentStoreService, context, createdFiles, false, indexingStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(updatedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(indexId, siteName, targetFolder, updatedFiles, false, indexingStatus);
+                    indexer.updateIndex(indexId, siteName, contentStoreService, context, updatedFiles, false, indexingStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(deletedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(indexId, siteName, targetFolder, deletedFiles, true, indexingStatus);
+                    indexer.updateIndex(indexId, siteName, contentStoreService, context, deletedFiles, true, indexingStatus);
                 }
             }
 

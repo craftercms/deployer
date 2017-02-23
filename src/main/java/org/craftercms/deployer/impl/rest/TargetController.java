@@ -6,7 +6,7 @@ import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.rest.OkResult;
+import org.craftercms.commons.rest.Result;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
 import org.craftercms.deployer.api.Deployment;
@@ -57,7 +57,7 @@ public class TargetController {
     }
 
     @RequestMapping(value = CREATE_TARGET_URL, method = RequestMethod.POST)
-    public ResponseEntity<OkResult> createTarget(@RequestBody Map<String, Object> parameters) throws DeployerException,
+    public ResponseEntity<Result> createTarget(@RequestBody Map<String, Object> parameters) throws DeployerException,
         ValidationException {
         String env = Objects.toString(parameters.get(ENV_PATH_VAR_NAME), "");
         String siteName = Objects.toString(parameters.get(SITE_NAME_PATH_VAR_NAME), "");
@@ -79,7 +79,7 @@ public class TargetController {
 
         targetService.createTarget(env, siteName, replace, templateName, parameters);
 
-        return new ResponseEntity<>(OkResult.INSTANCE,
+        return new ResponseEntity<>(Result.OK,
                                     RestUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
                                     HttpStatus.CREATED);
     }

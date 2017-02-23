@@ -36,7 +36,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
 
-    protected String targetFolderPath;
+    protected String targetFolderUrl;
     protected ContentStoreService contentStoreService;
     protected SearchService searchService;
     protected List<BatchIndexer> batchIndexers;
@@ -44,8 +44,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     protected String indexId;
 
     @Required
-    public void setTargetFolderPath(String targetFolderPath) {
-        this.targetFolderPath = targetFolderPath;
+    public void setTargetFolderUrl(String targetFolderUrl) {
+        this.targetFolderUrl = targetFolderUrl;
     }
 
     @Required
@@ -68,7 +68,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     @PostConstruct
     public void init() throws DeployerException {
-        context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, targetFolderPath,
+        context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, targetFolderUrl,
                                                     false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
     }
 

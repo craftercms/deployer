@@ -65,8 +65,11 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
+import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.Resource;
@@ -85,7 +88,7 @@ import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SITE_NAME_
  * Created by alfonsovasquez on 5/12/16.
  */
 @Component("targetService")
-public class TargetServiceImpl implements TargetService {
+public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent> {
 
     private static final Logger logger = LoggerFactory.getLogger(TargetServiceImpl.class);
 
@@ -146,9 +149,16 @@ public class TargetServiceImpl implements TargetService {
                 throw new DeployerException("Failed to create target config folder at " + targetConfigFolder);
             }
         }
+    }
 
-        // Load all targets on startup
-        getAllTargets();
+    @Override
+    public void onApplicationEvent(ApplicationReadyEvent event) {
+        // Load all existing targets on startup
+        try {
+            getAllTargets();
+        } catch (DeployerException e) {
+            logger.error("Eror while loading targets on startup", e);
+        }
     }
 
     @PreDestroy

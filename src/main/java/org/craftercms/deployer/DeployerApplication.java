@@ -55,7 +55,7 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	private static final Logger logger = LoggerFactory.getLogger(DeployerApplication.class);
 
 	public static final String DEFAULT_INCLUDE_ELEMENT_XPATH_QUERY = "//include";
-	public static final String DEFAULT_DISABLED_INCLUDE_NODE_XPATH_QUERY = "../disabledFlattening";
+	public static final String DEFAULT_DISABLED_INCLUDE_NODE_XPATH_QUERY = "../disableFlattening";
 	public static final String DEFAULT_PAGES_PATH_PATTERN = "^/?site/website/.*$";
 
 	@Value("${deployer.main.target.scan.scheduling.enabled}")

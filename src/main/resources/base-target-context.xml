@@ -32,7 +32,7 @@
     </bean>
 
     <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor" parent="deploymentProcessor">
-        <property name="targetFolderPath" value="${target.deployToPath}"/>
+        <property name="targetFolderUrl" value="file:${target.deployToPath}"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="searchService" ref="searchService"/>
         <property name="batchIndexers">

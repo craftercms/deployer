@@ -8,6 +8,7 @@ import javax.annotation.PostConstruct;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.core.exception.CrafterException;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Context;
 import org.craftercms.core.store.impl.filesystem.FileSystemContentStoreAdapter;
@@ -36,7 +37,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
 
-    protected String targetFolderUrl;
+    protected String localRepoUrl;
     protected ContentStoreService contentStoreService;
     protected SearchService searchService;
     protected List<BatchIndexer> batchIndexers;
@@ -44,8 +45,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     protected String indexId;
 
     @Required
-    public void setTargetFolderUrl(String targetFolderUrl) {
-        this.targetFolderUrl = targetFolderUrl;
+    public void setLocalRepoUrl(String localRepoUrl) {
+        this.localRepoUrl = localRepoUrl;
     }
 
     @Required
@@ -64,17 +65,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     public void setBatchIndexers(List<BatchIndexer> batchIndexers) {
         this.batchIndexers = batchIndexers;
-    }
-
-    @PostConstruct
-    public void init() throws DeployerException {
-        context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, targetFolderUrl,
-                                                    false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
-    }
-
-    @PostConstruct
-    public void destroy() {
-        contentStoreService.destroyContext(context);
     }
 
     @Override
@@ -109,6 +99,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
         execution.setStatusDetails(indexingStatus);
 
+        Context context = createContentStoreContext();
         try {
             if (CollectionUtils.isNotEmpty(createdFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
@@ -133,6 +124,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
             }
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);
+        } finally {
+            destroyContentStoreContext(context);
         }
 
         return null;
@@ -141,6 +134,23 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     @Override
     protected boolean failDeploymentOnProcessorFailure() {
         return false;
+    }
+
+    protected Context createContentStoreContext() throws DeployerException {
+        try {
+            return contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, localRepoUrl, false, 0,
+                                                     Context.DEFAULT_IGNORE_HIDDEN_FILES);
+        } catch (Exception e) {
+            throw new DeployerException("Unable to create context for content store @ " + localRepoUrl, e);
+        }
+    }
+
+    protected void destroyContentStoreContext(Context context) {
+        try {
+            contentStoreService.destroyContext(context);
+        } catch (Exception e) {
+            logger.warn("Unable to destroy context " + context, e);
+        }
     }
 
 }

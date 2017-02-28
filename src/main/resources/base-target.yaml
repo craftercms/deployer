@@ -1,5 +1,5 @@
 target:
-  deployToPath: ${deployer.main.deployment.folderPath}/${target.env}/${target.siteName}
+  localRepoPath: ${deployer.main.deployments.folderPath}/${target.env}/${target.siteName}
   defaultTimestampPattern: yyyyMMddHHmmssSSS
   defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
   deployment:

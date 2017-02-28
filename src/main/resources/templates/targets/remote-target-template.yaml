@@ -3,18 +3,22 @@ target:
   siteName: {{site_name}}
   engineUrl: {{#if engine_url}}{{engine_url}}{{else}}http://localhost:8080{{/if}}
   deployment:
+    {{#if disable_scheduled_deployments}}
+    scheduling:
+       enabled: false
+    {{/if}}
     pipeline:
       - processorName: gitPullProcessor
         remoteRepo:
-          url: {{remote_repo_url}}
-          {{#if remote_repo_branch}}
-          branch: {{remote_repo_branch}}
+          url: {{repo_url}}
+          {{#if repo_branch}}
+          branch: {{repo_branch}}
           {{/if}}
-          {{#if remote_repo_username}}
-          username: {{remote_repo_username}}
+          {{#if repo_username}}
+          username: {{repo_username}}
           {{/if}}
-          {{#if remote_repo_password}}
-          password: {{remote_repo_password}}
+          {{#if repo_password}}
+          password: {{repo_password}}
           {{/if}}
       - processorName: gitDiffProcessor
       - processorName: searchIndexingProcessor

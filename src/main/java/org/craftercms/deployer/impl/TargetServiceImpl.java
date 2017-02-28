@@ -113,13 +113,13 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected Set<Target> targets;
 
     public TargetServiceImpl(
-        @Value("${deployer.main.target.idPattern}") String targetIdPattern,
-        @Value("${deployer.main.target.config.folderPath}") File targetConfigFolder,
-        @Value("${deployer.main.target.config.baseYaml.location}") Resource baseTargetYamlConfigResource,
-        @Value("${deployer.main.target.config.baseYaml.overrideLocation}") Resource baseTargetYamlConfigOverrideResource,
-        @Value("${deployer.main.target.config.baseContext.location}") Resource baseTargetContextResource,
-        @Value("${deployer.main.target.config.baseContext.overrideLocation}") Resource baseTargetContextOverrideResource,
-        @Value("${deployer.main.target.config.templates.default}") String defaultTargetConfigTemplateName,
+        @Value("${deployer.main.targets.idPattern}") String targetIdPattern,
+        @Value("${deployer.main.targets.config.folderPath}") File targetConfigFolder,
+        @Value("${deployer.main.targets.config.baseYaml.location}") Resource baseTargetYamlConfigResource,
+        @Value("${deployer.main.targets.config.baseYaml.overrideLocation}") Resource baseTargetYamlConfigOverrideResource,
+        @Value("${deployer.main.targets.config.baseContext.location}") Resource baseTargetContextResource,
+        @Value("${deployer.main.targets.config.baseContext.overrideLocation}") Resource baseTargetContextOverrideResource,
+        @Value("${deployer.main.targets.config.templates.default}") String defaultTargetConfigTemplateName,
         @Autowired Handlebars targetConfigTemplateEngine,
         @Autowired ApplicationContext mainApplicationContext,
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory,

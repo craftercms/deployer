@@ -22,17 +22,17 @@
     </bean>
 
     <bean id="gitPullProcessor" class="org.craftercms.deployer.impl.processors.GitPullProcessor" parent="deploymentProcessor">
-        <property name="localRepoFolder" value="${target.deployToPath}"/>
-        <property name="processedCommitsFolder" value="${deployer.main.deployment.processedCommits.folderPath}"/>
+        <property name="localRepoFolder" value="${target.localRepoPath}"/>
+        <property name="processedCommitsFolder" value="${deployer.main.deployments.processedCommits.folderPath}"/>
     </bean>
 
     <bean id="gitDiffProcessor" class="org.craftercms.deployer.impl.processors.GitDiffProcessor" parent="deploymentProcessor">
-        <property name="localRepoFolder" value="${target.deployToPath}"/>
-        <property name="processedCommitsFolder" value="${deployer.main.deployment.processedCommits.folderPath}"/>
+        <property name="localRepoFolder" value="${target.localRepoPath}"/>
+        <property name="processedCommitsFolder" value="${deployer.main.deployments.processedCommits.folderPath}"/>
     </bean>
 
     <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor" parent="deploymentProcessor">
-        <property name="targetFolderUrl" value="file:${target.deployToPath}"/>
+        <property name="localRepoUrl" value="file:${target.localRepoPath}"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="searchService" ref="searchService"/>
         <property name="batchIndexers">
@@ -47,7 +47,7 @@
           parent="deploymentProcessor"/>
 
     <bean id="fileOutputProcessor" class="org.craftercms.deployer.impl.processors.FileOutputProcessor" parent="deploymentProcessor">
-        <property name="outputFolder" value="${deployer.main.deployment.output.folderPath}"/>
+        <property name="outputFolder" value="${deployer.main.deployments.output.folderPath}"/>
         <property name="timestampPattern" value="${target.defaultTimestampPattern}"/>
         <property name="objectMapper" ref="objectMapper"/>
     </bean>

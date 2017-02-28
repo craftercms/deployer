@@ -5,16 +5,16 @@ deployer:
   main:
     config:
       folderPath: config
-    target:
+    targets:
       idPattern: (\w+)\-?(\w?)
       config:
         folderPath: ${deployer.main.config.folderPath}/targets
         baseYaml:
           location: classpath:base-target.yaml
-          overrideLocation: file:${deployer.main.target.config.folderPath}/base-target.yaml
+          overrideLocation: file:${deployer.main.targets.config.folderPath}/base-target.yaml
         baseContext:
           location: classpath:base-target-context.xml
-          overrideLocation: file:${deployer.main.target.config.folderPath}/base-target-context.xml
+          overrideLocation: file:${deployer.main.targets.config.folderPath}/base-target-context.xml
         templates:
           location: classpath:templates/targets
           overrideLocation: file:${deployer.main.config.folderPath}/templates/targets
@@ -25,7 +25,7 @@ deployer:
         scheduling:
           enabled: true
           cron: '0 * * * * *'
-    deployment:
+    deployments:
       folderPath: deployments
       output:
         folderPath: output

@@ -2,9 +2,12 @@ target:
   env: {{env}}
   siteName: {{site_name}}
   engineUrl: {{#if engine_url}}{{engine_url}}{{else}}http://localhost:8080{{/if}}
+  localRepoPath: {{repo_url}}
   deployment:
+    {{#if disable_scheduled_deployments}}
     scheduling:
        enabled: false
+    {{/if}}
     pipeline:
       - processorName: gitDiffProcessor
       - processorName: searchIndexingProcessor
@@ -16,3 +19,10 @@ target:
         method: GET
         url: ${target.engineUrl}/api/1/site/cache/clear.json?crafterSite=${target.siteName}
       - processorName: fileOutputProcessor
+      {{#if notification_addresses}}
+      - processorName: mailNotificationProcessor
+        to:
+          {{#list notification_addresses}}
+          - {{this}}
+          {{/list}}
+      {{/if}}

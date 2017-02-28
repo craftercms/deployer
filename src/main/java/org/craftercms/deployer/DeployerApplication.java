@@ -58,19 +58,19 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	public static final String DEFAULT_DISABLED_INCLUDE_NODE_XPATH_QUERY = "../disableFlattening";
 	public static final String DEFAULT_PAGES_PATH_PATTERN = "^/?site/website/.*$";
 
-	@Value("${deployer.main.target.scan.scheduling.enabled}")
+	@Value("${deployer.main.targets.scan.scheduling.enabled}")
 	private boolean scheduledTargetScanEnabled;
-	@Value("${deployer.main.target.scan.scheduling.cron}")
+	@Value("${deployer.main.targets.scan.scheduling.cron}")
 	private String scheduledTargetScanCron;
 	@Value("${deployer.main.scheduling.poolSize}")
 	private int schedulerPoolSize;
-	@Value("${deployer.main.target.config.templates.location}")
+	@Value("${deployer.main.targets.config.templates.location}")
 	private String targetConfigTemplatesLocation;
-	@Value("${deployer.main.target.config.templates.overrideLocation}")
+	@Value("${deployer.main.targets.config.templates.overrideLocation}")
 	private String targetConfigTemplatesOverrideLocation;
-	@Value("${deployer.main.target.config.templates.suffix}")
+	@Value("${deployer.main.targets.config.templates.suffix}")
 	private String targetConfigTemplatesSuffix;
-	@Value("${deployer.main.target.config.templates.encoding}")
+	@Value("${deployer.main.targets.config.templates.encoding}")
 	private String targetConfigTemplatesEncoding;
 	@Autowired
 	private TargetService targetService;

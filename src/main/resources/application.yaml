@@ -28,7 +28,7 @@ deployer:
     deployments:
       folderPath: deployments
       output:
-        folderPath: output
+        folderPath: logs
       processedCommits:
         folderPath: processed-commits
     logging:

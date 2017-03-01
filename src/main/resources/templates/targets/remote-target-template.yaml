@@ -3,7 +3,7 @@ target:
   siteName: {{site_name}}
   engineUrl: {{#if engine_url}}{{engine_url}}{{else}}http://localhost:8080{{/if}}
   deployment:
-    {{#if disable_scheduled_deployments}}
+    {{#if disable_deploy_cron}}
     scheduling:
        enabled: false
     {{/if}}

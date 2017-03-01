@@ -11,7 +11,7 @@ target:
     indexing:
       xmlFiles:
         includePatterns:
-          - /?site/.+
+          - ^/?site/.+\.xml$
       binaryFiles:
         supportedMimeTypes:
           - application/pdf

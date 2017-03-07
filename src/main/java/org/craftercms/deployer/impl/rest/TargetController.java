@@ -39,10 +39,10 @@ public class TargetController {
     public static final String BASE_URL = "/api/1/target";
     public static final String CREATE_TARGET_URL = "/create";
     public static final String GET_TARGET_URL = "/get/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
-    public static final String GET_ALL_TARGETS_URL = "/get_all";
+    public static final String GET_ALL_TARGETS_URL = "/get-all";
     public static final String DELETE_TARGET_URL = "/delete/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String DEPLOY_TARGET_URL = "/deploy/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
-    public static final String DEPLOY_ALL_TARGETS_URL = "/deploy_all";
+    public static final String DEPLOY_ALL_TARGETS_URL = "/deploy-all";
 
     public static final String REPLACE_PARAM_NAME = "replace";
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";

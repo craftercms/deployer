@@ -3,8 +3,9 @@ server:
 
 deployer:
   main:
+    homePath: .
     config:
-      folderPath: config
+      folderPath: ${deployer.main.homePath}/config
     targets:
       idPattern: (\w+)\-?(\w?)
       config:
@@ -26,13 +27,13 @@ deployer:
           enabled: true
           cron: '0 * * * * *'
     deployments:
-      folderPath: deployments
+      folderPath: ${deployer.main.homePath}/deployments
       output:
-        folderPath: logs
+        folderPath: ${deployer.main.homePath}/logs
       processedCommits:
-        folderPath: processed-commits
+        folderPath: ${deployer.main.homePath}/processed-commits
     logging:
-      folderPath: logs
+      folderPath: ${deployer.main.homePath}/logs
     scheduling:
       poolSize: 10
 

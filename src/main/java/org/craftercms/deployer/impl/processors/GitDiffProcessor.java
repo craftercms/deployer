@@ -24,6 +24,7 @@ import java.util.Objects;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -204,22 +205,22 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         for (DiffEntry entry : diffEntries) {
             switch (entry.getChangeType()) {
                 case MODIFY:
-                    newPath = makeFullPath(entry.getNewPath());
+                    newPath = asContentStoreUrl(entry.getNewPath());
 
                     updatedFiles.add(newPath);
 
                     logger.debug("Updated file: {}", newPath);
                     break;
                 case DELETE:
-                    oldPath = makeFullPath(entry.getOldPath());
+                    oldPath = asContentStoreUrl(entry.getOldPath());
 
                     deletedFiles.add(oldPath);
 
                     logger.debug("Deleted file: {}", oldPath);
                     break;
                 case RENAME:
-                    oldPath = makeFullPath(entry.getOldPath());
-                    newPath = makeFullPath(entry.getNewPath());
+                    oldPath = asContentStoreUrl(entry.getOldPath());
+                    newPath = asContentStoreUrl(entry.getNewPath());
 
                     deletedFiles.add(oldPath);
                     createdFiles.add(newPath);
@@ -227,15 +228,15 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
                     logger.debug("Renamed file: {} -> {}", oldPath, newPath);
                     break;
                 case COPY:
-                    oldPath = makeFullPath(entry.getOldPath());
-                    newPath = makeFullPath(entry.getNewPath());
+                    oldPath = asContentStoreUrl(entry.getOldPath());
+                    newPath = asContentStoreUrl(entry.getNewPath());
 
                     createdFiles.add(newPath);
 
                     logger.debug("Copied file: {} -> {}", oldPath, newPath);
                     break;
                 default: // ADD
-                    newPath = makeFullPath(entry.getNewPath());
+                    newPath = asContentStoreUrl(entry.getNewPath());
 
                     createdFiles.add(newPath);
 
@@ -247,10 +248,11 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         return new ChangeSet(createdFiles, updatedFiles, deletedFiles);
     }
 
-    protected String makeFullPath(String path) {
-        String separator = File.separator;
-        if (!path.startsWith(separator)) {
-            path = separator + path;
+    protected String asContentStoreUrl(String path) {
+        path = FilenameUtils.separatorsToUnix(path);
+
+        if (!path.startsWith("/")) {
+            path = "/" + path;
         }
 
         return path;

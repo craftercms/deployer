@@ -198,34 +198,62 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         List<String> createdFiles = new ArrayList<>();
         List<String> updatedFiles = new ArrayList<>();
         List<String> deletedFiles = new ArrayList<>();
+        String newPath;
+        String oldPath;
 
         for (DiffEntry entry : diffEntries) {
             switch (entry.getChangeType()) {
                 case MODIFY:
-                    updatedFiles.add(entry.getNewPath());
-                    logger.debug("Updated file: {}", entry.getNewPath());
+                    newPath = makeFullPath(entry.getNewPath());
+
+                    updatedFiles.add(newPath);
+
+                    logger.debug("Updated file: {}", newPath);
                     break;
                 case DELETE:
-                    deletedFiles.add(entry.getOldPath());
-                    logger.debug("Deleted file: {}", entry.getOldPath());
+                    oldPath = makeFullPath(entry.getOldPath());
+
+                    deletedFiles.add(oldPath);
+
+                    logger.debug("Deleted file: {}", oldPath);
                     break;
                 case RENAME:
-                    deletedFiles.add(entry.getOldPath());
-                    createdFiles.add(entry.getNewPath());
-                    logger.debug("Renamed file: {} -> {}", entry.getOldPath(), entry.getNewPath());
+                    oldPath = makeFullPath(entry.getOldPath());
+                    newPath = makeFullPath(entry.getNewPath());
+
+                    deletedFiles.add(oldPath);
+                    createdFiles.add(newPath);
+
+                    logger.debug("Renamed file: {} -> {}", oldPath, newPath);
                     break;
                 case COPY:
-                    createdFiles.add(entry.getNewPath());
-                    logger.debug("Copied file: {} -> {}", entry.getOldPath(), entry.getNewPath());
+                    oldPath = makeFullPath(entry.getOldPath());
+                    newPath = makeFullPath(entry.getNewPath());
+
+                    createdFiles.add(newPath);
+
+                    logger.debug("Copied file: {} -> {}", oldPath, newPath);
                     break;
                 default: // ADD
-                    createdFiles.add(entry.getNewPath());
-                    logger.debug("New file: {}", entry.getNewPath());
+                    newPath = makeFullPath(entry.getNewPath());
+
+                    createdFiles.add(newPath);
+
+                    logger.debug("New file: {}", newPath);
                     break;
             }
         }
 
         return new ChangeSet(createdFiles, updatedFiles, deletedFiles);
+    }
+
+    protected String makeFullPath(String path) {
+        String separator = File.separator;
+        if (!path.startsWith(separator)) {
+            path = separator + path;
+        }
+
+        return path;
     }
 
 }

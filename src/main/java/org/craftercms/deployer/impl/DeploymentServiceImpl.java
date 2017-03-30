@@ -18,6 +18,7 @@ package org.craftercms.deployer.impl;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
@@ -42,13 +43,13 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<Deployment> deployAllTargets() throws DeployerException {
+    public List<Deployment> deployAllTargets(Map<String, Object> params) throws DeployerException {
         List<Target> targets = targetService.getAllTargets();
         List<Deployment> deployments = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(targets)) {
             for (Target target : targets) {
-                Deployment deployment = target.deploy();
+                Deployment deployment = target.deploy(params);
                 deployments.add(deployment);
             };
         }
@@ -57,8 +58,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public Deployment deployTarget(String env, String siteName) throws DeployerException {
-        return targetService.getTarget(env, siteName).deploy();
+    public Deployment deployTarget(String env, String siteName, Map<String, Object> params) throws DeployerException {
+        return targetService.getTarget(env, siteName).deploy(params);
     }
 
 }

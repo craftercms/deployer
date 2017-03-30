@@ -64,11 +64,7 @@ public class ConfigUtils {
     }
 
     public static String getStringProperty(Configuration config, String key) throws DeployerConfigurationException {
-        try {
-            return config.getString(key);
-        } catch (Exception e) {
-            throw new DeployerConfigurationException("Failed to retrieve property '" + key + "'", e);
-        }
+        return getStringProperty(config, key, null);
     }
 
     public static String getStringProperty(Configuration config, String key, String defaultValue) throws DeployerConfigurationException {
@@ -88,9 +84,25 @@ public class ConfigUtils {
         }
     }
 
-    public static boolean getBooleanProperty(Configuration config, String key, boolean defaultValue) throws DeployerConfigurationException {
+    public static Boolean getBooleanProperty(Configuration config, String key) throws DeployerConfigurationException {
+        return getBooleanProperty(config, key, null);
+    }
+
+    public static Boolean getBooleanProperty(Configuration config, String key, Boolean defaultValue) throws DeployerConfigurationException {
         try {
             return config.getBoolean(key, defaultValue);
+        } catch (Exception e) {
+            throw new DeployerConfigurationException("Failed to retrieve property '" + key + "'", e);
+        }
+    }
+
+    public static Integer getIntegerProperty(Configuration config, String key) throws DeployerConfigurationException {
+        return getIntegerProperty(config, key, null);
+    }
+
+    public static Integer getIntegerProperty(Configuration config, String key, Integer defaultValue) throws DeployerConfigurationException {
+        try {
+            return config.getInteger(key, defaultValue);
         } catch (Exception e) {
             throw new DeployerConfigurationException("Failed to retrieve property '" + key + "'", e);
         }

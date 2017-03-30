@@ -23,12 +23,12 @@
 
     <bean id="gitPullProcessor" class="org.craftercms.deployer.impl.processors.GitPullProcessor" parent="deploymentProcessor">
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
-        <property name="processedCommitsFolder" value="${deployer.main.deployments.processedCommits.folderPath}"/>
+        <property name="processedCommitsStore" ref="processedCommitsStore"/>
     </bean>
 
     <bean id="gitDiffProcessor" class="org.craftercms.deployer.impl.processors.GitDiffProcessor" parent="deploymentProcessor">
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
-        <property name="processedCommitsFolder" value="${deployer.main.deployments.processedCommits.folderPath}"/>
+        <property name="processedCommitsStore" ref="processedCommitsStore"/>
     </bean>
 
     <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor" parent="deploymentProcessor">

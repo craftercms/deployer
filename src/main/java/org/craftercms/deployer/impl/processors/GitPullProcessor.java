@@ -18,6 +18,7 @@ package org.craftercms.deployer.impl.processors;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -26,6 +27,7 @@ import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
@@ -47,18 +49,22 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     public static final String REMOTE_REPO_BRANCH_CONFIG_KEY = "remoteRepo.branch";
     public static final String REMOTE_REPO_USERNAME_CONFIG_KEY = "remoteRepo.username";
     public static final String REMOTE_REPO_PASSWORD_CONFIG_KEY = "remoteRepo.password";
+    public static final String GIT_CONFIG_BIG_FILE_THRESHOLD_CONFIG_KEY = "gitConfig.bigFileThreshold";
+    public static final String GIT_CONFIG_COMPRESSION_CONFIG_KEY = "gitConfig.compression";
 
     public static final String GIT_FOLDER_NAME = ".git";
 
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 
     protected File localRepoFolder;
-    protected File processedCommitsFolder;
+    protected ProcessedCommitsStore processedCommitsStore;
 
     protected String remoteRepoUrl;
     protected String remoteRepoBranch;
     protected String remoteRepoUsername;
     protected String remoteRepoPassword;
+    protected String gitConfigBigFileThreshold;
+    protected Integer gitConfigCompression;
 
     @Required
     public void setLocalRepoFolder(File localRepoFolder) {
@@ -66,8 +72,8 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Required
-    public void setProcessedCommitsFolder(File processedCommitsFolder) {
-        this.processedCommitsFolder = processedCommitsFolder;
+    public void setProcessedCommitsStore(ProcessedCommitsStore processedCommitsStore) {
+        this.processedCommitsStore = processedCommitsStore;
     }
 
     @Override
@@ -76,6 +82,8 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         remoteRepoBranch = ConfigUtils.getStringProperty(config, REMOTE_REPO_BRANCH_CONFIG_KEY);
         remoteRepoUsername = ConfigUtils.getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY);
         remoteRepoPassword = ConfigUtils.getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
+        gitConfigBigFileThreshold = ConfigUtils.getStringProperty(config, GIT_CONFIG_BIG_FILE_THRESHOLD_CONFIG_KEY);
+        gitConfigCompression = ConfigUtils.getIntegerProperty(config, GIT_CONFIG_COMPRESSION_CONFIG_KEY);
     }
 
     @Override
@@ -86,13 +94,14 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet) throws DeployerException {
+                                  ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException {
         File gitFolder = new File(localRepoFolder, GIT_FOLDER_NAME);
 
         if (localRepoFolder.exists() && gitFolder.exists()) {
             doPull(execution);
         } else {
-            deleteStoredProcessedCommitId();
+            processedCommitsStore.delete(targetId);
+
             doClone(execution);
         }
 
@@ -186,17 +195,14 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
             logger.info("Cloning Git remote repository {} into {}", remoteRepoUrl, localRepoFolder);
 
-            return GitUtils.cloneRemoteRepository(remoteRepoUrl, remoteRepoBranch, remoteRepoUsername, remoteRepoPassword, localRepoFolder);
+            return GitUtils.cloneRemoteRepository(remoteRepoUrl, remoteRepoBranch, remoteRepoUsername, remoteRepoPassword,
+                                                  localRepoFolder, gitConfigBigFileThreshold, gitConfigCompression);
         } catch (IOException | GitAPIException e) {
             // Force delete so there's no invalid remains
             FileUtils.deleteQuietly(localRepoFolder);
 
             throw new DeployerException("Failed to clone Git remote repository " + remoteRepoUrl + " into " + localRepoFolder, e);
         }
-    }
-
-    protected void deleteStoredProcessedCommitId() {
-        FileUtils.deleteQuietly(new File(processedCommitsFolder, targetId + "." + PROCESSED_COMMIT_FILE_EXTENSION));
     }
 
 }

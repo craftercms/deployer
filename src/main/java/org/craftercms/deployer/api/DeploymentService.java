@@ -17,6 +17,7 @@
 package org.craftercms.deployer.api;
 
 import java.util.List;
+import java.util.Map;
 
 import org.craftercms.deployer.api.exceptions.DeployerException;
 
@@ -30,20 +31,23 @@ public interface DeploymentService {
     /**
      * Deploys all targets
      *
+     * @param params additional parameters that can be used by the deployment processors
+     *
      * @return  the list of deployment info for each target
      *
      * @throws DeployerException if there was an error while doing the deployments
      */
-    List<Deployment> deployAllTargets() throws DeployerException;
+    List<Deployment> deployAllTargets(Map<String, Object> params) throws DeployerException;
 
     /**
      * Deploys a single target
      *
      * @param env       the target's environment (e.g. dev)
-     * @param siteName  the target's site name (e.g. mysite) 
+     * @param siteName  the target's site name (e.g. mysite)
+     * @param params    additional parameters that can be used by the deployment processors
      *
      * @return the deployment info
      */
-    Deployment deployTarget(String env, String siteName) throws DeployerException;
+    Deployment deployTarget(String env, String siteName, Map<String, Object> params) throws DeployerException;
 
 }

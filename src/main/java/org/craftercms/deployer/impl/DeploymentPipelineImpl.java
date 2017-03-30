@@ -17,6 +17,7 @@
 package org.craftercms.deployer.impl;
 
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
@@ -40,12 +41,12 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
     }
 
     @Override
-    public Deployment execute(Target target) {
+    public Deployment execute(Target target, Map<String, Object> params) {
         Deployment deployment = new Deployment(target);
 
         logger.info("<############ DEPLOYMENT PIPELINE  FOR '{}' ############>", target.getId());
 
-        executeProcessors(deployment);
+        executeProcessors(deployment, params);
 
         deployment.endDeployment(Deployment.Status.SUCCESS);
 
@@ -54,10 +55,10 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
         return deployment;
     }
 
-    protected void executeProcessors(Deployment deployment) {
+    protected void executeProcessors(Deployment deployment, Map<String, Object> params) {
         if (CollectionUtils.isNotEmpty(processors)) {
             for (DeploymentProcessor processor : processors) {
-                processor.execute(deployment);
+                processor.execute(deployment, params);
             }
         }
     }

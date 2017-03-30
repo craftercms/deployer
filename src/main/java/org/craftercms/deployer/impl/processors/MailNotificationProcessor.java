@@ -107,7 +107,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doExecute(Deployment deployment) throws DeployerException {
+    protected void doExecute(Deployment deployment, Map<String, Object> params) throws DeployerException {
         Map<String, Object> templateModel = new HashMap<>();
         templateModel.put(SERVER_NAME_MODEL_KEY, serverName);
         templateModel.put(TARGET_ID_MODEL_KEY, deployment.getTarget().getId());

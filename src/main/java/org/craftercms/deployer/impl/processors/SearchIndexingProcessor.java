@@ -2,6 +2,7 @@ package org.craftercms.deployer.impl.processors;
 
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import javax.annotation.PostConstruct;
 
@@ -88,7 +89,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet) throws DeployerException {
+                                  ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException {
         logger.info("Performing search indexing...");
 
         ChangeSet changeSet = deployment.getChangeSet();

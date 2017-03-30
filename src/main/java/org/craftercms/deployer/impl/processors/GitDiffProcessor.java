@@ -20,15 +20,18 @@ import java.io.File;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
 
+import org.apache.commons.collections.MapUtils;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.lang3.BooleanUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -47,17 +50,17 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
-import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSED_COMMIT_FILE_EXTENSION;
+import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_PARAM_NAME;
 
 /**
  * Created by alfonso on 2/17/17.
  */
 public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(GitDiffProcessor.class);
 
     protected File localRepoFolder;
-    protected File processedCommitsFolder;
+    protected ProcessedCommitsStore processedCommitsStore;
 
     @Required
     public void setLocalRepoFolder(File localRepoFolder) {
@@ -65,8 +68,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Required
-    public void setProcessedCommitsFolder(File processedCommitsFolder) {
-        this.processedCommitsFolder = processedCommitsFolder;
+    public void setProcessedCommitsStore(ProcessedCommitsStore processedCommitsStore) {
+        this.processedCommitsStore = processedCommitsStore;
     }
 
     @Override
@@ -81,9 +84,16 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet) throws DeployerException {
+                                  ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException {
+        boolean reprocessAll = getReprocessAllParam(params);
+        if (reprocessAll) {
+            processedCommitsStore.delete(targetId);
+
+            logger.info("All files from local repo {} will be reprocessed", localRepoFolder);
+        }
+
         try (Git git = openLocalRepository()) {
-            ObjectId previousCommitId = loadProcessedCommitId();
+            ObjectId previousCommitId = processedCommitsStore.load(targetId);
             ObjectId latestCommitId = getLatestCommitId(git);
             ChangeSet changeSet = resolveChangeSetFromCommits(git, previousCommitId, latestCommitId);
 
@@ -93,7 +103,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
                 execution.setStatusDetails("No changes detected");
             }
 
-            storeProcessedCommitId(latestCommitId);
+            processedCommitsStore.store(targetId, latestCommitId);
 
             return changeSet;
         }
@@ -111,34 +121,6 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
             return GitUtils.openRepository(localRepoFolder);
         } catch (IOException e) {
             throw new DeployerException("Failed to open Git repository at " + localRepoFolder, e);
-        }
-    }
-
-    protected ObjectId loadProcessedCommitId() throws DeployerException {
-        File commitFile = new File(processedCommitsFolder, targetId + "." + PROCESSED_COMMIT_FILE_EXTENSION);
-        try {
-            if (commitFile.exists()) {
-                String commitId = FileUtils.readFileToString(commitFile, "UTF-8").trim();
-
-                logger.info("Found previous processed commit ID for target '{}': {}", targetId, commitId);
-
-                return ObjectId.fromString(commitId);
-            } else {
-                return null;
-            }
-        } catch (IOException e) {
-            throw new DeployerException("Error retrieving previous processed commit ID from " + commitFile, e);
-        }
-    }
-
-    protected void storeProcessedCommitId(ObjectId commitId) throws DeployerException {
-        File commitFile = new File(processedCommitsFolder, targetId + "." + PROCESSED_COMMIT_FILE_EXTENSION);
-        try {
-            logger.info("Storing processed commit ID {} for target '{}'", commitId.name(), targetId);
-
-            FileUtils.write(commitFile, commitId.name(), "UTF-8", false);
-        } catch (IOException e) {
-            throw new DeployerException("Error saving processed commit ID to " + commitFile, e);
         }
     }
 
@@ -256,6 +238,19 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         }
 
         return path;
+    }
+
+    protected boolean getReprocessAllParam(Map<String, Object> params) {
+        if (MapUtils.isNotEmpty(params)) {
+            Object value = params.get(REPROCESS_ALL_PARAM_NAME);
+            if (value instanceof Boolean) {
+                return (Boolean)value;
+            } else {
+                return value != null && BooleanUtils.toBoolean(value.toString());
+            }
+        } else {
+            return false;
+        }
     }
 
 }

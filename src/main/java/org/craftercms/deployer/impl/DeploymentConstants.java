@@ -39,6 +39,10 @@ public class DeploymentConstants {
     public static final String PROCESSOR_INCLUDE_FILES_CONFIG_KEY = "includeFiles";
     public static final String PROCESSOR_EXCLUDE_FILES_CONFIG_KEY = "excludeFiles";
 
+    // Processor params
+
+    public static final String REPROCESS_ALL_PARAM_NAME = "reprocess_all";
+
     // Logging MDC Keys
 
     public static final String TARGET_ID_MDC_KEY = "targetId";

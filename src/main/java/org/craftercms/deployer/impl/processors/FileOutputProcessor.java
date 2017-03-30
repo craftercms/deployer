@@ -22,6 +22,7 @@ import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -74,7 +75,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doExecute(Deployment deployment) throws DeployerException {
+    protected void doExecute(Deployment deployment, Map<String, Object> params) throws DeployerException {
         File outputFile = getOutputFile(deployment);
 
         try {

@@ -14,25 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
+package org.craftercms.deployer.impl;
 
-import java.util.Map;
+import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.eclipse.jgit.lib.ObjectId;
 
 /**
- * Represents a collection of processors that are executed on each deployment.
- *
- * @author avasquez
+ * Created by alfonso on 3/22/17.
  */
-public interface DeploymentPipeline {
+public interface ProcessedCommitsStore {
 
-    /**
-     * Does a deployment.
-     *
-     * @param target    the target that needs to be deployed
-     * @param params    additional parameters that can be used by the processors of the pipeline
-     *
-     * @return the deployment info
-     */
-    Deployment execute(Target target, Map<String, Object> params);
+    ObjectId load(String targetId) throws DeployerException;
+
+    void store(String targetId, ObjectId commitId) throws DeployerException;
+
+    void delete(String targetId) throws DeployerException;
 
 }

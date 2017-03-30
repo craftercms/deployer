@@ -6,6 +6,7 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.CompositeTemplateLoader;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 
+import java.io.File;
 import java.io.IOException;
 
 import freemarker.template.TemplateException;
@@ -19,6 +20,8 @@ import org.craftercms.core.processors.impl.PageAwareIncludeDescriptorsProcessor;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.impl.ProcessedCommitsStore;
+import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
 import org.craftercms.deployer.utils.handlebars.ListHelper;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.slf4j.Logger;
@@ -72,6 +75,8 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	private String targetConfigTemplatesSuffix;
 	@Value("${deployer.main.targets.config.templates.encoding}")
 	private String targetConfigTemplatesEncoding;
+	@Value("${deployer.main.deployments.processedCommits.folderPath}")
+	private File processedCommitsFolder;
 	@Autowired
 	private TargetService targetService;
 	@Autowired
@@ -96,6 +101,14 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 		processor.setContentStoreService(contentStoreService);
 
 		return processor;
+	}
+
+	@Bean
+	public ProcessedCommitsStore processedCommitsStore() {
+		ProcessedCommitsStoreImpl store = new ProcessedCommitsStoreImpl();
+		store.setStoreFolder(processedCommitsFolder);
+
+		return store;
 	}
 
 	@Bean

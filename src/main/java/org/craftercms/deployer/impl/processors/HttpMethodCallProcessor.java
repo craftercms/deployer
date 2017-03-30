@@ -17,6 +17,7 @@
 package org.craftercms.deployer.impl.processors;
 
 import java.io.IOException;
+import java.util.Map;
 
 import javax.annotation.PreDestroy;
 
@@ -72,7 +73,7 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet) throws DeployerException {
+                                  ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException {
         HttpUriRequest request = createRequest();
 
         logger.info("Executing request {}...", request);

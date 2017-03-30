@@ -18,6 +18,7 @@ package org.craftercms.deployer.impl.processors;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.ArrayUtils;
@@ -50,7 +51,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     }
 
     @Override
-    public void execute(Deployment deployment) {
+    public void execute(Deployment deployment, Map<String, Object> params) {
         ChangeSet filteredChangeSet = getFilteredChangeSet(deployment.getChangeSet());
         
         if (shouldExecute(deployment, filteredChangeSet)) {
@@ -61,7 +62,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
             try {
                 logger.info("<===== {} @ {} =====>", name, targetId);
 
-                ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet);
+                ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet, params);
                 if (processedChangeSet != null) {
                     deployment.setChangeSet(processedChangeSet);
                 }
@@ -123,7 +124,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     protected abstract void doConfigure(Configuration config) throws DeployerException;
 
     protected abstract ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                           ChangeSet filteredChangeSet) throws DeployerException;
+                                           ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException;
 
     protected abstract boolean failDeploymentOnProcessorFailure();
 

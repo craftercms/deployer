@@ -23,12 +23,20 @@ import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 /**
  * Created by alfonsovasquez on 12/15/16.
  */
 public abstract class GitUtils {
+
+    public static final String CORE_CONFIG_SECTION = "core";
+    public static final String BIG_FILE_THRESHOLD_CONFIG_PARAM = "bigFileThreshold";
+    public static final String COMPRESSION_CONFIG_PARAM = "compression";
+
+    public static final String BIG_FILE_THRESHOLD_DEFAULT = "20m";
+    public static final int COMPRESSION_DEFAULT = 0;
 
     private GitUtils() {
     }
@@ -38,8 +46,9 @@ public abstract class GitUtils {
     }
 
     public static Git cloneRemoteRepository(String repositoryUrl, String branch, String username, String password,
-                                            File localFolder) throws GitAPIException {
-        CloneCommand command=  Git.cloneRepository();
+                                            File localFolder, String bigFileThreshold, Integer compression)
+        throws GitAPIException, IOException {
+        CloneCommand command = Git.cloneRepository();
         command.setURI(repositoryUrl);
         command.setDirectory(localFolder);
 
@@ -50,7 +59,21 @@ public abstract class GitUtils {
             command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
         }
 
-        return command.call();
+        Git git = command.call();
+        StoredConfig config = git.getRepository().getConfig();
+
+        if (StringUtils.isEmpty(bigFileThreshold)) {
+            bigFileThreshold = BIG_FILE_THRESHOLD_DEFAULT;
+        }
+        if (compression == null) {
+            compression = COMPRESSION_DEFAULT;
+        }
+
+        config.setString(CORE_CONFIG_SECTION, null, BIG_FILE_THRESHOLD_CONFIG_PARAM, bigFileThreshold);
+        config.setInt(CORE_CONFIG_SECTION, null, COMPRESSION_CONFIG_PARAM, compression);
+        config.save();
+
+        return git;
     }
 
 }

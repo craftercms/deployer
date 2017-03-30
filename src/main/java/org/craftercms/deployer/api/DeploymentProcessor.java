@@ -16,6 +16,8 @@
  */
 package org.craftercms.deployer.api;
 
+import java.util.Map;
+
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 
@@ -39,7 +41,8 @@ public interface DeploymentProcessor {
      * Executes the processor
      *
      * @param deployment    the current deployment info
+     * @param params        additional parameters that can be used by the processor
      */
-    void execute(Deployment deployment);
+    void execute(Deployment deployment, Map<String, Object> params);
 
 }

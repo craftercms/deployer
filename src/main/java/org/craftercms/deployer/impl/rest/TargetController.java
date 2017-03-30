@@ -1,5 +1,6 @@
 package org.craftercms.deployer.impl.rest;
 
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -105,7 +106,7 @@ public class TargetController {
 
     @RequestMapping(value = DELETE_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Void> deleteTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
-                                                 @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
+                                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
         targetService.deleteTarget(env, siteName);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -113,15 +114,25 @@ public class TargetController {
 
     @RequestMapping(value = DEPLOY_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Deployment> deployTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
-                                                   @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
-        Deployment deployment = deploymentService.deployTarget(env, siteName);
+                                                   @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
+                                                   @RequestBody(required = false) Map<String, Object> params) throws DeployerException {
+        if (params == null) {
+            params = new HashMap<>();
+        }
+
+        Deployment deployment = deploymentService.deployTarget(env, siteName, params);
 
         return new ResponseEntity<>(deployment, new HttpHeaders(), HttpStatus.OK);
     }
 
     @RequestMapping(value = DEPLOY_ALL_TARGETS_URL, method = RequestMethod.POST)
-    public ResponseEntity<List<Deployment>> deployAllTargets() throws DeployerException {
-        List<Deployment> deployments = deploymentService.deployAllTargets();
+    public ResponseEntity<List<Deployment>> deployAllTargets(
+        @RequestBody(required = false) Map<String, Object> params) throws DeployerException {
+        if (params == null) {
+            params = new HashMap<>();
+        }
+
+        List<Deployment> deployments = deploymentService.deployAllTargets(params);
 
         return new ResponseEntity<>(deployments, new HttpHeaders(), HttpStatus.OK);
     }

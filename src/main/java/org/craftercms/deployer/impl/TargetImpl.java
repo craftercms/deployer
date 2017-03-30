@@ -18,6 +18,8 @@ package org.craftercms.deployer.impl;
 
 import java.io.File;
 import java.time.ZonedDateTime;
+import java.util.HashMap;
+import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
 
 import org.apache.commons.configuration2.Configuration;
@@ -91,10 +93,10 @@ public class TargetImpl implements Target {
     }
 
     @Override
-    public synchronized Deployment deploy() {
+    public synchronized Deployment deploy(Map<String, Object> params) {
         MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
         try {
-            return deploymentPipeline.execute(this);
+            return deploymentPipeline.execute(this, params);
         } finally {
             MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
         }
@@ -102,7 +104,7 @@ public class TargetImpl implements Target {
 
     @Override
     public synchronized void scheduleDeployment(TaskScheduler scheduler, String cronExpression) {
-        scheduledFuture = scheduler.schedule(this::deploy, new CronTrigger(cronExpression));
+        scheduledFuture = scheduler.schedule(() -> this.deploy(new HashMap<>()), new CronTrigger(cronExpression));
     }
 
     @Override

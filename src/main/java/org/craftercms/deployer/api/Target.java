@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.File;
 import java.time.ZonedDateTime;
+import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
 import org.springframework.scheduling.TaskScheduler;
@@ -50,7 +51,7 @@ public interface Target {
     @JsonIgnore
     Configuration getConfiguration();
     
-    Deployment deploy();
+    Deployment deploy(Map<String, Object> params);
 
     void scheduleDeployment(TaskScheduler scheduler, String cronExpression);
 

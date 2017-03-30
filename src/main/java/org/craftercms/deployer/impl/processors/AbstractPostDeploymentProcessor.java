@@ -16,6 +16,8 @@
  */
 package org.craftercms.deployer.impl.processors;
 
+import java.util.Map;
+
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
@@ -29,14 +31,14 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
     private static final Logger logger = LoggerFactory.getLogger(AbstractPostDeploymentProcessor.class);
 
     @Override
-    public void execute(Deployment deployment) {
+    public void execute(Deployment deployment, Map<String, Object> params) {
         deployment.endDeployment(Deployment.Status.SUCCESS);
 
         if (shouldExecute(deployment)) {
             try {
                 logger.info("<===== {} @ {} =====>", name, targetId);
 
-                doExecute(deployment);
+                doExecute(deployment, params);
             } catch (Exception e) {
                 logger.error("Processor '" + name + "' for target '" + targetId + "' failed", e);
             } finally {
@@ -50,6 +52,6 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
         return deployment.getStatus() == Deployment.Status.FAILURE || !deployment.isChangeSetEmpty();
     }
 
-    protected abstract void doExecute(Deployment deployment) throws DeployerException;
+    protected abstract void doExecute(Deployment deployment, Map<String, Object> params) throws DeployerException;
 
 }

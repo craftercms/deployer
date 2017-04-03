@@ -60,13 +60,13 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
     protected CloseableHttpClient httpClient;
 
     @Override
-    protected void doConfigure(Configuration config) throws DeployerException {
+    protected void doInit(Configuration config) throws DeployerException {
         url = ConfigUtils.getRequiredStringProperty(config, URL_CONFIG_KEY);
         method = ConfigUtils.getRequiredStringProperty(config, METHOD_CONFIG_KEY);
         httpClient = HttpClients.createDefault();
     }
 
-    @PreDestroy
+    @Override
     public void destroy() throws DeployerException {
         IOUtils.closeQuietly(httpClient);
     }

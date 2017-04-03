@@ -6,13 +6,19 @@ target:
     scheduling:
       enabled: true
       cron: '0 * * * * *'
+  processing:
+    xml:
+      flattening:
+        enabled: true
+      merging:
+        enabled: true
   search:
     serverUrl: http://localhost:8080/crafter-search
     indexing:
-      xmlFiles:
+      xml:
         includePatterns:
           - ^/?site/.+\.xml$
-      binaryFiles:
+      binary:
         supportedMimeTypes:
           - application/pdf
           - application/msword

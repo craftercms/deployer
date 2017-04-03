@@ -14,8 +14,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.core.cache.impl.CacheStoreAdapter;
 import org.craftercms.core.cache.impl.store.NoopCacheStoreAdapter;
 import org.craftercms.core.processors.ItemProcessor;
-import org.craftercms.core.processors.impl.IncludeDescriptorsProcessor;
-import org.craftercms.core.processors.impl.ItemProcessorPipeline;
 import org.craftercms.core.processors.impl.PageAwareIncludeDescriptorsProcessor;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.deployer.api.TargetService;
@@ -33,6 +31,7 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -41,9 +40,10 @@ import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
-import org.springframework.scheduling.quartz.SchedulerFactoryBean;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCATION;
 
 /**
  * Launcher class and Spring configuration entry point.
@@ -52,10 +52,12 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter
  */
 @SpringBootApplication
 @EnableScheduling
-@ImportResource("classpath:crafter/core/core-context.xml")
+@ImportResource(CORE_APP_CONTEXT_LOCATION)
 public class DeployerApplication extends WebMvcConfigurerAdapter implements SchedulingConfigurer  {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeployerApplication.class);
+
+	public static final String CORE_APP_CONTEXT_LOCATION = "classpath:crafter/core/core-context.xml";
 
 	public static final String DEFAULT_INCLUDE_ELEMENT_XPATH_QUERY = "//include";
 	public static final String DEFAULT_DISABLED_INCLUDE_NODE_XPATH_QUERY = "../disableFlattening";

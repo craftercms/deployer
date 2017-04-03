@@ -62,7 +62,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    public void configure(Configuration config) throws DeployerException {
+    public void init(Configuration config) throws DeployerException {
         timestampFormatter = DateTimeFormatter.ofPattern(timestampPattern);
 
         if (!outputFolder.exists()) {
@@ -72,6 +72,10 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
                 throw new DeployerException("Failed to create output folder " + outputFolder, e);
             }
         }
+    }
+
+    @Override
+    public void destroy() throws DeployerException {
     }
 
     @Override

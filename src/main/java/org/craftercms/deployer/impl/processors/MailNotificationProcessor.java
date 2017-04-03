@@ -86,7 +86,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    public void configure(Configuration config) throws DeployerException {
+    public void init(Configuration config) throws DeployerException {
         templateName = ConfigUtils.getStringProperty(config, TEMPLATE_NAME_CONFIG_KEY, defaultTemplateName);
         from = ConfigUtils.getStringProperty(config, FROM_CONFIG_KEY, defaultFrom);
         to = ConfigUtils.getRequiredStringArrayProperty(config, TO_CONFIG_KEY);
@@ -104,6 +104,10 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
 
         String dateTimePattern = ConfigUtils.getStringProperty(config, DATETIME_PATTERN_CONFIG_KEY, defaultDateTimePattern);
         dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimePattern);
+    }
+
+    @Override
+    public void destroy() throws DeployerException {
     }
 
     @Override

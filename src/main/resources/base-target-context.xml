@@ -41,7 +41,7 @@
                 <ref bean="binaryFileBatchIndexer"/>
             </list>
         </property>
-        <property name="mergingEnabled" value="${target.processing.xml.merging.enabled}"/>
+        <property name="mergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>
     </bean>
 
     <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor"
@@ -66,7 +66,7 @@
     <!-- Search -->
 
     <bean id="disableAwareIncludeDescriptorsProcessor" class="org.craftercms.commons.spring.ConditionalFactoryBean">
-        <property name="flag" value="${target.processing.xml.flattening.enabled}"/>
+        <property name="flag" value="${target.search.indexing.xml.flattening.enabled}"/>
         <property name="actualBean" ref="includeDescriptorsProcessor"/>
     </bean>
     

@@ -96,17 +96,10 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         if (CollectionUtils.isEmpty(batchIndexers)) {
             throw new IllegalStateException("At least one batch indexer should be provided");
         }
-
-        context = createContentStoreContext();
-
-        logger.debug("Content store context created: {}", context);
     }
 
     @Override
     public void destroy() {
-        destroyContentStoreContext(context);
-
-        logger.debug("Content store context destroyed: {}", context);
     }
 
     @Override
@@ -122,6 +115,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
         execution.setStatusDetails(indexingStatus);
 
+        context = createContentStoreContext();
         try {
             if (CollectionUtils.isNotEmpty(createdFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
@@ -144,6 +138,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
             }
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);
+        } finally {
+            destroyContentStoreContext(context);
         }
 
         return null;
@@ -156,8 +152,12 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     protected Context createContentStoreContext() throws DeployerException {
         try {
-            return contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, localRepoUrl,
-                                                     mergingEnabled, false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
+            Context context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, localRepoUrl,
+                                                                mergingEnabled, false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
+
+            logger.debug("Content store context created: {}", context);
+
+            return context;
         } catch (Exception e) {
             throw new DeployerException("Unable to create context for content store @ " + localRepoUrl, e);
         }
@@ -166,6 +166,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     protected void destroyContentStoreContext(Context context) {
         try {
             contentStoreService.destroyContext(context);
+
+            logger.debug("Content store context destroyed: {}", context);
         } catch (Exception e) {
             logger.warn("Unable to destroy context " + context, e);
         }

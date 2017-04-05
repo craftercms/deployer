@@ -110,6 +110,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ApplicationContext mainApplicationContext;
     protected DeploymentPipelineFactory deploymentPipelineFactory;
     protected TaskScheduler taskScheduler;
+    protected ProcessedCommitsStore processedCommitsStore;
     protected Set<Target> targets;
 
     public TargetServiceImpl(
@@ -123,7 +124,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired Handlebars targetConfigTemplateEngine,
         @Autowired ApplicationContext mainApplicationContext,
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
-        @Autowired TaskScheduler taskScheduler) throws IOException {
+        @Autowired TaskScheduler taskScheduler,
+        @Autowired ProcessedCommitsStore processedCommitsStore) throws IOException {
         this.targetIdPattern = Pattern.compile(targetIdPattern);
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
@@ -135,6 +137,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.mainApplicationContext = mainApplicationContext;
         this.deploymentPipelineFactory = deploymentPipelineFactory;
         this.taskScheduler = taskScheduler;
+        this.processedCommitsStore = processedCommitsStore;
         this.targets = new HashSet<>();
     }
 
@@ -224,6 +227,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         logger.info("Removing loaded target '{}'", id);
 
         targets.remove(target);
+
+        processedCommitsStore.delete(id);
 
         File configFile =  target.getConfigurationFile();
         if (configFile.exists()) {

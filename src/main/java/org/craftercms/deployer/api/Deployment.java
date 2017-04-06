@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.time.ZonedDateTime;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
@@ -38,6 +39,7 @@ public class Deployment {
     protected Target target;
     protected volatile ZonedDateTime start;
     protected volatile ZonedDateTime end;
+    protected volatile long duration;
     protected volatile Status status;
     protected volatile ChangeSet changeSet;
     protected List<ProcessorExecution> processorExecutions;
@@ -65,6 +67,11 @@ public class Deployment {
     @JsonProperty("end")
     public ZonedDateTime getEnd() {
         return end;
+    }
+
+    @JsonProperty("duration")
+    public long getDuration() {
+        return duration;
     }
 
     @JsonProperty("running")
@@ -95,6 +102,7 @@ public class Deployment {
         if (isRunning()) {
             this.end = ZonedDateTime.now();
             this.status = status;
+            this.duration = start.until(end, ChronoUnit.MILLIS);
         }
     }
 
@@ -135,7 +143,7 @@ public class Deployment {
     }
 
     public enum Status {
-        SUCCESS, FAILURE;
+        SUCCESS, FAILURE
     }
 
 }

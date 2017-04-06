@@ -5,6 +5,7 @@ import java.util.List;
 import java.util.Map;
 
 import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
 
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
@@ -33,17 +34,21 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     private static final Logger logger = LoggerFactory.getLogger(SearchIndexingProcessor.class);
 
     public static final String DEFAULT_INDEX_ID_FORMAT = "%s";
+    public static final int DEFAULT_BATCH_SIZE = 10;
 
     public static final String INDEX_ID_CONFIG_KEY = "indexId";
     public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
+    public static final String BATCH_SIZE_CONFIG_KEY = "batchSize";
 
     protected String localRepoUrl;
     protected ContentStoreService contentStoreService;
     protected SearchService searchService;
     protected List<BatchIndexer> batchIndexers;
-    protected Context context;
+    protected boolean mergingEnabled;
     protected String indexId;
+    protected int batchSize;
+    protected Context context;
 
     @Required
     public void setLocalRepoUrl(String localRepoUrl) {
@@ -64,12 +69,16 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         this.batchIndexers = Collections.singletonList(batchIndexer);
     }
 
+    public void setMergingEnabled(boolean mergingEnabled) {
+        this.mergingEnabled = mergingEnabled;
+    }
+
     public void setBatchIndexers(List<BatchIndexer> batchIndexers) {
         this.batchIndexers = batchIndexers;
     }
 
     @Override
-    protected void doConfigure(Configuration config) throws DeployerException {
+    protected void doInit(Configuration config) throws DeployerException {
         boolean ignoreIndexId = ConfigUtils.getBooleanProperty(config, IGNORE_INDEX_ID_CONFIG_KEY, false);
         if (ignoreIndexId) {
             indexId = null;
@@ -82,9 +91,15 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
             }
         }
 
+        batchSize = ConfigUtils.getIntegerProperty(config, BATCH_SIZE_CONFIG_KEY, DEFAULT_BATCH_SIZE);
+
         if (CollectionUtils.isEmpty(batchIndexers)) {
             throw new IllegalStateException("At least one batch indexer should be provided");
         }
+    }
+
+    @Override
+    public void destroy() {
     }
 
     @Override
@@ -100,7 +115,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
         execution.setStatusDetails(indexingStatus);
 
-        Context context = createContentStoreContext();
+        context = createContentStoreContext();
         try {
             if (CollectionUtils.isNotEmpty(createdFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
@@ -120,8 +135,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
             if (indexingStatus.getAttemptedUpdatesAndDeletes() > 0) {
                 searchService.commit(indexId);
-            } else {
-                logger.info("No files indexed");
             }
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);
@@ -139,8 +152,12 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     protected Context createContentStoreContext() throws DeployerException {
         try {
-            return contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, localRepoUrl, false, 0,
-                                                     Context.DEFAULT_IGNORE_HIDDEN_FILES);
+            Context context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, localRepoUrl,
+                                                                mergingEnabled, false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
+
+            logger.debug("Content store context created: {}", context);
+
+            return context;
         } catch (Exception e) {
             throw new DeployerException("Unable to create context for content store @ " + localRepoUrl, e);
         }
@@ -149,6 +166,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     protected void destroyContentStoreContext(Context context) {
         try {
             contentStoreService.destroyContext(context);
+
+            logger.debug("Content store context destroyed: {}", context);
         } catch (Exception e) {
             logger.warn("Unable to destroy context " + context, e);
         }

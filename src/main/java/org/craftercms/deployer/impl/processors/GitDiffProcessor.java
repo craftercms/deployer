@@ -73,7 +73,11 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    protected void doConfigure(Configuration config) throws DeployerException {
+    protected void doInit(Configuration config) throws DeployerException {
+    }
+
+    @Override
+    public void destroy() throws DeployerException {
     }
 
     @Override

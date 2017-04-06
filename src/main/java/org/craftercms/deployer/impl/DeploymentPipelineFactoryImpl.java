@@ -54,7 +54,7 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
 
             try {
                 DeploymentProcessor processor = applicationContext.getBean(processorName, DeploymentProcessor.class);
-                processor.configure(processorConfig);
+                processor.init(processorConfig);
 
                 processors.add(processor);
             } catch (NoSuchBeanDefinitionException e) {

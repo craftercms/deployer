@@ -18,12 +18,21 @@ package org.craftercms.deployer.api;
 
 import java.util.Map;
 
+import org.craftercms.deployer.api.exceptions.DeployerException;
+
 /**
  * Represents a collection of processors that are executed on each deployment.
  *
  * @author avasquez
  */
 public interface DeploymentPipeline {
+
+    /**
+     * Destroys the pipeline, calling destroy also on all its processors
+     *
+     * @throws DeployerException if an error occurs
+     */
+    void destroy() throws DeployerException;
 
     /**
      * Does a deployment.

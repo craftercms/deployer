@@ -77,13 +77,17 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    protected void doConfigure(Configuration config) throws DeployerException {
+    protected void doInit(Configuration config) throws DeployerException {
         remoteRepoUrl = ConfigUtils.getRequiredStringProperty(config, REMOTE_REPO_URL_CONFIG_KEY);
         remoteRepoBranch = ConfigUtils.getStringProperty(config, REMOTE_REPO_BRANCH_CONFIG_KEY);
         remoteRepoUsername = ConfigUtils.getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY);
         remoteRepoPassword = ConfigUtils.getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
         gitConfigBigFileThreshold = ConfigUtils.getStringProperty(config, GIT_CONFIG_BIG_FILE_THRESHOLD_CONFIG_KEY);
         gitConfigCompression = ConfigUtils.getIntegerProperty(config, GIT_CONFIG_COMPRESSION_CONFIG_KEY);
+    }
+
+    @Override
+    public void destroy() throws DeployerException {
     }
 
     @Override

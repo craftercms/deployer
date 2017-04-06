@@ -21,6 +21,8 @@ import java.time.ZonedDateTime;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.deployer.api.Deployment;
@@ -48,7 +50,9 @@ public class TargetImpl implements Target {
     protected Configuration configuration;
     protected ConfigurableApplicationContext applicationContext;
     protected ZonedDateTime loadDate;
+    protected Lock lock;
     protected ScheduledFuture<?> scheduledFuture;
+    protected volatile boolean scheduledDeploymentRunning;
 
     public TargetImpl(String env, String siteName, String id, DeploymentPipeline deploymentPipeline, File configurationFile,
                       Configuration configuration, ConfigurableApplicationContext applicationContext) {
@@ -59,7 +63,9 @@ public class TargetImpl implements Target {
         this.configurationFile = configurationFile;
         this.configuration = configuration;
         this.applicationContext = applicationContext;
+        this.lock = new ReentrantLock();
         this.loadDate = ZonedDateTime.now();
+        this.scheduledDeploymentRunning = false;
     }
 
     @Override
@@ -93,25 +99,50 @@ public class TargetImpl implements Target {
     }
 
     @Override
-    public synchronized Deployment deploy(Map<String, Object> params) {
+    public Deployment deploy(Map<String, Object> params) {
         MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
+
+        lock.lock();
         try {
-            return deploymentPipeline.execute(this, params);
+            logger.info("------------------------------------------------------------");
+            logger.info("Deployment for '{}' started", id);
+            logger.info("------------------------------------------------------------");
+
+            Deployment deployment = deploymentPipeline.execute(this, params);
+
+            double durationInSecs = deployment.getDuration() / 1000.0;
+
+            logger.info("------------------------------------------------------------");
+            logger.info("Deployment for '{}' finished in {} secs", id, String.format("%.3f", durationInSecs));
+            logger.info("------------------------------------------------------------");
+
+            return deployment;
         } finally {
+            lock.unlock();
+
             MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
         }
     }
 
     @Override
-    public synchronized void scheduleDeployment(TaskScheduler scheduler, String cronExpression) {
-        scheduledFuture = scheduler.schedule(() -> this.deploy(new HashMap<>()), new CronTrigger(cronExpression));
+    public void scheduleDeployment(TaskScheduler scheduler, String cronExpression) {
+        lock.lock();
+        try {
+            scheduledFuture = scheduler.schedule(new ScheduledDeployTask(), new CronTrigger(cronExpression));
+        } finally {
+            lock.unlock();
+        }
     }
 
     @Override
-    public synchronized void close() {
+    public void close() {
         MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
+
+        lock.lock();
         try {
             logger.info("Closing target '{}'...", id);
+
+            deploymentPipeline.destroy();
 
             if (scheduledFuture != null) {
                 scheduledFuture.cancel(true);
@@ -122,8 +153,33 @@ public class TargetImpl implements Target {
         } catch (Exception e) {
             logger.error("Failed to close '" + id + "'", e);
         } finally {
+            lock.unlock();
+
             MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
         }
+    }
+
+    protected class ScheduledDeployTask implements Runnable {
+
+        @Override
+        public void run() {
+            if (!scheduledDeploymentRunning) {
+                lock.lock();
+                try {
+                    if (!scheduledDeploymentRunning) {
+                        scheduledDeploymentRunning = true;
+                        try {
+                            deploy(new HashMap<>());
+                        } finally {
+                            scheduledDeploymentRunning = false;
+                        }
+                    }
+                } finally {
+                    lock.unlock();
+                }
+            }
+        }
+
     }
 
 }

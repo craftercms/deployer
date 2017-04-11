@@ -34,6 +34,7 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.transport.SshSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -121,7 +122,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         try (Git git = openLocalRepository()) {
             logger.info("Executing git pull for repository {}...", localRepoFolder);
 
-            PullResult pullResult = git.pull().call();
+            PullResult pullResult = GitUtils.pull(git, remoteRepoUrl, remoteRepoUsername, remoteRepoPassword);
             if (pullResult.isSuccessful()) {
                 MergeResult mergeResult = pullResult.getMergeResult();
                 String details;
@@ -201,7 +202,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
             return GitUtils.cloneRemoteRepository(remoteRepoUrl, remoteRepoBranch, remoteRepoUsername, remoteRepoPassword,
                                                   localRepoFolder, gitConfigBigFileThreshold, gitConfigCompression);
-        } catch (IOException | GitAPIException e) {
+        } catch (IOException | GitAPIException | IllegalArgumentException e) {
             // Force delete so there's no invalid remains
             FileUtils.deleteQuietly(localRepoFolder);
 

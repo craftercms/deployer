@@ -16,14 +16,25 @@
  */
 package org.craftercms.deployer.utils;
 
+import com.jcraft.jsch.Session;
+
 import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.PullResult;
+import org.eclipse.jgit.api.TransportCommand;
+import org.eclipse.jgit.api.TransportConfigCallback;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.StoredConfig;
+import org.eclipse.jgit.transport.JschConfigSessionFactory;
+import org.eclipse.jgit.transport.OpenSshConfig;
+import org.eclipse.jgit.transport.SshSessionFactory;
+import org.eclipse.jgit.transport.SshTransport;
+import org.eclipse.jgit.transport.Transport;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 /**
@@ -45,19 +56,18 @@ public abstract class GitUtils {
         return Git.open(localRepositoryFolder);
     }
 
-    public static Git cloneRemoteRepository(String repositoryUrl, String branch, String username, String password,
-                                            File localFolder, String bigFileThreshold, Integer compression)
-        throws GitAPIException, IOException {
+    public static Git cloneRemoteRepository(String remoteRepoUrl, String branch, String username, String password, File localFolder,
+                                            String bigFileThreshold, Integer compression)
+        throws GitAPIException, IOException, IllegalArgumentException {
         CloneCommand command = Git.cloneRepository();
-        command.setURI(repositoryUrl);
+        command.setURI(remoteRepoUrl);
         command.setDirectory(localFolder);
 
         if (StringUtils.isNotEmpty(branch)) {
             command.setBranch(branch);
         }
-        if (StringUtils.isNotEmpty(username)) {
-            command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
-        }
+
+        addAuthentication(command, remoteRepoUrl, username, password);
 
         Git git = command.call();
         StoredConfig config = git.getRepository().getConfig();
@@ -74,6 +84,41 @@ public abstract class GitUtils {
         config.save();
 
         return git;
+    }
+
+    public static PullResult pull(Git git, String remoteRepoUrl, String username, String password) throws GitAPIException {
+        PullCommand command = git.pull();
+        addAuthentication(command, remoteRepoUrl, username, password);
+
+        return command.call();
+    }
+
+    private static void addAuthentication(TransportCommand command, String remoteRepoUrl, String username, String password) {
+        if (remoteRepoUrl.startsWith("ssh:")) {
+            if (StringUtils.isNotEmpty(password)) {
+                SshSessionFactory sshSessionFactory = new SshSessionFactoryWithPassword(password);
+                command.setTransportConfigCallback(transport -> ((SshTransport) transport).setSshSessionFactory(sshSessionFactory));
+            } else {
+                throw new IllegalArgumentException("Repository URL uses the SSH protocol but no password was provided");
+            }
+        } else if (StringUtils.isNotEmpty(username)) {
+            command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
+        }
+    }
+
+    public static final class SshSessionFactoryWithPassword extends JschConfigSessionFactory {
+
+        private String password;
+
+        public SshSessionFactoryWithPassword(String password) {
+            this.password = password;
+        }
+
+        @Override
+        protected void configure(OpenSshConfig.Host hc, Session session) {
+            session.setPassword(password);
+        }
+
     }
 
 }

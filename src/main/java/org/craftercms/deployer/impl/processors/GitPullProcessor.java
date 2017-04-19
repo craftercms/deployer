@@ -26,20 +26,23 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
+import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
+import org.craftercms.deployer.utils.git.GitAuthenticationConfigurator;
+import org.craftercms.deployer.utils.git.SshAuthConfigurator;
+import org.craftercms.deployer.utils.git.SshPasswordAuthConfigurator;
+import org.craftercms.deployer.utils.git.SshPrivateKeyAuthConfigurator;
+import org.craftercms.deployer.utils.git.UsernamePasswordAuthConfigurator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
-import org.eclipse.jgit.transport.SshSessionFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-
-import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSED_COMMIT_FILE_EXTENSION;
 
 /**
  * Created by alfonsovasquez on 1/12/16.
@@ -50,6 +53,8 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     public static final String REMOTE_REPO_BRANCH_CONFIG_KEY = "remoteRepo.branch";
     public static final String REMOTE_REPO_USERNAME_CONFIG_KEY = "remoteRepo.username";
     public static final String REMOTE_REPO_PASSWORD_CONFIG_KEY = "remoteRepo.password";
+    public static final String REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY = "remoteRepo.ssh.privateKey.path";
+    public static final String REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY = "remoteRepo.ssh.privateKey.passphrase";
     public static final String GIT_CONFIG_BIG_FILE_THRESHOLD_CONFIG_KEY = "gitConfig.bigFileThreshold";
     public static final String GIT_CONFIG_COMPRESSION_CONFIG_KEY = "gitConfig.compression";
 
@@ -62,10 +67,9 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
     protected String remoteRepoUrl;
     protected String remoteRepoBranch;
-    protected String remoteRepoUsername;
-    protected String remoteRepoPassword;
     protected String gitConfigBigFileThreshold;
     protected Integer gitConfigCompression;
+    protected GitAuthenticationConfigurator authenticationConfigurator;
 
     @Required
     public void setLocalRepoFolder(File localRepoFolder) {
@@ -81,10 +85,9 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     protected void doInit(Configuration config) throws DeployerException {
         remoteRepoUrl = ConfigUtils.getRequiredStringProperty(config, REMOTE_REPO_URL_CONFIG_KEY);
         remoteRepoBranch = ConfigUtils.getStringProperty(config, REMOTE_REPO_BRANCH_CONFIG_KEY);
-        remoteRepoUsername = ConfigUtils.getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY);
-        remoteRepoPassword = ConfigUtils.getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
         gitConfigBigFileThreshold = ConfigUtils.getStringProperty(config, GIT_CONFIG_BIG_FILE_THRESHOLD_CONFIG_KEY);
         gitConfigCompression = ConfigUtils.getIntegerProperty(config, GIT_CONFIG_COMPRESSION_CONFIG_KEY);
+        authenticationConfigurator = createAuthenticationConfigurator(config, remoteRepoUrl);
     }
 
     @Override
@@ -122,7 +125,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         try (Git git = openLocalRepository()) {
             logger.info("Executing git pull for repository {}...", localRepoFolder);
 
-            PullResult pullResult = GitUtils.pull(git, remoteRepoUrl, remoteRepoUsername, remoteRepoPassword);
+            PullResult pullResult = GitUtils.pull(git, authenticationConfigurator);
             if (pullResult.isSuccessful()) {
                 MergeResult mergeResult = pullResult.getMergeResult();
                 String details;
@@ -200,14 +203,51 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
             logger.info("Cloning Git remote repository {} into {}", remoteRepoUrl, localRepoFolder);
 
-            return GitUtils.cloneRemoteRepository(remoteRepoUrl, remoteRepoBranch, remoteRepoUsername, remoteRepoPassword,
-                                                  localRepoFolder, gitConfigBigFileThreshold, gitConfigCompression);
+            return GitUtils.cloneRemoteRepository(remoteRepoUrl, remoteRepoBranch, authenticationConfigurator, localRepoFolder,
+                                                  gitConfigBigFileThreshold, gitConfigCompression);
         } catch (IOException | GitAPIException | IllegalArgumentException e) {
             // Force delete so there's no invalid remains
             FileUtils.deleteQuietly(localRepoFolder);
 
             throw new DeployerException("Failed to clone Git remote repository " + remoteRepoUrl + " into " + localRepoFolder, e);
         }
+    }
+
+    protected GitAuthenticationConfigurator createAuthenticationConfigurator(Configuration config,
+                                                                             String repoUrl) throws DeployerConfigurationException {
+        GitAuthenticationConfigurator authConfigurator = null;
+
+        if (repoUrl.startsWith("ssh:")) {
+            String password = ConfigUtils.getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
+
+            if (StringUtils.isNotEmpty(password)) {
+                logger.debug("SSH username/password authentication will be used to connect to repo {}", repoUrl);
+
+                authConfigurator = new SshPasswordAuthConfigurator(password);
+            } else {
+                String privateKeyPath = ConfigUtils.getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY);
+                String passphrase = ConfigUtils.getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY);
+
+                logger.debug("SSH public/private key authentication will be used to connect to repo {}", repoUrl);
+
+                if (StringUtils.isNotEmpty(privateKeyPath) && StringUtils.isNotEmpty(passphrase)) {
+                    authConfigurator = new SshPrivateKeyAuthConfigurator(privateKeyPath, passphrase);
+                } else {
+                    authConfigurator = new SshAuthConfigurator();
+                }
+            }
+        } else {
+            String username = ConfigUtils.getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY);
+            String password = ConfigUtils.getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
+
+            if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
+                logger.debug("Username/password authentication will be used to connect to repo {}", repoUrl);
+
+                authConfigurator = new UsernamePasswordAuthConfigurator(username, password);
+            }
+        }
+
+        return authConfigurator;
     }
 
 }

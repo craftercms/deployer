@@ -256,7 +256,9 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 
                 return yamlFiles;
             } else {
-                logger.warn("Config folder {} doesn't exist", targetConfigFolder.getAbsolutePath());
+                logger.warn("Config folder {} doesn't exist. Trying to create it...", targetConfigFolder.getAbsolutePath());
+
+                FileUtils.forceMkdir(targetConfigFolder);
 
                 return Collections.emptyList();
             }

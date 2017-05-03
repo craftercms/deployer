@@ -23,7 +23,7 @@
 
     <bean id="gitPullProcessor" class="org.craftercms.deployer.impl.processors.GitPullProcessor" parent="deploymentProcessor">
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
-        <property name="processedCommitsStore" ref="processedCommitsStore"/>
+        <property name="useRebase" value="${target.git.pull.useRebase}"/>
     </bean>
 
     <bean id="gitDiffProcessor" class="org.craftercms.deployer.impl.processors.GitDiffProcessor" parent="deploymentProcessor">

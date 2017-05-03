@@ -39,6 +39,7 @@ import org.craftercms.deployer.utils.git.UsernamePasswordAuthConfigurator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
+import org.eclipse.jgit.api.RebaseResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -63,7 +64,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 
     protected File localRepoFolder;
-    protected ProcessedCommitsStore processedCommitsStore;
+    protected boolean useRebase;
 
     protected String remoteRepoUrl;
     protected String remoteRepoBranch;
@@ -76,9 +77,8 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         this.localRepoFolder = localRepoFolder;
     }
 
-    @Required
-    public void setProcessedCommitsStore(ProcessedCommitsStore processedCommitsStore) {
-        this.processedCommitsStore = processedCommitsStore;
+    public void setUseRebase(boolean useRebase) {
+        this.useRebase = useRebase;
     }
 
     @Override
@@ -108,8 +108,6 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         if (localRepoFolder.exists() && gitFolder.exists()) {
             doPull(execution);
         } else {
-            processedCommitsStore.delete(targetId);
-
             doClone(execution);
         }
 
@@ -125,47 +123,62 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         try (Git git = openLocalRepository()) {
             logger.info("Executing git pull for repository {}...", localRepoFolder);
 
-            PullResult pullResult = GitUtils.pull(git, authenticationConfigurator);
-            if (pullResult.isSuccessful()) {
-                MergeResult mergeResult = pullResult.getMergeResult();
-                String details;
+            PullResult pullResult = GitUtils.pull(git, authenticationConfigurator, useRebase);
+            String details;
 
-                switch (mergeResult.getMergeStatus()) {
-                    case FAST_FORWARD:
-                        details = "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " +
-                                  localRepoFolder;
-
-                        logger.info(details);
-
-                        execution.setStatusDetails(details);
-
-                        break;
-                    case ALREADY_UP_TO_DATE:
-                        details = "Local repository " + localRepoFolder + " up to date (no changes pulled from remote repo " +
-                                  remoteRepoUrl + ")";
-
-                        logger.info(details);
-
-                        execution.setStatusDetails(details);
-
-                        break;
-                    case MERGED:
-                        details = "Changes from remote repo " + remoteRepoUrl + " merged into local repo " + localRepoFolder;
-
-                        logger.info(details);
-
-                        execution.setStatusDetails(details);
-
-                        break;
-                    default:
-                        // Non-supported merge results
-                        throw new DeployerException("Received unsupported merge result after executing pull " + pullResult);
-                }
+            if (pullResult.getMergeResult() != null) {
+                details = checkMergeResult(pullResult);
+            } else if (pullResult.getRebaseResult() != null) {
+                details = checkRebaseResult(pullResult);
             } else {
-                throw new DeployerException("Git pull for repository " + localRepoFolder + " failed: " + pullResult);
+                details = "No update result from pull: " + pullResult;
             }
+
+            logger.info(details);
+
+            execution.setStatusDetails(details);
         } catch (GitAPIException e) {
             throw new DeployerException("Git pull for repository " + localRepoFolder + " failed", e);
+        }
+    }
+
+    protected String checkMergeResult(PullResult pullResult) throws DeployerException {
+        MergeResult.MergeStatus status = pullResult.getMergeResult().getMergeStatus();
+        if (status.isSuccessful()) {
+            switch (status) {
+                case FAST_FORWARD:
+                case MERGED:
+                    return "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " + localRepoFolder +
+                           " (merge result with status " + status + ")";
+                case ALREADY_UP_TO_DATE:
+                    return "Local repository " + localRepoFolder + " up to date (no changes pulled from remote repo " + remoteRepoUrl +
+                           ") (merge result with status " + status + ")";
+                default:
+                    // Non-supported merge results
+                    throw new DeployerException("Received unsupported merge result after executing pull: " + status);
+            }
+        } else {
+            throw new DeployerException("Merge failed with status " + status);
+        }
+    }
+
+    protected String checkRebaseResult(PullResult pullResult) throws DeployerException {
+        RebaseResult.Status status = pullResult.getRebaseResult().getStatus();
+        if (status.isSuccessful()) {
+            switch (pullResult.getRebaseResult().getStatus()) {
+                case FAST_FORWARD:
+                case OK:
+                    return "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " + localRepoFolder +
+                           " (rebase result with status " + status + ")";
+                case UP_TO_DATE:
+                    return "Local repository " + localRepoFolder + " up to date (no changes pulled from remote repo " + remoteRepoUrl +
+                           ") (rebase result with status " + status + ")";
+                default:
+                    // Non-supported merge results
+                    throw new DeployerException("Received unsupported merge result after executing pull: " + status);
+            }
+        } else {
+            throw new DeployerException("Rebase failed with status " + status);
         }
     }
 

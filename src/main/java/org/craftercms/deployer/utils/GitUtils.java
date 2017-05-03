@@ -82,12 +82,14 @@ public abstract class GitUtils {
         return git;
     }
 
-    public static PullResult pull(Git git, GitAuthenticationConfigurator authConfigurator) throws GitAPIException {
+    public static PullResult pull(Git git, GitAuthenticationConfigurator authConfigurator, boolean useRebase) throws GitAPIException {
         PullCommand command = git.pull();
 
         if (authConfigurator != null) {
             authConfigurator.configureAuthentication(command);
         }
+
+        command.setRebase(useRebase);
 
         return command.call();
     }

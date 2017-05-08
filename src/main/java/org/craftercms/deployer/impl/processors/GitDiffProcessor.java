@@ -50,7 +50,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
-import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_PARAM_NAME;
+import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FILES_PARAM_NAME;
 
 /**
  * Created by alfonso on 2/17/17.
@@ -89,8 +89,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
                                   ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException {
-        boolean reprocessAll = getReprocessAllParam(params);
-        if (reprocessAll) {
+        boolean reprocessAllFiles = getReprocessAllFilesParam(params);
+        if (reprocessAllFiles) {
             processedCommitsStore.delete(targetId);
 
             logger.info("All files from local repo {} will be reprocessed", localRepoFolder);
@@ -244,9 +244,9 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         return path;
     }
 
-    protected boolean getReprocessAllParam(Map<String, Object> params) {
+    protected boolean getReprocessAllFilesParam(Map<String, Object> params) {
         if (MapUtils.isNotEmpty(params)) {
-            Object value = params.get(REPROCESS_ALL_PARAM_NAME);
+            Object value = params.get(REPROCESS_ALL_FILES_PARAM_NAME);
             if (value instanceof Boolean) {
                 return (Boolean)value;
             } else {

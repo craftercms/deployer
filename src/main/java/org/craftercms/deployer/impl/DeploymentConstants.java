@@ -41,7 +41,7 @@ public class DeploymentConstants {
 
     // Processor params
 
-    public static final String REPROCESS_ALL_PARAM_NAME = "reprocess_all";
+    public static final String REPROCESS_ALL_FILES_PARAM_NAME = "reprocess_all_files";
 
     // Logging MDC Keys
 

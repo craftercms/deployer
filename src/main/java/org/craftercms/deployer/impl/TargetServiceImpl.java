@@ -110,6 +110,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ApplicationContext mainApplicationContext;
     protected DeploymentPipelineFactory deploymentPipelineFactory;
     protected TaskScheduler taskScheduler;
+    protected ProcessedCommitsStore processedCommitsStore;
     protected Set<Target> targets;
 
     public TargetServiceImpl(
@@ -123,7 +124,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired Handlebars targetConfigTemplateEngine,
         @Autowired ApplicationContext mainApplicationContext,
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
-        @Autowired TaskScheduler taskScheduler) throws IOException {
+        @Autowired TaskScheduler taskScheduler,
+        @Autowired ProcessedCommitsStore processedCommitsStore) throws IOException {
         this.targetIdPattern = Pattern.compile(targetIdPattern);
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
@@ -135,6 +137,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.mainApplicationContext = mainApplicationContext;
         this.deploymentPipelineFactory = deploymentPipelineFactory;
         this.taskScheduler = taskScheduler;
+        this.processedCommitsStore = processedCommitsStore;
         this.targets = new HashSet<>();
     }
 
@@ -225,6 +228,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
         targets.remove(target);
 
+        processedCommitsStore.delete(id);
+
         File configFile =  target.getConfigurationFile();
         if (configFile.exists()) {
             logger.info("Deleting target configuration file at {}", configFile);
@@ -251,7 +256,9 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 
                 return yamlFiles;
             } else {
-                logger.warn("Config folder {} doesn't exist", targetConfigFolder.getAbsolutePath());
+                logger.warn("Config folder {} doesn't exist. Trying to create it...", targetConfigFolder.getAbsolutePath());
+
+                FileUtils.forceMkdir(targetConfigFolder);
 
                 return Collections.emptyList();
             }

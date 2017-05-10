@@ -23,7 +23,7 @@
 
     <bean id="gitPullProcessor" class="org.craftercms.deployer.impl.processors.GitPullProcessor" parent="deploymentProcessor">
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
-        <property name="processedCommitsStore" ref="processedCommitsStore"/>
+        <property name="useRebase" value="${target.git.pull.useRebase}"/>
     </bean>
 
     <bean id="gitDiffProcessor" class="org.craftercms.deployer.impl.processors.GitDiffProcessor" parent="deploymentProcessor">
@@ -41,6 +41,7 @@
                 <ref bean="binaryFileBatchIndexer"/>
             </list>
         </property>
+        <property name="mergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>
     </bean>
 
     <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor"
@@ -63,18 +64,23 @@
     </bean>
 
     <!-- Search -->
+
+    <bean id="disableAwareIncludeDescriptorsProcessor" class="org.craftercms.commons.spring.ConditionalFactoryBean">
+        <property name="flag" value="${target.search.indexing.xml.flattening.enabled}"/>
+        <property name="actualBean" ref="includeDescriptorsProcessor"/>
+    </bean>
     
     <bean id="xmlFileBatchIndexer" class="org.craftercms.search.batch.impl.XmlFileBatchIndexer">
         <property name="searchService" ref="searchService"/>
-        <property name="includeFileNamePatterns"
-                  value="#{environment.getProperty('target.search.indexing.xmlFiles.includePatterns', T(java.util.List))}"/>
-        <property name="itemProcessor" ref="includeDescriptorsProcessor"/>
+        <property name="includePathPatterns"
+                  value="#{environment.getProperty('target.search.indexing.xml.includePatterns', T(java.util.List))}"/>
+        <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
     </bean>
 
     <bean id="binaryFileBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileBatchIndexer">
         <property name="searchService" ref="searchService"/>
         <property name="supportedMimeTypes"
-                  value="#{environment.getProperty('target.search.indexing.binaryFiles.supportedMimeTypes', T(java.util.List))}"/>
+                  value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
     </bean>
 
     <bean id="searchService" class="org.craftercms.search.service.impl.RestClientSearchService">

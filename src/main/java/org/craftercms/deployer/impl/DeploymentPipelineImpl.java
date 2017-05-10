@@ -24,6 +24,7 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
 import org.craftercms.deployer.api.Target;
+import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -41,16 +42,25 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
     }
 
     @Override
+    public void destroy() throws DeployerException {
+        if (CollectionUtils.isNotEmpty(processors)) {
+            for (DeploymentProcessor processor : processors) {
+                try {
+                    processor.destroy();
+                } catch (Exception e) {
+                    logger.error("Failed to destroy processor " + processor, e);
+                }
+            }
+        }
+    }
+
+    @Override
     public Deployment execute(Target target, Map<String, Object> params) {
         Deployment deployment = new Deployment(target);
-
-        logger.info("<############ DEPLOYMENT PIPELINE  FOR '{}' ############>", target.getId());
 
         executeProcessors(deployment, params);
 
         deployment.endDeployment(Deployment.Status.SUCCESS);
-
-        logger.info("</############ DEPLOYMENT PIPELINE  FOR '{}' ############>", target.getId());
 
         return deployment;
     }

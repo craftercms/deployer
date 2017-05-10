@@ -29,13 +29,20 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 public interface DeploymentProcessor {
 
     /**
-     * Configures the processor with it's own specific configuration.
+     * Initializes the processor, configuring it by using the specified configuration.
      *
      * @param config    the processor configuration
      *
-     * @throws DeployerException if a configuration property is missing or if any other error ocurred
+     * @throws DeployerException if a configuration property is missing or if any other error occurred
      */
-    void configure(Configuration config) throws DeployerException;
+    void init(Configuration config) throws DeployerException;
+
+    /**
+     * Destroys the processor, closing and releasing any used resources.
+     *
+     * @throws DeployerException if an error occurs
+     */
+    void destroy() throws DeployerException;
 
     /**
      * Executes the processor

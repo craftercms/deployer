@@ -20,11 +20,16 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.deployer.utils.git.GitAuthenticationConfigurator;
 import org.eclipse.jgit.api.CloneCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.PullCommand;
+import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.StoredConfig;
-import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
+import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.SshSessionFactory;
+import org.eclipse.jgit.transport.SshTransport;
 
 /**
  * Created by alfonsovasquez on 12/15/16.
@@ -45,18 +50,19 @@ public abstract class GitUtils {
         return Git.open(localRepositoryFolder);
     }
 
-    public static Git cloneRemoteRepository(String repositoryUrl, String branch, String username, String password,
+    public static Git cloneRemoteRepository(String remoteRepoUrl, String branch, GitAuthenticationConfigurator authConfigurator,
                                             File localFolder, String bigFileThreshold, Integer compression)
-        throws GitAPIException, IOException {
+        throws GitAPIException, IOException, IllegalArgumentException {
         CloneCommand command = Git.cloneRepository();
-        command.setURI(repositoryUrl);
+        command.setURI(remoteRepoUrl);
         command.setDirectory(localFolder);
 
         if (StringUtils.isNotEmpty(branch)) {
             command.setBranch(branch);
         }
-        if (StringUtils.isNotEmpty(username)) {
-            command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
+
+        if (authConfigurator != null) {
+            authConfigurator.configureAuthentication(command);
         }
 
         Git git = command.call();
@@ -74,6 +80,18 @@ public abstract class GitUtils {
         config.save();
 
         return git;
+    }
+
+    public static PullResult pull(Git git, GitAuthenticationConfigurator authConfigurator, boolean useRebase) throws GitAPIException {
+        PullCommand command = git.pull();
+
+        if (authConfigurator != null) {
+            authConfigurator.configureAuthentication(command);
+        }
+
+        command.setRebase(useRebase);
+
+        return command.call();
     }
 
 }

@@ -43,11 +43,11 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     protected String[] excludeFiles;
 
     @Override
-    public void configure(Configuration config) throws DeployerException {
+    public void init(Configuration config) throws DeployerException {
         includeFiles = ConfigUtils.getStringArrayProperty(config, DeploymentConstants.PROCESSOR_INCLUDE_FILES_CONFIG_KEY);
         excludeFiles = ConfigUtils.getStringArrayProperty(config, DeploymentConstants.PROCESSOR_EXCLUDE_FILES_CONFIG_KEY);
 
-        doConfigure(config);
+        doInit(config);
     }
 
     @Override
@@ -60,7 +60,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
             deployment.addProcessorExecution(execution);
 
             try {
-                logger.info("<===== {} @ {} =====>", name, targetId);
+                logger.info("----- {} @ {} -----", name, targetId);
 
                 ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet, params);
                 if (processedChangeSet != null) {
@@ -77,8 +77,6 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
                 if (failDeploymentOnProcessorFailure()) {
                     deployment.endDeployment(Deployment.Status.FAILURE);
                 }
-            } finally {
-                logger.info("</===== {} @ {} =====>", name, targetId);
             }
         }
     }
@@ -121,7 +119,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
         return deployment.isRunning() && filteredChangeSet != null && !filteredChangeSet.isEmpty();
     }
 
-    protected abstract void doConfigure(Configuration config) throws DeployerException;
+    protected abstract void doInit(Configuration config) throws DeployerException;
 
     protected abstract ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
                                            ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException;

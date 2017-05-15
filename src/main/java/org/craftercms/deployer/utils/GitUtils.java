@@ -39,9 +39,11 @@ public abstract class GitUtils {
     public static final String CORE_CONFIG_SECTION = "core";
     public static final String BIG_FILE_THRESHOLD_CONFIG_PARAM = "bigFileThreshold";
     public static final String COMPRESSION_CONFIG_PARAM = "compression";
+    public static final String FILE_MODE_CONFIG_PARAM = "fileMode";
 
     public static final String BIG_FILE_THRESHOLD_DEFAULT = "20m";
     public static final int COMPRESSION_DEFAULT = 0;
+    public static final boolean FILE_MODE_DEFAULT = false;
 
     private GitUtils() {
     }
@@ -51,7 +53,7 @@ public abstract class GitUtils {
     }
 
     public static Git cloneRemoteRepository(String remoteRepoUrl, String branch, GitAuthenticationConfigurator authConfigurator,
-                                            File localFolder, String bigFileThreshold, Integer compression)
+                                            File localFolder, String bigFileThreshold, Integer compression, Boolean fileMode)
         throws GitAPIException, IOException, IllegalArgumentException {
         CloneCommand command = Git.cloneRepository();
         command.setURI(remoteRepoUrl);
@@ -74,9 +76,13 @@ public abstract class GitUtils {
         if (compression == null) {
             compression = COMPRESSION_DEFAULT;
         }
+        if (fileMode == null) {
+            fileMode = FILE_MODE_DEFAULT;
+        }
 
         config.setString(CORE_CONFIG_SECTION, null, BIG_FILE_THRESHOLD_CONFIG_PARAM, bigFileThreshold);
         config.setInt(CORE_CONFIG_SECTION, null, COMPRESSION_CONFIG_PARAM, compression);
+        config.setBoolean(CORE_CONFIG_SECTION, null, FILE_MODE_CONFIG_PARAM, fileMode);
         config.save();
 
         return git;

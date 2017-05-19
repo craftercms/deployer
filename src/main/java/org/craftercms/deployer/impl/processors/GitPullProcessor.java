@@ -56,8 +56,6 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     public static final String REMOTE_REPO_PASSWORD_CONFIG_KEY = "remoteRepo.password";
     public static final String REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY = "remoteRepo.ssh.privateKey.path";
     public static final String REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY = "remoteRepo.ssh.privateKey.passphrase";
-    public static final String GIT_CONFIG_BIG_FILE_THRESHOLD_CONFIG_KEY = "gitConfig.bigFileThreshold";
-    public static final String GIT_CONFIG_COMPRESSION_CONFIG_KEY = "gitConfig.compression";
 
     public static final String GIT_FOLDER_NAME = ".git";
 
@@ -68,8 +66,6 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
     protected String remoteRepoUrl;
     protected String remoteRepoBranch;
-    protected String gitConfigBigFileThreshold;
-    protected Integer gitConfigCompression;
     protected GitAuthenticationConfigurator authenticationConfigurator;
 
     @Required
@@ -85,8 +81,6 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     protected void doInit(Configuration config) throws DeployerException {
         remoteRepoUrl = ConfigUtils.getRequiredStringProperty(config, REMOTE_REPO_URL_CONFIG_KEY);
         remoteRepoBranch = ConfigUtils.getStringProperty(config, REMOTE_REPO_BRANCH_CONFIG_KEY);
-        gitConfigBigFileThreshold = ConfigUtils.getStringProperty(config, GIT_CONFIG_BIG_FILE_THRESHOLD_CONFIG_KEY);
-        gitConfigCompression = ConfigUtils.getIntegerProperty(config, GIT_CONFIG_COMPRESSION_CONFIG_KEY);
         authenticationConfigurator = createAuthenticationConfigurator(config, remoteRepoUrl);
     }
 
@@ -217,7 +211,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
             logger.info("Cloning Git remote repository {} into {}", remoteRepoUrl, localRepoFolder);
 
             return GitUtils.cloneRemoteRepository(remoteRepoUrl, remoteRepoBranch, authenticationConfigurator, localRepoFolder,
-                                                  gitConfigBigFileThreshold, gitConfigCompression);
+                                                  null, null, null);
         } catch (IOException | GitAPIException | IllegalArgumentException e) {
             // Force delete so there's no invalid remains
             FileUtils.deleteQuietly(localRepoFolder);

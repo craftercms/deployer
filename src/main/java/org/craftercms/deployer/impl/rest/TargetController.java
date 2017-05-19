@@ -7,6 +7,7 @@ import java.util.Objects;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
@@ -16,7 +17,6 @@ import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.utils.BooleanUtils;
-import org.craftercms.deployer.utils.RestUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
@@ -81,7 +81,7 @@ public class TargetController {
         targetService.createTarget(env, siteName, replace, templateName, parameters);
 
         return new ResponseEntity<>(Result.OK,
-                                    RestUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
+                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
                                     HttpStatus.CREATED);
     }
 
@@ -91,7 +91,7 @@ public class TargetController {
         Target target = targetService.getTarget(env, siteName);
 
         return new ResponseEntity<>(target,
-                                    RestUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
+                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
                                     HttpStatus.OK);
     }
 
@@ -100,7 +100,7 @@ public class TargetController {
         List<Target> targets = targetService.getAllTargets();
 
         return new ResponseEntity<>(targets,
-                                    RestUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_ALL_TARGETS_URL),
+                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_ALL_TARGETS_URL),
                                     HttpStatus.OK);
     }
 

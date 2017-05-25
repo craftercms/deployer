@@ -33,28 +33,62 @@ import org.springframework.scheduling.TaskScheduler;
  */
 public interface Target {
 
+    /**
+     * Returns the ID of the target.
+     */
     @JsonProperty("id")
     String getId();
 
+    /**
+     * Returns the environment of the target.
+     */
     @JsonProperty("env")
     String getEnv();
 
+    /**
+     * Returns the site name of the target.
+     */
     @JsonProperty("site_name")
     String getSiteName();
 
+    /**
+     * Returns the load date of the target.
+     */
     @JsonProperty("load_date")
     ZonedDateTime getLoadDate();
 
+    /**
+     * Returns the YAML configuration file of the target.
+     */
     @JsonIgnore
     File getConfigurationFile();
 
+    /**
+     * Returns the configuration of the target.
+     */
     @JsonIgnore
     Configuration getConfiguration();
-    
+
+    /**
+     * Deploys the target.
+     *
+     * @param params miscellaneous parameters that can be used by the processors.
+     *
+     * @return the deployment info
+     */
     Deployment deploy(Map<String, Object> params);
 
+    /**
+     * Schedules deployment of the target.
+     *
+     * @param scheduler         the scheduler to use
+     * @param cronExpression    the cron expression
+     */
     void scheduleDeployment(TaskScheduler scheduler, String cronExpression);
 
+    /**
+     * Closes the target and releases any open resources.
+     */
     void close();
 
 }

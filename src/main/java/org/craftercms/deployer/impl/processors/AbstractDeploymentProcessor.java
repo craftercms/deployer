@@ -21,7 +21,9 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Created by alfonsovasquez on 12/30/16.
+ * Base class for all {@link DeploymentProcessor}s.
+ *
+ * @author avasquez
  */
 public abstract class AbstractDeploymentProcessor implements DeploymentProcessor, BeanNameAware  {
 

@@ -33,7 +33,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created by alfonsovasquez on 12/27/16.
+ * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s that are executed during the main deployment phase, which is
+ * the phase where the change set is retrieved and the files are processed.
+ *
+ * @author avasquez
  */
 public abstract class AbstractMainDeploymentProcessor extends AbstractDeploymentProcessor {
 

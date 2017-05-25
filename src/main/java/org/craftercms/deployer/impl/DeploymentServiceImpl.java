@@ -26,6 +26,9 @@ import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
+import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -43,8 +46,14 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<Deployment> deployAllTargets(Map<String, Object> params) throws DeployerException {
-        List<Target> targets = targetService.getAllTargets();
+    public List<Deployment> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException {
+        List<Target> targets;
+        try {
+            targets = targetService.getAllTargets();
+        } catch (TargetServiceException e) {
+            throw new DeploymentServiceException("Unable to retrieve list of targets", e);
+        }
+
         List<Deployment> deployments = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(targets)) {
@@ -58,8 +67,13 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public Deployment deployTarget(String env, String siteName, Map<String, Object> params) throws DeployerException {
-        return targetService.getTarget(env, siteName).deploy(params);
+    public Deployment deployTarget(String env, String siteName,
+                                   Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException {
+        try {
+            return targetService.getTarget(env, siteName).deploy(params);
+        } catch (TargetServiceException e) {
+            throw new DeploymentServiceException("Error while deploying target for env = " + env + " site = " + siteName, e);
+        }
     }
 
 }

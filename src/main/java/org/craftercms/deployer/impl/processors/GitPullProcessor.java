@@ -45,7 +45,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Created by alfonsovasquez on 1/12/16.
+ * Processor that clones/pulls a remote Git repository into a local path in the filesystem. It uses a {@link GitAuthenticationConfigurator}
+ * to configure the Git connection authentication.
+ *
+ * @author avasquez
  */
 public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 

@@ -24,7 +24,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created by alfonsovasquez on 12/27/16.
+ * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s that are executed during the post deployment phase, which is
+ * the phase that happens after all the files from the change set have been processed.
+ *
+ * @author avasquez
  */
 public abstract class AbstractPostDeploymentProcessor extends AbstractDeploymentProcessor {
 

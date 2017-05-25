@@ -19,7 +19,9 @@ package org.craftercms.deployer.api.exceptions;
 import org.springframework.core.NestedExceptionUtils;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Root exception for the Crafter Deployer application.
+ *
+ * @author avasquez
  */
 public class DeployerException extends Exception {
 

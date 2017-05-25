@@ -33,7 +33,9 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Created by alfonsovasquez on 1/2/17.
+ * Post deployment processor that writes the deployment result to an output file for later access.
+ *
+ * @author avasquez
  */
 public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 

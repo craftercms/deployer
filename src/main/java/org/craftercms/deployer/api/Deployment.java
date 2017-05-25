@@ -54,50 +54,80 @@ public class Deployment {
         this.attributes = new ConcurrentHashMap<>();
     }
 
+    /**
+     * Returns the {@link Target} being deployed.
+     */
     @JsonProperty("target")
     public Target getTarget() {
         return target;
     }
 
+    /**
+     * Returns the start date of the deployment.
+     */
     @JsonProperty("start")
     public ZonedDateTime getStart() {
         return start;
     }
 
+    /**
+     * Returns the end date of the deployment.
+     */
     @JsonProperty("end")
     public ZonedDateTime getEnd() {
         return end;
     }
 
+    /**
+     * Returns the duration of the deployment.
+     */
     @JsonProperty("duration")
     public long getDuration() {
         return duration;
     }
 
+    /**
+     * Returns true if the deployment is still running.
+     */
     @JsonProperty("running")
     public boolean isRunning() {
         return end == null;
     }
 
+    /**
+     * Returns the status of the deployment, either success or failure.
+     */
     @JsonProperty("status")
     public Status getStatus() {
         return status;
     }
 
+    /**
+     * Returns the change set of the deployment.
+     */
     @JsonProperty("change_set")
     public ChangeSet getChangeSet() {
         return changeSet;
     }
 
+    /**
+     * Sets the change set of the deployment.
+     */
     public void setChangeSet(ChangeSet changeSet) {
         this.changeSet = changeSet;
     }
 
+    /**
+     * Returns true if the change set is null or empty.
+     */
     @JsonIgnore
     public boolean isChangeSetEmpty() {
         return changeSet == null || changeSet.isEmpty();
     }
 
+    /**
+     * Ends the deployment with the specified status.
+     */
     public void endDeployment(Status status) {
         if (isRunning()) {
             this.end = ZonedDateTime.now();
@@ -106,6 +136,9 @@ public class Deployment {
         }
     }
 
+    /**
+     * Returns the list of {@link ProcessorExecution}s.
+     */
     @JsonProperty("processor_executions")
     public List<ProcessorExecution> getProcessorExecutions() {
         statusesLock.lock();
@@ -116,6 +149,9 @@ public class Deployment {
         }
     }
 
+    /**
+     * Adds a {@link ProcessorExecution} to the list.
+     */
     public void addProcessorExecution(ProcessorExecution status) {
         statusesLock.lock();
         try {
@@ -125,21 +161,24 @@ public class Deployment {
         }
     }
 
-    @JsonIgnore
-    public Map<String, Object> getAttributes() {
-        return Collections.unmodifiableMap(attributes);
+    /**
+     * Adds a miscellaneous attribute that can be used by processors during the deployment.
+     *
+     * @param name  the name of the attribute
+     * @param value the value of the attribute
+     */
+    public void addAttribute(String name, Object value) {
+        attributes.put(name, value);
     }
 
-    public void addAttribute(String name, Object object) {
-        attributes.put(name, object);
-    }
-
+    /**
+     * Returns a miscellaneous attribute that can be used by processors during the deployment.
+     *
+     * @param name  the name of the attribute
+     * @return the value of the attribute
+     */
     public Object getAttribute(String name) {
         return attributes.get(name);
-    }
-
-    public void removeAttribute(String name) {
-        attributes.remove(name);
     }
 
     public enum Status {

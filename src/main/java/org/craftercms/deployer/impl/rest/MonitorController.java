@@ -19,14 +19,14 @@ import java.util.List;
 @RequestMapping(MonitorController.BASE_URL)
 public class MonitorController {
 
-     static final String BASE_URL = "/api/1/monitor/";
-     private static final String MEMORY_TARGET_URL = "/memory";
-    private static final String  STATUS_TARGET_URL = "/status";
-    private static final String VERSION_TARGET_URL = "/version";
+    public static final String BASE_URL = "/api/1/monitor/";
+    public static final String MEMORY_TARGET_URL = "/memory";
+    public static final String  STATUS_TARGET_URL = "/status";
+    public static final String VERSION_TARGET_URL = "/version";
 
     /**
      * Uses Crafter Commons Memory Monitor POJO to get current JVM Memory stats.
-     * @return {link {@link org.craftercms.commons.monitoring.Memory}}
+     * @return {link {@link MemoryMonitor}}
      */
     @RequestMapping(value = MEMORY_TARGET_URL, method = RequestMethod.GET)
     public ResponseEntity<List<MemoryMonitor>> memoryStats() {
@@ -35,7 +35,7 @@ public class MonitorController {
 
     /**
      * Uses Crafter Commons Status Monitor POJO to get current System status.
-     * @return {link {@link org.craftercms.commons.monitoring.Status}}
+     * @return {link {@link StatusMonitor}}
      */
     @RequestMapping(value = STATUS_TARGET_URL, method = RequestMethod.GET)
     public ResponseEntity<StatusMonitor> status() {
@@ -45,7 +45,7 @@ public class MonitorController {
 
     /**
      * Uses Crafter Commons Status Version POJO to get current Deployment and JVM runtime and version information.
-     * @return {link {@link org.craftercms.commons.monitoring.Version}}
+     * @return {link {@link VersionMonitor}}
      */
     @RequestMapping(value = VERSION_TARGET_URL, method = RequestMethod.GET)
     public ResponseEntity<VersionMonitor> version() throws Exception {

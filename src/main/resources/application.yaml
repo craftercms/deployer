@@ -1,6 +1,10 @@
 server:
   port: 9191
 
+spring:
+  freemarker:
+    checkTemplateLocation: false
+
 deployer:
   main:
     homePath: .
@@ -36,7 +40,3 @@ deployer:
       folderPath: ${deployer.main.homePath}/logs
     scheduling:
       poolSize: 10
-
-spring:
-  freemarker:
-    checkTemplateLocation: false

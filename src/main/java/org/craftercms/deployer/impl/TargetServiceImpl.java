@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -47,7 +47,6 @@ import org.apache.commons.configuration2.tree.OverrideCombiner;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.lang3.StringUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
@@ -58,6 +57,7 @@ import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.slf4j.Logger;
@@ -69,7 +69,6 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
-import org.springframework.context.event.ContextRefreshedEvent;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.Resource;
@@ -111,7 +110,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected DeploymentPipelineFactory deploymentPipelineFactory;
     protected TaskScheduler taskScheduler;
     protected ProcessedCommitsStore processedCommitsStore;
-    protected Set<Target> targets;
+    protected Set<Target> loadedTargets;
 
     public TargetServiceImpl(
         @Value("${deployer.main.targets.idPattern}") String targetIdPattern,
@@ -138,7 +137,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.deploymentPipelineFactory = deploymentPipelineFactory;
         this.taskScheduler = taskScheduler;
         this.processedCommitsStore = processedCommitsStore;
-        this.targets = new HashSet<>();
+        this.loadedTargets = new HashSet<>();
     }
 
     @PostConstruct
@@ -160,7 +159,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         try {
             getAllTargets();
         } catch (DeployerException e) {
-            logger.error("Eror while loading targets on startup", e);
+            logger.error("Error while loading targets on startup", e);
         }
     }
 
@@ -168,13 +167,13 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public void destroy() {
         logger.info("Closing all targets...");
 
-        if (CollectionUtils.isNotEmpty(targets)) {
-            targets.forEach(Target::close);
+        if (CollectionUtils.isNotEmpty(loadedTargets)) {
+            loadedTargets.forEach(Target::close);
         }
     }
 
     @Override
-    public synchronized List<Target> getAllTargets() throws DeployerException {
+    public synchronized List<Target> getAllTargets() throws TargetServiceException {
         Collection<File> configFiles = getTargetConfigFiles();
         List<Target> targets = new ArrayList<>();
 
@@ -191,7 +190,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     @Override
-    public synchronized Target getTarget(String env, String siteName) throws DeployerException {
+    public synchronized Target getTarget(String env, String siteName) throws TargetNotFoundException {
         String id = getTargetId(env, siteName);
         Target target = findLoadedTargetById(id);
 
@@ -204,7 +203,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
     @Override
     public synchronized Target createTarget(String env, String siteName, boolean replace, String templateName,
-                                            Map<String, Object> templateParameters) throws DeployerException {
+                                            Map<String, Object> templateParameters) throws TargetAlreadyExistsException,
+        TargetServiceException {
         String id = getTargetId(env, siteName);
         File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
 
@@ -218,7 +218,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     @Override
-    public synchronized void deleteTarget(String env, String siteName) throws DeployerException {
+    public synchronized void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException {
         String id = getTargetId(env, siteName);
         Target target = getTarget(env, siteName);
 
@@ -226,9 +226,13 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
         logger.info("Removing loaded target '{}'", id);
 
-        targets.remove(target);
+        loadedTargets.remove(target);
 
-        processedCommitsStore.delete(id);
+        try {
+            processedCommitsStore.delete(id);
+        } catch (DeployerException e) {
+            throw new TargetServiceException("Error while deleting processed commit from store for target '" + id + "'", e);
+        }
 
         File configFile =  target.getConfigurationFile();
         if (configFile.exists()) {
@@ -245,31 +249,31 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
     }
 
-    protected Collection<File> getTargetConfigFiles() throws DeployerException {
-        try {
-            if (targetConfigFolder.exists()) {
-                Collection<File> yamlFiles = FileUtils.listFiles(targetConfigFolder, new CustomConfigFileFilter(), null);
-                
-                if (CollectionUtils.isEmpty(yamlFiles)) {
-                    logger.warn("No YAML config files found under {}", targetConfigFolder.getAbsolutePath());
-                }
-                
-                return yamlFiles;
-            } else {
-                logger.warn("Config folder {} doesn't exist. Trying to create it...", targetConfigFolder.getAbsolutePath());
+    protected Collection<File> getTargetConfigFiles() throws TargetServiceException {
+        if (targetConfigFolder.exists()) {
+            Collection<File> yamlFiles = FileUtils.listFiles(targetConfigFolder, new CustomConfigFileFilter(), null);
 
-                FileUtils.forceMkdir(targetConfigFolder);
-
-                return Collections.emptyList();
+            if (CollectionUtils.isEmpty(yamlFiles)) {
+                logger.warn("No YAML config files found under {}", targetConfigFolder.getAbsolutePath());
             }
-        } catch (Exception e) {
-            throw new DeployerException("Error while retrieving YAML config files from " + targetConfigFolder, e);
+
+            return yamlFiles;
+        } else {
+            logger.warn("Config folder {} doesn't exist. Trying to create it...", targetConfigFolder.getAbsolutePath());
+
+            try {
+                FileUtils.forceMkdir(targetConfigFolder);
+            } catch (IOException e) {
+                throw new TargetServiceException("Unable to create config folder " + targetConfigFolder, e);
+            }
+
+            return Collections.emptyList();
         }
     }
 
     protected void closeTargetsWithNoConfigFile(Collection<File> configFiles) {
-        if (CollectionUtils.isNotEmpty(targets)) {
-            targets.removeIf(target -> {
+        if (CollectionUtils.isNotEmpty(loadedTargets)) {
+            loadedTargets.removeIf(target -> {
                 File configFile = target.getConfigurationFile();
                 if (!configFiles.contains(configFile)) {
                     logger.info("Config file {} doesn't exist anymore for target '{}'. Closing target...", configFile);
@@ -284,61 +288,63 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
     }
 
-    protected Target resolveTargetFromConfigFile(File configFile) throws DeployerException {
-        try {
-            File contextFile = new File(targetConfigFolder, String.format(APPLICATION_CONTEXT_FILENAME_FORMAT, configFile.getName()));
-            Target target = findLoadedTargetByConfigFile(configFile);
+    protected Target resolveTargetFromConfigFile(File configFile) throws TargetServiceException {
+        File contextFile = new File(targetConfigFolder, String.format(APPLICATION_CONTEXT_FILENAME_FORMAT, configFile.getName()));
+        Target target = findLoadedTargetByConfigFile(configFile);
 
-            if (target != null) {
-                // Check if the YAML config file or the app context file have changed since target load.
-                long yamlLastModified = configFile.exists() ? configFile.lastModified() : 0;
-                long contextLastModified = contextFile.exists()? contextFile.lastModified() : 0;
-                long targetOpenedDate = target.getLoadDate().toInstant().toEpochMilli();
+        if (target != null) {
+            // Check if the YAML config file or the app context file have changed since target load.
+            long yamlLastModified = configFile.exists() ? configFile.lastModified() : 0;
+            long contextLastModified = contextFile.exists()? contextFile.lastModified() : 0;
+            long targetOpenedDate = target.getLoadDate().toInstant().toEpochMilli();
 
-                // Refresh if the files have been modified.
-                if (yamlLastModified >= targetOpenedDate || contextLastModified >= targetOpenedDate) {
-                    logger.info("Configuration files haven been updated for '{}'. The target will be reloaded.", target.getId());
+            // Refresh if the files have been modified.
+            if (yamlLastModified >= targetOpenedDate || contextLastModified >= targetOpenedDate) {
+                logger.info("Configuration files haven been updated for '{}'. The target will be reloaded.", target.getId());
 
-                    target.close();
+                target.close();
 
-                    targets.remove(target);
+                loadedTargets.remove(target);
 
-                    target = null;
-                }
-            } else {
-                logger.info("No loaded target found for configuration file {}", configFile);
+                target = null;
             }
-
-            if (target == null) {
-                logger.info("Loading target for configuration file {}", configFile);
-
-                target = createTarget(configFile, contextFile);
-                targets.add(target);
-            }
-
-            return target;
-        } catch (Exception e) {
-            throw new DeployerException("Error while trying to resolve target from configuration file " + configFile, e);
+        } else {
+            logger.info("No loaded target found for configuration file {}", configFile);
         }
-    }
 
-    protected Target createTarget(File configFile, File contextFile) throws DeployerException {
-        HierarchicalConfiguration config = loadConfiguration(configFile);
-        String env = ConfigUtils.getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
-        String siteName = ConfigUtils.getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
-        String targetId = getTargetId(env, siteName);
+        if (target == null) {
+            logger.info("Loading target for configuration file {}", configFile);
 
-        config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
-
-        ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
-        Target target = new TargetImpl(env, siteName, targetId, getDeploymentPipeline(config, context), configFile, config, context);
-
-        scheduleDeployment(target);
+            target = createTarget(configFile, contextFile);
+            loadedTargets.add(target);
+        }
 
         return target;
     }
 
-    protected HierarchicalConfiguration loadConfiguration(File configFile) throws DeployerException {
+    protected Target createTarget(File configFile, File contextFile) throws TargetServiceException {
+        try {
+            HierarchicalConfiguration config = loadConfiguration(configFile);
+            String env = ConfigUtils.getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
+            String siteName = ConfigUtils.getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
+            String targetId = getTargetId(env, siteName);
+
+            config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
+
+            ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
+            DeploymentPipeline deploymentPipeline = deploymentPipelineFactory.getPipeline(config, context,
+                                                                                          TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
+            Target target = new TargetImpl(env, siteName, targetId, deploymentPipeline, configFile, config, context);
+
+            scheduleDeployment(target);
+
+            return target;
+        } catch (Exception e) {
+            throw new TargetServiceException("Failed to create target for configuration file " + configFile, e);
+        }
+    }
+
+    protected HierarchicalConfiguration loadConfiguration(File configFile) throws DeployerConfigurationException {
         String configFilename = configFile.getPath();
 
         logger.debug("Loading target YAML config at {}", configFilename);
@@ -368,7 +374,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     protected ConfigurableApplicationContext loadApplicationContext(HierarchicalConfiguration config,
-                                                                    File contextFile) throws DeployerException {
+                                                                    File contextFile) throws DeployerConfigurationException {
         GenericApplicationContext context = new GenericApplicationContext(mainApplicationContext);
 
         MutablePropertySources propertySources = context.getEnvironment().getPropertySources();
@@ -410,11 +416,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         return context;
     }
 
-    protected DeploymentPipeline getDeploymentPipeline(HierarchicalConfiguration config,
-                                                       ConfigurableApplicationContext appContext) throws DeployerException {
-        return deploymentPipelineFactory.getPipeline(config, appContext, TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
-    }
-
     protected void scheduleDeployment(Target target) throws DeployerConfigurationException {
         boolean enabled =  ConfigUtils.getBooleanProperty(target.getConfiguration(), TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY, true);
         String cron = ConfigUtils.getStringProperty(target.getConfiguration(), TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY);
@@ -427,7 +428,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     protected void createConfigFromTemplate(String targetId, String templateName, Map<String, Object> templateParameters,
-                                            File configFile) throws DeployerException {
+                                            File configFile) throws TargetServiceException {
         if (StringUtils.isEmpty(templateName)) {
             templateName = defaultTargetConfigTemplateName;
         }
@@ -446,27 +447,22 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
             out.flush();
         } catch (IOException e) {
-            throw new DeployerException("Unable to open writer to YAML configuration file " + configFile, e);
-        } catch (Exception e) {
+            throw new TargetServiceException("Unable to open writer to YAML configuration file " + configFile, e);
+        } catch (TargetServiceException e) {
             FileUtils.deleteQuietly(configFile);
 
             throw e;
         }
     }
 
-    protected void processConfigTemplate(String templateName, Object templateModel, Writer out) throws DeployerException {
+    protected void processConfigTemplate(String templateName, Object templateModel, Writer out) throws TargetServiceException {
         MissingValueHelper helper = MissingValueHelper.INSTANCE;
 
         try {
             Template template = targetConfigTemplateEngine.compile(templateName);
             template.apply(templateModel, out);
-        } catch (Exception e) {
-            Throwable cause = ExceptionUtils.getRootCause(e);
-            if (cause instanceof DeployerException) {
-                throw (DeployerException)cause;
-            } else {
-                throw new DeployerException("Processing of configuration template '" + templateName + "' failed", e);
-            }
+        } catch (IOException e) {
+            throw new TargetServiceException("Processing of configuration template '" + templateName + "' failed", e);
         }
 
         ValidationResult result = helper.getValidationResult();
@@ -474,21 +470,21 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         helper.clearValidationResult();
 
         if (result != null && CollectionUtils.isNotEmpty(result.getFieldErrors())) {
-            throw new DeployerException(new ValidationException(result));
+            throw new TargetServiceException(new ValidationException(result));
         }
     }
 
     protected Target findLoadedTargetByConfigFile(File configFile) {
-        if (CollectionUtils.isNotEmpty(targets)) {
-            return targets.stream().filter(target -> target.getConfigurationFile().equals(configFile)).findFirst().orElse(null);
+        if (CollectionUtils.isNotEmpty(loadedTargets)) {
+            return loadedTargets.stream().filter(target -> target.getConfigurationFile().equals(configFile)).findFirst().orElse(null);
         } else {
             return null;
         }
     }
 
-    protected Target findLoadedTargetById(String targetId) {
-        if (CollectionUtils.isNotEmpty(targets)) {
-            return targets.stream().filter(target -> target.getId().equals(targetId)).findFirst().orElse(null);
+    protected Target findLoadedTargetById(String id) {
+        if (CollectionUtils.isNotEmpty(loadedTargets)) {
+            return loadedTargets.stream().filter(target -> target.getId().equals(id)).findFirst().orElse(null);
         } else {
             return null;
         }

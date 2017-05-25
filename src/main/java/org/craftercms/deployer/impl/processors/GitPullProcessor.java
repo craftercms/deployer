@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -28,7 +28,6 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
 import org.craftercms.deployer.utils.git.GitAuthenticationConfigurator;

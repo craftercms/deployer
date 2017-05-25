@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -20,6 +20,9 @@ import java.util.List;
 import java.util.Map;
 
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
+import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.craftercms.deployer.api.exceptions.TargetServiceException;
 
 /**
  * Service that manages a target lifecycle.
@@ -42,7 +45,7 @@ public interface TargetService {
      * @throws DeployerException if an error occurred
      */
     Target createTarget(String env, String siteName, boolean replace, String templateName,
-                        Map<String, Object> templateParameters) throws DeployerException;
+                        Map<String, Object> templateParameters) throws TargetAlreadyExistsException, TargetServiceException;
 
     /**
      * Deletes a target with the given ID.
@@ -52,7 +55,7 @@ public interface TargetService {
      *
      * @throws DeployerException if an error occurred
      */
-    void deleteTarget(String env, String siteName) throws DeployerException;
+    void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
 
     /**
      * Returns all current loaded targets
@@ -61,7 +64,7 @@ public interface TargetService {
      *
      * @throws DeployerException if an error occurred
      */
-    List<Target> getAllTargets() throws DeployerException;
+    List<Target> getAllTargets() throws TargetServiceException;
 
     /**
      * Returns the loaded target with the given ID
@@ -73,6 +76,6 @@ public interface TargetService {
      *
      * @throws DeployerException if an error occurred
      */
-    Target getTarget(String env, String siteName) throws DeployerException;
+    Target getTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
 
 }

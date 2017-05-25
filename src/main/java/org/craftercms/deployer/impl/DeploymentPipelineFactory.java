@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,6 +18,7 @@ package org.craftercms.deployer.impl;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.deployer.api.DeploymentPipeline;
+import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.springframework.context.ConfigurableApplicationContext;
 

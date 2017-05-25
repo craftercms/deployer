@@ -20,14 +20,14 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>1.4.2.RELEASE</version>
+		<version>1.5.3.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
 	<properties>
 		<!-- Version Numbers -->
 		<commons.configuration.version>2.1</commons.configuration.version>
-		<jgit.version>4.5.0.201609210915-r</jgit.version>
+		<jgit.version>4.8.0.201705170830-rc1</jgit.version>
 		<snakeyaml.version>1.17</snakeyaml.version>
 		<jackson.version>2.8.5</jackson.version>
 		<jackson.jsr310.version>2.6.0</jackson.jsr310.version>
@@ -216,6 +216,5 @@
 			</plugin>
 		</plugins>
 	</build>
-
 
 </project>

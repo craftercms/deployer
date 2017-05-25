@@ -17,15 +17,19 @@
 package org.craftercms.deployer.api.exceptions;
 
 /**
- * Created by alfonsovasquez on 12/23/16.
+ * Created by alfonso on 5/24/17.
  */
-public class DeployerConfigurationException extends DeployerException {
+public class TargetServiceException extends DeployerException {
 
-    public DeployerConfigurationException(String message) {
+    public TargetServiceException(Throwable cause) {
+        super(cause);
+    }
+
+    public TargetServiceException(String message) {
         super(message);
     }
 
-    public DeployerConfigurationException(String message, Throwable cause) {
+    public TargetServiceException(String message, Throwable cause) {
         super(message, cause);
     }
 

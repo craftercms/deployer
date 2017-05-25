@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2016 Crafter Software Corporation.
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -42,7 +42,7 @@ public class ExceptionHandlers extends BaseRestExceptionHandlers {
     public ResponseEntity<Object> handleTargetAlreadyExistsException(TargetAlreadyExistsException ex, WebRequest request) {
         HttpHeaders headers = RestServiceUtils.setLocationHeader(new HttpHeaders(),
                                                                  TargetController.BASE_URL + TargetController.GET_TARGET_URL,
-                                                                 ex.getTargetId());
+                                                                 ex.getId());
 
         return handleExceptionInternal(ex, "Target already exists", headers, HttpStatus.CONFLICT, request);
     }

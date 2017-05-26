@@ -44,7 +44,7 @@ public class MonitorController { //NOPMD
     /**
      * Base ULR for monitoring services.
      */
-    static final String BASE_URL = "/api/1/monitor/";
+    public static final String BASE_URL = "/api/1/monitor/";
     /**
      * Memory service URL.
      */

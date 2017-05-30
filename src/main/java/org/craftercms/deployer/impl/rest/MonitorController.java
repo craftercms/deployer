@@ -38,8 +38,7 @@ import org.springframework.web.bind.annotation.RestController;
  */
 @RestController
 @RequestMapping(MonitorController.BASE_URL)
-public class MonitorController { //NOPMD
-
+public class MonitorController {
 
     /**
      * Base ULR for monitoring services.
@@ -58,9 +57,18 @@ public class MonitorController { //NOPMD
      */
     private static final String VERSION_URL = "/version";
     /**
-     * Class logger.
+     * Class LOGGER.
      */
-    private static final Logger logger = LoggerFactory.getLogger(MonitorController.class); //NOPMD
+    private static final Logger LOGGER = LoggerFactory.getLogger(MonitorController.class);
+
+
+    /**
+     * Empty like my soul.
+     */
+    public MonitorController() {
+        // This constructor is intentionally empty. Nothing special is needed here.
+    }
+
     /**
      * Uses Crafter Commons Memory Monitor POJO to get current JVM Memory stats.
      * @return {link {@link MemoryMonitor}}
@@ -92,7 +100,7 @@ public class MonitorController { //NOPMD
             final VersionMonitor monitor = VersionMonitor.getVersion(MonitorController.class);
             return new ResponseEntity<>(monitor, HttpStatus.OK);
         } catch (IOException ex) {
-            logger.error("Unable to read manifest file", ex);
+            LOGGER.error("Unable to read manifest file", ex);
             throw new IOException("Unable to read manifest file", ex);
         }
     }

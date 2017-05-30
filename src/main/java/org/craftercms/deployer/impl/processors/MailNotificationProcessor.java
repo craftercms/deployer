@@ -20,7 +20,20 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Created by alfonsovasquez on 12/30/16.
+ * Post processor that sends an email notification with the result of a deployment, whenever a deployment fails or files where processed.
+ * The output file is attached if it's available. A processor instance can be configured with the following YAML properties:
+ *
+ * <ul>
+ *     <li><strong>templateName:</strong> The name of the Freemarker template used for email creation.</li>
+ *     <li><strong>from:</strong> The value of the From field in the emails.</li>
+ *     <li><strong>to:</strong> The value of the To field in the emails.</li>
+ *     <li><strong>subject:</strong> The value of the Subject field in the emails.</li>
+ *     <li><strong>html:</strong> Whether the emails are HTML.</li>
+ *     <li><strong>serverName:</strong> The hostname of the email server.</li>
+ *     <li><strong>dateTimePattern:</strong> The date time pattern to use when specifying a date in the email.</li>
+ * </ul>
+ *
+ * @author avasquez
  */
 public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
 
@@ -55,31 +68,49 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     protected DateTimeFormatter dateTimeFormatter;
     protected EmailFactory emailFactory;
 
+    /**
+     * Sets the default name of the Freemarker template used for email creation.
+     */
     @Required
     public void setDefaultTemplateName(String defaultTemplateName) {
         this.defaultTemplateName = defaultTemplateName;
     }
 
+    /**
+     * Sets the default value of the From field in the emails.
+     */
     @Required
     public void setDefaultFrom(String defaultFrom) {
         this.defaultFrom = defaultFrom;
     }
 
+    /**
+     * Sets the default value of the Subject field in the emails.
+     */
     @Required
     public void setDefaultSubject(String defaultSubject) {
         this.defaultSubject = defaultSubject;
     }
 
+    /**
+     * Sets whether the emails are HTML by default.
+     */
     @Required
     public void setDefaultHtml(boolean defaultHtml) {
         this.defaultHtml = defaultHtml;
     }
 
+    /**
+     * Sets the default date time pattern to use when specifying a date in the email.
+     */
     @Required
     public void setDefaultDateTimePattern(String defaultDateTimePattern) {
         this.defaultDateTimePattern = defaultDateTimePattern;
     }
 
+    /**
+     * Sets the {@link EmailFactory} used to generate the emails.
+     */
     @Required
     public void setEmailFactory(EmailFactory emailFactory) {
         this.emailFactory = emailFactory;

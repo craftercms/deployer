@@ -41,7 +41,7 @@
                 <ref bean="binaryFileBatchIndexer"/>
             </list>
         </property>
-        <property name="mergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>
+        <property name="xmlMergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>
     </bean>
 
     <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor"

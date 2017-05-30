@@ -46,7 +46,20 @@ import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Processor that clones/pulls a remote Git repository into a local path in the filesystem. It uses a {@link GitAuthenticationConfigurator}
- * to configure the Git connection authentication.
+ * to configure the Git connection authentication. A processor instance can be configured with the following YAML properties:
+ *
+ * <ul>
+ *     <li><strong>remoteRepo.url:</strong> The URL of the remote Git repo to clone/pull</li>
+ *     <li><strong>remoteRepo.branch:</strong> The branch of the remote Git repo to clone/pull</li>
+ *     <li><strong>remoteRepo.username:</strong> The username for authentication with the remote Git repo. Not needed when
+ *     SSH with public/private key authentication is used.</li>
+ *     <li><strong>remoteRepo.password:</strong> The password for authentication with the remote Git repo. Not needed when
+ *     SSH with public/private key authentication is used.</li>
+ *     <li><strong>remoteRepo.ssh.privateKey.path:</strong> The SSH private key path, used only with SSH with public/private key
+ *     authentication.</li>
+ *     <li><strong>remoteRepo.ssh.privateKey.passphrase:</strong> The SSH private key passphrase, used only with SSH with
+ *     public/private key authentication.</li>
+ * </ul>
  *
  * @author avasquez
  */
@@ -70,11 +83,17 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     protected String remoteRepoBranch;
     protected GitAuthenticationConfigurator authenticationConfigurator;
 
+    /**
+     * Sets the local filesystem folder that will contain the remote repo clone.
+     */
     @Required
     public void setLocalRepoFolder(File localRepoFolder) {
         this.localRepoFolder = localRepoFolder;
     }
 
+    /**
+     * Sets whether rebase should be used on pull instead of merge.
+     */
     public void setUseRebase(boolean useRebase) {
         this.useRebase = useRebase;
     }

@@ -34,7 +34,8 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s that are executed during the main deployment phase, which is
- * the phase where the change set is retrieved and the files are processed.
+ * the phase where the change set is retrieved and the files are processed. Files are included/excluded can also be excluded by this
+ * class, through configuration properties {@code includeFiles} and {@code excludeFiles}.
  *
  * @author avasquez
  */

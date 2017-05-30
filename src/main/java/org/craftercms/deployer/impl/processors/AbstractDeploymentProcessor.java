@@ -32,21 +32,33 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     protected String targetId;
     protected String name;
 
+    /**
+     * Sets the environment of the site.
+     */
     @Required
     public void setEnv(String env) {
         this.env = env;
     }
 
+    /**
+     * Sets the site name.
+     */
     @Required
     public void setSiteName(String siteName) {
         this.siteName = siteName;
     }
 
+    /**
+     * Sets the target ID.
+     */
     @Required
     public void setTargetId(String targetId) {
         this.targetId = targetId;
     }
 
+    /**
+     * Sets the bean name of the processor.
+     */
     @Override
     public void setBeanName(String name) {
         this.name = name;

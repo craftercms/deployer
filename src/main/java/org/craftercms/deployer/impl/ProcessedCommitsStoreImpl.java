@@ -20,6 +20,7 @@ import java.io.File;
 import java.io.IOException;
 
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.slf4j.Logger;
@@ -48,10 +49,17 @@ public class ProcessedCommitsStoreImpl implements ProcessedCommitsStore {
         try {
             if (commitFile.exists()) {
                 String commitId = FileUtils.readFileToString(commitFile, "UTF-8").trim();
+                if (StringUtils.isNotEmpty(commitId)) {
+                    logger.info("Found previous processed commit ID for target '{}': {}", targetId, commitId);
 
-                logger.info("Found previous processed commit ID for target '{}': {}", targetId, commitId);
+                    return ObjectId.fromString(commitId);
+                } else {
+                    logger.warn("Processed commit file {} is empty, will be deleted", commitFile);
 
-                return ObjectId.fromString(commitId);
+                    FileUtils.deleteQuietly(commitFile);
+
+                    return null;
+                }
             } else {
                 return null;
             }

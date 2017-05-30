@@ -17,7 +17,9 @@
 package org.craftercms.deployer.api.exceptions;
 
 /**
- * Created by alfonsovasquez on 1/12/17.
+ * Exception thrown when a target is requested but doesn't exist.
+ *
+ * @author avasquez
  */
 public class TargetNotFoundException extends DeployerException {
 

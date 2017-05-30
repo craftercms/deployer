@@ -4,13 +4,9 @@ import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.core.exception.CrafterException;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Context;
 import org.craftercms.core.store.impl.filesystem.FileSystemContentStoreAdapter;
@@ -27,54 +23,83 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Created by alfonsovasquez on 12/26/16.
+ * Processor that indexes the files on the change set, using one or several {@link BatchIndexer}. After the files have been indexed it
+ * submits a commit. A processor instance can be configured with the following YAML properties:
+ *
+ * <ul>
+ *     <li><strong>ignoreIndexId:</strong> If the index ID should be ignored, in other words, if the index ID should always be null
+ *     on update calls.</li>
+ *     <li><strong>indexId:</strong> The specific index ID to use</li>
+ *     <li><strong>indexIdFormat:</strong> The String.format, based onf the site name, that should be used to generate the index ID.
+ *     E.g. a <emp>%s-default'</emp> format with a <em>mysite</em> site name will generate a <em>mysite-default</em> index ID.</li>
+ *     <
+ * </ul>
+ *
+ * @author avasquez
  */
 public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(SearchIndexingProcessor.class);
 
     public static final String DEFAULT_INDEX_ID_FORMAT = "%s";
-    public static final int DEFAULT_BATCH_SIZE = 10;
 
     public static final String INDEX_ID_CONFIG_KEY = "indexId";
     public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
-    public static final String BATCH_SIZE_CONFIG_KEY = "batchSize";
 
     protected String localRepoUrl;
     protected ContentStoreService contentStoreService;
     protected SearchService searchService;
     protected List<BatchIndexer> batchIndexers;
-    protected boolean mergingEnabled;
+    protected boolean xmlMergingEnabled;
     protected String indexId;
-    protected int batchSize;
     protected Context context;
 
+    /**
+     * Sets the URL of the local repository that will be passed to the {@link ContentStoreService} to retrieve the files to
+     * index.
+     */
     @Required
     public void setLocalRepoUrl(String localRepoUrl) {
         this.localRepoUrl = localRepoUrl;
     }
 
+    /**
+     * Sets the content store used to retrieve the files to index.
+     */
     @Required
     public void setContentStoreService(ContentStoreService contentStoreService) {
         this.contentStoreService = contentStoreService;
     }
 
+    /**
+     * Sets the search service. Since all indexing is done through the {@link BatchIndexer}s the search service is only used
+     * to commit.
+     */
     @Required
     public void setSearchService(SearchService searchService) {
         this.searchService = searchService;
     }
 
+    /**
+     * Sets the single batch indexer used for indexing.
+     */
     public void setBatchIndexer(BatchIndexer batchIndexer) {
         this.batchIndexers = Collections.singletonList(batchIndexer);
     }
 
-    public void setMergingEnabled(boolean mergingEnabled) {
-        this.mergingEnabled = mergingEnabled;
-    }
-
+    /**
+     * Sets the list of batch indexers used for indexing.
+     */
     public void setBatchIndexers(List<BatchIndexer> batchIndexers) {
         this.batchIndexers = batchIndexers;
+    }
+
+    /**
+     * Sets whether XML merging (aka inheritance) should be enabled when retrieving XML from the {@link ContentStoreService}.
+     */
+    public void setXmlMergingEnabled(boolean xmlMergingEnabled) {
+        this.xmlMergingEnabled = xmlMergingEnabled;
     }
 
     @Override
@@ -90,8 +115,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
                 indexId = String.format(indexIdFormat, siteName);
             }
         }
-
-        batchSize = ConfigUtils.getIntegerProperty(config, BATCH_SIZE_CONFIG_KEY, DEFAULT_BATCH_SIZE);
 
         if (CollectionUtils.isEmpty(batchIndexers)) {
             throw new IllegalStateException("At least one batch indexer should be provided");
@@ -153,7 +176,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     protected Context createContentStoreContext() throws DeployerException {
         try {
             Context context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, localRepoUrl,
-                                                                mergingEnabled, false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
+                                                                xmlMergingEnabled, false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
 
             logger.debug("Content store context created: {}", context);
 

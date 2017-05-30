@@ -17,7 +17,9 @@
 package org.craftercms.deployer.api.exceptions;
 
 /**
- * Created by alfonsovasquez on 12/22/16.
+ * Exception thrown when a configuration property is missing and is required.
+ *
+ * @author avasquez
  */
 public class MissingConfigurationPropertyException extends DeployerConfigurationException {
 

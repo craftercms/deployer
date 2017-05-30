@@ -17,7 +17,9 @@
 package org.craftercms.deployer.api.exceptions;
 
 /**
- * Created by alfonsovasquez on 1/17/17.
+ * Exception thrown when a target is about to be created but a target with the same ID already exists.
+ *
+ * @author avasquez
  */
 public class TargetAlreadyExistsException extends DeployerException {
 

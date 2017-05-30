@@ -46,7 +46,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created by alfonsovasquez on 12/27/16.
+ * Processor that does an HTTP method call. A processor instance can be configured with the following YAML properties:
+ *
+ * <ul>
+ *     <li><strong>url:</strong> The URL to call</li>
+ *     <li><strong>method:</strong> The HTTP method</li>
+ * </ul>
+ *
+ * @author avasquez
  */
 public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
 

@@ -33,7 +33,10 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Created by alfonsovasquez on 1/2/17.
+ * Post processor that writes the deployment result to an output file for later access, whenever a deployment fails or files where
+ * processed.
+ *
+ * @author avasquez
  */
 public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
@@ -46,16 +49,25 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     protected DateTimeFormatter timestampFormatter;
     protected ObjectMapper objectMapper;
 
+    /**
+     * Sets the output folder where the deployments results will be written to.
+     */
     @Required
     public void setOutputFolder(File outputFolder) {
         this.outputFolder = outputFolder;
     }
 
+    /**
+     * Sets the timestamp pattern to use on the output file names.
+     */
     @Required
     public void setTimestampPattern(String timestampPattern) {
         this.timestampPattern = timestampPattern;
     }
 
+    /**
+     * Sets the JSON serializer to use to generate the output.
+     */
     @Required
     public void setObjectMapper(ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;

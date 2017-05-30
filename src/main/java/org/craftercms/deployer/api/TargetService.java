@@ -42,7 +42,8 @@ public interface TargetService {
      *
      * @return the created target
      *
-     * @throws DeployerException if an error occurred
+     * @throws TargetAlreadyExistsException if the target for the specified env and site name already exists
+     * @throws TargetServiceException if a general error occurs
      */
     Target createTarget(String env, String siteName, boolean replace, String templateName,
                         Map<String, Object> templateParameters) throws TargetAlreadyExistsException, TargetServiceException;
@@ -53,7 +54,8 @@ public interface TargetService {
      * @param env       the target's environment (e.g. dev)
      * @param siteName  the target's site name (e.g. mysite)
      *
-     * @throws DeployerException if an error occurred
+     * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
+     * @throws TargetServiceException if a general error occurs
      */
     void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
 
@@ -62,7 +64,7 @@ public interface TargetService {
      *
      * @return the list of targets
      *
-     * @throws DeployerException if an error occurred
+     * @throws TargetServiceException if a general error occurs
      */
     List<Target> getAllTargets() throws TargetServiceException;
 
@@ -74,7 +76,8 @@ public interface TargetService {
      *
      * @return the target info
      *
-     * @throws DeployerException if an error occurred
+     * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
+     * @throws TargetServiceException if a general error occurs
      */
     Target getTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
 

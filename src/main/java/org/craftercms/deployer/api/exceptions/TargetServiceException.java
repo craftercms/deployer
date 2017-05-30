@@ -17,16 +17,14 @@
 package org.craftercms.deployer.api.exceptions;
 
 /**
- * Created by alfonso on 5/24/17.
+ * Exception thrown when a general error happens during a {@link org.craftercms.deployer.api.TargetService} operation.
+ *
+ * @author avasquez
  */
 public class TargetServiceException extends DeployerException {
 
     public TargetServiceException(Throwable cause) {
         super(cause);
-    }
-
-    public TargetServiceException(String message) {
-        super(message);
     }
 
     public TargetServiceException(String message, Throwable cause) {

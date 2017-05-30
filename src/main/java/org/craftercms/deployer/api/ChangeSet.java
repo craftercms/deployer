@@ -26,7 +26,7 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 
 /**
- * The set of created, updated and deleted files that have been changed in a deployment.
+ * The collection of created, updated and deleted files that have been changed in a deployment.
  *
  * @author avasquez
  */
@@ -48,21 +48,33 @@ public class ChangeSet {
         this.deletedFiles = deletedFiles;
     }
 
+    /**
+     * Returns the list of created files.
+     */
     @JsonProperty("created_files")
     public List<String> getCreatedFiles() {
         return Collections.unmodifiableList(createdFiles);
     }
 
+    /**
+     * Returns the list of updated files.
+     */
     @JsonProperty("updated_files")
     public List<String> getUpdatedFiles() {
         return Collections.unmodifiableList(updatedFiles);
     }
 
+    /**
+     * Returns the list of deleted files.
+     */
     @JsonProperty("deleted_files")
     public List<String> getDeletedFiles() {
         return Collections.unmodifiableList(deletedFiles);
     }
 
+    /**
+     * Returns true if there are not created, updated or deleted files.
+     */
     @JsonIgnore
     public boolean isEmpty() {
         return CollectionUtils.isEmpty(createdFiles) &&

@@ -17,17 +17,17 @@
 package org.craftercms.deployer.api.exceptions;
 
 /**
- * Exception thrown when an error related to configuration happens.
+ * Exception thrown when a general error happens during a {@link org.craftercms.deployer.api.DeploymentService} operation.
  *
  * @author avasquez
  */
-public class DeployerConfigurationException extends DeployerException {
+public class DeploymentServiceException extends DeployerException {
 
-    public DeployerConfigurationException(String message) {
-        super(message);
+    public DeploymentServiceException(Throwable cause) {
+        super(cause);
     }
 
-    public DeployerConfigurationException(String message, Throwable cause) {
+    public DeploymentServiceException(String message, Throwable cause) {
         super(message, cause);
     }
 

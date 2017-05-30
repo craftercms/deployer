@@ -53,7 +53,12 @@ import org.springframework.beans.factory.annotation.Required;
 import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FILES_PARAM_NAME;
 
 /**
- * Created by alfonso on 2/17/17.
+ * Processor that, based on a previous processed commit that's stored, does a diff with the current commit of the deployment, to
+ * find out the change set. If there is no previous processed commit, then the entire repository becomes the change set. This processor
+ * is used basically to create the change set and should be used before other processors that actually process the change set, like
+ * {@link SearchIndexingProcessor}.
+ *
+ * @author avasquez
  */
 public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
@@ -62,11 +67,17 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     protected File localRepoFolder;
     protected ProcessedCommitsStore processedCommitsStore;
 
+    /**
+     * Sets the local filesystem folder the contains the deployed repository.
+     */
     @Required
     public void setLocalRepoFolder(File localRepoFolder) {
         this.localRepoFolder = localRepoFolder;
     }
 
+    /**
+     * Sets the store for processed commits.
+     */
     @Required
     public void setProcessedCommitsStore(ProcessedCommitsStore processedCommitsStore) {
         this.processedCommitsStore = processedCommitsStore;

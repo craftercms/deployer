@@ -63,13 +63,6 @@ public class MonitorController {
 
 
     /**
-     * Empty like my soul.
-     */
-    public MonitorController() {
-        // This constructor is intentionally empty. Nothing special is needed here.
-    }
-
-    /**
      * Uses Crafter Commons Memory Monitor POJO to get current JVM Memory stats.
      * @return {link {@link MemoryMonitor}}
      */

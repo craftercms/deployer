@@ -32,7 +32,9 @@ import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 
 /**
- * Created by alfonsovasquez on 12/15/16.
+ * Utility methods for Git operations.
+ *
+ * @author avasquez
  */
 public abstract class GitUtils {
 
@@ -48,13 +50,39 @@ public abstract class GitUtils {
     private GitUtils() {
     }
 
+    /**
+     * Opens the Git repository at the specified location.
+     *
+     * @param localRepositoryFolder the folder where the Git repository is
+     *
+     * @return the Git instance used to handle the repository
+     *
+     * @throws IOException if an error occurs
+     */
     public static Git openRepository(File localRepositoryFolder) throws IOException {
         return Git.open(localRepositoryFolder);
     }
 
+    /**
+     * Clones a remote repository into a specific local folder.
+     *
+     * @param remoteRepoUrl     the URL of the remote repository. This should be a legal Git URL.
+     * @param branch            the branch which should be cloned
+     * @param authConfigurator  the {@link GitAuthenticationConfigurator} class used to configure the authentication with the remote
+     *                          repository
+     * @param localFolder       the local folder into which the remote repository should be cloned
+     * @param bigFileThreshold  the value of the Git {@code core.bigFileThreshold} config property
+     * @param compression       the value of the Git {@code core.compression} config property
+     * @param fileMode          the value of the Git {@code core.fileMode} config property
+     *
+     * @return the Git instance used to handle the cloned repository
+     *
+     * @throws GitAPIException  if a Git related error occurs
+     * @throws IOException      if an IO error occurs
+     */
     public static Git cloneRemoteRepository(String remoteRepoUrl, String branch, GitAuthenticationConfigurator authConfigurator,
                                             File localFolder, String bigFileThreshold, Integer compression, Boolean fileMode)
-        throws GitAPIException, IOException, IllegalArgumentException {
+        throws GitAPIException, IOException{
         CloneCommand command = Git.cloneRepository();
         command.setURI(remoteRepoUrl);
         command.setDirectory(localFolder);
@@ -88,6 +116,18 @@ public abstract class GitUtils {
         return git;
     }
 
+    /**
+     * Execute a Git pull.
+     *
+     * @param git               the Git instance used to handle the repository
+     * @param authConfigurator  the {@link GitAuthenticationConfigurator} class used to configure the authentication with the remote
+     *                          repository
+     * @param useRebase         if rebase should be used instead of merge after fetching
+     *
+     * @return the result of the pull
+     *
+     * @throws GitAPIException if a Git related error occurs
+     */
     public static PullResult pull(Git git, GitAuthenticationConfigurator authConfigurator, boolean useRebase) throws GitAPIException {
         PullCommand command = git.pull();
 

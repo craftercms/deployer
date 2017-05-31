@@ -1,24 +1,22 @@
 package org.craftercms.deployer.utils.git;
 
-import com.jcraft.jsch.JSchException;
 import com.jcraft.jsch.Session;
 
-import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
-import org.eclipse.jgit.util.FS;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Created by alfonso on 4/19/17.
+ * {@link GitAuthenticationConfigurator} that configures the {@code TransportCommand} to use SSH with username/password authentication.
+ * The user name is expected to be part of the Git SSH URL, while the password is provided separately and injected to this class.
+ *
+ * @author avasquez
  */
-public class SshPasswordAuthConfigurator extends SshAuthConfigurator {
+public class SshUsernamePasswordAuthConfigurator extends AbstractSshAuthConfigurator {
 
     protected String password;
 
-    public SshPasswordAuthConfigurator(String password) {
+    public SshUsernamePasswordAuthConfigurator(String password) {
         this.password = password;
     }
 

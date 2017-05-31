@@ -36,13 +36,24 @@ import org.craftercms.deployer.api.exceptions.MissingConfigurationPropertyExcept
 import org.springframework.core.io.Resource;
 
 /**
- * Created by alfonsovasquez on 12/22/16.
+ * Utility methods for handling YAML/Apache Commons Configuration.
+ *
+ * @author avasquez
  */
 public class ConfigUtils {
 
     private ConfigUtils() {
     }
 
+    /**
+     * Loads the specified file as {@link YamlConfiguration}.
+     *
+     * @param file the YAML configuration file to load
+     *
+     * @return the YAML configuration
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static YamlConfiguration loadYamlConfiguration(File file) throws DeployerConfigurationException {
         try {
             try (Reader reader = new BufferedReader(new FileReader(file))) {
@@ -53,6 +64,15 @@ public class ConfigUtils {
         }
     }
 
+    /**
+     * Loads the specified resource as {@link YamlConfiguration}.
+     *
+     * @param resource the YAML configuration resource to load
+     *
+     * @return the YAML configuration
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static YamlConfiguration loadYamlConfiguration(Resource resource) throws DeployerConfigurationException {
         try {
             try (Reader reader = new BufferedReader(new InputStreamReader(resource.getInputStream(), "UTF-8"))) {
@@ -63,10 +83,31 @@ public class ConfigUtils {
         }
     }
 
+    /**
+     * Returns the specified String property from the configuration
+     *
+     * @param config    the configuration
+     * @param key       the key of the property
+     *
+     * @return the String value of the property, or null if not found
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static String getStringProperty(Configuration config, String key) throws DeployerConfigurationException {
         return getStringProperty(config, key, null);
     }
 
+    /**
+     * Returns the specified String property from the configuration
+     *
+     * @param config        the configuration
+     * @param key           the key of the property
+     * @param defaultValue  the default value if the property is not found
+     *
+     * @return the String value of the property, or the default value if not found
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static String getStringProperty(Configuration config, String key, String defaultValue) throws DeployerConfigurationException {
         try {
             return config.getString(key, defaultValue);
@@ -75,6 +116,18 @@ public class ConfigUtils {
         }
     }
 
+    /**
+     * Returns the specified String property from the configuration. If the property is missing a
+     * {@link MissingConfigurationPropertyException} is thrown.
+     *
+     * @param config    the configuration
+     * @param key       the key of the property
+     *
+     * @return the String value of the property
+     *
+     * @throws MissingConfigurationPropertyException if the property is missing from the configuration
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static String getRequiredStringProperty(Configuration config, String key) throws DeployerConfigurationException {
         String property = getStringProperty(config, key);
         if (StringUtils.isEmpty(property)) {
@@ -84,10 +137,31 @@ public class ConfigUtils {
         }
     }
 
+    /**
+     * Returns the specified Boolean property from the configuration
+     *
+     * @param config    the configuration
+     * @param key       the key of the property
+     *
+     * @return the Boolean value of the property, or null if not found
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static Boolean getBooleanProperty(Configuration config, String key) throws DeployerConfigurationException {
         return getBooleanProperty(config, key, null);
     }
 
+    /**
+     * Returns the specified Boolean property from the configuration
+     *
+     * @param config        the configuration
+     * @param key           the key of the property
+     * @param defaultValue  the default value if the property is not found
+     *
+     * @return the Boolean value of the property, or the default value if not found
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static Boolean getBooleanProperty(Configuration config, String key, Boolean defaultValue) throws DeployerConfigurationException {
         try {
             return config.getBoolean(key, defaultValue);
@@ -96,10 +170,31 @@ public class ConfigUtils {
         }
     }
 
+    /**
+     * Returns the specified Integer property from the configuration
+     *
+     * @param config    the configuration
+     * @param key       the key of the property
+     *
+     * @return the Integer value of the property, or null if not found
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static Integer getIntegerProperty(Configuration config, String key) throws DeployerConfigurationException {
         return getIntegerProperty(config, key, null);
     }
 
+    /**
+     * Returns the specified Integer property from the configuration
+     *
+     * @param config        the configuration
+     * @param key           the key of the property
+     * @param defaultValue  the default value if the property is not found
+     *
+     * @return the Integer value of the property, or the default value if not found
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static Integer getIntegerProperty(Configuration config, String key, Integer defaultValue) throws DeployerConfigurationException {
         try {
             return config.getInteger(key, defaultValue);
@@ -108,6 +203,17 @@ public class ConfigUtils {
         }
     }
 
+    /**
+     * Returns the specified String array property from the configuration. A String array property are normally specified as
+     * a String with values being separated by commas in the configuration.
+     *
+     * @param config    the configuration
+     * @param key       the key of the property
+     *
+     * @return the String array value of the property, or null if not found
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static String[] getStringArrayProperty(Configuration config, String key) throws DeployerConfigurationException {
         try {
             return config.getStringArray(key);
@@ -116,6 +222,19 @@ public class ConfigUtils {
         }
     }
 
+    /**
+     * Returns the specified String array property from the configuration. If the property is missing a
+     * {@link MissingConfigurationPropertyException} is thrown. A String array property are normally specified as
+     * a String with values being separated by commas in the configuration.
+     *
+     * @param config    the configuration
+     * @param key       the key of the property
+     *
+     * @return the String value of the property
+     *
+     * @throws MissingConfigurationPropertyException if the property is missing from the configuration
+     * @throws DeployerConfigurationException if an error occurred
+     */
     public static String[] getRequiredStringArrayProperty(Configuration config, String key) throws DeployerConfigurationException {
         String[] property = getStringArrayProperty(config, key);
         if (ArrayUtils.isEmpty(property)) {
@@ -125,6 +244,16 @@ public class ConfigUtils {
         }
     }
 
+    /**
+     * Returns the sub-configuration tree whose root is the specified key.
+     *
+     * @param config    the configuration
+     * @param key       the key of the configuration tree
+     *
+     * @return the sub-configuration tree, or null if not found
+     *
+     * @throws DeployerConfigurationException if an error occurs
+     */
     @SuppressWarnings("unchecked")
     public static List<HierarchicalConfiguration> getConfigurationsAt(HierarchicalConfiguration config,
                                                                       String key) throws DeployerConfigurationException {
@@ -135,6 +264,18 @@ public class ConfigUtils {
         }
     }
 
+    /**
+     * Returns the sub-configuration tree whose root is the specified key. If the tree is missing a
+     * {@link MissingConfigurationPropertyException} is thrown
+     *
+     * @param config    the configuration
+     * @param key       the key of the configuration tree
+     *
+     * @return the sub-configuration tree, or null if not found
+     *
+     * @throws MissingConfigurationPropertyException if the property is missing from the configuration
+     * @throws DeployerConfigurationException if an error occurs
+     */
     @SuppressWarnings("unchecked")
     public static List<HierarchicalConfiguration> getRequiredConfigurationsAt(HierarchicalConfiguration config,
                                                                               String key) throws DeployerConfigurationException {

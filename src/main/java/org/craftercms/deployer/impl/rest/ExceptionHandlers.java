@@ -28,16 +28,34 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.context.request.WebRequest;
 
 /**
- * Created by alfonsovasquez on 12/19/16.
+ * Extension of {@link BaseRestExceptionHandlers} that provides exception handlers for specific Crafter Deployer exceptions.
+ *
+ * @author avasquez
  */
 @ControllerAdvice
 public class ExceptionHandlers extends BaseRestExceptionHandlers {
 
+    /**
+     * Handles a {@link TargetNotFoundException} by returning a 404 NOT FOUND.
+     *
+     * @param ex        the exception
+     * @param request   the current request
+     *
+     * @return the response entity, with the body and status
+     */
     @ExceptionHandler(TargetNotFoundException.class)
     public ResponseEntity<Object> handleTargetNotFoundException(TargetNotFoundException ex, WebRequest request) {
         return handleExceptionInternal(ex, "Target not found", new HttpHeaders(), HttpStatus.NOT_FOUND, request);
     }
 
+    /**
+     * Handles a {@link TargetAlreadyExistsException} by returning a 409 CONFLICT.
+     *
+     * @param ex        the exception
+     * @param request   the current request
+     *
+     * @return the response entity, with the body and status
+     */
     @ExceptionHandler(TargetAlreadyExistsException.class)
     public ResponseEntity<Object> handleTargetAlreadyExistsException(TargetAlreadyExistsException ex, WebRequest request) {
         HttpHeaders headers = RestServiceUtils.setLocationHeader(new HttpHeaders(),

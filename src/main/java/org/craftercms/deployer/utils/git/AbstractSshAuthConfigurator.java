@@ -9,9 +9,12 @@ import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 
 /**
- * Created by alfonso on 4/19/17.
+ * {@link GitAuthenticationConfigurator} that configures the {@code TransportCommand} to use SSH, but without providing
+ * any authentication functionality. Actual authentication functionality is provided by subclasses.
+ *
+ * @author avasquez
  */
-public class SshAuthConfigurator implements GitAuthenticationConfigurator {
+public abstract class AbstractSshAuthConfigurator implements GitAuthenticationConfigurator {
 
     @Override
     public void configureAuthentication(TransportCommand command) {

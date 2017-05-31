@@ -33,7 +33,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 /**
- * Created by alfonsovasquez on 30/11/16.
+ * Default implementation of {@link DeploymentService}.
+ *
+ * @author avasquez
  */
 @Component("deploymentService")
 public class DeploymentServiceImpl implements DeploymentService {

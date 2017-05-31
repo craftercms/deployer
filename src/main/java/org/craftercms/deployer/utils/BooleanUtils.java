@@ -17,10 +17,24 @@
 package org.craftercms.deployer.utils;
 
 /**
- * Created by alfonsovasquez on 2/13/17.
+ * Utility methods for booleans.
+ *
+ * @author avasquez
  */
 public class BooleanUtils extends org.apache.commons.lang3.BooleanUtils {
 
+    /**
+     * Converts an object to boolean, according to the following logic:
+     *
+     * <ol>
+     *     <li>If it's null, {@code false} is returned.</li>
+     *     <li>If it's a Boolean, the same object is returned.</li>
+     *     <li>If it's any other object, the {@code toString()} value is converted to boolean.</li>
+     * </ol>
+     *
+     * @param obj
+     * @return
+     */
     public static boolean toBoolean(Object obj) {
         if (obj != null) {
             if (obj instanceof Boolean) {

@@ -4,14 +4,16 @@ import org.eclipse.jgit.api.TransportCommand;
 import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 /**
- * Created by alfonso on 4/19/17.
+ * {@link GitAuthenticationConfigurator} that uses basic username/password authentication.
+ *
+ * @author avasquez
  */
-public class UsernamePasswordAuthConfigurator implements GitAuthenticationConfigurator {
+public class BasicUsernamePasswordAuthConfigurator implements GitAuthenticationConfigurator {
 
     private String username;
     private String password;
 
-    public UsernamePasswordAuthConfigurator(String username, String password) {
+    public BasicUsernamePasswordAuthConfigurator(String username, String password) {
         this.username = username;
         this.password = password;
     }

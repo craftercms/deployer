@@ -11,15 +11,22 @@ import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.util.FS;
 
 /**
- * Created by alfonso on 4/19/17.
+ * {@link GitAuthenticationConfigurator} that configures the {@code TransportCommand} to use SSH with RSA key pair authentication.
+ * The file path of the private key and it's passphrase can be provided, but are not necessary, specially when the private key has
+ * already been loaded into the SSH agent.
+ *
+ * @author avasquez
  */
-public class SshPrivateKeyAuthConfigurator extends SshAuthConfigurator {
+public class SshRsaKeyPairAuthConfigurator extends AbstractSshAuthConfigurator {
 
     protected String privateKeyPath;
     protected String passphrase;
 
-    public SshPrivateKeyAuthConfigurator(String privateKeyPath, String passphrase) {
+    public void setPrivateKeyPath(String privateKeyPath) {
         this.privateKeyPath = privateKeyPath;
+    }
+
+    public void setPassphrase(String passphrase) {
         this.passphrase = passphrase;
     }
 

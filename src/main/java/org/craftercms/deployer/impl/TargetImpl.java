@@ -36,7 +36,9 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
 
 /**
- * Created by alfonsovasquez on 5/12/16.
+ * Default implementation of {@link Target}.
+ *
+ * @author avasquez
  */
 public class TargetImpl implements Target {
 

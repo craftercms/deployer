@@ -34,8 +34,9 @@ import org.slf4j.LoggerFactory;
 
 /**
  * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s that are executed during the main deployment phase, which is
- * the phase where the change set is retrieved and the files are processed. Files are included/excluded can also be excluded by this
- * class, through configuration properties {@code includeFiles} and {@code excludeFiles}.
+ * the phase where the change set is retrieved and the files are processed. Inclusion/exclusion of files is handled by this class, through
+ * YAML configuration properties {@code includeFiles} and {@code excludeFiles}. So basically each processor instance can have its own
+ * set of inclusions/exclusions.
  *
  * @author avasquez
  */

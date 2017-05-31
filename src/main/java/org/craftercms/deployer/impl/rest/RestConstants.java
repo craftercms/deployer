@@ -17,11 +17,19 @@
 package org.craftercms.deployer.impl.rest;
 
 /**
- * Created by alfonsovasquez on 1/12/17.
+ * Common constants for REST controllers.
+ *
+ * @author avasquez
  */
 public class RestConstants {
 
+    /**
+     * Environment path variable name.
+     */
     public static final String ENV_PATH_VAR_NAME = "env";
+    /**
+     * Site name path variable name.
+     */
     public static final String SITE_NAME_PATH_VAR_NAME = "site_name";
 
     private RestConstants() {

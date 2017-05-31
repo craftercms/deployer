@@ -34,7 +34,9 @@ import org.springframework.stereotype.Component;
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
 
 /**
- * Created by alfonsovasquez on 12/22/16.
+ * Default implementation of {@link DeploymentPipeline}.
+ *
+ * @author avasquez
  */
 @Component("deploymentPipelineFactory")
 public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory {

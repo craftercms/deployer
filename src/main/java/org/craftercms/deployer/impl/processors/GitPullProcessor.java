@@ -51,13 +51,13 @@ import org.springframework.beans.factory.annotation.Required;
  *     <li><strong>remoteRepo.url:</strong> The URL of the remote Git repo to clone/pull</li>
  *     <li><strong>remoteRepo.branch:</strong> The branch of the remote Git repo to clone/pull</li>
  *     <li><strong>remoteRepo.username:</strong> The username for authentication with the remote Git repo. Not needed when
- *     SSH with public/private key authentication is used.</li>
+ *     SSH with RSA key pair authentication is used.</li>
  *     <li><strong>remoteRepo.password:</strong> The password for authentication with the remote Git repo. Not needed when
- *     SSH with public/private key authentication is used.</li>
- *     <li><strong>remoteRepo.ssh.privateKey.path:</strong> The SSH private key path, used only with SSH with public/private key
+ *     SSH with RSA key pair authentication is used.</li>
+ *     <li><strong>remoteRepo.ssh.privateKey.path:</strong> The SSH private key path, used only with SSH with RSA key pair
  *     authentication.</li>
  *     <li><strong>remoteRepo.ssh.privateKey.passphrase:</strong> The SSH private key passphrase, used only with SSH with
- *     public/private key authentication.</li>
+ *     RSA key pair authentication.</li>
  * </ul>
  *
  * @author avasquez
@@ -255,7 +255,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
                 String privateKeyPath = ConfigUtils.getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY);
                 String passphrase = ConfigUtils.getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY);
 
-                logger.debug("SSH public/private key authentication will be used to connect to repo {}", repoUrl);
+                logger.debug("SSH RSA key pair authentication will be used to connect to repo {}", repoUrl);
 
                 SshRsaKeyPairAuthConfigurator keyPairAuthConfigurator = new SshRsaKeyPairAuthConfigurator();
                 keyPairAuthConfigurator.setPrivateKeyPath(privateKeyPath);

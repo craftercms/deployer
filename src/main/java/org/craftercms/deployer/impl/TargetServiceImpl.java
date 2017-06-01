@@ -84,7 +84,9 @@ import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SCHEDULED_
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY;
 
 /**
- * Created by alfonsovasquez on 5/12/16.
+ * Default implementation of {@link TargetService}.
+ *
+ * @author avasquez
  */
 @Component("targetService")
 public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent> {

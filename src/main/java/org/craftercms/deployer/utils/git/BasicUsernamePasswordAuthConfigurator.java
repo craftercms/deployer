@@ -14,25 +14,29 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.rest;
+package org.craftercms.deployer.utils.git;
+
+import org.eclipse.jgit.api.TransportCommand;
+import org.eclipse.jgit.transport.UsernamePasswordCredentialsProvider;
 
 /**
- * Common constants for REST controllers.
+ * {@link GitAuthenticationConfigurator} that uses basic username/password authentication.
  *
  * @author avasquez
  */
-public class RestConstants {
+public class BasicUsernamePasswordAuthConfigurator implements GitAuthenticationConfigurator {
 
-    /**
-     * Environment path variable name.
-     */
-    public static final String ENV_PATH_VAR_NAME = "env";
-    /**
-     * Site name path variable name.
-     */
-    public static final String SITE_NAME_PATH_VAR_NAME = "site_name";
+    private String username;
+    private String password;
 
-    private RestConstants() {
+    public BasicUsernamePasswordAuthConfigurator(String username, String password) {
+        this.username = username;
+        this.password = password;
+    }
+
+    @Override
+    public void configureAuthentication(TransportCommand command) {
+        command.setCredentialsProvider(new UsernamePasswordCredentialsProvider(username, password));
     }
 
 }

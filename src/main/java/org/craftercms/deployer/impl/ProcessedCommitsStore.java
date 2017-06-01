@@ -20,14 +20,40 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.eclipse.jgit.lib.ObjectId;
 
 /**
- * Created by alfonso on 3/22/17.
+ * Store that holds the last processed Git commit for each target.
+ *
+ * @author avasquez
  */
 public interface ProcessedCommitsStore {
 
+    /**
+     * Loads the stored commit ID for the specified target.
+     *
+     * @param targetId the target's ID
+     *
+     * @return the commit's {@code ObjectId}, or null if not found
+     *
+     * @throws DeployerException if an error occurs
+     */
     ObjectId load(String targetId) throws DeployerException;
 
+    /**
+     * Stores the specified commit ID for the target.
+     *
+     * @param targetId  the target's ID
+     * @param commitId  the commit's {@code ObjectId}
+     *
+     * @throws DeployerException if an error occurs
+     */
     void store(String targetId, ObjectId commitId) throws DeployerException;
 
+    /**
+     * Deletes the stored commit ID for the specified target.
+     *
+     * @param targetId the target's ID
+     *
+     * @throws DeployerException if an error occurs
+     */
     void delete(String targetId) throws DeployerException;
 
 }

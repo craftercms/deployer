@@ -31,10 +31,9 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
 import org.craftercms.deployer.utils.git.GitAuthenticationConfigurator;
-import org.craftercms.deployer.utils.git.SshAuthConfigurator;
-import org.craftercms.deployer.utils.git.SshPasswordAuthConfigurator;
-import org.craftercms.deployer.utils.git.SshPrivateKeyAuthConfigurator;
-import org.craftercms.deployer.utils.git.UsernamePasswordAuthConfigurator;
+import org.craftercms.deployer.utils.git.SshUsernamePasswordAuthConfigurator;
+import org.craftercms.deployer.utils.git.SshRsaKeyPairAuthConfigurator;
+import org.craftercms.deployer.utils.git.BasicUsernamePasswordAuthConfigurator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
@@ -52,13 +51,13 @@ import org.springframework.beans.factory.annotation.Required;
  *     <li><strong>remoteRepo.url:</strong> The URL of the remote Git repo to clone/pull</li>
  *     <li><strong>remoteRepo.branch:</strong> The branch of the remote Git repo to clone/pull</li>
  *     <li><strong>remoteRepo.username:</strong> The username for authentication with the remote Git repo. Not needed when
- *     SSH with public/private key authentication is used.</li>
+ *     SSH with RSA key pair authentication is used.</li>
  *     <li><strong>remoteRepo.password:</strong> The password for authentication with the remote Git repo. Not needed when
- *     SSH with public/private key authentication is used.</li>
- *     <li><strong>remoteRepo.ssh.privateKey.path:</strong> The SSH private key path, used only with SSH with public/private key
+ *     SSH with RSA key pair authentication is used.</li>
+ *     <li><strong>remoteRepo.ssh.privateKey.path:</strong> The SSH private key path, used only with SSH with RSA key pair
  *     authentication.</li>
  *     <li><strong>remoteRepo.ssh.privateKey.passphrase:</strong> The SSH private key passphrase, used only with SSH with
- *     public/private key authentication.</li>
+ *     RSA key pair authentication.</li>
  * </ul>
  *
  * @author avasquez
@@ -251,18 +250,18 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
             if (StringUtils.isNotEmpty(password)) {
                 logger.debug("SSH username/password authentication will be used to connect to repo {}", repoUrl);
 
-                authConfigurator = new SshPasswordAuthConfigurator(password);
+                authConfigurator = new SshUsernamePasswordAuthConfigurator(password);
             } else {
                 String privateKeyPath = ConfigUtils.getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY);
                 String passphrase = ConfigUtils.getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY);
 
-                logger.debug("SSH public/private key authentication will be used to connect to repo {}", repoUrl);
+                logger.debug("SSH RSA key pair authentication will be used to connect to repo {}", repoUrl);
 
-                if (StringUtils.isNotEmpty(privateKeyPath) && StringUtils.isNotEmpty(passphrase)) {
-                    authConfigurator = new SshPrivateKeyAuthConfigurator(privateKeyPath, passphrase);
-                } else {
-                    authConfigurator = new SshAuthConfigurator();
-                }
+                SshRsaKeyPairAuthConfigurator keyPairAuthConfigurator = new SshRsaKeyPairAuthConfigurator();
+                keyPairAuthConfigurator.setPrivateKeyPath(privateKeyPath);
+                keyPairAuthConfigurator.setPassphrase(passphrase);
+
+                authConfigurator = keyPairAuthConfigurator;
             }
         } else {
             String username = ConfigUtils.getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY);
@@ -271,7 +270,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
             if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
                 logger.debug("Username/password authentication will be used to connect to repo {}", repoUrl);
 
-                authConfigurator = new UsernamePasswordAuthConfigurator(username, password);
+                authConfigurator = new BasicUsernamePasswordAuthConfigurator(username, password);
             }
         }
 

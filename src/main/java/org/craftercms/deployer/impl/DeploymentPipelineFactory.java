@@ -23,10 +23,24 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
- * Created by alfonsovasquez on 12/22/16.
+ * Factory that uses target-specific YAML configuration and Spring configuration to a create the {@link DeploymentPipeline} for a
+ * target.
+ *
+ * @author avasquez
  */
 public interface DeploymentPipelineFactory {
 
+    /**
+     * Creates a {@link DeploymentPipeline} based on the specified configuration
+     *
+     * @param configuration         the target's YAML configuration
+     * @param applicationContext    the target's application context
+     * @param pipelinePropertyName  the name of the pipeline property in the YAML configuration
+     *
+     * @return the deployment pipeline
+     *
+     * @throws DeployerException if an error occurs
+     */
     DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ConfigurableApplicationContext applicationContext,
                                    String pipelinePropertyName) throws DeployerException;
 

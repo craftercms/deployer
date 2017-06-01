@@ -17,7 +17,9 @@
 package org.craftercms.deployer.impl;
 
 /**
- * Created by alfonsovasquez on 12/26/16.
+ * Common constants used by Deployer classes.
+ *
+ * @author avasquez
  */
 public class DeploymentConstants {
 

@@ -30,7 +30,10 @@ import org.springframework.beans.factory.annotation.Required;
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSED_COMMIT_FILE_EXTENSION;
 
 /**
- * Created by alfonso on 3/22/17.
+ * Default implementation of {@link ProcessedCommitsStore} that stores each commit ID in a file, and all commit ID files are stored
+ * in a certain location in the filesystem.
+ *
+ * @author avasquez
  */
 public class ProcessedCommitsStoreImpl implements ProcessedCommitsStore {
 

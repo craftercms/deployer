@@ -29,7 +29,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Created by alfonsovasquez on 12/18/16.
+ * Default implementation of {@link DeploymentPipeline}.
+ *
+ * @author avasquez
  */
 public class DeploymentPipelineImpl implements DeploymentPipeline {
 

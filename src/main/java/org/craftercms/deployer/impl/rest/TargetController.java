@@ -1,3 +1,19 @@
+/*
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.craftercms.deployer.impl.rest;
 
 import java.util.HashMap;
@@ -31,7 +47,9 @@ import static org.craftercms.deployer.impl.rest.RestConstants.ENV_PATH_VAR_NAME;
 import static org.craftercms.deployer.impl.rest.RestConstants.SITE_NAME_PATH_VAR_NAME;
 
 /**
- * Created by alfonsovasquez on 12/29/16.
+ * Main controller for target related operations.
+ *
+ * @author avasquez
  */
 @RestController
 @RequestMapping(TargetController.BASE_URL)
@@ -57,6 +75,18 @@ public class TargetController {
         this.deploymentService = deploymentService;
     }
 
+    /**
+     * Creates a Deployer {@link Target}.
+     *
+     * @param parameters the body of the request with the template parameters that will be used to create the target. The body must
+     *                   contain at least a {@code env} and {@code site_name} parameter. Other required parameters depend on the
+     *                   template used.
+     *
+     * @return the response entity 201 CREATED status
+     *
+     * @throws DeployerException   if an error ocurred during target creation
+     * @throws ValidationException if a required parameter is missing
+     */
     @RequestMapping(value = CREATE_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Result> createTarget(@RequestBody Map<String, Object> parameters) throws DeployerException,
         ValidationException {
@@ -85,6 +115,16 @@ public class TargetController {
                                     HttpStatus.CREATED);
     }
 
+    /**
+     * Returns a {@link Target}.
+     *
+     * @param env       the target's environment
+     * @param siteName  the target's site name
+     *
+     * @return the response entity with the target's properties and 200 OK status
+     *
+     * @throws DeployerException if an error occurred
+     */
     @RequestMapping(value = GET_TARGET_URL, method = RequestMethod.GET)
     public ResponseEntity<Target> getTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
                                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
@@ -95,6 +135,13 @@ public class TargetController {
                                     HttpStatus.OK);
     }
 
+    /**
+     * Returns all current {@link Target}s
+     *
+     * @return the response entity with all the properties of the targets and 200 OK status
+     *
+     * @throws DeployerException if an error ocurred
+     */
     @RequestMapping(value = GET_ALL_TARGETS_URL, method = RequestMethod.GET)
     public ResponseEntity<List<Target>> getAllTargets() throws DeployerException {
         List<Target> targets = targetService.getAllTargets();
@@ -104,6 +151,16 @@ public class TargetController {
                                     HttpStatus.OK);
     }
 
+    /**
+     * Deletes the {@link Target} with the specified environment and site name.
+     *
+     * @param env       the target's environment
+     * @param siteName  the target's site name
+     *
+     * @return the response entity with a 204 NO CONTENT status
+     *
+     * @throws DeployerException if an error occurred
+     */
     @RequestMapping(value = DELETE_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Void> deleteTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
                                              @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
@@ -112,6 +169,18 @@ public class TargetController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
+    /**
+     * Deploys the {@link Target} with the specified environment and site name.
+     *
+     * @param env       the target's environment
+     * @param siteName  the target's site name
+     * @param params    any additional parameters that can be used by the {@link org.craftercms.deployer.api.DeploymentProcessor}s, for
+     *                  example {@code reprocess_all_files}
+     *
+     * @return the response entity with a 200 OK status
+     *
+     * @throws DeployerException if an error occurred
+     */
     @RequestMapping(value = DEPLOY_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Deployment> deployTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
                                                    @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
@@ -125,6 +194,13 @@ public class TargetController {
         return new ResponseEntity<>(deployment, new HttpHeaders(), HttpStatus.OK);
     }
 
+    /**
+     * Deploys all current {@link Target}s.
+     *
+     * @return the response entity with a 200 OK status
+     *
+     * @throws DeployerException if an error occurred
+     */
     @RequestMapping(value = DEPLOY_ALL_TARGETS_URL, method = RequestMethod.POST)
     public ResponseEntity<List<Deployment>> deployAllTargets(
         @RequestBody(required = false) Map<String, Object> params) throws DeployerException {

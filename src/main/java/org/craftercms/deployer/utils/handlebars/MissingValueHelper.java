@@ -24,7 +24,10 @@ import java.io.IOException;
 import org.craftercms.commons.validation.ValidationResult;
 
 /**
- * Created by alfonsovasquez on 1/30/17.
+ * Handlebars helper that will add a missing field error to the current {@link ValidationResult} if the parameter value is
+ * missing.
+ *
+ * @author avasquez
  */
 public class MissingValueHelper implements Helper<Object> {
 

@@ -21,7 +21,8 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Base class for all {@link DeploymentProcessor}s.
+ * Base class for all {@link DeploymentProcessor}s. All processor are expected to be configured as prototypes in Spring, so it's
+ * possible to have processor instances per target, and inject target specific properties.
  *
  * @author avasquez
  */

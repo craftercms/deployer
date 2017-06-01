@@ -62,7 +62,7 @@ public class TargetController {
     /**
      * Creates a Deployer {@link Target}.
      *
-     * @param parameters the body of the request with the template parameters that will be used to create the target. The body most
+     * @param parameters the body of the request with the template parameters that will be used to create the target. The body must
      *                   contain at least a {@code env} and {@code site_name} parameter. Other required parameters depend on the
      *                   template used.
      *

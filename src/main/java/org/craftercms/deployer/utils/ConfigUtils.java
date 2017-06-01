@@ -204,7 +204,7 @@ public class ConfigUtils {
     }
 
     /**
-     * Returns the specified String array property from the configuration. A String array property are normally specified as
+     * Returns the specified String array property from the configuration. A String array property is normally specified as
      * a String with values being separated by commas in the configuration.
      *
      * @param config    the configuration
@@ -224,7 +224,7 @@ public class ConfigUtils {
 
     /**
      * Returns the specified String array property from the configuration. If the property is missing a
-     * {@link MissingConfigurationPropertyException} is thrown. A String array property are normally specified as
+     * {@link MissingConfigurationPropertyException} is thrown. A String array property is normally specified as
      * a String with values being separated by commas in the configuration.
      *
      * @param config    the configuration

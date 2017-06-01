@@ -23,8 +23,8 @@ import java.io.IOException;
 import java.lang.reflect.Array;
 
 /**
- * Handlebars helper class that provides conditional list iteration, which means that will only iterate if it's an {@code Iterable}
- * or array, and will do normal Handlebars processing otherwise.
+ * Handlebars helper class that provides conditional list iteration, which means that it will only iterate if it's an {@code Iterable}
+ * or an array, and will do normal Handlebars processing otherwise.
  *
  * @author avasquez
  */

@@ -1,6 +1,6 @@
 language: java
 jdk:
-  - oraclejdk8
+- oraclejdk8
 branches:
   except:
   - travis
@@ -13,9 +13,10 @@ notifications:
   slack: craftersoftware:7YiSb41ZG5rfMgiAY7Qgprc7
 env:
   global:
-    - secure: OYxMQn4cbp3tIEhcA3m3nuzO450Cmet5Rr+l483u4ivpAB8j30yNMlzH3Znnj9QPK6CAhFI4wMD3UOpBKciHfmydzO+sG0xEaNYShB/959R68djtimnZc3TOh0rpwN5bFAXMbzwDzXgbOVkiLrj+B/4PPXqxW16kjQ3tPs/vlvZKiThXtZjKf+74lvDeEKhTBgqYTuq5WU2XFhzuuIGXRNBphEAW4OoV6eigDpJSKuuOUh0+qgfvmL+4LeeHrDfocpuHCirQkqsZUYEdizvJOs5rHl2suRDX2dXSSZ8PyoaMKCYBzPkaJgziichu6CKZhAv/iT2m2F3aVRl4KTVp9j6MfWUK5sN7r3TzaDiKbuvuLCUAAxkdMaEdviSsTr5KdCbCMubYxtIQ/nbTirx66uX12GdJeJ58Mc4hKCrQ51Q7IPHGpHCieTJtiOXcGhxtkFqgb92bD7+XXq+7PBiTQ1fkmCII6GaCLthPGDddvYhrewcPkGKD0qE0ES/Q0HdXzRVlZwuB2tAHbeHSFvp5wrHRn+dv5DHe3K/bmbjEat3hCDzGBGh9rhsoqdr8H2/UjUc5DfK3MAEJINLZC/o7gL1dDewcNh2WTn7zdrqs2BdUvpeS1mk5aO14QQf9pQZ5gXsHVvIMQ4OBgL/Ur3MF5xsev1nhNTUnAnSMdH5Gmzw=
-    - secure: JJI1BcTk8p2tzVAqgwu0wvZCtJGuJdidU3G/B8ik6yUGn7b8tP88D/KkJjYIcsWOZXV2BZgiDb8TqQifhI+wD7TwYRvEehvxbs/9JCyeYXK4FA+SGtH4Qx1xbjR8V3nUxUlckkj4bt5Y5D5XCMaG7wQeQch8kwTSOaOY9zBPuPxqztfQiBE7u99zuWbTb7UPXoqL3ie+6J8NnmX9phqOWiXbHh0nP8IIQPORkBhZ0ZF6VNcGqsB/vJOSOz9dFQvw4OCK2g5tymXdzSohSuKC0A4w65sntw1QlthjP41J7NZNHg75EPl54YHtGh22oiiGn5CvsorevMotAs/wpGnHlEFPEEjvM4RHVIL6yafS3YXfZ0SrlfLj48EYG/smbeX4FJeSmB3s4gQky8tXSWWKT6aDnf20y2fBLy1NtFIacrPybjF/90JAVA5SEYQ3jHJDgRZPu1nust5WJ7J4+gULImdSU1Bf1B+mIT5gXW824b7QrUYolL9RsXx4UrBlQiEZqMq0vgdyubJnZvB3B0Ipv1c33A02G/+8Hhx8vwSE44Mf7QlpXW6A+0hzyJqvN25ore2f52td9wHWFCy75Wn8wGoT0yte/y6TgOV3fvs3EQQeNDNCxjaf6hHanK7Z2sDtKvnbUcU09k72bO+I/9TC2ah/I3x0SZaGIJg/N7ARn7I=
+    secure: nNcO1FT071EJMMAlmJEOZm2HXn+GhleAJO8pLv0ReOk4RC3uYE2t7igsoPrIlkTXOK6c//EpIPXUgcjkHSTi55FY9DdPVT3trnMdOv693uXsLuiX3ck3ugaAkIuOyyLNn+SP7fYrpabuMwwRLkJJIKeTA+2CdLgbQuX2iQwgBfjbSIRMxNGv6yfW5OZLrcmR4uFUoAttPmGdrmHut2z7nm3n+5Ebj9p2CAUcGoI8FZROw4fnLb9uctsRRgASkcQd9Y1OKyzfAaBhWmVQnMmfMJ+1OUoMs2y+1niXp3qWzRL9B4pTdp6hch9f2BSux71nwm39U/sN13bZmSYfND+VF0+RaR98Eu4TBduzUdweShn2DeBKJK8u1WVYQ46qoI7X2sGv+pHn6nY5EpesEBmXB/xp6i7X1DNlNzClwci+DH9IHOPcKqE4i1z6N6TzaW4rEkFrlfH9xO/eMe3iX3QyK+Fq5D7gImUhRLWC2lAoNQCaCzsvmbptUuPioDh3XFLqM0/z08BgxfmvdLnni6c99VmFPJOL8ojcpeM6xjOONmQFO1kttRLkmRRTEowrWVFsINisjmg9GNDCJR3Q1A5wTJOgNsHfcC/oTw0BeBAy5t4xsJr0rI1oS5k6T50oQiVy7FggPer+Y1fjRQJ0DzwdnahCpMxyXyxUMDVXEYRe+ak=
+    secure: oVOnp9eogj+mKLUV1bNSpqreZ0y4NscodA+L8mpnvY8vY057xxSw+k9TND4z7DIHRUAwoec5fhAiRxTvwfPnDK73KYd26smJjAyDqKfrnVArEdWR3eg5tNcZnnUXZBXkvWgeNnJSKUTaGlmF8r3yruNS5vYuuNLzH7NCC5mRH0NYdCfLnQ5pqwPKtiiykeyoSJMe/5a/TmjqCCPYqfdL+OHg48Y4fGE0s5dV5/b0ZhUqVZtReXpMLrLV+/eaUkW6bE6U5ZagQ0cImVWusV2ggo6yz7wEKjlTuUOIYTzNXUfoE2pbHP5iaDKsn88mBWdgYMIf5cYyxcZHKjkg/6ZjX2+l0NtRyBgXlc6ek01L4mcvIt9KB71vQNPhY6ZNizLJDiTfeoKsKmf44278sOkmCWhFE23Htv9j3jqOcZhgp8kKt/hbTr5paTwR/8cu72DoYBind5YcKEx8hfoaqMGPiuaDCdnxN1uDIlqzY9d2Djvaagg2bugZGuwJoOYcjdedBS0quSn//eHU4+MCA7TmA++MdRUmAr4cEiGqW0GbVQtlMxCfbtM08YWwrYqNfXK4las96vJNirkZWBttlYvPBtYL6tLC3wIHgk78wnKRJg0mtlhQ5a6qBMa5iV9y37TeIodxzPEV37JaFgLTetqVVsOksrj5i5qPHeQey/911CA=
 before_install: git clone -b travis `git config --get remote.origin.url` target/travis
 script:
-  - if [[ "$TRAVIS_PULL_REQUEST" = "false" ]]; then bash -c  "mvn deploy --settings target/travis/settings.xml";  fi
-  - if [[ "$TRAVIS_PULL_REQUEST" = "false" ]]; then bash -c "mvn clean install" ;fi
+- if [[ "$TRAVIS_PULL_REQUEST" = "false" ]]; then bash -c  "mvn deploy --settings
+  target/travis/settings.xml";  fi
+- if [[ "$TRAVIS_PULL_REQUEST" = "false" ]]; then bash -c "mvn clean install" ;fi

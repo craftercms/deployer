@@ -32,11 +32,14 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ResourceLoader;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
@@ -50,6 +53,7 @@ import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCAT
  * @author avasquez
  */
 @SpringBootApplication
+@EnableAsync
 @EnableScheduling
 @ImportResource(CORE_APP_CONTEXT_LOCATION)
 public class DeployerApplication extends WebMvcConfigurerAdapter implements SchedulingConfigurer  {
@@ -126,6 +130,13 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 		taskScheduler.setPoolSize(schedulerPoolSize);
 
 		return taskScheduler;
+	}
+
+	@Bean(destroyMethod="shutdown")
+	public TaskExecutor taskExecutor() {
+		ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
+		taskExecutor.setMaxPoolSize(schedulerPoolSize);
+		return taskExecutor;
 	}
 
 	@Bean

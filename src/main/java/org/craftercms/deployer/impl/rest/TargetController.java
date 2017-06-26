@@ -20,6 +20,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.lang3.StringUtils;
@@ -27,7 +28,6 @@ import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
-import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
@@ -65,6 +65,8 @@ public class TargetController {
 
     public static final String REPLACE_PARAM_NAME = "replace";
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
+
+    public static final String DEPLOYMENT_STARTED_MESSAGE = "Deployment process has been started";
 
     protected TargetService targetService;
     protected DeploymentService deploymentService;
@@ -182,16 +184,17 @@ public class TargetController {
      * @throws DeployerException if an error occurred
      */
     @RequestMapping(value = DEPLOY_TARGET_URL, method = RequestMethod.POST)
-    public ResponseEntity<Deployment> deployTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
+    public ResponseEntity<Result> deployTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
                                                    @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
-                                                   @RequestBody(required = false) Map<String, Object> params) throws DeployerException {
+                                                   @RequestBody(required = false) Map<String, Object> params)
+                            throws DeployerException, ExecutionException, InterruptedException {
         if (params == null) {
             params = new HashMap<>();
         }
 
-        Deployment deployment = deploymentService.deployTarget(env, siteName, params);
+        deploymentService.deployTarget(env, siteName, params);
 
-        return new ResponseEntity<>(deployment, new HttpHeaders(), HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Result(DEPLOYMENT_STARTED_MESSAGE));
     }
 
     /**
@@ -202,15 +205,15 @@ public class TargetController {
      * @throws DeployerException if an error occurred
      */
     @RequestMapping(value = DEPLOY_ALL_TARGETS_URL, method = RequestMethod.POST)
-    public ResponseEntity<List<Deployment>> deployAllTargets(
+    public ResponseEntity<Result> deployAllTargets(
         @RequestBody(required = false) Map<String, Object> params) throws DeployerException {
         if (params == null) {
             params = new HashMap<>();
         }
 
-        List<Deployment> deployments = deploymentService.deployAllTargets(params);
+        deploymentService.deployAllTargets(params);
 
-        return new ResponseEntity<>(deployments, new HttpHeaders(), HttpStatus.OK);
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Result(DEPLOYMENT_STARTED_MESSAGE));
     }
 
 }

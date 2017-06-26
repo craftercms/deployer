@@ -29,6 +29,8 @@ import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.AsyncResult;
@@ -41,6 +43,8 @@ import org.springframework.stereotype.Component;
  */
 @Component("deploymentService")
 public class DeploymentServiceImpl implements DeploymentService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
     protected final TargetService targetService;
 
@@ -56,7 +60,9 @@ public class DeploymentServiceImpl implements DeploymentService {
         try {
             targets = targetService.getAllTargets();
         } catch (TargetServiceException e) {
-            throw new DeploymentServiceException("Unable to retrieve list of targets", e);
+            String message = "Unable to retrieve list of targets";
+            logger.error(message, e);
+            throw new DeploymentServiceException(message, e);
         }
 
         List<Deployment> deployments = new ArrayList<>();
@@ -74,11 +80,13 @@ public class DeploymentServiceImpl implements DeploymentService {
     @Async
     @Override
     public Future<Deployment> deployTarget(String env, String siteName,
-                                          Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException {
+                                          Map<String, Object> params) throws DeploymentServiceException {
         try {
             return AsyncResult.forValue(targetService.getTarget(env, siteName).deploy(params));
-        } catch (TargetServiceException e) {
-            throw new DeploymentServiceException("Error while deploying target for env = " + env + " site = " + siteName, e);
+        } catch (TargetNotFoundException | TargetServiceException e) {
+            String message = "Error while deploying target for env = " + env + " site = " + siteName;
+            logger.error(message, e);
+            throw new DeploymentServiceException(message, e);
         }
     }
 

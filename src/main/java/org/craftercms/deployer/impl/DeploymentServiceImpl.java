@@ -20,6 +20,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
+import java.util.concurrent.FutureTask;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
@@ -29,11 +30,8 @@ import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.AsyncResult;
+import org.springframework.core.task.TaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -44,50 +42,52 @@ import org.springframework.stereotype.Component;
 @Component("deploymentService")
 public class DeploymentServiceImpl implements DeploymentService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
-
     protected final TargetService targetService;
+    protected final TaskExecutor taskExecutor;
 
     @Autowired
-    public DeploymentServiceImpl(TargetService targetService) {
+    public DeploymentServiceImpl(TargetService targetService, TaskExecutor taskExecutor) {
         this.targetService = targetService;
+        this.taskExecutor = taskExecutor;
     }
 
-    @Async
     @Override
-    public Future<List<Deployment>> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException {
+    public List<Future<Deployment>> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException {
         List<Target> targets;
         try {
             targets = targetService.getAllTargets();
         } catch (TargetServiceException e) {
-            String message = "Unable to retrieve list of targets";
-            logger.error(message, e);
-            throw new DeploymentServiceException(message, e);
+            throw new DeploymentServiceException("Unable to retrieve list of targets", e);
         }
 
-        List<Deployment> deployments = new ArrayList<>();
+        List<Future<Deployment>> deployments = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(targets)) {
             for (Target target : targets) {
-                Deployment deployment = target.deploy(params);
+                FutureTask<Deployment> deployment = startDeployment(target, params);
                 deployments.add(deployment);
-            };
+            }
         }
 
-        return AsyncResult.forValue(deployments);
+        return deployments;
     }
 
-    @Async
     @Override
-    public Future<Deployment> deployTarget(String env, String siteName,
-                                          Map<String, Object> params) throws DeploymentServiceException {
+    public Future<Deployment> deployTarget(String env, String siteName, Map<String, Object> params)
+                                throws TargetNotFoundException, DeploymentServiceException {
         try {
-            return AsyncResult.forValue(targetService.getTarget(env, siteName).deploy(params));
-        } catch (TargetNotFoundException | TargetServiceException e) {
-            String message = "Error while deploying target for env = " + env + " site = " + siteName;
-            logger.error(message, e);
-            throw new DeploymentServiceException(message, e);
+            Target target = targetService.getTarget(env, siteName);
+            FutureTask<Deployment> deployment = startDeployment(target, params);
+            return deployment;
+        } catch (TargetServiceException e) {
+            throw new DeploymentServiceException("Error while deploying target for env = " + env + " site = " + siteName, e);
         }
+    }
+
+    protected FutureTask<Deployment> startDeployment(Target target, Map<String, Object> params) {
+        FutureTask<Deployment> task = new FutureTask<>(() -> target.deploy(params));
+        taskExecutor.execute(task);
+        return task;
     }
 
 }

@@ -145,17 +145,17 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         try {
             if (CollectionUtils.isNotEmpty(createdFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(indexId, siteName, contentStoreService, context, updateSet, updateStatus);
+                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet, updateStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(updatedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(indexId, siteName, contentStoreService, context, updateSet, updateStatus);
+                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet, updateStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(deletedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(indexId, siteName, contentStoreService, context, updateSet, updateStatus);
+                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet, updateStatus);
                 }
             }
 

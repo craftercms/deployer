@@ -71,19 +71,17 @@
     </bean>
     
     <bean id="xmlFileBatchIndexer" class="org.craftercms.search.batch.impl.XmlFileBatchIndexer">
-        <property name="searchService" ref="searchService"/>
         <property name="includePathPatterns"
                   value="#{environment.getProperty('target.search.indexing.xml.includePatterns', T(java.util.List))}"/>
         <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
     </bean>
 
     <bean id="binaryFileBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileBatchIndexer">
-        <property name="searchService" ref="searchService"/>
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
     </bean>
 
-    <bean id="searchService" class="org.craftercms.search.service.impl.RestClientSearchService">
+    <bean id="searchService" class="org.craftercms.search.service.impl.SolrRestClientSearchService">
         <property name="serverUrl" value="${target.search.serverUrl}"/>
     </bean>
 

@@ -20,7 +20,6 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.Future;
-import java.util.concurrent.FutureTask;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
@@ -31,7 +30,7 @@ import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.TaskExecutor;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -43,10 +42,10 @@ import org.springframework.stereotype.Component;
 public class DeploymentServiceImpl implements DeploymentService {
 
     protected final TargetService targetService;
-    protected final TaskExecutor taskExecutor;
+    protected final AsyncTaskExecutor taskExecutor;
 
     @Autowired
-    public DeploymentServiceImpl(TargetService targetService, TaskExecutor taskExecutor) {
+    public DeploymentServiceImpl(TargetService targetService, AsyncTaskExecutor taskExecutor) {
         this.targetService = targetService;
         this.taskExecutor = taskExecutor;
     }
@@ -64,7 +63,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         if (CollectionUtils.isNotEmpty(targets)) {
             for (Target target : targets) {
-                FutureTask<Deployment> deployment = startDeployment(target, params);
+                Future<Deployment> deployment = taskExecutor.submit(() -> target.deploy(params));
                 deployments.add(deployment);
             }
         }
@@ -77,17 +76,11 @@ public class DeploymentServiceImpl implements DeploymentService {
                                 throws TargetNotFoundException, DeploymentServiceException {
         try {
             Target target = targetService.getTarget(env, siteName);
-            FutureTask<Deployment> deployment = startDeployment(target, params);
+            Future<Deployment> deployment = taskExecutor.submit(() -> target.deploy(params));
             return deployment;
         } catch (TargetServiceException e) {
             throw new DeploymentServiceException("Error while deploying target for env = " + env + " site = " + siteName, e);
         }
-    }
-
-    protected FutureTask<Deployment> startDeployment(Target target, Map<String, Object> params) {
-        FutureTask<Deployment> task = new FutureTask<>(() -> target.deploy(params));
-        taskExecutor.execute(task);
-        return task;
     }
 
 }

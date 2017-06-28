@@ -66,8 +66,6 @@ public class TargetController {
     public static final String REPLACE_PARAM_NAME = "replace";
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
 
-    public static final String DEPLOYMENT_STARTED_MESSAGE = "Deployment process has been started";
-
     protected TargetService targetService;
     protected DeploymentService deploymentService;
 
@@ -194,7 +192,7 @@ public class TargetController {
 
         deploymentService.deployTarget(env, siteName, params);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Result(DEPLOYMENT_STARTED_MESSAGE));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Result.OK);
     }
 
     /**
@@ -213,7 +211,7 @@ public class TargetController {
 
         deploymentService.deployAllTargets(params);
 
-        return ResponseEntity.status(HttpStatus.ACCEPTED).body(new Result(DEPLOYMENT_STARTED_MESSAGE));
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Result.OK);
     }
 
 }

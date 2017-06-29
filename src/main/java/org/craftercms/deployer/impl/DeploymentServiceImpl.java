@@ -19,17 +19,18 @@ package org.craftercms.deployer.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
-import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -41,14 +42,16 @@ import org.springframework.stereotype.Component;
 public class DeploymentServiceImpl implements DeploymentService {
 
     protected final TargetService targetService;
+    protected final AsyncTaskExecutor taskExecutor;
 
     @Autowired
-    public DeploymentServiceImpl(TargetService targetService) {
+    public DeploymentServiceImpl(TargetService targetService, AsyncTaskExecutor taskExecutor) {
         this.targetService = targetService;
+        this.taskExecutor = taskExecutor;
     }
 
     @Override
-    public List<Deployment> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException {
+    public List<Future<Deployment>> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException {
         List<Target> targets;
         try {
             targets = targetService.getAllTargets();
@@ -56,23 +59,25 @@ public class DeploymentServiceImpl implements DeploymentService {
             throw new DeploymentServiceException("Unable to retrieve list of targets", e);
         }
 
-        List<Deployment> deployments = new ArrayList<>();
+        List<Future<Deployment>> deployments = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(targets)) {
             for (Target target : targets) {
-                Deployment deployment = target.deploy(params);
+                Future<Deployment> deployment = taskExecutor.submit(() -> target.deploy(params));
                 deployments.add(deployment);
-            };
+            }
         }
 
         return deployments;
     }
 
     @Override
-    public Deployment deployTarget(String env, String siteName,
-                                   Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException {
+    public Future<Deployment> deployTarget(String env, String siteName, Map<String, Object> params)
+                                throws TargetNotFoundException, DeploymentServiceException {
         try {
-            return targetService.getTarget(env, siteName).deploy(params);
+            Target target = targetService.getTarget(env, siteName);
+            Future<Deployment> deployment = taskExecutor.submit(() -> target.deploy(params));
+            return deployment;
         } catch (TargetServiceException e) {
             throw new DeploymentServiceException("Error while deploying target for env = " + env + " site = " + siteName, e);
         }

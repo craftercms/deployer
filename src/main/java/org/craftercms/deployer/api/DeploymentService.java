@@ -18,8 +18,8 @@ package org.craftercms.deployer.api;
 
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.Future;
 
-import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 
@@ -39,7 +39,7 @@ public interface DeploymentService {
      *
      * @throws DeploymentServiceException if there was an error while executing the deployments
      */
-    List<Deployment> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException;
+    List<Future<Deployment>> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException;
 
     /**
      * Deploys a single target
@@ -50,10 +50,9 @@ public interface DeploymentService {
      *
      * @return the deployment info
      *
-     * @throws TargetNotFoundException if a target for the specified env and site name can't be found
      * @throws DeploymentServiceException if there was an error while executing the deployments
      */
-    Deployment deployTarget(String env, String siteName,
+    Future<Deployment> deployTarget(String env, String siteName,
                             Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException;
 
 }

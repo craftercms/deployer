@@ -100,7 +100,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public static final String TARGET_ID_FORMAT = "%s-%s";
     public static final String TARGET_ID_MODEL_KEY = "target_id";
 
-    protected Pattern targetIdPattern;
     protected File targetConfigFolder;
     protected Resource baseTargetYamlConfigResource;
     protected Resource baseTargetYamlConfigOverrideResource;
@@ -115,7 +114,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected Set<Target> loadedTargets;
 
     public TargetServiceImpl(
-        @Value("${deployer.main.targets.idPattern}") String targetIdPattern,
         @Value("${deployer.main.targets.config.folderPath}") File targetConfigFolder,
         @Value("${deployer.main.targets.config.baseYaml.location}") Resource baseTargetYamlConfigResource,
         @Value("${deployer.main.targets.config.baseYaml.overrideLocation}") Resource baseTargetYamlConfigOverrideResource,
@@ -127,7 +125,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
         @Autowired TaskScheduler taskScheduler,
         @Autowired ProcessedCommitsStore processedCommitsStore) throws IOException {
-        this.targetIdPattern = Pattern.compile(targetIdPattern);
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;

@@ -1,42 +1,75 @@
+####################################################
+##       DEPLOYER SYSTEM CONFIGURATION FILE       ##
+####################################################
+
+####################################################
+##                Server Properties               ##
+####################################################
 server:
+  # The port number where the server will be listening
   port: 9191
 
+####################################################
+##                Spring Properties               ##
+####################################################
 spring:
   freemarker:
+    # If Spring should check it's default template location (always false since we handle our own Freemarker templates)
     checkTemplateLocation: false
 
+####################################################
+##               Deployer Properties              ##
+####################################################
 deployer:
   main:
+    # The base path where all files will be located
     homePath: .
     config:
+      # The base config folder path
       folderPath: ${deployer.main.homePath}/config
     targets:
-      idPattern: (\w+)\-?(\w?)
       config:
+        # The folder path for target configuration files
         folderPath: ${deployer.main.config.folderPath}/targets
         baseYaml:
+          # The location (Spring URL) of the base YAML configuration for targets
           location: classpath:base-target.yaml
+          # The override location (Spring URL) of the base YAML configuration for targets
           overrideLocation: file:${deployer.main.config.folderPath}/base-target.yaml
         baseContext:
+          # The location (Spring URL) of the base Spring context file for targets
           location: classpath:base-target-context.xml
+          # The override location (Spring URL) of the base Spring context file for targets
           overrideLocation: file:${deployer.main.config.folderPath}/base-target-context.xml
         templates:
+          # The location (Spring URL) where target YAML templates can be found. Target templates are used to create new targets.
           location: classpath:templates/targets
+          # The override location (Spring URL) where target YAML templates can be found. Target templates are used to create new targets.
           overrideLocation: file:${deployer.main.config.folderPath}/templates/targets
+          # The encoding used to read the templates
           encoding: UTF-8
+          # The name of the default template
           default: default
+          # The suffix used to resolve the final name of a target template
           suffix: -target-template.yaml
       scan:
         scheduling:
+          # If scheduled scanning of new/updated targets should be enabled
           enabled: true
+          # The cron expression used on scheduled scanning of new/updated targets.
           cron: '0 * * * * *'
     deployments:
+      # The folder path where site deployments are placed
       folderPath: ${deployer.main.homePath}/deployments
       output:
+        # The folder path where deployment output files are written to
         folderPath: ${deployer.main.homePath}/logs
       processedCommits:
+        # The folder path where processed commit files are stored
         folderPath: ${deployer.main.homePath}/processed-commits
     logging:
+      # The folder path where log files are written to
       folderPath: ${deployer.main.homePath}/logs
     scheduling:
+      # Thread pool size used when scheduling deployments
       poolSize: 10

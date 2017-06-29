@@ -1,25 +1,40 @@
+####################################################
+##          BASE TARGET CONFIGURATION FILE        ##
+####################################################
+
 target:
+  # The local folder path where the target repository will be placed
   localRepoPath: ${deployer.main.deployments.folderPath}/${target.env}/${target.siteName}
+  # The default timestamp pattern that will be used in filenames
   defaultTimestampPattern: yyyyMMddHHmmssSSS
+  # The default datetime pattern that will be used
   defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
   deployment:
     scheduling:
+      # If scheduling of target deployments is enabled
       enabled: true
+      # The cron expression used for scheduling target deployments
       cron: '0 * * * * *'
   git:
     pull:
+      # If when pulling a remote Git repository rebase should be used instead of merge
       useRebase: false
   search:
+    # The base URL of the Crafter Search server
     serverUrl: http://localhost:8080/crafter-search
     indexing:
       xml:
         flattening:
+          # If XML flattening should be done when indexing XML
           enabled: true
         merging:
+          # If XML merging should be done when indexing XML
           enabled: true
+        # The regex patterns of the XML files that should be included for indexing
         includePatterns:
           - ^/?site/.+\.xml$
       binary:
+        # The list of binary file mime types that should be indexed
         supportedMimeTypes:
           - application/pdf
           - application/msword
@@ -30,15 +45,26 @@ target:
   notifications:
     mail:
       server:
+        # The hostname of the mail server used to send notifications
         host: localhost
+        # The port of the mail server used to send notifications
         port: 25
+      # The mail protocol used on notifications
       protocol: smtp
+      # The character encoding used on emails
       encoding: UTF-8
       templates:
+        # The location (Spring URL) of  the mail templates
         location: classpath:templates/mail
+        # The override location (Spring URL) of  the mail templates
         overrideLocation: file:${deployer.main.config.folderPath}/templates/mail
+        # The name of the default mail template
         default: default
+        # The suffix used to resolve the final name of a mail template
         suffix: -mail-template.ftl
+      # The from field to use in the emails
       from: noreply@craftersoftware.com
+      # The subject field to use in the emails
       subject: Deployment Report
+      # If emails should be HTML emails
       html: false

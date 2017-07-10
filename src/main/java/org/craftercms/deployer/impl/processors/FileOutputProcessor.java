@@ -22,7 +22,6 @@ import java.io.File;
 import java.io.IOException;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -42,7 +41,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(FileOutputProcessor.class);
 
-    public static final String OUTPUT_FILE_ATTRIBUTE_NAME = "outputFile";
+    public static final String OUTPUT_FILE_PARAM_NAME = "outputFile";
 
     protected File outputFolder;
     protected String timestampPattern;
@@ -91,7 +90,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doExecute(Deployment deployment, Map<String, Object> params) throws DeployerException {
+    protected void doExecute(Deployment deployment) throws DeployerException {
         File outputFile = getOutputFile(deployment);
 
         try {
@@ -100,7 +99,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
             throw new DeployerException("Error while writing deployment output file " + outputFile, e);
         }
 
-        deployment.addAttribute(OUTPUT_FILE_ATTRIBUTE_NAME, outputFile);
+        deployment.addParam(OUTPUT_FILE_PARAM_NAME, outputFile);
 
         logger.info("Successfully wrote deployment output to {}", outputFile);
     }

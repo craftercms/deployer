@@ -68,8 +68,8 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	private boolean scheduledTargetScanEnabled;
 	@Value("${deployer.main.targets.scan.scheduling.cron}")
 	private String scheduledTargetScanCron;
-	@Value("${deployer.main.scheduling.poolSize}")
-	private int schedulerPoolSize;
+	@Value("${deployer.main.taskScheduler.poolSize}")
+	private int taskSchedulerPoolSize;
 	@Value("${deployer.main.targets.config.templates.location}")
 	private String targetConfigTemplatesLocation;
 	@Value("${deployer.main.targets.config.templates.overrideLocation}")
@@ -125,16 +125,9 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	@Bean(destroyMethod="shutdown")
 	public TaskScheduler taskScheduler() {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
-		taskScheduler.setPoolSize(schedulerPoolSize);
+		taskScheduler.setPoolSize(taskSchedulerPoolSize);
 
 		return taskScheduler;
-	}
-
-	@Bean(destroyMethod="shutdown")
-	public AsyncTaskExecutor taskExecutor() {
-		ThreadPoolTaskExecutor taskExecutor = new ThreadPoolTaskExecutor();
-		taskExecutor.setMaxPoolSize(schedulerPoolSize);
-		return taskExecutor;
 	}
 
 	@Bean

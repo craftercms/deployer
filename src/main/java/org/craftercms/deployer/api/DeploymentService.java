@@ -39,7 +39,7 @@ public interface DeploymentService {
      *
      * @throws DeploymentServiceException if there was an error while executing the deployments
      */
-    List<Future<Deployment>> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException;
+    List<Deployment> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException;
 
     /**
      * Deploys a single target
@@ -52,7 +52,7 @@ public interface DeploymentService {
      *
      * @throws DeploymentServiceException if there was an error while executing the deployments
      */
-    Future<Deployment> deployTarget(String env, String siteName,
+    Deployment deployTarget(String env, String siteName,
                             Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException;
 
 }

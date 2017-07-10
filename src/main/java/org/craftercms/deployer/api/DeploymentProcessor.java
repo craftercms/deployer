@@ -48,8 +48,7 @@ public interface DeploymentProcessor {
      * Executes the processor
      *
      * @param deployment    the current deployment info
-     * @param params        additional parameters that can be used by the processor
      */
-    void execute(Deployment deployment, Map<String, Object> params);
+    void execute(Deployment deployment);
 
 }

@@ -129,7 +129,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException {
+                                  ChangeSet filteredChangeSet) throws DeployerException {
         logger.info("Performing search indexing...");
 
         ChangeSet changeSet = deployment.getChangeSet();

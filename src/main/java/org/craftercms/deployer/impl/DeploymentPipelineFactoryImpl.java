@@ -22,7 +22,6 @@ import java.util.List;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
-import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
@@ -47,7 +46,7 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
     public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ConfigurableApplicationContext applicationContext,
                                           String pipelinePropertyName) throws DeployerException {
         List<HierarchicalConfiguration> processorConfigs = ConfigUtils.getRequiredConfigurationsAt(configuration, pipelinePropertyName);
-        List<DeploymentProcessor> processors = new ArrayList<>();
+        List<DeploymentProcessor> deploymentProcessors = new ArrayList<>();
 
         for (HierarchicalConfiguration processorConfig : processorConfigs) {
             String processorName = ConfigUtils.getRequiredStringProperty(processorConfig, PROCESSOR_NAME_CONFIG_KEY);
@@ -58,7 +57,7 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
                 DeploymentProcessor processor = applicationContext.getBean(processorName, DeploymentProcessor.class);
                 processor.init(processorConfig);
 
-                processors.add(processor);
+                deploymentProcessors.add(processor);
             } catch (NoSuchBeanDefinitionException e) {
                 throw new DeployerException("No processor prototype bean found with name '" + processorName + "'", e);
             } catch (Exception e) {
@@ -66,7 +65,7 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
             }
         }
 
-        return new DeploymentPipelineImpl(processors);
+        return new DeploymentPipelineImpl(deploymentProcessors);
     }
 
 }

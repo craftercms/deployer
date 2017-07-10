@@ -18,12 +18,18 @@ package org.craftercms.deployer.impl;
 
 import java.io.File;
 import java.time.ZonedDateTime;
-import java.util.HashMap;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.Map;
+import java.util.Queue;
+import java.util.concurrent.Future;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.locks.Lock;
-import java.util.concurrent.locks.ReentrantLock;
+import java.util.concurrent.ThreadPoolExecutor;
+import java.util.concurrent.TimeUnit;
 
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
@@ -52,9 +58,9 @@ public class TargetImpl implements Target {
     protected Configuration configuration;
     protected ConfigurableApplicationContext applicationContext;
     protected ZonedDateTime loadDate;
-    protected Lock lock;
-    protected ScheduledFuture<?> scheduledFuture;
-    protected volatile boolean scheduledDeploymentRunning;
+    protected ScheduledFuture<?> scheduledDeploymentFuture;
+    protected ThreadPoolExecutor deploymentExecutor;
+    protected volatile Deployment currentDeployment;
 
     public TargetImpl(String env, String siteName, String id, DeploymentPipeline deploymentPipeline, File configurationFile,
                       Configuration configuration, ConfigurableApplicationContext applicationContext) {
@@ -65,9 +71,8 @@ public class TargetImpl implements Target {
         this.configurationFile = configurationFile;
         this.configuration = configuration;
         this.applicationContext = applicationContext;
-        this.lock = new ReentrantLock();
         this.loadDate = ZonedDateTime.now();
-        this.scheduledDeploymentRunning = false;
+        this.deploymentExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
     }
 
     @Override
@@ -102,83 +107,117 @@ public class TargetImpl implements Target {
 
     @Override
     public Deployment deploy(Map<String, Object> params) {
-        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
+        Deployment deployment = new Deployment(this, params);
 
-        lock.lock();
-        try {
-            logger.info("------------------------------------------------------------");
-            logger.info("Deployment for '{}' started", id);
-            logger.info("------------------------------------------------------------");
+        deploymentExecutor.execute(new DeploymentTask(deployment));
 
-            Deployment deployment = deploymentPipeline.execute(this, params);
-
-            double durationInSecs = deployment.getDuration() / 1000.0;
-
-            logger.info("------------------------------------------------------------");
-            logger.info("Deployment for '{}' finished in {} secs", id, String.format("%.3f", durationInSecs));
-            logger.info("------------------------------------------------------------");
-
-            return deployment;
-        } finally {
-            lock.unlock();
-
-            MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
-        }
+        return deployment;
     }
 
     @Override
     public void scheduleDeployment(TaskScheduler scheduler, String cronExpression) {
-        lock.lock();
-        try {
-            scheduledFuture = scheduler.schedule(new ScheduledDeployTask(), new CronTrigger(cronExpression));
-        } finally {
-            lock.unlock();
+        scheduledDeploymentFuture = scheduler.schedule(new ScheduledDeploymentTask(), new CronTrigger(cronExpression));
+    }
+
+    @Override
+    public Collection<Deployment> getPendingDeployments() {
+        Queue<Runnable> deploymentTasks = deploymentExecutor.getQueue();
+        if (CollectionUtils.isNotEmpty(deploymentTasks)) {
+            List<Deployment> deployments = new ArrayList<>();
+            for (Runnable deploymentTask : deploymentTasks) {
+                Deployment deployment = ((DeploymentTask)deploymentTask).deployment;
+                deployments.add(deployment);
+            }
+
+            return deployments;
+        } else {
+            return new ArrayList<>();
         }
+    }
+
+    @Override
+    public Deployment getCurrentDeployment() {
+        return currentDeployment;
+    }
+
+    @Override
+    public Collection<Deployment> getAllDeployments() {
+        Collection<Deployment> deployments = getPendingDeployments();
+        deployments.add(getCurrentDeployment());
+
+        return deployments;
     }
 
     @Override
     public void close() {
         MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
 
-        lock.lock();
         try {
             logger.info("Closing target '{}'...", id);
 
+            if (scheduledDeploymentFuture != null) {
+                scheduledDeploymentFuture.cancel(true);
+            }
+
+            deploymentExecutor.shutdownNow();
+
             deploymentPipeline.destroy();
 
-            if (scheduledFuture != null) {
-                scheduledFuture.cancel(true);
-            }
             if (applicationContext != null) {
                 applicationContext.close();
             }
         } catch (Exception e) {
             logger.error("Failed to close '" + id + "'", e);
-        } finally {
-            lock.unlock();
-
-            MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
         }
+
+        MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
     }
 
-    protected class ScheduledDeployTask implements Runnable {
+    protected class ScheduledDeploymentTask implements Runnable {
+
+        protected volatile Future<?> scheduledDeploymentFuture;
 
         @Override
         public void run() {
-            if (!scheduledDeploymentRunning) {
-                lock.lock();
-                try {
-                    if (!scheduledDeploymentRunning) {
-                        scheduledDeploymentRunning = true;
-                        try {
-                            deploy(new HashMap<>());
-                        } finally {
-                            scheduledDeploymentRunning = false;
-                        }
-                    }
-                } finally {
-                    lock.unlock();
-                }
+            if (scheduledDeploymentFuture == null || scheduledDeploymentFuture.isDone()) {
+                Deployment deployment = new Deployment(TargetImpl.this);
+
+                scheduledDeploymentFuture = deploymentExecutor.submit(new DeploymentTask(deployment));
+            }
+        }
+
+    }
+
+    protected class DeploymentTask implements Runnable {
+
+        protected Deployment deployment;
+
+        public DeploymentTask(Deployment deployment) {
+            this.deployment = deployment;
+        }
+
+        @Override
+        public void run() {
+            currentDeployment = deployment;
+
+            MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
+
+            try {
+                logger.info("------------------------------------------------------------");
+                logger.info("Deployment for {} started", id);
+                logger.info("------------------------------------------------------------");
+
+                deploymentPipeline.execute(deployment);
+
+                double durationInSecs = deployment.getDuration() / 1000.0;
+
+                logger.info("------------------------------------------------------------");
+                logger.info("Deployment for {} finished in {} secs", id, String.format("%.3f", durationInSecs));
+                logger.info("------------------------------------------------------------");
+            } finally {
+                currentDeployment = null;
+
+                MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
             }
         }
 

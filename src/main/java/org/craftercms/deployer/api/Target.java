@@ -21,6 +21,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.io.File;
 import java.time.ZonedDateTime;
+import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
@@ -85,6 +86,24 @@ public interface Target {
      * @param cronExpression    the cron expression
      */
     void scheduleDeployment(TaskScheduler scheduler, String cronExpression);
+
+    /**
+     * Returns the pending deployments.
+     */
+    @JsonIgnore
+    Collection<Deployment> getPendingDeployments();
+
+    /**
+     * Returns the current deployment.
+     */
+    @JsonIgnore
+    Deployment getCurrentDeployment();
+
+    /**
+     * Returns all deployments (pending and current).
+     */
+    @JsonIgnore
+    Collection<Deployment> getAllDeployments();
 
     /**
      * Closes the target and releases any open resources.

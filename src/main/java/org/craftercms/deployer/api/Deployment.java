@@ -22,7 +22,6 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
@@ -39,19 +38,24 @@ public class Deployment {
     protected Target target;
     protected volatile ZonedDateTime start;
     protected volatile ZonedDateTime end;
-    protected volatile long duration;
     protected volatile Status status;
     protected volatile ChangeSet changeSet;
     protected List<ProcessorExecution> processorExecutions;
-    protected Lock statusesLock;
-    protected Map<String, Object> attributes;
+    protected Map<String, Object> params;
+    protected Lock lock;
 
     public Deployment(Target target) {
         this.target = target;
-        this.start = ZonedDateTime.now();
         this.processorExecutions = new ArrayList<>();
-        this.statusesLock = new ReentrantLock();
-        this.attributes = new ConcurrentHashMap<>();
+        this.params = new ConcurrentHashMap<>();
+        this.lock = new ReentrantLock();
+    }
+
+    public Deployment(Target target, Map<String, Object> params) {
+        this.target = target;
+        this.processorExecutions = new ArrayList<>();
+        this.params = new ConcurrentHashMap<>(params);
+        this.lock = new ReentrantLock();
     }
 
     /**
@@ -79,19 +83,23 @@ public class Deployment {
     }
 
     /**
-     * Returns the duration of the deployment.
-     */
-    @JsonProperty("duration")
-    public long getDuration() {
-        return duration;
-    }
-
-    /**
      * Returns true if the deployment is still running.
      */
     @JsonProperty("running")
     public boolean isRunning() {
-        return end == null;
+        return start != null && end == null;
+    }
+
+    /**
+     * Returns the duration of the deployment.
+     */
+    @JsonProperty("duration")
+    public Long getDuration() {
+        if (start != null && end != null) {
+            return start.until(end, ChronoUnit.MILLIS);
+        } else {
+            return null;
+        }
     }
 
     /**
@@ -126,13 +134,22 @@ public class Deployment {
     }
 
     /**
+     * Starts the deployment.
+     */
+    public void start() {
+        if (!isRunning()) {
+            this.end = null;
+            this.start = ZonedDateTime.now();
+        }
+    }
+
+    /**
      * Ends the deployment with the specified status.
      */
-    public void endDeployment(Status status) {
+    public void end(Status status) {
         if (isRunning()) {
             this.end = ZonedDateTime.now();
             this.status = status;
-            this.duration = start.until(end, ChronoUnit.MILLIS);
         }
     }
 
@@ -141,11 +158,11 @@ public class Deployment {
      */
     @JsonProperty("processor_executions")
     public List<ProcessorExecution> getProcessorExecutions() {
-        statusesLock.lock();
+        lock.lock();
         try {
             return new ArrayList<>(processorExecutions);
         } finally {
-            statusesLock.unlock();
+            lock.unlock();
         }
     }
 
@@ -153,32 +170,34 @@ public class Deployment {
      * Adds a {@link ProcessorExecution} to the list.
      */
     public void addProcessorExecution(ProcessorExecution status) {
-        statusesLock.lock();
+        lock.lock();
         try {
             processorExecutions.add(status);
         } finally {
-            statusesLock.unlock();
+            lock.unlock();
         }
     }
 
+
     /**
-     * Adds a miscellaneous attribute that can be used by processors during the deployment.
+     * Adds a param that can be used by processors during the deployment.
      *
-     * @param name  the name of the attribute
-     * @param value the value of the attribute
+     * @param name  the name of the param
+     * @param value the value of the param
      */
-    public void addAttribute(String name, Object value) {
-        attributes.put(name, value);
+    public void addParam(String name, Object value) {
+        params.put(name, value);
     }
 
     /**
-     * Returns a miscellaneous attribute that can be used by processors during the deployment.
+     * Returns a param that can be used by processors during the deployment.
      *
-     * @param name  the name of the attribute
-     * @return the value of the attribute
+     * @param name  the name of the param
+     *
+     * @return the value of the param
      */
-    public Object getAttribute(String name) {
-        return attributes.get(name);
+    public Object getParam(String name) {
+        return params.get(name);
     }
 
     public enum Status {

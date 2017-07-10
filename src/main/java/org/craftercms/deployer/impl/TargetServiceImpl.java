@@ -35,7 +35,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.regex.Pattern;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -295,10 +294,10 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             // Check if the YAML config file or the app context file have changed since target load.
             long yamlLastModified = configFile.exists() ? configFile.lastModified() : 0;
             long contextLastModified = contextFile.exists()? contextFile.lastModified() : 0;
-            long targetOpenedDate = target.getLoadDate().toInstant().toEpochMilli();
+            long targetLoadedDate = target.getLoadDate().toInstant().toEpochMilli();
 
             // Refresh if the files have been modified.
-            if (yamlLastModified >= targetOpenedDate || contextLastModified >= targetOpenedDate) {
+            if (yamlLastModified >= targetLoadedDate || contextLastModified >= targetLoadedDate) {
                 logger.info("Configuration files haven been updated for '{}'. The target will be reloaded.", target.getId());
 
                 target.close();

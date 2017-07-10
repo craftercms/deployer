@@ -99,8 +99,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException {
-        boolean reprocessAllFiles = getReprocessAllFilesParam(params);
+                                  ChangeSet filteredChangeSet) throws DeployerException {
+        boolean reprocessAllFiles = getReprocessAllFilesParam(deployment);
         if (reprocessAllFiles) {
             processedCommitsStore.delete(targetId);
 
@@ -255,13 +255,13 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         return path;
     }
 
-    protected boolean getReprocessAllFilesParam(Map<String, Object> params) {
-        if (MapUtils.isNotEmpty(params)) {
-            Object value = params.get(REPROCESS_ALL_FILES_PARAM_NAME);
+    protected boolean getReprocessAllFilesParam(Deployment deployment) {
+        Object value = deployment.getParam(REPROCESS_ALL_FILES_PARAM_NAME);
+        if (value != null) {
             if (value instanceof Boolean) {
                 return (Boolean)value;
             } else {
-                return value != null && BooleanUtils.toBoolean(value.toString());
+                return BooleanUtils.toBoolean(value.toString());
             }
         } else {
             return false;

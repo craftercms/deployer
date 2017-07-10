@@ -16,6 +16,7 @@
  */
 package org.craftercms.deployer.impl.rest;
 
+import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -28,6 +29,7 @@ import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
+import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
@@ -62,6 +64,12 @@ public class TargetController {
     public static final String DELETE_TARGET_URL = "/delete/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String DEPLOY_TARGET_URL = "/deploy/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String DEPLOY_ALL_TARGETS_URL = "/deploy-all";
+    public static final String GET_PENDING_DEPLOYMENTS_URL = "/deployments/get-pending/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                             "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String GET_CURRENT_DEPLOYMENT_URL = "/deployments/get-current/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                            "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String GET_ALL_DEPLOYMENTS_URL = "/deployments/get-all/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                         "{" + SITE_NAME_PATH_VAR_NAME + "}";
 
     public static final String REPLACE_PARAM_NAME = "replace";
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
@@ -183,8 +191,8 @@ public class TargetController {
      */
     @RequestMapping(value = DEPLOY_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Result> deployTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
-                                                   @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
-                                                   @RequestBody(required = false) Map<String, Object> params)
+                                               @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
+                                               @RequestBody(required = false) Map<String, Object> params)
                             throws DeployerException, ExecutionException, InterruptedException {
         if (params == null) {
             params = new HashMap<>();
@@ -198,13 +206,15 @@ public class TargetController {
     /**
      * Deploys all current {@link Target}s.
      *
+     * @param params    any additional parameters that can be used by the {@link org.craftercms.deployer.api.DeploymentProcessor}s, for
+     *                  example {@code reprocess_all_files}
+     *
      * @return the response entity with a 200 OK status
      *
      * @throws DeployerException if an error occurred
      */
     @RequestMapping(value = DEPLOY_ALL_TARGETS_URL, method = RequestMethod.POST)
-    public ResponseEntity<Result> deployAllTargets(
-        @RequestBody(required = false) Map<String, Object> params) throws DeployerException {
+    public ResponseEntity<Result> deployAllTargets(@RequestBody(required = false) Map<String, Object> params) throws DeployerException {
         if (params == null) {
             params = new HashMap<>();
         }
@@ -212,6 +222,76 @@ public class TargetController {
         deploymentService.deployAllTargets(params);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(Result.OK);
+    }
+
+    /**
+     * Gets the pending deployments for a target.
+     *
+     * @param env       the target's environment
+     * @param siteName  the target's site name
+     *
+     * @return the pending deployments for the target
+     *
+     * @throws DeployerException if an error occurred
+     */
+    @RequestMapping(value = GET_PENDING_DEPLOYMENTS_URL, method = RequestMethod.GET)
+    public ResponseEntity<Collection<Deployment>> getPendingDeployments(@PathVariable(ENV_PATH_VAR_NAME) String env,
+                                                                        @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
+        throws DeployerException {
+        Target target = targetService.getTarget(env, siteName);
+        Collection<Deployment> deployments = target.getPendingDeployments();
+
+        return new ResponseEntity<>(deployments,
+                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL +GET_PENDING_DEPLOYMENTS_URL,
+                                                                       env, siteName),
+                                    HttpStatus.OK);
+    }
+
+    /**
+     * Gets the current deployment for a target.
+     *
+     * @param env       the target's environment
+     * @param siteName  the target's site name
+     *
+     * @return the pending and current deployments for the target
+     *
+     * @throws DeployerException if an error occurred
+     */
+    @RequestMapping(value = GET_CURRENT_DEPLOYMENT_URL, method = RequestMethod.GET)
+    public ResponseEntity<Deployment> getCurrentDeployment(@PathVariable(ENV_PATH_VAR_NAME) String env,
+                                                           @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
+        throws DeployerException {
+        Target target = targetService.getTarget(env, siteName);
+        Deployment deployment = target.getCurrentDeployment();
+
+        return new ResponseEntity<>(deployment,
+                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_CURRENT_DEPLOYMENT_URL,
+                                                                       env, siteName),
+                                    HttpStatus.OK);
+    }
+
+
+    /**
+     * Gets all deployments for a target (pending and current).
+     *
+     * @param env       the target's environment
+     * @param siteName  the target's site name
+     *
+     * @return the pending and current deployments for the target
+     *
+     * @throws DeployerException if an error occurred
+     */
+    @RequestMapping(value = GET_ALL_DEPLOYMENTS_URL, method = RequestMethod.GET)
+    public ResponseEntity<Collection<Deployment>> getAllDeployments(@PathVariable(ENV_PATH_VAR_NAME) String env,
+                                                                    @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
+        throws DeployerException {
+        Target target = targetService.getTarget(env, siteName);
+        Collection<Deployment> deployments = target.getAllDeployments();
+
+        return new ResponseEntity<>(deployments,
+                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_ALL_DEPLOYMENTS_URL,
+                                                                       env, siteName),
+                                    HttpStatus.OK);
     }
 
 }

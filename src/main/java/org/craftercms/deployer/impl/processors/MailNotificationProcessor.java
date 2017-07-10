@@ -142,7 +142,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doExecute(Deployment deployment, Map<String, Object> params) throws DeployerException {
+    protected void doExecute(Deployment deployment) throws DeployerException {
         Map<String, Object> templateModel = new HashMap<>();
         templateModel.put(SERVER_NAME_MODEL_KEY, serverName);
         templateModel.put(TARGET_ID_MODEL_KEY, deployment.getTarget().getId());
@@ -150,7 +150,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
         templateModel.put(END_MODEL_KEY, deployment.getEnd().format(dateTimeFormatter));
         templateModel.put(STATUS_MODEL_KEY, deployment.getStatus());
 
-        File attachment = (File)deployment.getAttribute(FileOutputProcessor.OUTPUT_FILE_ATTRIBUTE_NAME);
+        File attachment = (File)deployment.getParam(FileOutputProcessor.OUTPUT_FILE_PARAM_NAME);
 
         templateModel.put(OUTPUT_ATTACHED_MODEL_KEY, attachment != null);
 

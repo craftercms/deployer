@@ -23,7 +23,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
-import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -37,16 +36,16 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
-    protected List<DeploymentProcessor> processors;
+    protected List<DeploymentProcessor> deploymentProcessors;
 
-    public DeploymentPipelineImpl(List<DeploymentProcessor> processors) {
-        this.processors = processors;
+    public DeploymentPipelineImpl(List<DeploymentProcessor> deploymentProcessors) {
+        this.deploymentProcessors = deploymentProcessors;
     }
 
     @Override
     public void destroy() throws DeployerException {
-        if (CollectionUtils.isNotEmpty(processors)) {
-            for (DeploymentProcessor processor : processors) {
+        if (CollectionUtils.isNotEmpty(deploymentProcessors)) {
+            for (DeploymentProcessor processor : deploymentProcessors) {
                 try {
                     processor.destroy();
                 } catch (Exception e) {
@@ -57,20 +56,18 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
     }
 
     @Override
-    public Deployment execute(Target target, Map<String, Object> params) {
-        Deployment deployment = new Deployment(target);
+    public void execute(Deployment deployment) {
+        deployment.start();
 
-        executeProcessors(deployment, params);
+        executeProcessors(deployment);
 
-        deployment.endDeployment(Deployment.Status.SUCCESS);
-
-        return deployment;
+        deployment.end(Deployment.Status.SUCCESS);
     }
 
-    protected void executeProcessors(Deployment deployment, Map<String, Object> params) {
-        if (CollectionUtils.isNotEmpty(processors)) {
-            for (DeploymentProcessor processor : processors) {
-                processor.execute(deployment, params);
+    protected void executeProcessors(Deployment deployment) {
+        if (CollectionUtils.isNotEmpty(deploymentProcessors)) {
+            for (DeploymentProcessor processor : deploymentProcessors) {
+                processor.execute(deployment);
             }
         }
     }

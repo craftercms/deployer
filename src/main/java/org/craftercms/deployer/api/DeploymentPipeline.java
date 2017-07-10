@@ -37,11 +37,8 @@ public interface DeploymentPipeline {
     /**
      * Does a deployment.
      *
-     * @param target    the target that needs to be deployed
-     * @param params    additional parameters that can be used by the processors of the pipeline
-     *
-     * @return the deployment info
+     * @param deployment    the deployment info
      */
-    Deployment execute(Target target, Map<String, Object> params);
+    void execute(Deployment deployment);
 
 }

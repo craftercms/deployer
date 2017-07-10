@@ -42,16 +42,14 @@ import org.springframework.stereotype.Component;
 public class DeploymentServiceImpl implements DeploymentService {
 
     protected final TargetService targetService;
-    protected final AsyncTaskExecutor taskExecutor;
 
     @Autowired
-    public DeploymentServiceImpl(TargetService targetService, AsyncTaskExecutor taskExecutor) {
+    public DeploymentServiceImpl(TargetService targetService) {
         this.targetService = targetService;
-        this.taskExecutor = taskExecutor;
     }
 
     @Override
-    public List<Future<Deployment>> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException {
+    public List<Deployment> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException {
         List<Target> targets;
         try {
             targets = targetService.getAllTargets();
@@ -59,11 +57,11 @@ public class DeploymentServiceImpl implements DeploymentService {
             throw new DeploymentServiceException("Unable to retrieve list of targets", e);
         }
 
-        List<Future<Deployment>> deployments = new ArrayList<>();
+        List<Deployment> deployments = new ArrayList<>();
 
         if (CollectionUtils.isNotEmpty(targets)) {
             for (Target target : targets) {
-                Future<Deployment> deployment = taskExecutor.submit(() -> target.deploy(params));
+                Deployment deployment = target.deploy(params);
                 deployments.add(deployment);
             }
         }
@@ -72,12 +70,10 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public Future<Deployment> deployTarget(String env, String siteName, Map<String, Object> params)
-                                throws TargetNotFoundException, DeploymentServiceException {
+    public Deployment deployTarget(String env, String siteName,
+                                   Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException {
         try {
-            Target target = targetService.getTarget(env, siteName);
-            Future<Deployment> deployment = taskExecutor.submit(() -> target.deploy(params));
-            return deployment;
+            return targetService.getTarget(env, siteName).deploy(params);
         } catch (TargetServiceException e) {
             throw new DeploymentServiceException("Error while deploying target for env = " + env + " site = " + siteName, e);
         }

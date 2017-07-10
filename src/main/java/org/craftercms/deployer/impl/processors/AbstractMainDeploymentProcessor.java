@@ -56,7 +56,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     }
 
     @Override
-    public void execute(Deployment deployment, Map<String, Object> params) {
+    public void execute(Deployment deployment) {
         ChangeSet filteredChangeSet = getFilteredChangeSet(deployment.getChangeSet());
         
         if (shouldExecute(deployment, filteredChangeSet)) {
@@ -67,7 +67,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
             try {
                 logger.info("----- {} @ {} -----", name, targetId);
 
-                ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet, params);
+                ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet);
                 if (processedChangeSet != null) {
                     deployment.setChangeSet(processedChangeSet);
                 }
@@ -80,7 +80,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
                 execution.endExecution(Deployment.Status.FAILURE);
 
                 if (failDeploymentOnProcessorFailure()) {
-                    deployment.endDeployment(Deployment.Status.FAILURE);
+                    deployment.end(Deployment.Status.FAILURE);
                 }
             }
         }
@@ -127,7 +127,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     protected abstract void doInit(Configuration config) throws DeployerException;
 
     protected abstract ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                           ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException;
+                                           ChangeSet filteredChangeSet) throws DeployerException;
 
     protected abstract boolean failDeploymentOnProcessorFailure();
 

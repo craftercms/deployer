@@ -116,7 +116,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, Map<String, Object> params) throws DeployerException {
+                                  ChangeSet filteredChangeSet) throws DeployerException {
         File gitFolder = new File(localRepoFolder, GIT_FOLDER_NAME);
 
         if (localRepoFolder.exists() && gitFolder.exists()) {

@@ -34,14 +34,14 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
     private static final Logger logger = LoggerFactory.getLogger(AbstractPostDeploymentProcessor.class);
 
     @Override
-    public void execute(Deployment deployment, Map<String, Object> params) {
-        deployment.endDeployment(Deployment.Status.SUCCESS);
+    public void execute(Deployment deployment) {
+        deployment.end(Deployment.Status.SUCCESS);
 
         if (shouldExecute(deployment)) {
             try {
                 logger.info("----- {} @ {} -----", name, targetId);
 
-                doExecute(deployment, params);
+                doExecute(deployment);
             } catch (Exception e) {
                 logger.error("Processor '" + name + "' for target '" + targetId + "' failed", e);
             }
@@ -53,6 +53,6 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
         return deployment.getStatus() == Deployment.Status.FAILURE || !deployment.isChangeSetEmpty();
     }
 
-    protected abstract void doExecute(Deployment deployment, Map<String, Object> params) throws DeployerException;
+    protected abstract void doExecute(Deployment deployment) throws DeployerException;
 
 }

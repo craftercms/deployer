@@ -63,7 +63,7 @@ target:
         # The suffix used to resolve the final name of a mail template
         suffix: -mail-template.ftl
       # The from field to use in the emails
-      from: noreply@craftersoftware.com
+      from: noreply@example.com
       # The subject field to use in the emails
       subject: Deployment Report
       # If emails should be HTML emails

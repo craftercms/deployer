@@ -204,4 +204,17 @@ public class Deployment {
         SUCCESS, FAILURE
     }
 
+    @Override
+    public String toString() {
+        return "Deployment{" +
+               "targetId='" + target.getId() + "'" +
+               ", start=" + start +
+               ", end=" + end +
+               ", running=" + isRunning() +
+               ", duration=" + getDuration() +
+               ", status=" + status +
+               ", changeSet=" + changeSet +
+               ", processorExecutions=" + processorExecutions +
+               ", params=" + params + '}';
+    }
 }

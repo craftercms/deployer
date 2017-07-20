@@ -25,7 +25,7 @@ import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 
 /**
- * Service that manages a target lifecycle.
+ * Service that manages targets.
  *
  * @author avasquez
  */
@@ -58,6 +58,15 @@ public interface TargetService {
      * @throws TargetServiceException if a general error occurs
      */
     void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
+
+    /**
+     * Scans for target configurations, loading targets with new/modified configuration and deleting targets with no configuration.
+     *
+     * @return existing targets, after being loaded
+     *
+     * @throws TargetServiceException if a general error occurs
+     */
+    List<Target> resolveTargets() throws TargetServiceException;
 
     /**
      * Returns all current loaded targets

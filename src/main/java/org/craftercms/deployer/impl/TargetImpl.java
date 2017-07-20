@@ -175,14 +175,14 @@ public class TargetImpl implements Target {
 
     protected class ScheduledDeploymentTask implements Runnable {
 
-        protected volatile Future<?> scheduledDeploymentFuture;
+        protected volatile Future<?> future;
 
         @Override
         public void run() {
-            if (scheduledDeploymentFuture == null || scheduledDeploymentFuture.isDone()) {
+            if (future == null || future.isDone()) {
                 Deployment deployment = new Deployment(TargetImpl.this);
 
-                scheduledDeploymentFuture = deploymentExecutor.submit(new DeploymentTask(deployment));
+                future = deploymentExecutor.submit(new DeploymentTask(deployment));
             }
         }
 
@@ -221,6 +221,16 @@ public class TargetImpl implements Target {
             }
         }
 
+    }
+
+    @Override
+    public String toString() {
+        return "TargetImpl{" +
+               "env='" + env + '\'' +
+               ", siteName='" + siteName + '\'' +
+               ", id='" + id + '\'' +
+               ", configurationFile=" +
+               configurationFile + '}';
     }
 
 }

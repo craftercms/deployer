@@ -44,6 +44,7 @@ import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.OverrideCombiner;
 import org.apache.commons.io.FileUtils;
+import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
@@ -155,7 +156,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public void onApplicationEvent(ApplicationReadyEvent event) {
         // Load all existing targets on startup
         try {
-            getAllTargets();
+            resolveTargets();
         } catch (DeployerException e) {
             logger.error("Error while loading targets on startup", e);
         }
@@ -171,7 +172,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     @Override
-    public synchronized List<Target> getAllTargets() throws TargetServiceException {
+    public synchronized List<Target> resolveTargets() throws TargetServiceException {
         Collection<File> configFiles = getTargetConfigFiles();
         List<Target> targets = new ArrayList<>();
 
@@ -185,6 +186,11 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
 
         return targets;
+    }
+
+    @Override
+    public List<Target> getAllTargets() throws TargetServiceException {
+        return new ArrayList<>(loadedTargets);
     }
 
     @Override
@@ -287,7 +293,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     protected Target resolveTargetFromConfigFile(File configFile) throws TargetServiceException {
-        File contextFile = new File(targetConfigFolder, String.format(APPLICATION_CONTEXT_FILENAME_FORMAT, configFile.getName()));
+        String baseName = FilenameUtils.getBaseName(configFile.getName());
+        File contextFile = new File(targetConfigFolder, String.format(APPLICATION_CONTEXT_FILENAME_FORMAT, baseName));
         Target target = findLoadedTargetByConfigFile(configFile);
 
         if (target != null) {

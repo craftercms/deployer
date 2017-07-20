@@ -34,6 +34,7 @@
 		<javax.mail.version>1.4.7</javax.mail.version>
 		<freemarker.version>2.3.25-incubating</freemarker.version>
 		<handlebars.version>4.0.6</handlebars.version>
+		<mockito.version>1.10.19</mockito.version>
 		<java.version>1.8</java.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
@@ -170,6 +171,14 @@
 			<artifactId>handlebars-springmvc</artifactId>
 			<version>${handlebars.version}</version>
 		</dependency>
+
+		<!-- Test -->
+		<dependency>
+			<groupId>org.mockito</groupId>
+			<artifactId>mockito-all</artifactId>
+			<version>${mockito.version}</version>
+			<scope>test</scope>
+		</dependency>
 	</dependencies>
 
 	<build>
@@ -217,14 +226,14 @@
 		</plugins>
 	</build>
 
- <distributionManagement>
-        <snapshotRepository>
-            <id>sonatype-nexus-snapshots</id>
-            <url>https://oss.sonatype.org/content/repositories/snapshots</url>
-        </snapshotRepository>
-        <repository>
-            <id>sonatype-nexus-staging</id>
-            <url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-        </repository>
-    </distributionManagement>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>sonatype-nexus-snapshots</id>
+			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>sonatype-nexus-staging</id>
+			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 </project>

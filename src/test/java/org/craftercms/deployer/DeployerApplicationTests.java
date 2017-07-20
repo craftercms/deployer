@@ -1,4 +1,4 @@
-package org.craftercms;
+package org.craftercms.deployer;
 
 import org.craftercms.deployer.DeployerApplication;
 import org.junit.Test;

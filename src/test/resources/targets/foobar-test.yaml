@@ -1,0 +1,5 @@
+target:
+  siteName: foobar
+  deployment:
+    pipeline:
+      - processorName: testProcessor

@@ -169,7 +169,7 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 			Runnable task = () -> {
 
 				try {
-					targetService.getAllTargets();
+					targetService.resolveTargets();
 				} catch (DeployerException e) {
 					logger.error("Scheduled target scan failed", e);
 				}

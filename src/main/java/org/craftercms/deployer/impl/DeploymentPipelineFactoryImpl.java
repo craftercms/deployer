@@ -27,6 +27,7 @@ import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
@@ -43,7 +44,7 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentPipelineFactoryImpl.class);
 
     @Override
-    public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ConfigurableApplicationContext applicationContext,
+    public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ApplicationContext applicationContext,
                                           String pipelinePropertyName) throws DeployerException {
         List<HierarchicalConfiguration> processorConfigs = ConfigUtils.getRequiredConfigurationsAt(configuration, pipelinePropertyName);
         List<DeploymentProcessor> deploymentProcessors = new ArrayList<>();

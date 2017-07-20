@@ -34,11 +34,11 @@ public interface TargetService {
     /**
      * Creates a new target with it's own configuration.
      *
-     * @param env                   the target's environment (e.g. dev)
-     * @param siteName              the target's site name (e.g. mysite)
-     * @param replace               indicates that if there's a target with the same name, the target config should be replaced.
-     * @param templateName          the name of the template used to create the target configuration.
-     * @param templateParameters    the parameters that the template needs.
+     * @param env               the target's environment (e.g. dev)
+     * @param siteName          the target's site name (e.g. mysite)
+     * @param replace           indicates that if there's a target with the same name, the target config should be replaced.
+     * @param templateName      the name of the template used to create the target configuration (can be null).
+     * @param templateParams    the parameters that the template needs.
      *
      * @return the created target
      *
@@ -46,7 +46,7 @@ public interface TargetService {
      * @throws TargetServiceException if a general error occurs
      */
     Target createTarget(String env, String siteName, boolean replace, String templateName,
-                        Map<String, Object> templateParameters) throws TargetAlreadyExistsException, TargetServiceException;
+                        Map<String, Object> templateParams) throws TargetAlreadyExistsException, TargetServiceException;
 
     /**
      * Deletes a target with the given ID.

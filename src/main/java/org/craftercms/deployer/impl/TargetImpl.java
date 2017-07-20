@@ -50,9 +50,10 @@ public class TargetImpl implements Target {
 
     private static final Logger logger = LoggerFactory.getLogger(TargetImpl.class);
 
+    public static final String TARGET_ID_FORMAT = "%s-%s";
+
     protected String env;
     protected String siteName;
-    protected String id;
     protected DeploymentPipeline deploymentPipeline;
     protected File configurationFile;
     protected Configuration configuration;
@@ -62,11 +63,14 @@ public class TargetImpl implements Target {
     protected ThreadPoolExecutor deploymentExecutor;
     protected volatile Deployment currentDeployment;
 
-    public TargetImpl(String env, String siteName, String id, DeploymentPipeline deploymentPipeline, File configurationFile,
+    public static String getId(String env, String siteName) {
+        return String.format(TARGET_ID_FORMAT, siteName, env);
+    }
+
+    public TargetImpl(String env, String siteName, DeploymentPipeline deploymentPipeline, File configurationFile,
                       Configuration configuration, ConfigurableApplicationContext applicationContext) {
         this.env = env;
         this.siteName = siteName;
-        this.id = id;
         this.deploymentPipeline = deploymentPipeline;
         this.configurationFile = configurationFile;
         this.configuration = configuration;
@@ -87,7 +91,7 @@ public class TargetImpl implements Target {
 
     @Override
     public String getId() {
-        return id;
+        return getId(env, siteName);
     }
 
     @Override
@@ -150,10 +154,10 @@ public class TargetImpl implements Target {
 
     @Override
     public void close() {
-        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
+        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, getId());
 
         try {
-            logger.info("Closing target '{}'...", id);
+            logger.info("Closing target '{}'...", getId());
 
             if (scheduledDeploymentFuture != null) {
                 scheduledDeploymentFuture.cancel(true);
@@ -167,7 +171,7 @@ public class TargetImpl implements Target {
                 applicationContext.close();
             }
         } catch (Exception e) {
-            logger.error("Failed to close '" + id + "'", e);
+            logger.error("Failed to close '" + getId() + "'", e);
         }
 
         MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
@@ -200,11 +204,11 @@ public class TargetImpl implements Target {
         public void run() {
             currentDeployment = deployment;
 
-            MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
+            MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, getId());
 
             try {
                 logger.info("------------------------------------------------------------");
-                logger.info("Deployment for {} started", id);
+                logger.info("Deployment for {} started", getId());
                 logger.info("------------------------------------------------------------");
 
                 deploymentPipeline.execute(deployment);
@@ -212,7 +216,7 @@ public class TargetImpl implements Target {
                 double durationInSecs = deployment.getDuration() / 1000.0;
 
                 logger.info("------------------------------------------------------------");
-                logger.info("Deployment for {} finished in {} secs", id, String.format("%.3f", durationInSecs));
+                logger.info("Deployment for {} finished in {} secs", getId(), String.format("%.3f", durationInSecs));
                 logger.info("------------------------------------------------------------");
             } finally {
                 currentDeployment = null;
@@ -224,11 +228,43 @@ public class TargetImpl implements Target {
     }
 
     @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        TargetImpl target = (TargetImpl)o;
+
+        if (!env.equals(target.env)) {
+            return false;
+        }
+        if (!siteName.equals(target.siteName)) {
+            return false;
+        }
+        if (!configurationFile.equals(target.configurationFile)) {
+            return false;
+        }
+
+        return loadDate.equals(target.loadDate);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = env.hashCode();
+        result = 31 * result + siteName.hashCode();
+        result = 31 * result + configurationFile.hashCode();
+        result = 31 * result + loadDate.hashCode();
+        return result;
+    }
+
+    @Override
     public String toString() {
         return "TargetImpl{" +
                "env='" + env + '\'' +
                ", siteName='" + siteName + '\'' +
-               ", id='" + id + '\'' +
                ", configurationFile=" +
                configurationFile + '}';
     }

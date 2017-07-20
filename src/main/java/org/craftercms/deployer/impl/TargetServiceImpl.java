@@ -97,7 +97,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public static final String APPLICATION_CONTEXT_FILENAME_FORMAT = "%s-context.xml";
     public static final String CONFIG_PROPERTY_SOURCE_NAME = "targetConfig";
 
-    public static final String TARGET_ID_FORMAT = "%s-%s";
+    public static final String TARGET_ENV_MODEL_KEY = "env";
+    public static final String TARGET_SITE_NAME_MODEL_KEY = "site_name";
     public static final String TARGET_ID_MODEL_KEY = "target_id";
 
     protected File targetConfigFolder;
@@ -195,7 +196,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
     @Override
     public synchronized Target getTarget(String env, String siteName) throws TargetNotFoundException {
-        String id = getTargetId(env, siteName);
+        String id = TargetImpl.getId(env, siteName);
         Target target = findLoadedTargetById(id);
 
         if (target != null) {
@@ -207,15 +208,15 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
     @Override
     public synchronized Target createTarget(String env, String siteName, boolean replace, String templateName,
-                                            Map<String, Object> templateParameters) throws TargetAlreadyExistsException,
+                                            Map<String, Object> templateParams) throws TargetAlreadyExistsException,
         TargetServiceException {
-        String id = getTargetId(env, siteName);
+        String id = TargetImpl.getId(env, siteName);
         File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
 
         if (!replace && configFile.exists()) {
             throw new TargetAlreadyExistsException(id);
         } else {
-            createConfigFromTemplate(id, templateName, templateParameters, configFile);
+            createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
         }
 
         return resolveTargetFromConfigFile(configFile);
@@ -223,8 +224,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
     @Override
     public synchronized void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException {
-        String id = getTargetId(env, siteName);
         Target target = getTarget(env, siteName);
+        String id = target.getId();
 
         target.close();
 
@@ -332,14 +333,14 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             HierarchicalConfiguration config = loadConfiguration(configFile);
             String env = ConfigUtils.getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
             String siteName = ConfigUtils.getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
-            String targetId = getTargetId(env, siteName);
+            String targetId = TargetImpl.getId(env, siteName);
 
             config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
             ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
             DeploymentPipeline deploymentPipeline = deploymentPipelineFactory.getPipeline(config, context,
                                                                                           TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
-            Target target = new TargetImpl(env, siteName, targetId, deploymentPipeline, configFile, config, context);
+            Target target = new TargetImpl(env, siteName, deploymentPipeline, configFile, config, context);
 
             scheduleDeployment(target);
 
@@ -432,13 +433,15 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
     }
 
-    protected void createConfigFromTemplate(String targetId, String templateName, Map<String, Object> templateParameters,
-                                            File configFile) throws TargetServiceException {
+    protected void createConfigFromTemplate(String env, String siteName, String targetId, String templateName,
+                                            Map<String, Object> templateParameters, File configFile) throws TargetServiceException {
         if (StringUtils.isEmpty(templateName)) {
             templateName = defaultTargetConfigTemplateName;
         }
 
         Map<String, Object> templateModel = new HashMap<>();
+        templateModel.put(TARGET_ENV_MODEL_KEY, env);
+        templateModel.put(TARGET_SITE_NAME_MODEL_KEY, siteName);
         templateModel.put(TARGET_ID_MODEL_KEY, targetId);
 
         if (MapUtils.isNotEmpty(templateParameters)) {
@@ -493,10 +496,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         } else {
             return null;
         }
-    }
-
-    protected String getTargetId(String env, String siteName) {
-        return String.format(TARGET_ID_FORMAT, siteName, env);
     }
 
     protected class CustomConfigFileFilter extends AbstractFileFilter {

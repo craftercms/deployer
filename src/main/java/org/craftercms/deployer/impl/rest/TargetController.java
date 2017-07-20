@@ -96,12 +96,33 @@ public class TargetController {
      * @throws ValidationException if a required parameter is missing
      */
     @RequestMapping(value = CREATE_TARGET_URL, method = RequestMethod.POST)
-    public ResponseEntity<Result> createTarget(@RequestBody Map<String, Object> parameters) throws DeployerException,
-        ValidationException {
-        String env = Objects.toString(parameters.get(ENV_PATH_VAR_NAME), "");
-        String siteName = Objects.toString(parameters.get(SITE_NAME_PATH_VAR_NAME), "");
-        boolean replace = BooleanUtils.toBoolean(parameters.get(REPLACE_PARAM_NAME));
-        String templateName = Objects.toString(parameters.get(TEMPLATE_NAME_PARAM_NAME), "");
+    public ResponseEntity<Result> createTarget(@RequestBody Map<String, Object> parameters) throws DeployerException, ValidationException {
+        String env = "";
+        String siteName = "";
+        boolean replace = false;
+        String templateName = "";
+        Map<String, Object> templateParams = new HashMap<>();
+
+        for (Map.Entry<String, Object> param : parameters.entrySet()) {
+            switch (param.getKey()) {
+                case ENV_PATH_VAR_NAME:
+                    env = Objects.toString(param.getValue(), "");
+                    break;
+                case SITE_NAME_PATH_VAR_NAME:
+                    siteName = Objects.toString(param.getValue(), "");
+                    break;
+                case REPLACE_PARAM_NAME:
+                    replace = BooleanUtils.toBoolean(param.getValue());
+                    break;
+                case TEMPLATE_NAME_PARAM_NAME:
+                    templateName = Objects.toString(param.getValue(), "");
+                    break;
+                default:
+                    templateParams.put(param.getKey(), param.getValue());
+                    break;
+            }
+        }
+
         ValidationResult validationResult = new ValidationResult();
         
         if (StringUtils.isEmpty(env)) {
@@ -114,9 +135,7 @@ public class TargetController {
             throw new ValidationException(validationResult);
         }
 
-        parameters.keySet().removeIf(key -> key.equals(REPLACE_PARAM_NAME) || key.equals(TEMPLATE_NAME_PARAM_NAME));
-
-        targetService.createTarget(env, siteName, replace, templateName, parameters);
+        targetService.createTarget(env, siteName, replace, templateName, templateParams);
 
         return new ResponseEntity<>(Result.OK,
                                     RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),

@@ -7,6 +7,7 @@
         </encoder>
     </appender>
 
+    <logger name="net.sf.ehcache" level="ERROR"/>
     <logger name="org.springframework" level="WARN"/>
     <logger name="org.craftercms" level="INFO"/>
 

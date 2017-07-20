@@ -27,7 +27,7 @@ public class TargetImplTest {
     @Before
     public void setUp() throws Exception {
         count = 0;
-        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, TEST_ENV + "-" + TEST_SITE_NAME, createDeploymentPipeline(), null, null, null);
+        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, createDeploymentPipeline(), null, null, null);
     }
 
     @Test

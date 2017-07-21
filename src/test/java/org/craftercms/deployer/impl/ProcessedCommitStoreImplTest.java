@@ -78,7 +78,7 @@ public class ProcessedCommitStoreImplTest {
 
         File foobarTestFile = new File(processedCommitsFolder, "foobar-test.commit");
 
-        assertTrue(!foobarTestFile.exists());
+        assertFalse(foobarTestFile.exists());
     }
 
     private File createProcessedCommitsFolder() throws IOException {

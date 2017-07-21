@@ -27,6 +27,7 @@ public class DeployerApplicationTests {
 
 	@Test
 	public void contextLoads() {
+		// Just to make sure the context loads
 	}
 
 }

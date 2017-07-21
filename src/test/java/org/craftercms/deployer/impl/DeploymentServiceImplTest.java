@@ -23,13 +23,15 @@ import java.util.List;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
-import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
-import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.junit.Before;
 import org.junit.Test;
 
-import static org.junit.Assert.*;
-import static org.mockito.Mockito.*;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+import static org.mockito.Mockito.any;
+import static org.mockito.Mockito.mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 
 /**
  * Unit tests for {@link DeploymentServiceImpl}.

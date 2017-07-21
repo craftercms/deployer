@@ -22,7 +22,6 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.junit.Before;
 import org.junit.Test;
-import org.slf4j.MDC;
 
 import static org.junit.Assert.assertEquals;
 import static org.mockito.Mockito.any;

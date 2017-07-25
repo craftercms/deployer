@@ -53,7 +53,7 @@ public class ProcessedCommitsStoreImpl implements ProcessedCommitsStore {
             if (commitFile.exists()) {
                 String commitId = FileUtils.readFileToString(commitFile, "UTF-8").trim();
                 if (StringUtils.isNotEmpty(commitId)) {
-                    logger.info("Found previous processed commit ID for target '{}': {}", targetId, commitId);
+                    logger.debug("Found previous processed commit ID for target '{}': {}", targetId, commitId);
 
                     return ObjectId.fromString(commitId);
                 } else {
@@ -75,7 +75,7 @@ public class ProcessedCommitsStoreImpl implements ProcessedCommitsStore {
     public void store(String targetId, ObjectId commitId) throws DeployerException {
         File commitFile = getCommitFile(targetId);
         try {
-            logger.info("Storing processed commit ID {} for target '{}'", commitId.name(), targetId);
+            logger.debug("Storing processed commit ID {} for target '{}'", commitId.name(), targetId);
 
             FileUtils.write(commitFile, commitId.name(), "UTF-8", false);
         } catch (IOException e) {
@@ -87,7 +87,7 @@ public class ProcessedCommitsStoreImpl implements ProcessedCommitsStore {
     public void delete(String targetId) throws DeployerException {
         File commitFile = getCommitFile(targetId);
         if (commitFile.exists()) {
-            logger.info("Deleting processed commit from store for target '{}'", targetId);
+            logger.debug("Deleting processed commit from store for target '{}'", targetId);
 
             FileUtils.deleteQuietly(commitFile);
         }

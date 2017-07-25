@@ -113,7 +113,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
             ChangeSet changeSet = resolveChangeSetFromCommits(git, previousCommitId, latestCommitId);
 
             if (changeSet != null) {
-                execution.setStatusDetails("Changes detected and resolved succesfully");
+                execution.setStatusDetails("Changes detected and resolved successfully");
             } else {
                 execution.setStatusDetails("No changes detected");
             }
@@ -165,7 +165,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
                 throw new DeployerException("Failed to calculate change set from commits: " + fromCommitIdStr + " -> " + toCommitIdStr, e);
             }
         } else {
-            logger.info("Both {} and {} commits are the same. No change set will be calculated", fromCommitIdStr, toCommitIdStr);
+            logger.info("Commits are the same. No change set will be calculated", fromCommitIdStr, toCommitIdStr);
 
             return null;
         }

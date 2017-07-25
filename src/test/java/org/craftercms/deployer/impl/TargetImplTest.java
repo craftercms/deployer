@@ -24,6 +24,7 @@ import org.junit.Before;
 import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.doAnswer;
 import static org.mockito.Mockito.mock;
@@ -49,14 +50,20 @@ public class TargetImplTest {
 
     @Test
     public void testDeploy() throws Exception {
-        target.deploy(new HashMap<>());
-        target.deploy(new HashMap<>());
-        target.deploy(new HashMap<>());
+        Deployment dep1 = target.deploy(false, new HashMap<>());
+        Deployment dep2 = target.deploy(false, new HashMap<>());
+        Deployment dep3 = target.deploy(false, new HashMap<>());
 
         assertEquals(3, target.getAllDeployments().size());
 
         Thread.sleep(7000);
 
+        assertNotNull(dep1.getEnd());
+        assertEquals(Deployment.Status.SUCCESS, dep1.getStatus());
+        assertNotNull(dep2.getEnd());
+        assertEquals(Deployment.Status.SUCCESS, dep2.getStatus());
+        assertNotNull(dep3.getEnd());
+        assertEquals(Deployment.Status.SUCCESS, dep3.getStatus());
         assertEquals(3, count);
     }
 

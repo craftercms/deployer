@@ -28,6 +28,7 @@ import org.junit.Test;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
+import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.any;
 import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
@@ -51,30 +52,30 @@ public class DeploymentServiceImplTest {
 
     @Test
     public void testDeployAllTargets() throws Exception {
-        List<Deployment> deployments = deploymentService.deployAllTargets(Collections.emptyMap());
+        List<Deployment> deployments = deploymentService.deployAllTargets(false, Collections.emptyMap());
 
         assertNotNull(deployments);
         assertEquals(2, deployments.size());
 
-        verify(foobarTarget).deploy(any());
-        verify(barfooTarget).deploy(any());
+        verify(foobarTarget).deploy(eq(false), any());
+        verify(barfooTarget).deploy(eq(false), any());
     }
 
     @Test
     public void testDeployTarget() throws Exception {
-        Deployment deployment = deploymentService.deployTarget("test", "foobar", Collections.emptyMap());
+        Deployment deployment = deploymentService.deployTarget("test", "foobar", false, Collections.emptyMap());
 
         assertNotNull(deployment);
 
-        verify(foobarTarget).deploy(any());
+        verify(foobarTarget).deploy(eq(false), any());
     }
 
     private TargetService createTargetService() throws Exception {
         foobarTarget = mock(Target.class);
         barfooTarget = mock(Target.class);
 
-        when(foobarTarget.deploy(any())).thenReturn(mock(Deployment.class));
-        when(barfooTarget.deploy(any())).thenReturn(mock(Deployment.class));
+        when(foobarTarget.deploy(eq(false), any())).thenReturn(mock(Deployment.class));
+        when(barfooTarget.deploy(eq(false), any())).thenReturn(mock(Deployment.class));
 
         TargetService targetService = mock(TargetService.class);
         when(targetService.getAllTargets()).thenReturn(Arrays.asList(foobarTarget, barfooTarget));

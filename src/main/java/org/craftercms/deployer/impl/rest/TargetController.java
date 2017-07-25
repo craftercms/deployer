@@ -24,6 +24,7 @@ import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
@@ -47,6 +48,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import static org.craftercms.deployer.impl.rest.RestConstants.ENV_PATH_VAR_NAME;
 import static org.craftercms.deployer.impl.rest.RestConstants.SITE_NAME_PATH_VAR_NAME;
+import static org.craftercms.deployer.impl.rest.RestConstants.WAIT_TILL_DONE_PARAM_NAME;
 
 /**
  * Main controller for target related operations.
@@ -86,7 +88,7 @@ public class TargetController {
     /**
      * Creates a Deployer {@link Target}.
      *
-     * @param parameters the body of the request with the template parameters that will be used to create the target. The body must
+     * @param params the body of the request with the template parameters that will be used to create the target. The body must
      *                   contain at least a {@code env} and {@code site_name} parameter. Other required parameters depend on the
      *                   template used.
      *
@@ -96,14 +98,14 @@ public class TargetController {
      * @throws ValidationException if a required parameter is missing
      */
     @RequestMapping(value = CREATE_TARGET_URL, method = RequestMethod.POST)
-    public ResponseEntity<Result> createTarget(@RequestBody Map<String, Object> parameters) throws DeployerException, ValidationException {
+    public ResponseEntity<Result> createTarget(@RequestBody Map<String, Object> params) throws DeployerException, ValidationException {
         String env = "";
         String siteName = "";
         boolean replace = false;
         String templateName = "";
         Map<String, Object> templateParams = new HashMap<>();
 
-        for (Map.Entry<String, Object> param : parameters.entrySet()) {
+        for (Map.Entry<String, Object> param : params.entrySet()) {
             switch (param.getKey()) {
                 case ENV_PATH_VAR_NAME:
                     env = Objects.toString(param.getValue(), "");
@@ -217,7 +219,12 @@ public class TargetController {
             params = new HashMap<>();
         }
 
-        deploymentService.deployTarget(env, siteName, params);
+        boolean waitTillDone = false;
+        if (MapUtils.isNotEmpty(params)) {
+            waitTillDone = BooleanUtils.toBoolean(params.remove(WAIT_TILL_DONE_PARAM_NAME));
+        }
+
+        deploymentService.deployTarget(env, siteName, waitTillDone, params);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(Result.OK);
     }
@@ -238,7 +245,12 @@ public class TargetController {
             params = new HashMap<>();
         }
 
-        deploymentService.deployAllTargets(params);
+        boolean waitTillDone = false;
+        if (MapUtils.isNotEmpty(params)) {
+           waitTillDone = BooleanUtils.toBoolean(params.remove(WAIT_TILL_DONE_PARAM_NAME));
+        }
+
+        deploymentService.deployAllTargets(waitTillDone, params);
 
         return ResponseEntity.status(HttpStatus.ACCEPTED).body(Result.OK);
     }

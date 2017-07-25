@@ -31,6 +31,10 @@ public class RestConstants {
      * Site name path variable name.
      */
     public static final String SITE_NAME_PATH_VAR_NAME = "site_name";
+    /**
+     * Request param that indicates if request shouldn't finish until the deployment is done.
+     */
+    public static final String WAIT_TILL_DONE_PARAM_NAME = "wait_till_done";
 
     private RestConstants() {
     }

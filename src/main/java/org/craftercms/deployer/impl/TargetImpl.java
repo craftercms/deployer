@@ -120,7 +120,7 @@ public class TargetImpl implements Target {
     @Override
     public Deployment deploy(boolean waitTillDone, Map<String, Object> params) {
         Deployment deployment = new Deployment(this, params);
-        pendingDeployments.add(deployment);git
+        pendingDeployments.add(deployment);
 
         Future<?> future = deploymentExecutor.submit(new DeploymentTask());
         if (waitTillDone) {

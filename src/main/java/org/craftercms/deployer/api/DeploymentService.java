@@ -33,26 +33,28 @@ public interface DeploymentService {
     /**
      * Deploys all targets
      *
-     * @param params additional parameters that can be used by the deployment processors
+     * @param waitTillDone  if the method should wait till all deployments are done or return immediately
+     * @param params        additional parameters that can be used by the deployment processors
      *
      * @return  the list of deployment info for each target
      *
      * @throws DeploymentServiceException if there was an error while executing the deployments
      */
-    List<Deployment> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException;
+    List<Deployment> deployAllTargets(boolean waitTillDone, Map<String, Object> params) throws DeploymentServiceException;
 
     /**
      * Deploys a single target
      *
-     * @param env       the target's environment (e.g. dev)
-     * @param siteName  the target's site name (e.g. mysite)
-     * @param params    additional parameters that can be used by the deployment processors
+     * @param env           the target's environment (e.g. dev)
+     * @param siteName      the target's site name (e.g. mysite)
+     * @param waitTillDone  if the method should wait till the deployment is done or return immediately
+     * @param params        additional parameters that can be used by the deployment processors
      *
      * @return the deployment info
      *
      * @throws DeploymentServiceException if there was an error while executing the deployments
      */
-    Deployment deployTarget(String env, String siteName,
+    Deployment deployTarget(String env, String siteName, boolean waitTillDone,
                             Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException;
 
 }

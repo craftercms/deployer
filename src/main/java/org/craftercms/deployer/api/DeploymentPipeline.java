@@ -16,6 +16,7 @@
  */
 package org.craftercms.deployer.api;
 
+import java.util.List;
 import java.util.Map;
 
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -33,6 +34,11 @@ public interface DeploymentPipeline {
      * @throws DeployerException if an error occurs
      */
     void destroy() throws DeployerException;
+
+    /**
+     * Returns the processors that make up this pipeline. The returned list is unmodifiable.
+     */
+    List<DeploymentProcessor> getProcessors();
 
     /**
      * Does a deployment.

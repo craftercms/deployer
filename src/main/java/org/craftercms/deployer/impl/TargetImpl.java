@@ -20,9 +20,15 @@ import java.io.File;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Queue;
+import java.util.concurrent.ConcurrentLinkedQueue;
+import java.util.concurrent.ExecutionException;
+import java.util.concurrent.Executor;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
 import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
@@ -50,29 +56,35 @@ public class TargetImpl implements Target {
 
     private static final Logger logger = LoggerFactory.getLogger(TargetImpl.class);
 
+    public static final String TARGET_ID_FORMAT = "%s-%s";
+
     protected String env;
     protected String siteName;
-    protected String id;
     protected DeploymentPipeline deploymentPipeline;
     protected File configurationFile;
     protected Configuration configuration;
     protected ConfigurableApplicationContext applicationContext;
     protected ZonedDateTime loadDate;
     protected ScheduledFuture<?> scheduledDeploymentFuture;
-    protected ThreadPoolExecutor deploymentExecutor;
+    protected ExecutorService deploymentExecutor;
+    protected Queue<Deployment> pendingDeployments;
     protected volatile Deployment currentDeployment;
 
-    public TargetImpl(String env, String siteName, String id, DeploymentPipeline deploymentPipeline, File configurationFile,
+    public static String getId(String env, String siteName) {
+        return String.format(TARGET_ID_FORMAT, siteName, env);
+    }
+
+    public TargetImpl(String env, String siteName, DeploymentPipeline deploymentPipeline, File configurationFile,
                       Configuration configuration, ConfigurableApplicationContext applicationContext) {
         this.env = env;
         this.siteName = siteName;
-        this.id = id;
         this.deploymentPipeline = deploymentPipeline;
         this.configurationFile = configurationFile;
         this.configuration = configuration;
         this.applicationContext = applicationContext;
         this.loadDate = ZonedDateTime.now();
-        this.deploymentExecutor = new ThreadPoolExecutor(1, 1, 0L, TimeUnit.MILLISECONDS, new LinkedBlockingQueue<>());
+        this.deploymentExecutor = Executors.newSingleThreadExecutor();
+        this.pendingDeployments = new ConcurrentLinkedQueue<>();
     }
 
     @Override
@@ -87,7 +99,7 @@ public class TargetImpl implements Target {
 
     @Override
     public String getId() {
-        return id;
+        return getId(env, siteName);
     }
 
     @Override
@@ -106,10 +118,20 @@ public class TargetImpl implements Target {
     }
 
     @Override
-    public Deployment deploy(Map<String, Object> params) {
+    public Deployment deploy(boolean waitTillDone, Map<String, Object> params) {
         Deployment deployment = new Deployment(this, params);
+        pendingDeployments.add(deployment);git
 
-        deploymentExecutor.execute(new DeploymentTask(deployment));
+        Future<?> future = deploymentExecutor.submit(new DeploymentTask());
+        if (waitTillDone) {
+            logger.debug("Waiting for deployment completion...");
+
+            try {
+                future.get();
+            } catch (InterruptedException | ExecutionException e) {
+                logger.error("Unable to wait for deployment completion", e);
+            }
+        }
 
         return deployment;
     }
@@ -121,18 +143,7 @@ public class TargetImpl implements Target {
 
     @Override
     public Collection<Deployment> getPendingDeployments() {
-        Queue<Runnable> deploymentTasks = deploymentExecutor.getQueue();
-        if (CollectionUtils.isNotEmpty(deploymentTasks)) {
-            List<Deployment> deployments = new ArrayList<>();
-            for (Runnable deploymentTask : deploymentTasks) {
-                Deployment deployment = ((DeploymentTask)deploymentTask).deployment;
-                deployments.add(deployment);
-            }
-
-            return deployments;
-        } else {
-            return new ArrayList<>();
-        }
+        return new ArrayList<>(pendingDeployments);
     }
 
     @Override
@@ -142,18 +153,26 @@ public class TargetImpl implements Target {
 
     @Override
     public Collection<Deployment> getAllDeployments() {
-        Collection<Deployment> deployments = getPendingDeployments();
-        deployments.add(getCurrentDeployment());
+        Collection<Deployment> deployments = new ArrayList<>();
+        Deployment currentDeployment = getCurrentDeployment();
+        Collection<Deployment> pendingDeployments = getPendingDeployments();
+
+        if (currentDeployment != null) {
+            deployments.add(currentDeployment);
+        }
+        if (CollectionUtils.isNotEmpty(pendingDeployments)) {
+            deployments.addAll(pendingDeployments);
+        }
 
         return deployments;
     }
 
     @Override
     public void close() {
-        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
+        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, getId());
 
         try {
-            logger.info("Closing target '{}'...", id);
+            logger.info("Closing target '{}'...", getId());
 
             if (scheduledDeploymentFuture != null) {
                 scheduledDeploymentFuture.cancel(true);
@@ -167,7 +186,7 @@ public class TargetImpl implements Target {
                 applicationContext.close();
             }
         } catch (Exception e) {
-            logger.error("Failed to close '" + id + "'", e);
+            logger.error("Failed to close '" + getId() + "'", e);
         }
 
         MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
@@ -175,14 +194,14 @@ public class TargetImpl implements Target {
 
     protected class ScheduledDeploymentTask implements Runnable {
 
-        protected volatile Future<?> scheduledDeploymentFuture;
+        protected volatile Future<?> future;
 
         @Override
         public void run() {
-            if (scheduledDeploymentFuture == null || scheduledDeploymentFuture.isDone()) {
-                Deployment deployment = new Deployment(TargetImpl.this);
+            if (future == null || future.isDone()) {
+                pendingDeployments.add(new Deployment(TargetImpl.this));
 
-                scheduledDeploymentFuture = deploymentExecutor.submit(new DeploymentTask(deployment));
+                future = deploymentExecutor.submit(new DeploymentTask());
             }
         }
 
@@ -190,29 +209,23 @@ public class TargetImpl implements Target {
 
     protected class DeploymentTask implements Runnable {
 
-        protected Deployment deployment;
-
-        public DeploymentTask(Deployment deployment) {
-            this.deployment = deployment;
-        }
-
         @Override
         public void run() {
-            currentDeployment = deployment;
+            currentDeployment = pendingDeployments.remove();
 
-            MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, id);
+            MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, getId());
 
             try {
                 logger.info("------------------------------------------------------------");
-                logger.info("Deployment for {} started", id);
+                logger.info("Deployment for {} started", getId());
                 logger.info("------------------------------------------------------------");
 
-                deploymentPipeline.execute(deployment);
+                deploymentPipeline.execute(currentDeployment);
 
-                double durationInSecs = deployment.getDuration() / 1000.0;
+                double durationInSecs = currentDeployment.getDuration() / 1000.0;
 
                 logger.info("------------------------------------------------------------");
-                logger.info("Deployment for {} finished in {} secs", id, String.format("%.3f", durationInSecs));
+                logger.info("Deployment for {} finished in {} secs", getId(), String.format("%.3f", durationInSecs));
                 logger.info("------------------------------------------------------------");
             } finally {
                 currentDeployment = null;
@@ -221,6 +234,48 @@ public class TargetImpl implements Target {
             }
         }
 
+    }
+
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
+
+        TargetImpl target = (TargetImpl)o;
+
+        if (!env.equals(target.env)) {
+            return false;
+        }
+        if (!siteName.equals(target.siteName)) {
+            return false;
+        }
+        if (!configurationFile.equals(target.configurationFile)) {
+            return false;
+        }
+
+        return loadDate.equals(target.loadDate);
+    }
+
+    @Override
+    public int hashCode() {
+        int result = env.hashCode();
+        result = 31 * result + siteName.hashCode();
+        result = 31 * result + configurationFile.hashCode();
+        result = 31 * result + loadDate.hashCode();
+        return result;
+    }
+
+    @Override
+    public String toString() {
+        return "TargetImpl{" +
+               "env='" + env + '\'' +
+               ", siteName='" + siteName + '\'' +
+               ", configurationFile=" +
+               configurationFile + '}';
     }
 
 }

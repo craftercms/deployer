@@ -73,11 +73,12 @@ public interface Target {
     /**
      * Deploys the target.
      *
-     * @param params miscellaneous parameters that can be used by the processors.
+     * @param waitTillDone  if the method should wait till the deployment is done or return immediately
+     * @param params        miscellaneous parameters that can be used by the processors.
      *
      * @return the deployment info
      */
-    Deployment deploy(Map<String, Object> params);
+    Deployment deploy(boolean waitTillDone, Map<String, Object> params);
 
     /**
      * Schedules deployment of the target.

@@ -1,0 +1,7 @@
+target:
+  env: test
+  siteName: foobar
+  deployment:
+    pipeline:
+      - processorName: testProcessor
+        text: This is a test

@@ -14,29 +14,20 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.rest;
+package org.craftercms.deployer;
 
-/**
- * Common constants for REST controllers.
- *
- * @author avasquez
- */
-public class RestConstants {
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.test.context.junit4.SpringRunner;
 
-    /**
-     * Environment path variable name.
-     */
-    public static final String ENV_PATH_VAR_NAME = "env";
-    /**
-     * Site name path variable name.
-     */
-    public static final String SITE_NAME_PATH_VAR_NAME = "site_name";
-    /**
-     * Request param that indicates if request shouldn't finish until the deployment is done.
-     */
-    public static final String WAIT_TILL_DONE_PARAM_NAME = "wait_till_done";
+@RunWith(SpringRunner.class)
+@SpringBootTest(classes = DeployerApplication.class)
+public class DeployerApplicationTests {
 
-    private RestConstants() {
-    }
+	@Test
+	public void contextLoads() {
+		// Just to make sure the context loads
+	}
 
 }

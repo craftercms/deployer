@@ -16,6 +16,7 @@
  */
 package org.craftercms.deployer.impl;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 
@@ -53,6 +54,11 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
                 }
             }
         }
+    }
+
+    @Override
+    public List<DeploymentProcessor> getProcessors() {
+        return Collections.unmodifiableList(deploymentProcessors);
     }
 
     @Override

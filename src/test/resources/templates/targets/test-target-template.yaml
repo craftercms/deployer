@@ -1,0 +1,7 @@
+target:
+  env: {{env}}
+  siteName: {{site_name}}
+  randomParam: {{random_param}}
+  deployment:
+    pipeline:
+      - processorName: testProcessor

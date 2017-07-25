@@ -19,7 +19,6 @@ package org.craftercms.deployer.impl;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
@@ -30,7 +29,6 @@ import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.core.task.AsyncTaskExecutor;
 import org.springframework.stereotype.Component;
 
 /**
@@ -49,7 +47,7 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<Deployment> deployAllTargets(Map<String, Object> params) throws DeploymentServiceException {
+    public List<Deployment> deployAllTargets(boolean waitTillDone, Map<String, Object> params) throws DeploymentServiceException {
         List<Target> targets;
         try {
             targets = targetService.getAllTargets();
@@ -61,7 +59,7 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         if (CollectionUtils.isNotEmpty(targets)) {
             for (Target target : targets) {
-                Deployment deployment = target.deploy(params);
+                Deployment deployment = target.deploy(waitTillDone, params);
                 deployments.add(deployment);
             }
         }
@@ -70,12 +68,12 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public Deployment deployTarget(String env, String siteName,
+    public Deployment deployTarget(String env, String siteName, boolean waitTillDone,
                                    Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException {
         try {
-            return targetService.getTarget(env, siteName).deploy(params);
+            return targetService.getTarget(env, siteName).deploy(waitTillDone, params);
         } catch (TargetServiceException e) {
-            throw new DeploymentServiceException("Error while deploying target for env = " + env + " site = " + siteName, e);
+            throw new DeploymentServiceException("Error while deploying target for env = " + env + ", site = " + siteName, e);
         }
     }
 

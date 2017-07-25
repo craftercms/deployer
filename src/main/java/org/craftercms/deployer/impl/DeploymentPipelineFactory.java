@@ -20,6 +20,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.springframework.context.ApplicationContext;
 import org.springframework.context.ConfigurableApplicationContext;
 
 /**
@@ -41,7 +42,7 @@ public interface DeploymentPipelineFactory {
      *
      * @throws DeployerException if an error occurs
      */
-    DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ConfigurableApplicationContext applicationContext,
+    DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ApplicationContext applicationContext,
                                    String pipelinePropertyName) throws DeployerException;
 
 }

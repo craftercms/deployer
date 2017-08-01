@@ -16,6 +16,9 @@ spring:
   freemarker:
     # If Spring should check it's default template location (always false since we handle our own Freemarker templates)
     checkTemplateLocation: false
+logging:
+  # Logging path for Spring, which should be the same as the Deployer logging path
+  path: ${deployer.main.logging.folderPath}
 
 ####################################################
 ##               Deployer Properties              ##

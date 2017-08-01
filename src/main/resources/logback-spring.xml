@@ -2,8 +2,6 @@
 
     <include resource="org/springframework/boot/logging/logback/base.xml" />
 
-    <springProperty scope="context" name="LOGS_PATH" source="deployer.main.logging.folderPath" defaultValue="./logs"/>
-
     <appender name="SIFT" class="ch.qos.logback.classic.sift.SiftingAppender">
         <!-- in the absence of the class attribute, it is assumed that the
              desired discriminator type is
@@ -14,7 +12,7 @@
         </discriminator>
         <sift>
             <appender name="FILE-${targetId}" class="ch.qos.logback.core.FileAppender">
-                <file>${LOGS_PATH}/${targetId}.log</file>
+                <file>${LOG_PATH}/${targetId}.log</file>
                 <layout class="ch.qos.logback.classic.PatternLayout">
                     <pattern>${FILE_LOG_PATTERN}</pattern>
                 </layout>

@@ -182,7 +182,7 @@
 	</dependencies>
 
 	<build>
-		<finalName>deployer</finalName>
+		<finalName>crafter-deployer</finalName>
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>

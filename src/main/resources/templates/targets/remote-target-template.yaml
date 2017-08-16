@@ -23,7 +23,7 @@ target:
       - processorName: gitDiffProcessor
       - processorName: searchIndexingProcessor
       - processorName: httpMethodCallProcessor
-        includeFiles: ["^/?scripts/.*$"]
+        includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
         method: GET
         url: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
       - processorName: httpMethodCallProcessor

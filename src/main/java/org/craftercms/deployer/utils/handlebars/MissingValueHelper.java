@@ -22,7 +22,7 @@ import com.github.jknack.handlebars.Options;
 import java.io.IOException;
 
 import org.craftercms.commons.validation.ValidationResult;
-import org.craftercms.commons.validation.validators.ErrorCodes;
+import org.craftercms.commons.validation.ErrorCodes;
 
 /**
  * Handlebars helper that will add a missing field error to the current {@link ValidationResult} if the parameter value is

@@ -18,6 +18,7 @@ package org.craftercms.deployer.impl.rest;
 
 import org.craftercms.commons.rest.BaseRestExceptionHandlers;
 import org.craftercms.commons.rest.RestServiceUtils;
+import org.craftercms.commons.validation.rest.ValidationAwareRestExceptionHandlers;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.springframework.http.HttpHeaders;
@@ -33,7 +34,7 @@ import org.springframework.web.context.request.WebRequest;
  * @author avasquez
  */
 @ControllerAdvice
-public class ExceptionHandlers extends BaseRestExceptionHandlers {
+public class ExceptionHandlers extends ValidationAwareRestExceptionHandlers {
 
     /**
      * Handles a {@link TargetNotFoundException} by returning a 404 NOT FOUND.

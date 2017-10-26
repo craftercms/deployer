@@ -22,6 +22,7 @@ import com.github.jknack.handlebars.Options;
 import java.io.IOException;
 
 import org.craftercms.commons.validation.ValidationResult;
+import org.craftercms.commons.validation.validators.ErrorCodes;
 
 /**
  * Handlebars helper that will add a missing field error to the current {@link ValidationResult} if the parameter value is
@@ -56,7 +57,7 @@ public class MissingValueHelper implements Helper<Object> {
             validationResult.set(result);
         }
 
-        result.addMissingFieldError(options.helperName);
+        result.addError(options.helperName, ErrorCodes.FIELD_MISSING_ERROR_CODE);
 
         return options.fn.text();
     }

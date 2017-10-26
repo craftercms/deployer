@@ -8,6 +8,7 @@ import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.ResourceBundle;
 
 import freemarker.template.TemplateException;
 import org.apache.commons.lang3.StringUtils;
@@ -20,6 +21,7 @@ import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
+import org.craftercms.deployer.impl.rest.ExceptionHandlers;
 import org.craftercms.deployer.utils.handlebars.ListHelper;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.slf4j.Logger;

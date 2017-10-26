@@ -30,6 +30,7 @@ import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
+import org.craftercms.commons.validation.validators.ErrorCodes;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
@@ -128,12 +129,12 @@ public class TargetController {
         ValidationResult validationResult = new ValidationResult();
         
         if (StringUtils.isEmpty(env)) {
-            validationResult.addMissingFieldError(ENV_PATH_VAR_NAME);
+            validationResult.addError(ENV_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
         }
         if (StringUtils.isEmpty(siteName)) {
-            validationResult.addMissingFieldError(SITE_NAME_PATH_VAR_NAME);
+            validationResult.addError(SITE_NAME_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
         }
-        if (CollectionUtils.isNotEmpty(validationResult.getFieldErrors())) {
+        if (validationResult.hasErrors()) {
             throw new ValidationException(validationResult);
         }
 

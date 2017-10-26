@@ -23,13 +23,13 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.concurrent.ExecutionException;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
+import org.craftercms.commons.validation.ErrorCodes;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
@@ -128,12 +128,12 @@ public class TargetController {
         ValidationResult validationResult = new ValidationResult();
         
         if (StringUtils.isEmpty(env)) {
-            validationResult.addMissingFieldError(ENV_PATH_VAR_NAME);
+            validationResult.addError(ENV_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
         }
         if (StringUtils.isEmpty(siteName)) {
-            validationResult.addMissingFieldError(SITE_NAME_PATH_VAR_NAME);
+            validationResult.addError(SITE_NAME_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
         }
-        if (CollectionUtils.isNotEmpty(validationResult.getFieldErrors())) {
+        if (validationResult.hasErrors()) {
             throw new ValidationException(validationResult);
         }
 

@@ -477,7 +477,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
         helper.clearValidationResult();
 
-        if (result != null && CollectionUtils.isNotEmpty(result.getFieldErrors())) {
+        if (result != null && result.hasErrors()) {
             throw new TargetServiceException(new ValidationException(result));
         }
     }

@@ -150,6 +150,11 @@
 			<artifactId>jackson-datatype-jsr310</artifactId>
 			<version>${jackson.jsr310.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-csv</artifactId>
+			<version>${jackson.version}</version>
+		</dependency>
 
 		<!-- Mail -->
 		<dependency>

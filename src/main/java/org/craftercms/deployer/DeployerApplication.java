@@ -2,6 +2,7 @@ package org.craftercms.deployer;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.fasterxml.jackson.databind.SerializationFeature;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.CompositeTemplateLoader;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
@@ -118,6 +119,14 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 		ObjectMapper objectMapper = builder.createXmlMapper(false).build();
 		objectMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
 		return objectMapper;
+	}
+
+	@Bean
+	public ObjectMapper csvObjectMapper(Jackson2ObjectMapperBuilder builder) {
+		CsvMapper csvMapper = new CsvMapper();
+		builder.configure(csvMapper);
+		csvMapper.configure(SerializationFeature.WRITE_DATES_AS_TIMESTAMPS, false);
+		return csvMapper;
 	}
 
 	@Bean(destroyMethod="shutdown")

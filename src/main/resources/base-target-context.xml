@@ -50,7 +50,7 @@
     <bean id="fileOutputProcessor" class="org.craftercms.deployer.impl.processors.FileOutputProcessor" parent="deploymentProcessor">
         <property name="outputFolder" value="${deployer.main.deployments.output.folderPath}"/>
         <property name="timestampPattern" value="${target.defaultTimestampPattern}"/>
-        <property name="objectMapper" ref="objectMapper"/>
+        <property name="objectMapper" ref="csvObjectMapper"/>
     </bean>
 
     <bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.MailNotificationProcessor"

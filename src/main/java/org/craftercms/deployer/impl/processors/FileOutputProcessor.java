@@ -16,10 +16,13 @@
  */
 package org.craftercms.deployer.impl.processors;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvMapper;
+import com.fasterxml.jackson.dataformat.csv.CsvSchema;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.time.ZonedDateTime;
 import java.time.format.DateTimeFormatter;
 
@@ -46,7 +49,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     protected File outputFolder;
     protected String timestampPattern;
     protected DateTimeFormatter timestampFormatter;
-    protected ObjectMapper objectMapper;
+    protected CsvMapper objectMapper;
 
     /**
      * Sets the output folder where the deployments results will be written to.
@@ -65,10 +68,10 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     /**
-     * Sets the JSON serializer to use to generate the output.
+     * Sets the CSV serializer to use to generate the output.
      */
     @Required
-    public void setObjectMapper(ObjectMapper objectMapper) {
+    public void setObjectMapper(CsvMapper objectMapper) {
         this.objectMapper = objectMapper;
     }
 
@@ -92,9 +95,13 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     @Override
     protected void doExecute(Deployment deployment) throws DeployerException {
         File outputFile = getOutputFile(deployment);
-
-        try {
-            objectMapper.writerWithDefaultPrettyPrinter().writeValue(outputFile, deployment);
+        CsvSchema formatSchema = objectMapper.schemaFor(Deployment.class);
+        boolean useHeaders = !Files.exists(outputFile.toPath());
+        try (FileWriter fileWriter = new FileWriter(outputFile, true)) {
+            if(useHeaders) {
+                formatSchema = formatSchema.withHeader();
+            }
+            objectMapper.writer(formatSchema).writeValue(fileWriter, deployment);
         } catch (IOException e) {
             throw new DeployerException("Error while writing deployment output file " + outputFile, e);
         }
@@ -106,16 +113,10 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     protected File getOutputFile(Deployment deployment) {
         String targetId = deployment.getTarget().getId();
-        ZonedDateTime start = deployment.getStart();
-        String filenameTimestamp = start.format(timestampFormatter);
-        String outputFilename = targetId + "-deployment-" + filenameTimestamp;
-        int count = 0;
-        File outputFile;
-
-        do {
-            outputFile = new File(outputFolder, outputFilename + (count != 0? count : "") + ".json");
-            count++;
-        } while (outputFile.exists());
+        ZonedDateTime now = ZonedDateTime.now();
+        String filenameTimestamp = now.format(timestampFormatter);
+        String outputFilename = targetId + "-deployments-" + filenameTimestamp;
+        File outputFile = new File(outputFolder, outputFilename + ".csv");
 
         return outputFile;
     }

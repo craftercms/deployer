@@ -6,7 +6,7 @@ target:
   # The local folder path where the target repository will be placed
   localRepoPath: ${deployer.main.deployments.folderPath}/${target.env}/${target.siteName}
   # The default timestamp pattern that will be used in filenames
-  defaultTimestampPattern: yyyyMMddHHmmssSSS
+  defaultTimestampPattern: yyyy-MM-dd
   # The default datetime pattern that will be used
   defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
   deployment:

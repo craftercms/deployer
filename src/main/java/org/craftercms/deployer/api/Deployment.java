@@ -18,6 +18,8 @@ package org.craftercms.deployer.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -33,6 +35,8 @@ import java.util.concurrent.locks.ReentrantLock;
  *
  * @author avasquez
  */
+@JsonPropertyOrder({ "status", "running", "duration", "start", "end", "created_files",
+    "updated_files", "deleted_files" })
 public class Deployment {
 
     protected Target target;
@@ -61,7 +65,7 @@ public class Deployment {
     /**
      * Returns the {@link Target} being deployed.
      */
-    @JsonProperty("target")
+    @JsonIgnore
     public Target getTarget() {
         return target;
     }
@@ -85,7 +89,7 @@ public class Deployment {
     /**
      * Returns true if the deployment is still running.
      */
-    @JsonProperty("running")
+    @JsonIgnore
     public boolean isRunning() {
         return start != null && end == null;
     }
@@ -113,7 +117,7 @@ public class Deployment {
     /**
      * Returns the change set of the deployment.
      */
-    @JsonProperty("change_set")
+    @JsonUnwrapped
     public ChangeSet getChangeSet() {
         return changeSet;
     }
@@ -156,7 +160,7 @@ public class Deployment {
     /**
      * Returns the list of {@link ProcessorExecution}s.
      */
-    @JsonProperty("processor_executions")
+    @JsonIgnore
     public List<ProcessorExecution> getProcessorExecutions() {
         lock.lock();
         try {

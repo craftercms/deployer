@@ -23,8 +23,6 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.time.ZonedDateTime;
-import java.time.format.DateTimeFormatter;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -47,8 +45,6 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     public static final String OUTPUT_FILE_PARAM_NAME = "outputFile";
 
     protected File outputFolder;
-    protected String timestampPattern;
-    protected DateTimeFormatter timestampFormatter;
     protected CsvMapper objectMapper;
 
     /**
@@ -57,14 +53,6 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     @Required
     public void setOutputFolder(File outputFolder) {
         this.outputFolder = outputFolder;
-    }
-
-    /**
-     * Sets the timestamp pattern to use on the output file names.
-     */
-    @Required
-    public void setTimestampPattern(String timestampPattern) {
-        this.timestampPattern = timestampPattern;
     }
 
     /**
@@ -77,8 +65,6 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     @Override
     public void init(Configuration config) throws DeployerException {
-        timestampFormatter = DateTimeFormatter.ofPattern(timestampPattern);
-
         if (!outputFolder.exists()) {
             try {
                 FileUtils.forceMkdir(outputFolder);
@@ -113,9 +99,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     protected File getOutputFile(Deployment deployment) {
         String targetId = deployment.getTarget().getId();
-        ZonedDateTime now = ZonedDateTime.now();
-        String filenameTimestamp = now.format(timestampFormatter);
-        String outputFilename = targetId + "-deployments-" + filenameTimestamp;
+        String outputFilename = targetId + "-deployments";
         File outputFile = new File(outputFolder, outputFilename + ".csv");
 
         return outputFile;

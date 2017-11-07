@@ -20,6 +20,11 @@ target:
           {{#if repo_password}}
           password: {{repo_password}}
           {{/if}}
+          {{#if ssh_private_key_path}}
+          ssh:
+            privateKey:
+              path: {{ssh_private_key_path}}
+          {{/if}}
       - processorName: gitDiffProcessor
       - processorName: searchIndexingProcessor
       - processorName: httpMethodCallProcessor

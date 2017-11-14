@@ -18,7 +18,6 @@ package org.craftercms.deployer.impl.processors;
 
 import java.io.File;
 import java.io.IOException;
-import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
@@ -36,9 +35,12 @@ import org.craftercms.deployer.utils.git.SshRsaKeyPairAuthConfigurator;
 import org.craftercms.deployer.utils.git.BasicUsernamePasswordAuthConfigurator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.RebaseResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.ObjectId;
+import org.eclipse.jgit.lib.Repository;
+import org.eclipse.jgit.merge.MergeStrategy;
+import org.eclipse.jgit.merge.ThreeWayMerger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -135,29 +137,68 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
     protected void doPull(ProcessorExecution execution) throws DeployerException {
         try (Git git = openLocalRepository()) {
-            logger.info("Executing git pull for repository {}...", localRepoFolder);
+            logger.info("Executing git fetch for repository {}...", localRepoFolder);
+            GitUtils.fetch(git, authenticationConfigurator);
 
-            PullResult pullResult = GitUtils.pull(git, authenticationConfigurator, useRebase);
-            String details;
+            Repository repo = git.getRepository();
+            ThreeWayMerger merger = MergeStrategy.RECURSIVE.newMerger(repo, true);
+            ObjectId headId = repo.resolve("HEAD"),
+                     fetchHeadId = repo.resolve("FETCH_HEAD");
+            boolean mergeHasConflicts = !merger.merge(headId, fetchHeadId);
 
-            if (pullResult.getMergeResult() != null) {
-                details = checkMergeResult(pullResult);
-            } else if (pullResult.getRebaseResult() != null) {
-                details = checkRebaseResult(pullResult);
-            } else {
-                details = "No update result from pull: " + pullResult;
+            if(mergeHasConflicts) {
+                logger.info("Merge conflicts detected, executing git reset for repository {}...", localRepoFolder);
+                logger.debug("Repository will be reset to commit '{}'", merger.getBaseCommitId());
+                GitUtils.reset(git, merger.getBaseCommitId());
             }
 
-            logger.info(details);
+            if(useRebase) {
+                doRebase(git, execution);
+            } else {
+                doMerge(git, execution);
+            }
 
-            execution.setStatusDetails(details);
-        } catch (GitAPIException e) {
-            throw new DeployerException("Git pull for repository " + localRepoFolder + " failed", e);
+        } catch (GitAPIException | IOException e) {
+            throw new DeployerException("Execution of git pull failed:", e);
         }
     }
 
-    protected String checkMergeResult(PullResult pullResult) throws DeployerException {
-        MergeResult.MergeStatus status = pullResult.getMergeResult().getMergeStatus();
+    protected void doMerge(Git git, ProcessorExecution execution) throws GitAPIException, IOException, DeployerException {
+        logger.info("Executing git merge for repository {}...", localRepoFolder);
+
+        MergeResult mergeResult = GitUtils.merge(git, remoteRepoBranch);
+        String details;
+
+        if (mergeResult != null) {
+            details = checkMergeResult(mergeResult);
+        } else {
+            details = "No update result from merge: " + mergeResult;
+        }
+
+        logger.info(details);
+
+        execution.setStatusDetails(details);
+    }
+
+    protected void doRebase(Git git, ProcessorExecution execution) throws DeployerException, GitAPIException {
+        logger.info("Executing git rebase for repository {}...", localRepoFolder);
+
+        RebaseResult rebaseResult = GitUtils.rebase(git, remoteRepoBranch);
+        String details;
+
+        if (rebaseResult != null) {
+            details = checkRebaseResult(rebaseResult);
+        } else {
+            details = "No update result from rebase: " + rebaseResult;
+        }
+
+        logger.info(details);
+
+        execution.setStatusDetails(details);
+    }
+
+    protected String checkMergeResult(MergeResult mergeResult) throws DeployerException {
+        MergeResult.MergeStatus status = mergeResult.getMergeStatus();
         if (status.isSuccessful()) {
             switch (status) {
                 case FAST_FORWARD:
@@ -176,10 +217,10 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
         }
     }
 
-    protected String checkRebaseResult(PullResult pullResult) throws DeployerException {
-        RebaseResult.Status status = pullResult.getRebaseResult().getStatus();
+    protected String checkRebaseResult(RebaseResult rebaseResult) throws DeployerException {
+        RebaseResult.Status status = rebaseResult.getStatus();
         if (status.isSuccessful()) {
-            switch (pullResult.getRebaseResult().getStatus()) {
+            switch (status) {
                 case FAST_FORWARD:
                 case OK:
                     return "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " + localRepoFolder +

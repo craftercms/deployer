@@ -22,12 +22,21 @@ import java.io.IOException;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.utils.git.GitAuthenticationConfigurator;
 import org.eclipse.jgit.api.CloneCommand;
+import org.eclipse.jgit.api.FetchCommand;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeCommand;
+import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullCommand;
 import org.eclipse.jgit.api.PullResult;
+import org.eclipse.jgit.api.RebaseCommand;
+import org.eclipse.jgit.api.RebaseResult;
+import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.CredentialsProvider;
+import org.eclipse.jgit.transport.FetchResult;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
 
@@ -138,6 +147,61 @@ public abstract class GitUtils {
         command.setRebase(useRebase);
 
         return command.call();
+    }
+
+    /**
+     * Executes a git fetch.
+     * @param git               the Git instance used to handle the repository
+     * @param authConfigurator  the {@link GitAuthenticationConfigurator} class used to configure the authentication with the remote
+     *                          repository
+     * @return                  the result of the fetch
+     * @throws GitAPIException  if a Git related error occurs
+     */
+    public static FetchResult fetch(Git git, GitAuthenticationConfigurator authConfigurator) throws GitAPIException {
+        FetchCommand fetch = git.fetch();
+        if(authConfigurator != null) {
+            authConfigurator.configureAuthentication(fetch);
+        }
+        return fetch.call();
+    }
+
+    /**
+     * Executes a git reset.
+     * @param git               the Git instance used to handle the repository
+     * @param commitId          the ID of the commit to which the repository will be reverted
+     * @throws GitAPIException  if a Git related error occurs
+     */
+    public static void reset(Git git, ObjectId commitId) throws GitAPIException {
+        ResetCommand reset = git.reset();
+        reset.setRef(commitId.name());
+        reset.setMode(ResetCommand.ResetType.HARD);
+        reset.call();
+    }
+
+    /**
+     * Executes a git merge.
+     * @param git               the Git instance used to handle the repository
+     * @param branch            the name of the branch in the remote repository
+     * @return                  the result of the merge
+     * @throws GitAPIException  if a Git related error occurs
+     */
+    public static MergeResult merge(Git git, String branch) throws GitAPIException, IOException {
+        MergeCommand merge = git.merge();
+        merge.include(git.getRepository().resolve(Constants.DEFAULT_REMOTE_NAME + "/" + branch));
+        return merge.call();
+    }
+
+    /**
+     * Executes a git rebase.
+     * @param git               the Git instance used to handle the repository
+     * @param branch            the name of the branch in the remote repository
+     * @return                  the result of the rebase
+     * @throws GitAPIException  if a Git related error occurs
+     */
+    public static RebaseResult rebase(Git git, String branch) throws GitAPIException {
+        RebaseCommand rebase = git.rebase();
+        rebase.setUpstream(Constants.DEFAULT_REMOTE_NAME + "/" + branch);
+        return rebase.call();
     }
 
 }

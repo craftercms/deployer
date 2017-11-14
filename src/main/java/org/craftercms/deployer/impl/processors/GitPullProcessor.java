@@ -142,7 +142,8 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
             Repository repo = git.getRepository();
             ThreeWayMerger merger = MergeStrategy.RECURSIVE.newMerger(repo, true);
-            ObjectId headId = repo.resolve("HEAD"), fetchHeadId = repo.resolve("FETCH_HEAD");
+            ObjectId headId = repo.resolve("HEAD"),
+                     fetchHeadId = repo.resolve("FETCH_HEAD");
             boolean mergeHasConflicts = !merger.merge(headId, fetchHeadId);
 
             if(mergeHasConflicts) {

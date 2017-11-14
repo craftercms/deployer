@@ -166,7 +166,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     protected void doMerge(Git git, ProcessorExecution execution) throws GitAPIException, IOException, DeployerException {
         logger.info("Executing git merge for repository {}...", localRepoFolder);
 
-        MergeResult mergeResult = GitUtils.merge(git);
+        MergeResult mergeResult = GitUtils.merge(git, remoteRepoBranch);
         String details;
 
         if (mergeResult != null) {
@@ -183,7 +183,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     protected void doRebase(Git git, ProcessorExecution execution) throws DeployerException, GitAPIException {
         logger.info("Executing git rebase for repository {}...", localRepoFolder);
 
-        RebaseResult rebaseResult = GitUtils.rebase(git);
+        RebaseResult rebaseResult = GitUtils.rebase(git, remoteRepoBranch);
         String details;
 
         if (rebaseResult != null) {

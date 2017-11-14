@@ -32,6 +32,7 @@ import org.eclipse.jgit.api.RebaseCommand;
 import org.eclipse.jgit.api.RebaseResult;
 import org.eclipse.jgit.api.ResetCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.CredentialsProvider;
@@ -54,8 +55,6 @@ public abstract class GitUtils {
     public static final String BIG_FILE_THRESHOLD_DEFAULT = "20m";
     public static final int COMPRESSION_DEFAULT = 0;
     public static final boolean FILE_MODE_DEFAULT = false;
-
-    public static final String REMOTE_BRANCH_REF = "origin/live";
 
     private GitUtils() {
     }
@@ -182,24 +181,26 @@ public abstract class GitUtils {
     /**
      * Executes a git merge.
      * @param git               the Git instance used to handle the repository
+     * @param branch            the name of the branch in the remote repository
      * @return                  the result of the merge
      * @throws GitAPIException  if a Git related error occurs
      */
-    public static MergeResult merge(Git git) throws GitAPIException, IOException {
+    public static MergeResult merge(Git git, String branch) throws GitAPIException, IOException {
         MergeCommand merge = git.merge();
-        merge.include(git.getRepository().resolve(REMOTE_BRANCH_REF));
+        merge.include(git.getRepository().resolve(Constants.DEFAULT_REMOTE_NAME + "/" + branch));
         return merge.call();
     }
 
     /**
      * Executes a git rebase.
      * @param git               the Git instance used to handle the repository
+     * @param branch            the name of the branch in the remote repository
      * @return                  the result of the rebase
      * @throws GitAPIException  if a Git related error occurs
      */
-    public static RebaseResult rebase(Git git) throws GitAPIException {
+    public static RebaseResult rebase(Git git, String branch) throws GitAPIException {
         RebaseCommand rebase = git.rebase();
-        rebase.setUpstream(REMOTE_BRANCH_REF);
+        rebase.setUpstream(Constants.DEFAULT_REMOTE_NAME + "/" + branch);
         return rebase.call();
     }
 

@@ -138,17 +138,22 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     protected void doPull(ProcessorExecution execution) throws DeployerException {
         try (Git git = openLocalRepository()) {
             logger.info("Executing git fetch for repository {}...", localRepoFolder);
+
             GitUtils.fetch(git, authenticationConfigurator);
 
+            // We're checking first if a merge will work, without affecting the actual repository
             Repository repo = git.getRepository();
             ThreeWayMerger merger = MergeStrategy.RECURSIVE.newMerger(repo, true);
-            ObjectId headId = repo.resolve("HEAD"),
-                     fetchHeadId = repo.resolve("FETCH_HEAD");
+            ObjectId headId = repo.resolve("HEAD");
+            ObjectId fetchHeadId = repo.resolve("FETCH_HEAD");
             boolean mergeHasConflicts = !merger.merge(headId, fetchHeadId);
 
-            if(mergeHasConflicts) {
-                logger.info("Merge conflicts detected, executing git reset for repository {}...", localRepoFolder);
-                logger.debug("Repository will be reset to commit '{}'", merger.getBaseCommitId());
+            // If the merge has conflicts, we should reset to the last common commit with upstream
+            if (mergeHasConflicts) {
+                logger.warn("Merge conflicts detected, resetting repository {} to the last common commit with the " +
+                            "remote repository...", localRepoFolder);
+                logger.debug("Repository will be reset to commit '{}'", merger.getBaseCommitId().name());
+
                 GitUtils.reset(git, merger.getBaseCommitId());
             }
 
@@ -157,7 +162,6 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
             } else {
                 doMerge(git, execution);
             }
-
         } catch (GitAPIException | IOException e) {
             throw new DeployerException("Execution of git pull failed:", e);
         }

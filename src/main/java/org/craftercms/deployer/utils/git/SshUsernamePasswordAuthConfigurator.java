@@ -43,6 +43,8 @@ public class SshUsernamePasswordAuthConfigurator extends AbstractSshAuthConfigur
             @Override
             protected void configure(OpenSshConfig.Host hc, Session session) {
                 session.setPassword(password);
+
+                setHostKeyType(hc, session);
             }
 
 

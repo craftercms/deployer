@@ -67,7 +67,7 @@ public class SshRsaKeyPairAuthConfigurator extends AbstractSshAuthConfigurator {
 
             @Override
             protected void configure(OpenSshConfig.Host host, Session session) {
-                // Do nothing
+                setHostKeyType(host, session);
             }
 
         };

@@ -16,10 +16,10 @@
  */
 package org.craftercms.deployer.utils.git;
 
+import com.jcraft.jsch.HostKey;
 import com.jcraft.jsch.Session;
 
 import org.eclipse.jgit.api.TransportCommand;
-import org.eclipse.jgit.transport.JschConfigSessionFactory;
 import org.eclipse.jgit.transport.OpenSshConfig;
 import org.eclipse.jgit.transport.SshSessionFactory;
 import org.eclipse.jgit.transport.SshTransport;
@@ -32,6 +32,8 @@ import org.eclipse.jgit.transport.SshTransport;
  */
 public abstract class AbstractSshAuthConfigurator implements GitAuthenticationConfigurator {
 
+    public static final String KEY_TYPE_CONFIG = "server_host_key";
+
     @Override
     public void configureAuthentication(TransportCommand command) {
         SshSessionFactory sessionFactory = createSessionFactory();
@@ -39,15 +41,19 @@ public abstract class AbstractSshAuthConfigurator implements GitAuthenticationCo
         command.setTransportConfigCallback(transport -> ((SshTransport) transport).setSshSessionFactory(sessionFactory));
     }
 
-    protected SshSessionFactory createSessionFactory() {
-        return new JschConfigSessionFactory() {
-
-            @Override
-            protected void configure(OpenSshConfig.Host hc, Session session) {
-                // Do nothing
+    /*
+     * Iterates through the known hosts (host key repository). If one of the know hosts matches the current host we're trying
+     * to connect too,
+     */
+    protected void setHostKeyType(OpenSshConfig.Host host, Session session) {
+        HostKey[] hostKeys = session.getHostKeyRepository().getHostKey();
+        for(HostKey hostKey : hostKeys) {
+            if(hostKey.getHost().equals(host.getHostName())) {
+                session.setConfig(KEY_TYPE_CONFIG, hostKey.getType());
             }
-
-        };
+        }
     }
+
+    protected abstract SshSessionFactory createSessionFactory();
 
 }

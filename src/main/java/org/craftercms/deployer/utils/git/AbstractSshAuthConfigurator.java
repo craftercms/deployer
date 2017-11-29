@@ -48,7 +48,7 @@ public abstract class AbstractSshAuthConfigurator implements GitAuthenticationCo
     protected void setHostKeyType(OpenSshConfig.Host host, Session session) {
         HostKey[] hostKeys = session.getHostKeyRepository().getHostKey();
         for(HostKey hostKey : hostKeys) {
-            if(hostKey.getHost().equals(host.getHostName())) {
+            if(hostKey.getHost().contains(host.getHostName())) {
                 session.setConfig(KEY_TYPE_CONFIG, hostKey.getType());
             }
         }

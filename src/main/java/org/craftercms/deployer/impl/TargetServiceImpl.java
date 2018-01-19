@@ -157,7 +157,10 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public void onApplicationEvent(ApplicationReadyEvent event) {
         // Load all existing targets on startup
         try {
-            resolveTargets();
+            List<Target> targets = resolveTargets();
+            if (CollectionUtils.isEmpty(targets)) {
+                logger.warn("No config files found under {}", targetConfigFolder.getAbsolutePath());
+            }
         } catch (DeployerException e) {
             logger.error("Error while loading targets on startup", e);
         }
@@ -256,13 +259,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
     protected Collection<File> getTargetConfigFiles() throws TargetServiceException {
         if (targetConfigFolder.exists()) {
-            Collection<File> yamlFiles = FileUtils.listFiles(targetConfigFolder, new CustomConfigFileFilter(), null);
-
-            if (CollectionUtils.isEmpty(yamlFiles)) {
-                logger.warn("No YAML config files found under {}", targetConfigFolder.getAbsolutePath());
-            }
-
-            return yamlFiles;
+            return FileUtils.listFiles(targetConfigFolder, new CustomConfigFileFilter(), null);
         } else {
             logger.warn("Config folder {} doesn't exist. Trying to create it...", targetConfigFolder.getAbsolutePath());
 

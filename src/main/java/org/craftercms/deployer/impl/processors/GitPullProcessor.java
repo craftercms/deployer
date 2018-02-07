@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2017 Crafter Software Corporation.
+ * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -22,6 +22,10 @@ import java.io.IOException;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.git.auth.BasicUsernamePasswordAuthConfigurator;
+import org.craftercms.commons.git.auth.GitAuthenticationConfigurator;
+import org.craftercms.commons.git.auth.SshRsaKeyPairAuthConfigurator;
+import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -29,10 +33,6 @@ import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
-import org.craftercms.deployer.utils.git.GitAuthenticationConfigurator;
-import org.craftercms.deployer.utils.git.SshUsernamePasswordAuthConfigurator;
-import org.craftercms.deployer.utils.git.SshRsaKeyPairAuthConfigurator;
-import org.craftercms.deployer.utils.git.BasicUsernamePasswordAuthConfigurator;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.RebaseResult;

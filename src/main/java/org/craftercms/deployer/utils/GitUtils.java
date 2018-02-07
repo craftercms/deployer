@@ -16,29 +16,17 @@
  */
 package org.craftercms.deployer.utils;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.deployer.utils.git.GitAuthenticationConfigurator;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.FetchCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.MergeCommand;
-import org.eclipse.jgit.api.MergeResult;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.PullResult;
-import org.eclipse.jgit.api.RebaseCommand;
-import org.eclipse.jgit.api.RebaseResult;
-import org.eclipse.jgit.api.ResetCommand;
+import org.craftercms.commons.git.auth.GitAuthenticationConfigurator;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.StoredConfig;
-import org.eclipse.jgit.transport.CredentialsProvider;
 import org.eclipse.jgit.transport.FetchResult;
-import org.eclipse.jgit.transport.SshSessionFactory;
-import org.eclipse.jgit.transport.SshTransport;
+
+import java.io.File;
+import java.io.IOException;
 
 /**
  * Utility methods for Git operations.

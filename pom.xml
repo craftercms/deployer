@@ -5,7 +5,7 @@
 
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>3.0.4</version>
+	<version>3.0.5</version>
 	<packaging>jar</packaging>
 
 	<name>Crafter Deployer</name>
@@ -64,6 +64,11 @@
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-validation</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-git</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

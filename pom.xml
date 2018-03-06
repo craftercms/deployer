@@ -5,7 +5,7 @@
 
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>3.0.9-SNAPSHOT</version>
+	<version>3.0.9</version>
 	<packaging>jar</packaging>
 
 	<name>Crafter Deployer</name>

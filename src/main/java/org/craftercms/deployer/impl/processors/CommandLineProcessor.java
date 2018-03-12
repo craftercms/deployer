@@ -60,6 +60,7 @@ public class CommandLineProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     public void destroy() throws DeployerException {
+        // Not used
     }
 
     @Override

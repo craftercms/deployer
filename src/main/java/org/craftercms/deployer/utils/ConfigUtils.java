@@ -204,6 +204,39 @@ public class ConfigUtils {
     }
 
     /**
+     * Returns the specified Long property from the configuration
+     *
+     * @param config    the configuration
+     * @param key       the key of the property
+     *
+     * @return the Long value of the property, or null if not found
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
+    public static Long getLongProperty(Configuration config, String key) throws DeployerConfigurationException {
+        return getLongProperty(config, key, null);
+    }
+
+    /**
+     * Returns the specified Long property from the configuration
+     *
+     * @param config        the configuration
+     * @param key           the key of the property
+     * @param defaultValue  the default value if the property is not found
+     *
+     * @return the Long value of the property, or the default value if not found
+     *
+     * @throws DeployerConfigurationException if an error occurred
+     */
+    public static Long getLongProperty(Configuration config, String key, Long defaultValue) throws DeployerConfigurationException {
+        try {
+            return config.getLong(key, defaultValue);
+        } catch (Exception e) {
+            throw new DeployerConfigurationException("Failed to retrieve property '" + key + "'", e);
+        }
+    }
+
+    /**
      * Returns the specified String array property from the configuration. A String array property is normally specified as
      * a String with values separated by commas in the configuration.
      *

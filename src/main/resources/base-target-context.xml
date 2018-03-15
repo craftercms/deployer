@@ -47,6 +47,8 @@
     <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor"
           parent="deploymentProcessor"/>
 
+    <bean id="commandLineProcessor" class="org.craftercms.deployer.impl.processors.CommandLineProcessor" parent="deploymentProcessor"/>
+
     <bean id="fileOutputProcessor" class="org.craftercms.deployer.impl.processors.FileOutputProcessor" parent="deploymentProcessor">
         <property name="outputFolder" value="${deployer.main.deployments.output.folderPath}"/>
         <property name="objectMapper" ref="csvObjectMapper"/>

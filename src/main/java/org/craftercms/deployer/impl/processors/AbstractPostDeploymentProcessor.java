@@ -16,8 +16,6 @@
  */
 package org.craftercms.deployer.impl.processors;
 
-import java.util.Map;
-
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;

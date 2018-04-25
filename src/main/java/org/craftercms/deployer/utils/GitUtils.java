@@ -24,6 +24,7 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.transport.FetchResult;
+import org.eclipse.jgit.transport.PushResult;
 
 import java.io.File;
 import java.io.IOException;
@@ -151,6 +152,28 @@ public abstract class GitUtils {
             authConfigurator.configureAuthentication(fetch);
         }
         return fetch.call();
+    }
+    
+    /**
+     * Executes a git push.
+     * @param git               the Git instance used to handle the repository
+     * @param remote            remote name or URL
+     * @param pushAll           if <code>true</code>, pushes all branches
+     * @param authConfigurator  the {@link GitAuthenticationConfigurator} class used to configure the authentication with the remote
+     *                          repository
+     * @return                  the result of the push
+     * @throws GitAPIException  if a Git related error occurs
+     */
+    public static Iterable<PushResult> push(Git git, String remote, boolean pushAll, GitAuthenticationConfigurator authConfigurator) throws GitAPIException {
+        PushCommand push = git.push();
+        if(authConfigurator != null) {
+            authConfigurator.configureAuthentication(push);
+        }
+        if(pushAll) {
+        	push.setPushAll();
+        }
+        push.setRemote(remote);
+        return push.call();
     }
 
     /**

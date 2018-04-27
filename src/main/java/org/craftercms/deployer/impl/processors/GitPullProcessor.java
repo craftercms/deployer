@@ -157,7 +157,7 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
                 GitUtils.reset(git, merger.getBaseCommitId());
             }
 
-            if(useRebase) {
+            if (useRebase) {
                 doRebase(git, execution);
             } else {
                 doMerge(git, execution);

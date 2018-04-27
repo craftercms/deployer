@@ -205,7 +205,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         if (target != null) {
             return target;
         } else {
-            throw new TargetNotFoundException(id);
+            throw new TargetNotFoundException(id, env, siteName);
         }
     }
 
@@ -217,7 +217,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
 
         if (!replace && configFile.exists()) {
-            throw new TargetAlreadyExistsException(id);
+            throw new TargetAlreadyExistsException(id, env, siteName);
         } else {
             createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
         }

@@ -61,7 +61,7 @@ public class ExceptionHandlers extends ValidationAwareRestExceptionHandlers {
     public ResponseEntity<Object> handleTargetAlreadyExistsException(TargetAlreadyExistsException ex, WebRequest request) {
         HttpHeaders headers = RestServiceUtils.setLocationHeader(new HttpHeaders(),
                                                                  TargetController.BASE_URL + TargetController.GET_TARGET_URL,
-                                                                 ex.getId());
+                                                                 ex.getEnv(), ex.getSiteName());
 
         return handleExceptionInternal(ex, "Target already exists", headers, HttpStatus.CONFLICT, request);
     }

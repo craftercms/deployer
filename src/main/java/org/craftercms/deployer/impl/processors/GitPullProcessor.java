@@ -35,6 +35,7 @@ import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
+import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.RebaseResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.ObjectId;
@@ -46,20 +47,22 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Processor that clones/pulls a remote Git repository into a local path in the filesystem. It uses a {@link GitAuthenticationConfigurator}
- * to configure the Git connection authentication. A processor instance can be configured with the following YAML properties:
- *
+ * Processor that clones/pulls a remote Git repository into a local path in the filesystem. It uses a
+ * {@link GitAuthenticationConfigurator}
+ * to configure the Git connection authentication. A processor instance can be configured with the following YAML
+ * properties:
+ * <p>
  * <ul>
- *     <li><strong>remoteRepo.url:</strong> The URL of the remote Git repo to clone/pull</li>
- *     <li><strong>remoteRepo.branch:</strong> The branch of the remote Git repo to clone/pull</li>
- *     <li><strong>remoteRepo.username:</strong> The username for authentication with the remote Git repo. Not needed when
- *     SSH with RSA key pair authentication is used.</li>
- *     <li><strong>remoteRepo.password:</strong> The password for authentication with the remote Git repo. Not needed when
- *     SSH with RSA key pair authentication is used.</li>
- *     <li><strong>remoteRepo.ssh.privateKey.path:</strong> The SSH private key path, used only with SSH with RSA key pair
- *     authentication.</li>
- *     <li><strong>remoteRepo.ssh.privateKey.passphrase:</strong> The SSH private key passphrase, used only with SSH with
- *     RSA key pair authentication.</li>
+ * <li><strong>remoteRepo.url:</strong> The URL of the remote Git repo to clone/pull</li>
+ * <li><strong>remoteRepo.branch:</strong> The branch of the remote Git repo to clone/pull</li>
+ * <li><strong>remoteRepo.username:</strong> The username for authentication with the remote Git repo. Not needed when
+ * SSH with RSA key pair authentication is used.</li>
+ * <li><strong>remoteRepo.password:</strong> The password for authentication with the remote Git repo. Not needed when
+ * SSH with RSA key pair authentication is used.</li>
+ * <li><strong>remoteRepo.ssh.privateKey.path:</strong> The SSH private key path, used only with SSH with RSA key pair
+ * authentication.</li>
+ * <li><strong>remoteRepo.ssh.privateKey.passphrase:</strong> The SSH private key passphrase, used only with SSH with
+ * RSA key pair authentication.</li>
  * </ul>
  *
  * @author avasquez
@@ -78,7 +81,6 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 
     protected File localRepoFolder;
-    protected boolean useRebase;
 
     protected String remoteRepoUrl;
     protected String remoteRepoBranch;
@@ -90,13 +92,6 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
     @Required
     public void setLocalRepoFolder(File localRepoFolder) {
         this.localRepoFolder = localRepoFolder;
-    }
-
-    /**
-     * Sets whether rebase should be used on pull instead of merge.
-     */
-    public void setUseRebase(boolean useRebase) {
-        this.useRebase = useRebase;
     }
 
     @Override
@@ -137,68 +132,24 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
     protected void doPull(ProcessorExecution execution) throws DeployerException {
         try (Git git = openLocalRepository()) {
-            logger.info("Executing git fetch for repository {}...", localRepoFolder);
+            logger.info("Executing git pull for repository {}...", localRepoFolder);
 
-            GitUtils.fetch(git, authenticationConfigurator);
+            PullResult pullResult = GitUtils.pull(git, remoteRepoBranch, MergeStrategy.THEIRS,
+                                                  authenticationConfigurator);
+            String details;
 
-            // We're checking first if a merge will work, without affecting the actual repository
-            Repository repo = git.getRepository();
-            ThreeWayMerger merger = MergeStrategy.RECURSIVE.newMerger(repo, true);
-            ObjectId headId = repo.resolve("HEAD");
-            ObjectId fetchHeadId = repo.resolve("FETCH_HEAD");
-            boolean mergeHasConflicts = !merger.merge(headId, fetchHeadId);
-
-            // If the merge has conflicts, we should reset to the last common commit with upstream
-            if (mergeHasConflicts) {
-                logger.warn("Merge conflicts detected, resetting repository {} to the last common commit with the " +
-                            "remote repository...", localRepoFolder);
-                logger.debug("Repository will be reset to commit '{}'", merger.getBaseCommitId().name());
-
-                GitUtils.reset(git, merger.getBaseCommitId());
-            }
-
-            if (useRebase) {
-                doRebase(git, execution);
+            if (pullResult != null && pullResult.getMergeResult() != null) {
+                details = checkMergeResult(pullResult.getMergeResult());
             } else {
-                doMerge(git, execution);
+                details = "No pull or merge result returned after pull operation";
             }
-        } catch (GitAPIException | IOException e) {
+
+            logger.info(details);
+
+            execution.setStatusDetails(details);
+        } catch (GitAPIException e) {
             throw new DeployerException("Execution of git pull failed:", e);
         }
-    }
-
-    protected void doMerge(Git git, ProcessorExecution execution) throws GitAPIException, IOException, DeployerException {
-        logger.info("Executing git merge for repository {}...", localRepoFolder);
-
-        MergeResult mergeResult = GitUtils.merge(git, remoteRepoBranch);
-        String details;
-
-        if (mergeResult != null) {
-            details = checkMergeResult(mergeResult);
-        } else {
-            details = "No update result from merge: " + mergeResult;
-        }
-
-        logger.info(details);
-
-        execution.setStatusDetails(details);
-    }
-
-    protected void doRebase(Git git, ProcessorExecution execution) throws DeployerException, GitAPIException {
-        logger.info("Executing git rebase for repository {}...", localRepoFolder);
-
-        RebaseResult rebaseResult = GitUtils.rebase(git, remoteRepoBranch);
-        String details;
-
-        if (rebaseResult != null) {
-            details = checkRebaseResult(rebaseResult);
-        } else {
-            details = "No update result from rebase: " + rebaseResult;
-        }
-
-        logger.info(details);
-
-        execution.setStatusDetails(details);
     }
 
     protected String checkMergeResult(MergeResult mergeResult) throws DeployerException {
@@ -207,37 +158,17 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
             switch (status) {
                 case FAST_FORWARD:
                 case MERGED:
-                    return "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " + localRepoFolder +
-                           " (merge result with status " + status + ")";
+                    return "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " +
+                           localRepoFolder + " (merge result with status " + status + ")";
                 case ALREADY_UP_TO_DATE:
-                    return "Local repository " + localRepoFolder + " up to date (no changes pulled from remote repo " + remoteRepoUrl +
-                           ") (merge result with status " + status + ")";
+                    return "Local repository " + localRepoFolder + " up to date (no changes pulled from remote repo " +
+                           remoteRepoUrl + ") (merge result with status " + status + ")";
                 default:
                     // Non-supported merge results
                     throw new DeployerException("Received unsupported merge result after executing pull: " + status);
             }
         } else {
             throw new DeployerException("Merge failed with status " + status);
-        }
-    }
-
-    protected String checkRebaseResult(RebaseResult rebaseResult) throws DeployerException {
-        RebaseResult.Status status = rebaseResult.getStatus();
-        if (status.isSuccessful()) {
-            switch (status) {
-                case FAST_FORWARD:
-                case OK:
-                    return "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " + localRepoFolder +
-                           " (rebase result with status " + status + ")";
-                case UP_TO_DATE:
-                    return "Local repository " + localRepoFolder + " up to date (no changes pulled from remote repo " + remoteRepoUrl +
-                           ") (rebase result with status " + status + ")";
-                default:
-                    // Non-supported merge results
-                    throw new DeployerException("Received unsupported merge result after executing pull: " + status);
-            }
-        } else {
-            throw new DeployerException("Rebase failed with status " + status);
         }
     }
 
@@ -275,18 +206,20 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
 
             logger.info("Cloning Git remote repository {} into {}", remoteRepoUrl, localRepoFolder);
 
-            return GitUtils.cloneRemoteRepository(remoteRepoUrl, remoteRepoBranch, authenticationConfigurator, localRepoFolder,
-                                                  null, null, null);
+            return GitUtils.cloneRemoteRepository(remoteRepoUrl, remoteRepoBranch, authenticationConfigurator,
+                                                  localRepoFolder, null, null, null);
         } catch (IOException | GitAPIException | IllegalArgumentException e) {
             // Force delete so there's no invalid remains
             FileUtils.deleteQuietly(localRepoFolder);
 
-            throw new DeployerException("Failed to clone Git remote repository " + remoteRepoUrl + " into " + localRepoFolder, e);
+            throw new DeployerException(
+                "Failed to clone Git remote repository " + remoteRepoUrl + " into " + localRepoFolder, e);
         }
     }
 
     protected GitAuthenticationConfigurator createAuthenticationConfigurator(Configuration config,
-                                                                             String repoUrl) throws DeployerConfigurationException {
+                                                                             String repoUrl) throws
+        DeployerConfigurationException {
         GitAuthenticationConfigurator authConfigurator = null;
 
         if (repoUrl.startsWith("ssh:")) {
@@ -298,7 +231,8 @@ public class GitPullProcessor extends AbstractMainDeploymentProcessor {
                 authConfigurator = new SshUsernamePasswordAuthConfigurator(password);
             } else {
                 String privateKeyPath = ConfigUtils.getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY);
-                String passphrase = ConfigUtils.getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY);
+                String passphrase = ConfigUtils.getStringProperty(config,
+                                                                  REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY);
 
                 logger.debug("SSH RSA key pair authentication will be used to connect to repo {}", repoUrl);
 

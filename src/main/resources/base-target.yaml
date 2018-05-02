@@ -13,10 +13,6 @@ target:
       enabled: true
       # The cron expression used for scheduling target deployments
       cron: '0 * * * * *'
-  git:
-    pull:
-      # If when pulling a remote Git repository rebase should be used instead of merge
-      useRebase: false
   search:
     # The base URL of the Crafter Search server
     serverUrl: http://localhost:8080/crafter-search

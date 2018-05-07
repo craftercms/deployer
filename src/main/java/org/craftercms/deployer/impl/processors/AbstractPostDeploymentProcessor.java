@@ -37,7 +37,7 @@ public abstract class AbstractPostDeploymentProcessor extends AbstractDeployment
 
         if (shouldExecute(deployment)) {
             try {
-                logger.info("----- {} @ {} -----", name, targetId);
+                logger.info("----- < {} @ {} > -----", name, targetId);
 
                 doExecute(deployment);
             } catch (Exception e) {

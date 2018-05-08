@@ -32,6 +32,7 @@ import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.transport.PushResult;
+import org.eclipse.jgit.transport.RefSpec;
 
 /**
  * Utility methods for Git operations.
@@ -39,6 +40,8 @@ import org.eclipse.jgit.transport.PushResult;
  * @author avasquez
  */
 public abstract class GitUtils {
+
+    public static final String GIT_FOLDER_NAME = ".git";
 
     public static final String CORE_CONFIG_SECTION = "core";
     public static final String BIG_FILE_THRESHOLD_CONFIG_PARAM = "bigFileThreshold";
@@ -149,19 +152,19 @@ public abstract class GitUtils {
      *
      * @param git              the Git instance used to handle the repository
      * @param remote           remote name or URL
-     * @param pushAll          if <code>true</code>, pushes all branches
+     * @param branch     the remote branch being pushed to
      * @param authConfigurator the {@link GitAuthenticationConfigurator} class used to configure the authentication
      *                         with the remote
      *                         repository
      * @return the result of the push
      * @throws GitAPIException if a Git related error occurs
      */
-    public static Iterable<PushResult> push(Git git, String remote, boolean pushAll,
+    public static Iterable<PushResult> push(Git git, String remote, String branch,
                                             GitAuthenticationConfigurator authConfigurator) throws GitAPIException {
         PushCommand push = git.push();
         push.setRemote(remote);
-        if (pushAll) {
-            push.setPushAll();
+        if (StringUtils.isNotEmpty(branch)) {
+            push.setRefSpecs(new RefSpec(Constants.HEAD + ":" + Constants.R_HEADS + branch));
         }
 
         if (authConfigurator != null) {

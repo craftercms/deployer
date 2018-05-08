@@ -88,6 +88,7 @@ public abstract class RemoteGitRepoAwareProcessor extends AbstractMainDeployment
 
     @Override
     public void destroy() throws DeployerException {
+        // Do nothing
     }
 
     @Override

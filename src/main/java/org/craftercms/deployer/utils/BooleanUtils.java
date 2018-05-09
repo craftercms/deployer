@@ -33,7 +33,7 @@ public class BooleanUtils extends org.apache.commons.lang3.BooleanUtils {
      * </ol>
      *
      * @param obj
-     * @return
+     * @return boolean value
      */
     public static boolean toBoolean(Object obj) {
         if (obj != null) {

@@ -24,6 +24,9 @@ target:
           ssh:
             privateKey:
               path: {{ssh_private_key_path}}
+              {{#if ssh_private_key_passphrase}}
+              passphrase: {{ssh_private_key_passphrase}}
+              {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
       - processorName: searchIndexingProcessor

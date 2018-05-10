@@ -72,15 +72,26 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     @Override
     protected void doExecute(Deployment deployment) throws DeployerException {
         File outputFile = getOutputFile(deployment);
-        //boolean useHeaders = !Files.exists(outputFile.toPath());
-        try {
-            FileWriter fileWriter = new FileWriter(outputFile, true);
-            CSVPrinter printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withHeader(HEADERS));
-            printer.printRecord(deployment);
+        try (FileWriter fileWriter = new FileWriter(outputFile, true)) {
+            CSVPrinter printer;
+            if(outputFile.exists() && outputFile.length() > 0) {
+                printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+            } else {
+                printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withHeader(HEADERS));
+            }
+
+            printer.printRecord(
+                deployment.getStatus(),
+                deployment.getDuration(),
+                deployment.getStart().toInstant(),
+                deployment.getEnd().toInstant(),
+                deployment.getChangeSet().getCreatedFiles(),
+                deployment.getChangeSet().getUpdatedFiles(),
+                deployment.getChangeSet().getDeletedFiles()
+            );
         } catch (IOException e) {
             throw new DeployerException("Error while writing deployment output file " + outputFile, e);
         }
-
         deployment.addParam(OUTPUT_FILE_PARAM_NAME, outputFile);
 
         logger.info("Successfully wrote deployment output to {}", outputFile);

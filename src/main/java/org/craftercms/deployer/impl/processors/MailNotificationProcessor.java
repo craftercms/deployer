@@ -44,8 +44,25 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(MailNotificationProcessor.class);
 
+    /**
+     * Status conditions used to control whe the notifications should be sent.
+     * @author joseross
+     */
     public enum StatusCondition {
-        ON_ANY_STATUS, ON_ANY_FAILURE, ON_TOTAL_FAILURE
+        /**
+         * Notifications will be sent for all deployments.
+         */
+        ON_ANY_STATUS,
+
+        /**
+         * Notifications will be sent for deployments in which at least one processor has failed.
+         */
+        ON_ANY_FAILURE,
+
+        /**
+         * Notifications will be sent for deployments in which the general status indicates failure.
+         */
+        ON_TOTAL_FAILURE
     }
 
     public static final String TEMPLATE_NAME_CONFIG_KEY = "templateName";

@@ -61,4 +61,6 @@ target:
       # The subject field to use in the emails
       subject: Deployment Report
       # If emails should be HTML emails
-      html: false
+      html: true
+      # For which status should the notifications be sent
+      status: ON_ANY_STATUS

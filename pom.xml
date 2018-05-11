@@ -5,7 +5,7 @@
 
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>3.0.11-SNAPSHOT</version>
+	<version>3.0.12-SNAPSHOT</version>
 	<packaging>jar</packaging>
 
 	<name>Crafter Deployer</name>
@@ -27,6 +27,7 @@
 	<properties>
 		<!-- Version Numbers -->
 		<commons.configuration.version>2.1</commons.configuration.version>
+		<commons.csv.version>1.5</commons.csv.version>
 		<jgit.version>4.8.0.201705170830-rc1</jgit.version>
 		<snakeyaml.version>1.17</snakeyaml.version>
 		<jackson.version>2.8.11</jackson.version>
@@ -111,6 +112,13 @@
 			<version>${commons.configuration.version}</version>
 		</dependency>
 
+		<!-- CSV -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+			<version>${commons.csv.version}</version>
+		</dependency>
+
 		<!-- Spring -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -152,11 +160,6 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.datatype</groupId>
 			<artifactId>jackson-datatype-jsr310</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
-		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-csv</artifactId>
 			<version>${jackson.version}</version>
 		</dependency>
 

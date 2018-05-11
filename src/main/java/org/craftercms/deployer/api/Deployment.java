@@ -16,10 +16,8 @@
  */
 package org.craftercms.deployer.api;
 
-import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
-import com.fasterxml.jackson.annotation.JsonUnwrapped;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -65,7 +63,6 @@ public class Deployment {
     /**
      * Returns the {@link Target} being deployed.
      */
-    @JsonIgnore
     public Target getTarget() {
         return target;
     }
@@ -89,7 +86,6 @@ public class Deployment {
     /**
      * Returns true if the deployment is still running.
      */
-    @JsonIgnore
     public boolean isRunning() {
         return start != null && end == null;
     }
@@ -117,7 +113,6 @@ public class Deployment {
     /**
      * Returns the change set of the deployment.
      */
-    @JsonUnwrapped
     public ChangeSet getChangeSet() {
         return changeSet;
     }
@@ -132,7 +127,6 @@ public class Deployment {
     /**
      * Returns true if the change set is null or empty.
      */
-    @JsonIgnore
     public boolean isChangeSetEmpty() {
         return changeSet == null || changeSet.isEmpty();
     }
@@ -160,7 +154,6 @@ public class Deployment {
     /**
      * Returns the list of {@link ProcessorExecution}s.
      */
-    @JsonIgnore
     public List<ProcessorExecution> getProcessorExecutions() {
         lock.lock();
         try {

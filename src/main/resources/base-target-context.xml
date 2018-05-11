@@ -54,16 +54,17 @@
 
     <bean id="fileOutputProcessor" class="org.craftercms.deployer.impl.processors.FileOutputProcessor" parent="deploymentProcessor">
         <property name="outputFolder" value="${deployer.main.deployments.output.folderPath}"/>
-        <property name="objectMapper" ref="csvObjectMapper"/>
     </bean>
 
     <bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.MailNotificationProcessor"
           parent="deploymentProcessor">
         <property name="emailFactory" ref="emailFactory"/>
+        <property name="objectMapper" ref="objectMapper"/>
         <property name="defaultTemplateName" value="${target.notifications.mail.templates.default}"/>
         <property name="defaultFrom" value="${target.notifications.mail.from}"/>
         <property name="defaultSubject" value="${target.notifications.mail.subject}"/>
         <property name="defaultHtml" value="${target.notifications.mail.html}"/>
+        <property name="defaultStatusCondition" value="${target.notifications.mail.status}"/>
         <property name="defaultDateTimePattern" value="${target.defaultDateTimePattern}"/>
     </bean>
 

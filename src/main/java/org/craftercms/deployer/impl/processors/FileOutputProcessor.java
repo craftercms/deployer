@@ -19,11 +19,14 @@ package org.craftercms.deployer.impl.processors;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.util.Collections;
+import java.util.List;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.FileUtils;
+import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
@@ -80,18 +83,21 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
                 printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withHeader(HEADERS));
             }
 
+            ChangeSet changeSet = deployment.getChangeSet();
+
             printer.printRecord(
-                deployment.getStatus(),
-                deployment.getDuration(),
-                deployment.getStart().toInstant(),
-                deployment.getEnd().toInstant(),
-                deployment.getChangeSet().getCreatedFiles(),
-                deployment.getChangeSet().getUpdatedFiles(),
-                deployment.getChangeSet().getDeletedFiles()
+                    deployment.getStatus(),
+                    deployment.getDuration(),
+                    deployment.getStart().toInstant(),
+                    deployment.getEnd().toInstant(),
+                    changeSet.getCreatedFiles() != null ? changeSet.getCreatedFiles() : Collections.emptyList(),
+                    changeSet.getUpdatedFiles() != null ? changeSet.getUpdatedFiles() : Collections.emptyList(),
+                    changeSet.getDeletedFiles() != null ? changeSet.getDeletedFiles() : Collections.emptyList()
             );
         } catch (IOException e) {
             throw new DeployerException("Error while writing deployment output file " + outputFile, e);
         }
+
         deployment.addParam(OUTPUT_FILE_PARAM_NAME, outputFile);
 
         logger.info("Successfully wrote deployment output to {}", outputFile);

@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.regex.Pattern;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
@@ -208,15 +208,28 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
             List<String> deletedFiles = changeSet.getDeletedFiles();
             List<String> newUpdatedFiles = new ArrayList<>(updatedFiles);
 
-            for (String path : createdFiles) {
-                if (isComponent(path)) {
-                    addItemsThatReferenceComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles);
+            if (CollectionUtils.isNotEmpty(createdFiles)) {
+                for (String path : createdFiles) {
+                    if (isComponent(path)) {
+                        addItemsThatReferenceComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
                 }
             }
 
-            for (String path : updatedFiles) {
-                if (isComponent(path)) {
-                    addItemsThatReferenceComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles);
+            if (CollectionUtils.isNotEmpty(updatedFiles)) {
+                for (String path : updatedFiles) {
+                    if (isComponent(path)) {
+                        addItemsThatReferenceComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
+                }
+            }
+
+
+            if (CollectionUtils.isNotEmpty(deletedFiles)) {
+                for (String path : deletedFiles) {
+                    if (isComponent(path)) {
+                        addItemsThatReferenceComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
                 }
             }
 
@@ -281,8 +294,9 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         return componentPathPattern.matcher(path).matches();
     }
 
-    protected boolean isBeingUpdated(String path, List<String> createdFiles, List<String> updatedFiles) {
-        return createdFiles.contains(path) || updatedFiles.contains(path);
+    protected boolean isBeingUpdated(String path, List<String> createdFiles, List<String> updatedFiles,
+                                     List<String> deletedFiles) {
+        return (createdFiles.contains(path) || updatedFiles.contains(path)) && !deletedFiles.contains(path);
     }
 
     protected Query createItemsThatReferenceComponentQuery(String componentId) {
@@ -326,11 +340,11 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     protected void addItemsThatReferenceComponentToUpdatedFiles(String componentPath, List<String> createdFiles,
-                                                                List<String> updatedFiles) {
+                                                                List<String> updatedFiles, List<String> deletedFiles) {
         List<String> itemPaths = getItemsThatReferenceComponent(indexId, componentPath);
         if (CollectionUtils.isNotEmpty(itemPaths)) {
             for (String itemPath : itemPaths) {
-                if (!isBeingUpdated(itemPath, createdFiles, updatedFiles)) {
+                if (!isBeingUpdated(itemPath, createdFiles, updatedFiles, deletedFiles)) {
                     logger.debug("Item " + itemPath + " references updated component " + componentPath +
                                  ". Adding it to list of updated files.");
 

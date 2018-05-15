@@ -40,7 +40,7 @@ import org.springframework.beans.factory.annotation.Required;
  *     the index ID. E.g. a <emp>%s-default'</emp> format with a <em>mysite</em> site name will generate a
  *     <em>mysite-default</em> index ID.</li>
  *     <li><strong>reindexItemsOnComponentUpdates:</strong> Flag that indicates that if a component is updated, all
- *     other pages and components that reference it should be updated too. This needs to be done when flattening is
+ *     other pages and components that include it should be updated too. This needs to be done when flattening is
  *     enabled, since the component needs to be re-included in pages/components. By default is true.</li>
  * </ul>
  *
@@ -58,8 +58,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     public static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
 
     public static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
-    public static final String DEFAULT_ITEMS_THAT_REFERENCE_COMPONENT_QUERY_FORMAT = "*:%s";
-    public static final int DEFAULT_ITEMS_THAT_REFERENCE_COMPONENT_QUERY_ROWS = 100;
+    public static final String DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_FORMAT = "includedDescriptors:\"%s\"";
+    public static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
 
     private static final String LOCAL_ID_FIELD = "localId";
     private static final String SEARCH_RESULTS_RESPONSE_PROPERTY = "response";
@@ -73,16 +73,16 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     protected boolean xmlFlatteningEnabled;
     protected boolean xmlMergingEnabled;
     protected Pattern componentPathPattern;
-    protected String itemsThatReferenceComponentQueryFormat;
-    protected int itemsThatReferenceComponentQueryRows;
+    protected String itemsThatIncludeComponentQueryFormat;
+    protected int itemsThatIncludeComponentQueryRows;
     protected String indexId;
     protected boolean reindexItemsOnComponentUpdates;
     protected Context context;
 
     public SearchIndexingProcessor() {
         this.componentPathPattern = DEFAULT_COMPONENT_PATH_PATTERN;
-        this.itemsThatReferenceComponentQueryFormat = DEFAULT_ITEMS_THAT_REFERENCE_COMPONENT_QUERY_FORMAT;
-        this.itemsThatReferenceComponentQueryRows = DEFAULT_ITEMS_THAT_REFERENCE_COMPONENT_QUERY_ROWS;
+        this.itemsThatIncludeComponentQueryFormat = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_FORMAT;
+        this.itemsThatIncludeComponentQueryRows = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS;
     }
 
     /**
@@ -129,7 +129,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     /**
      * Sets whether XML flattening is enabled. Only used in conjunction with {@code reindexItemsOnComponentUpdates}
-     * to see if pages/components should be re-indexed when components they reference are updated.
+     * to see if pages/components should be re-indexed when components they include are updated.
      */
     public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {
         this.xmlFlatteningEnabled = xmlFlatteningEnabled;
@@ -151,19 +151,19 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     /**
-     * Sets the format of the search query used to find items that reference components (used when
+     * Sets the format of the search query used to find items that include components (used when
      * {@code reindexItemsOnComponentUpdates} is enabled).
      */
-    public void setItemsThatReferenceComponentQueryFormat(String itemsThatReferenceComponentQueryFormat) {
-        this.itemsThatReferenceComponentQueryFormat = itemsThatReferenceComponentQueryFormat;
+    public void setItemsThatIncludeComponentQueryFormat(String itemsThatIncludeComponentQueryFormat) {
+        this.itemsThatIncludeComponentQueryFormat = itemsThatIncludeComponentQueryFormat;
     }
 
     /**
-     * Sets the rows to fetch for the search query used to find items that reference components (used when
+     * Sets the rows to fetch for the search query used to find items that include components (used when
      * {@code reindexItemsOnComponentUpdates} is enabled).
      */
-    public void setItemsThatReferenceComponentQueryRows(int itemsThatReferenceComponentQueryRows) {
-        this.itemsThatReferenceComponentQueryRows = itemsThatReferenceComponentQueryRows;
+    public void setItemsThatIncludeComponentQueryRows(int itemsThatIncludeComponentQueryRows) {
+        this.itemsThatIncludeComponentQueryRows = itemsThatIncludeComponentQueryRows;
     }
 
     @Override
@@ -194,7 +194,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     /**
-     * Override to add pages/components that need to be updated because a component that they reference was updated.
+     * Override to add pages/components that need to be updated because a component that they include was updated.
      *
      * @param changeSet original change set
      * @return filtered change set
@@ -211,7 +211,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
             if (CollectionUtils.isNotEmpty(createdFiles)) {
                 for (String path : createdFiles) {
                     if (isComponent(path)) {
-                        addItemsThatReferenceComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
                     }
                 }
             }
@@ -219,7 +219,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
             if (CollectionUtils.isNotEmpty(updatedFiles)) {
                 for (String path : updatedFiles) {
                     if (isComponent(path)) {
-                        addItemsThatReferenceComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
                     }
                 }
             }
@@ -228,7 +228,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
             if (CollectionUtils.isNotEmpty(deletedFiles)) {
                 for (String path : deletedFiles) {
                     if (isComponent(path)) {
-                        addItemsThatReferenceComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
                     }
                 }
             }
@@ -299,8 +299,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         return (createdFiles.contains(path) || updatedFiles.contains(path)) && !deletedFiles.contains(path);
     }
 
-    protected Query createItemsThatReferenceComponentQuery(String componentId) {
-        String queryStatement = String.format(itemsThatReferenceComponentQueryFormat, componentId);
+    protected Query createItemsThatIncludeComponentQuery(String componentId) {
+        String queryStatement = String.format(itemsThatIncludeComponentQueryFormat, componentId);
         SolrQuery query = new SolrQuery();
 
         query.setQuery(queryStatement);
@@ -310,11 +310,11 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @SuppressWarnings("unchecked")
-    protected List<String> getItemsThatReferenceComponent(String indexId, String componentPath) {
-        Query query = createItemsThatReferenceComponentQuery(componentPath);
+    protected List<String> getItemsThatIncludeComponent(String indexId, String componentPath) {
+        Query query = createItemsThatIncludeComponentQuery(componentPath);
         List<String> items = new ArrayList<>();
         int start = 0;
-        int rows = itemsThatReferenceComponentQueryRows;
+        int rows = itemsThatIncludeComponentQueryRows;
         int count;
         Map<String, Object> result;
         Map<String, Object> response;
@@ -339,13 +339,13 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         return items;
     }
 
-    protected void addItemsThatReferenceComponentToUpdatedFiles(String componentPath, List<String> createdFiles,
-                                                                List<String> updatedFiles, List<String> deletedFiles) {
-        List<String> itemPaths = getItemsThatReferenceComponent(indexId, componentPath);
+    protected void addItemsThatIncludeComponentToUpdatedFiles(String componentPath, List<String> createdFiles,
+                                                              List<String> updatedFiles, List<String> deletedFiles) {
+        List<String> itemPaths = getItemsThatIncludeComponent(indexId, componentPath);
         if (CollectionUtils.isNotEmpty(itemPaths)) {
             for (String itemPath : itemPaths) {
                 if (!isBeingUpdated(itemPath, createdFiles, updatedFiles, deletedFiles)) {
-                    logger.debug("Item " + itemPath + " references updated component " + componentPath +
+                    logger.debug("Item " + itemPath + " includes updated component " + componentPath +
                                  ". Adding it to list of updated files.");
 
                     updatedFiles.add(itemPath);

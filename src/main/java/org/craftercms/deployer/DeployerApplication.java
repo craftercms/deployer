@@ -58,10 +58,6 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 
 	public static final String CORE_APP_CONTEXT_LOCATION = "classpath:crafter/core/core-context.xml";
 
-	public static final String DEFAULT_INCLUDE_ELEMENT_XPATH_QUERY = "//include";
-	public static final String DEFAULT_DISABLED_INCLUDE_NODE_XPATH_QUERY = "../disableFlattening";
-	public static final String DEFAULT_PAGES_PATH_PATTERN = "^/?site/website/.*$";
-
 	@Value("${deployer.main.targets.scan.scheduling.enabled}")
 	private boolean scheduledTargetScanEnabled;
 	@Value("${deployer.main.targets.scan.scheduling.cron}")
@@ -80,28 +76,17 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	private File processedCommitsFolder;
 	@Autowired
 	private TargetService targetService;
-	@Autowired
-	private ContentStoreService contentStoreService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(DeployerApplication.class, args);
 	}
 
+	/**
+	 * Overwrites the default Crafter Core cache store adapter.
+	 */
 	@Bean("crafter.cacheStoreAdapter")
 	public CacheStoreAdapter cacheStoreAdapter() {
 		return new NoopCacheStoreAdapter();
-	}
-
-	@Bean
-	public ItemProcessor includeDescriptorsProcessor() {
-		PageAwareIncludeDescriptorsProcessor processor = new PageAwareIncludeDescriptorsProcessor();
-		processor.setIncludeElementXPathQuery(DEFAULT_INCLUDE_ELEMENT_XPATH_QUERY);
-		processor.setDisabledIncludeNodeXPathQuery(DEFAULT_DISABLED_INCLUDE_NODE_XPATH_QUERY);
-		processor.setPagesPathPattern(DEFAULT_PAGES_PATH_PATTERN);
-		processor.setIncludedItemsProcessor(processor);
-		processor.setContentStoreService(contentStoreService);
-
-		return processor;
 	}
 
 	@Bean
@@ -121,7 +106,7 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	}
 
 	@Bean(destroyMethod="shutdown")
-	public TaskScheduler taskScheduler() {
+	public ThreadPoolTaskScheduler taskScheduler() {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.setPoolSize(taskSchedulerPoolSize);
 

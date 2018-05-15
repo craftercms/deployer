@@ -71,6 +71,15 @@
 
     <!-- Search -->
 
+    <bean id="includeDescriptorsProcessor" class="org.craftercms.core.processors.impl.PageAwareIncludeDescriptorsProcessor">
+        <property name="includeElementXPathQuery" value="${target.search.indexing.xml.flattening.includeElementXPathQuery}"/>
+        <property name="removeIncludeElement" value="${target.search.indexing.xml.flattening.removeIncludeTags}"/>
+        <property name="disabledIncludeNodeXPathQuery" value="${target.search.indexing.xml.flattening.disabledIncludeNodeXPathQuery}"/>
+        <property name="pagesPathPattern" value="${target.search.indexing.xml.flattening.pagesPathPattern}"/>
+        <property name="includedItemsProcessor" ref="includeDescriptorsProcessor"/>
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+    </bean>
+
     <bean id="disableAwareIncludeDescriptorsProcessor" class="org.craftercms.commons.spring.ConditionalFactoryBean">
         <property name="flag" value="${target.search.indexing.xml.flattening.enabled}"/>
         <property name="actualBean" ref="includeDescriptorsProcessor"/>

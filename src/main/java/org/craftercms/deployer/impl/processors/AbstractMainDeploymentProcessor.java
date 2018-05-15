@@ -65,7 +65,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
             deployment.addProcessorExecution(execution);
 
             try {
-                logger.info(">>>>>>> {} @ {} >>>>>>>", name, targetId);
+                logger.info("----- < {} @ {} > -----", name, targetId);
 
                 ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet);
                 if (processedChangeSet != null) {
@@ -83,7 +83,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
                     deployment.end(Deployment.Status.FAILURE);
                 }
             } finally {
-                logger.info("<<<<<<< {} @ {} <<<<<<<", name, targetId);
+                logger.info("----- </ {} @ {} > -----", name, targetId);
             }
         }
     }

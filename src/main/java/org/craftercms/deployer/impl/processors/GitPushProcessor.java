@@ -56,7 +56,7 @@ import static org.craftercms.deployer.api.Deployment.Status;
  *
  * @author avasquez
  */
-public class GitPushProcessor extends RemoteGitRepoAwareProcessor {
+public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(GitPushProcessor.class);
 

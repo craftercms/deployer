@@ -5,17 +5,10 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.CompositeTemplateLoader;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
-
-import java.io.File;
-import java.io.IOException;
-
 import freemarker.template.TemplateException;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.core.cache.impl.CacheStoreAdapter;
 import org.craftercms.core.cache.impl.store.NoopCacheStoreAdapter;
-import org.craftercms.core.processors.ItemProcessor;
-import org.craftercms.core.processors.impl.PageAwareIncludeDescriptorsProcessor;
-import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
@@ -34,13 +27,15 @@ import org.springframework.context.annotation.Primary;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
-import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+
+import java.io.File;
+import java.io.IOException;
 
 import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCATION;
 
@@ -57,10 +52,6 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	private static final Logger logger = LoggerFactory.getLogger(DeployerApplication.class);
 
 	public static final String CORE_APP_CONTEXT_LOCATION = "classpath:crafter/core/core-context.xml";
-
-	public static final String DEFAULT_INCLUDE_ELEMENT_XPATH_QUERY = "//include";
-	public static final String DEFAULT_DISABLED_INCLUDE_NODE_XPATH_QUERY = "../disableFlattening";
-	public static final String DEFAULT_PAGES_PATH_PATTERN = "^/?site/website/.*$";
 
 	@Value("${deployer.main.targets.scan.scheduling.enabled}")
 	private boolean scheduledTargetScanEnabled;
@@ -80,28 +71,17 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	private File processedCommitsFolder;
 	@Autowired
 	private TargetService targetService;
-	@Autowired
-	private ContentStoreService contentStoreService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(DeployerApplication.class, args);
 	}
 
+	/**
+	 * Overwrites the default Crafter Core cache store adapter.
+	 */
 	@Bean("crafter.cacheStoreAdapter")
 	public CacheStoreAdapter cacheStoreAdapter() {
 		return new NoopCacheStoreAdapter();
-	}
-
-	@Bean
-	public ItemProcessor includeDescriptorsProcessor() {
-		PageAwareIncludeDescriptorsProcessor processor = new PageAwareIncludeDescriptorsProcessor();
-		processor.setIncludeElementXPathQuery(DEFAULT_INCLUDE_ELEMENT_XPATH_QUERY);
-		processor.setDisabledIncludeNodeXPathQuery(DEFAULT_DISABLED_INCLUDE_NODE_XPATH_QUERY);
-		processor.setPagesPathPattern(DEFAULT_PAGES_PATH_PATTERN);
-		processor.setIncludedItemsProcessor(processor);
-		processor.setContentStoreService(contentStoreService);
-
-		return processor;
 	}
 
 	@Bean
@@ -121,7 +101,7 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	}
 
 	@Bean(destroyMethod="shutdown")
-	public TaskScheduler taskScheduler() {
+	public ThreadPoolTaskScheduler taskScheduler() {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.setPoolSize(taskSchedulerPoolSize);
 

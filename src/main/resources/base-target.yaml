@@ -21,6 +21,15 @@ target:
         flattening:
           # If XML flattening should be done when indexing XML
           enabled: true
+          # The XPath Query for the include element
+          includeElementXPathQuery: //include
+          # The XPath Query for the node that indicates a particular include is disabled
+          disabledIncludeNodeXPathQuery: ../disableFlattening
+          # The regex used to detect pages during flattening and avoid there inclusion
+          pagesPathPattern: "^/?site/website/.*$"
+          # If the include tags should be removed when flattening. Don't set to true if you want pages/components
+          # to be re-reindex when one of their children is being updated
+          removeIncludeTags: false
         merging:
           # If XML merging should be done when indexing XML
           enabled: true

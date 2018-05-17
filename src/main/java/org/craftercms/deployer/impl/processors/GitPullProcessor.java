@@ -19,13 +19,11 @@ package org.craftercms.deployer.impl.processors;
 import java.io.File;
 import java.io.IOException;
 
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
@@ -54,7 +52,7 @@ import org.slf4j.LoggerFactory;
  *
  * @author avasquez
  */
-public class GitPullProcessor extends RemoteGitRepoAwareProcessor {
+public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 

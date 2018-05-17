@@ -56,7 +56,7 @@ import org.springframework.beans.factory.annotation.Required;
  *
  * @author avasquez
  */
-public abstract class RemoteGitRepoAwareProcessor extends AbstractMainDeploymentProcessor {
+public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDeploymentProcessor {
 
     public static final String REMOTE_REPO_URL_CONFIG_KEY = "remoteRepo.url";
     public static final String REMOTE_REPO_BRANCH_CONFIG_KEY = "remoteRepo.branch";

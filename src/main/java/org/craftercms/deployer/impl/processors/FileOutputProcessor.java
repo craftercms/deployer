@@ -16,7 +16,6 @@
  */
 package org.craftercms.deployer.impl.processors;
 
-import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.csv.CSVFormat;
@@ -32,8 +31,6 @@ import org.springframework.beans.factory.annotation.Required;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.util.Collections;
-import java.util.List;
 
 /**
  * Post processor that writes the deployment result to an output file for later access, whenever a deployment fails or files where

@@ -16,6 +16,8 @@
  */
 package org.craftercms.deployer.impl.processors;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
@@ -31,6 +33,7 @@ import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.util.Collections;
+import java.util.List;
 
 /**
  * Post processor that writes the deployment result to an output file for later access, whenever a deployment fails or files where
@@ -89,9 +92,9 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
                     deployment.getDuration(),
                     deployment.getStart().toInstant(),
                     deployment.getEnd().toInstant(),
-                    changeSet.getCreatedFiles() != null ? changeSet.getCreatedFiles() : Collections.emptyList(),
-                    changeSet.getUpdatedFiles() != null ? changeSet.getUpdatedFiles() : Collections.emptyList(),
-                    changeSet.getDeletedFiles() != null ? changeSet.getDeletedFiles() : Collections.emptyList()
+                    ListUtils.emptyIfNull(changeSet.getCreatedFiles()),
+                    ListUtils.emptyIfNull(changeSet.getUpdatedFiles()),
+                    ListUtils.emptyIfNull(changeSet.getDeletedFiles())
             );
         } catch (IOException e) {
             throw new DeployerException("Error while writing deployment output file " + outputFile, e);

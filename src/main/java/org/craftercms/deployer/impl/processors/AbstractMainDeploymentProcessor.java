@@ -82,6 +82,8 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
                 if (failDeploymentOnProcessorFailure()) {
                     deployment.end(Deployment.Status.FAILURE);
                 }
+            } finally {
+                logger.info("----- </ {} @ {} > -----", name, targetId);
             }
         }
     }

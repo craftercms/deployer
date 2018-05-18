@@ -216,17 +216,17 @@ public class TargetImpl implements Target {
             MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, getId());
 
             try {
-                logger.info("------------------------------------------------------------");
+                logger.info("============================================================");
                 logger.info("Deployment for {} started", getId());
-                logger.info("------------------------------------------------------------");
+                logger.info("============================================================");
 
                 deploymentPipeline.execute(currentDeployment);
 
                 double durationInSecs = currentDeployment.getDuration() / 1000.0;
 
-                logger.info("------------------------------------------------------------");
+                logger.info("============================================================");
                 logger.info("Deployment for {} finished in {} secs", getId(), String.format("%.3f", durationInSecs));
-                logger.info("------------------------------------------------------------");
+                logger.info("============================================================");
             } finally {
                 currentDeployment = null;
 

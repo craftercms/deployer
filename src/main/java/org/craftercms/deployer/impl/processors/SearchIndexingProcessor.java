@@ -1,10 +1,12 @@
 package org.craftercms.deployer.impl.processors;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.regex.Pattern;
 
-import org.apache.commons.collections.CollectionUtils;
+import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
@@ -19,22 +21,27 @@ import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.search.batch.BatchIndexer;
 import org.craftercms.search.batch.UpdateSet;
 import org.craftercms.search.batch.UpdateStatus;
+import org.craftercms.search.service.Query;
 import org.craftercms.search.service.SearchService;
+import org.craftercms.search.service.impl.SolrQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
- * Processor that indexes the files on the change set, using one or several {@link BatchIndexer}. After the files have been indexed it
- * submits a commit. A processor instance can be configured with the following YAML properties:
+ * Processor that indexes the files on the change set, using one or several {@link BatchIndexer}. After the files have
+ * been indexed it submits a commit. A processor instance can be configured with the following YAML properties:
  *
  * <ul>
- *     <li><strong>ignoreIndexId:</strong> If the index ID should be ignored, in other words, if the index ID should always be null
- *     on update calls.</li>
+ *     <li><strong>ignoreIndexId:</strong> If the index ID should be ignored, in other words, if the index ID should
+ *     always be null on update calls.</li>
  *     <li><strong>indexId:</strong> The specific index ID to use</li>
- *     <li><strong>indexIdFormat:</strong> The String.format, based onf the site name, that should be used to generate the index ID.
- *     E.g. a <emp>%s-default'</emp> format with a <em>mysite</em> site name will generate a <em>mysite-default</em> index ID.</li>
- *     <
+ *     <li><strong>indexIdFormat:</strong> The String.format, based onf the site name, that should be used to generate
+ *     the index ID. E.g. a <emp>%s-default'</emp> format with a <em>mysite</em> site name will generate a
+ *     <em>mysite-default</em> index ID.</li>
+ *     <li><strong>reindexItemsOnComponentUpdates:</strong> Flag that indicates that if a component is updated, all
+ *     other pages and components that include it should be updated too. This needs to be done when flattening is
+ *     enabled, since the component needs to be re-included in pages/components. By default is true.</li>
  * </ul>
  *
  * @author avasquez
@@ -48,17 +55,39 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     public static final String INDEX_ID_CONFIG_KEY = "indexId";
     public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
+    public static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
+
+    public static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
+    public static final String DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_FORMAT = "includedDescriptors:\"%s\"";
+    public static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
+
+    private static final String LOCAL_ID_FIELD = "localId";
+    private static final String SEARCH_RESULTS_RESPONSE_PROPERTY = "response";
+    private static final String SEARCH_RESULTS_NUM_FOUND_PROPERTY = "numFound";
+    private static final String SEARCH_RESULTS_DOCUMENTS_PROPERTY = "documents";
 
     protected String localRepoUrl;
     protected ContentStoreService contentStoreService;
     protected SearchService searchService;
     protected List<BatchIndexer> batchIndexers;
+    protected boolean xmlFlatteningEnabled;
     protected boolean xmlMergingEnabled;
+    protected Pattern componentPathPattern;
+    protected String itemsThatIncludeComponentQueryFormat;
+    protected int itemsThatIncludeComponentQueryRows;
     protected String indexId;
+    protected boolean reindexItemsOnComponentUpdates;
     protected Context context;
 
+    public SearchIndexingProcessor() {
+        this.componentPathPattern = DEFAULT_COMPONENT_PATH_PATTERN;
+        this.itemsThatIncludeComponentQueryFormat = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_FORMAT;
+        this.itemsThatIncludeComponentQueryRows = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS;
+    }
+
     /**
-     * Sets the URL of the local repository that will be passed to the {@link ContentStoreService} to retrieve the files to
+     * Sets the URL of the local repository that will be passed to the {@link ContentStoreService} to retrieve the
+     * files to
      * index.
      */
     @Required
@@ -75,7 +104,8 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     /**
-     * Sets the search service. Since all indexing is done through the {@link BatchIndexer}s the search service is only used
+     * Sets the search service. Since all indexing is done through the {@link BatchIndexer}s the search service is
+     * only used
      * to commit.
      */
     @Required
@@ -98,10 +128,42 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     /**
-     * Sets whether XML merging (aka inheritance) should be enabled when retrieving XML from the {@link ContentStoreService}.
+     * Sets whether XML flattening is enabled. Only used in conjunction with {@code reindexItemsOnComponentUpdates}
+     * to see if pages/components should be re-indexed when components they include are updated.
+     */
+    public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {
+        this.xmlFlatteningEnabled = xmlFlatteningEnabled;
+    }
+
+    /**
+     * Sets whether XML merging (aka inheritance) should be enabled when retrieving XML from the
+     * {@link ContentStoreService}.
      */
     public void setXmlMergingEnabled(boolean xmlMergingEnabled) {
         this.xmlMergingEnabled = xmlMergingEnabled;
+    }
+
+    /**
+     * Sets the regex used to match component paths (used when {@code reindexItemsOnComponentUpdates} is enabled).
+     */
+    public void setComponentPathRegex(String componentPathRegex) {
+        componentPathPattern = Pattern.compile(componentPathRegex);
+    }
+
+    /**
+     * Sets the format of the search query used to find items that include components (used when
+     * {@code reindexItemsOnComponentUpdates} is enabled).
+     */
+    public void setItemsThatIncludeComponentQueryFormat(String itemsThatIncludeComponentQueryFormat) {
+        this.itemsThatIncludeComponentQueryFormat = itemsThatIncludeComponentQueryFormat;
+    }
+
+    /**
+     * Sets the rows to fetch for the search query used to find items that include components (used when
+     * {@code reindexItemsOnComponentUpdates} is enabled).
+     */
+    public void setItemsThatIncludeComponentQueryRows(int itemsThatIncludeComponentQueryRows) {
+        this.itemsThatIncludeComponentQueryRows = itemsThatIncludeComponentQueryRows;
     }
 
     @Override
@@ -112,11 +174,15 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         } else {
             indexId = ConfigUtils.getStringProperty(config, INDEX_ID_CONFIG_KEY);
             if (StringUtils.isEmpty(indexId)) {
-                String indexIdFormat = ConfigUtils.getStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY, DEFAULT_INDEX_ID_FORMAT);
+                String indexIdFormat = ConfigUtils.getStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY,
+                                                                     DEFAULT_INDEX_ID_FORMAT);
 
                 indexId = String.format(indexIdFormat, siteName);
             }
         }
+
+        reindexItemsOnComponentUpdates = ConfigUtils.getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES,
+                                                                        true);
 
         if (CollectionUtils.isEmpty(batchIndexers)) {
             throw new IllegalStateException("At least one batch indexer should be provided");
@@ -127,15 +193,60 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     public void destroy() {
     }
 
+    /**
+     * Override to add pages/components that need to be updated because a component that they include was updated.
+     *
+     * @param changeSet original change set
+     * @return filtered change set
+     */
+    @Override
+    protected ChangeSet getFilteredChangeSet(ChangeSet changeSet) {
+        changeSet = super.getFilteredChangeSet(changeSet);
+        if (xmlFlatteningEnabled && reindexItemsOnComponentUpdates) {
+            List<String> createdFiles = changeSet.getCreatedFiles();
+            List<String> updatedFiles = changeSet.getUpdatedFiles();
+            List<String> deletedFiles = changeSet.getDeletedFiles();
+            List<String> newUpdatedFiles = new ArrayList<>(updatedFiles);
+
+            if (CollectionUtils.isNotEmpty(createdFiles)) {
+                for (String path : createdFiles) {
+                    if (isComponent(path)) {
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
+                }
+            }
+
+            if (CollectionUtils.isNotEmpty(updatedFiles)) {
+                for (String path : updatedFiles) {
+                    if (isComponent(path)) {
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
+                }
+            }
+
+
+            if (CollectionUtils.isNotEmpty(deletedFiles)) {
+                for (String path : deletedFiles) {
+                    if (isComponent(path)) {
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
+                }
+            }
+
+            return new ChangeSet(createdFiles, newUpdatedFiles, deletedFiles);
+        } else {
+            return changeSet;
+        }
+    }
+
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
                                   ChangeSet filteredChangeSet) throws DeployerException {
         logger.info("Performing search indexing...");
 
-        ChangeSet changeSet = deployment.getChangeSet();
-        List<String> createdFiles = changeSet.getCreatedFiles();
-        List<String> updatedFiles = changeSet.getUpdatedFiles();
-        List<String> deletedFiles = changeSet.getDeletedFiles();
+        List<String> createdFiles = filteredChangeSet.getCreatedFiles();
+        List<String> updatedFiles = filteredChangeSet.getUpdatedFiles();
+        List<String> deletedFiles = filteredChangeSet.getDeletedFiles();
         UpdateSet updateSet = new UpdateSet(ListUtils.union(createdFiles, updatedFiles), deletedFiles);
         UpdateStatus updateStatus = new UpdateStatus();
 
@@ -145,17 +256,20 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         try {
             if (CollectionUtils.isNotEmpty(createdFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet, updateStatus);
+                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet,
+                                        updateStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(updatedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet, updateStatus);
+                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet,
+                                        updateStatus);
                 }
             }
             if (CollectionUtils.isNotEmpty(deletedFiles)) {
                 for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet, updateStatus);
+                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet,
+                                        updateStatus);
                 }
             }
 
@@ -176,10 +290,75 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         return false;
     }
 
+    protected boolean isComponent(String path) {
+        return componentPathPattern.matcher(path).matches();
+    }
+
+    protected boolean isBeingUpdated(String path, List<String> createdFiles, List<String> updatedFiles,
+                                     List<String> deletedFiles) {
+        return (createdFiles.contains(path) || updatedFiles.contains(path)) && !deletedFiles.contains(path);
+    }
+
+    protected Query createItemsThatIncludeComponentQuery(String componentId) {
+        String queryStatement = String.format(itemsThatIncludeComponentQueryFormat, componentId);
+        SolrQuery query = new SolrQuery();
+
+        query.setQuery(queryStatement);
+        query.setFieldsToReturn(LOCAL_ID_FIELD);
+
+        return query;
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<String> getItemsThatIncludeComponent(String indexId, String componentPath) {
+        Query query = createItemsThatIncludeComponentQuery(componentPath);
+        List<String> items = new ArrayList<>();
+        int start = 0;
+        int rows = itemsThatIncludeComponentQueryRows;
+        int count;
+        Map<String, Object> result;
+        Map<String, Object> response;
+        List<Map<String, Object>> documents;
+
+        do {
+            query.setOffset(start);
+            query.setNumResults(rows);
+
+            result = searchService.search(indexId, query);
+            response = (Map<String, Object>)result.get(SEARCH_RESULTS_RESPONSE_PROPERTY);
+            count = (int)response.get(SEARCH_RESULTS_NUM_FOUND_PROPERTY);
+            documents = (List<Map<String, Object>>)response.get(SEARCH_RESULTS_DOCUMENTS_PROPERTY);
+
+            for (Map<String, Object> document : documents) {
+                items.add((String)document.get(LOCAL_ID_FIELD));
+            }
+
+            start += rows;
+        } while (start <= count);
+
+        return items;
+    }
+
+    protected void addItemsThatIncludeComponentToUpdatedFiles(String componentPath, List<String> createdFiles,
+                                                              List<String> updatedFiles, List<String> deletedFiles) {
+        List<String> itemPaths = getItemsThatIncludeComponent(indexId, componentPath);
+        if (CollectionUtils.isNotEmpty(itemPaths)) {
+            for (String itemPath : itemPaths) {
+                if (!isBeingUpdated(itemPath, createdFiles, updatedFiles, deletedFiles)) {
+                    logger.debug("Item " + itemPath + " includes updated component " + componentPath +
+                                 ". Adding it to list of updated files.");
+
+                    updatedFiles.add(itemPath);
+                }
+            }
+        }
+    }
+
     protected Context createContentStoreContext() throws DeployerException {
         try {
-            Context context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null, null, localRepoUrl,
-                                                                xmlMergingEnabled, false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
+            Context context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null,
+                                                                null, localRepoUrl, xmlMergingEnabled, false, 0,
+                                                                Context.DEFAULT_IGNORE_HIDDEN_FILES);
 
             logger.debug("Content store context created: {}", context);
 

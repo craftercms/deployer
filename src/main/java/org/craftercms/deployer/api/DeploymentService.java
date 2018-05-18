@@ -18,8 +18,6 @@ package org.craftercms.deployer.api;
 
 import java.util.List;
 import java.util.Map;
-import java.util.concurrent.Future;
-
 import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 

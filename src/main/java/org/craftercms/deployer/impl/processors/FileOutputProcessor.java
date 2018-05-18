@@ -16,19 +16,21 @@
  */
 package org.craftercms.deployer.impl.processors;
 
-import java.io.File;
-import java.io.FileWriter;
-import java.io.IOException;
-
+import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 import org.apache.commons.io.FileUtils;
+import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
+
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
 
 /**
  * Post processor that writes the deployment result to an output file for later access, whenever a deployment fails or files where
@@ -80,18 +82,21 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
                 printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withHeader(HEADERS));
             }
 
+            ChangeSet changeSet = deployment.getChangeSet();
+
             printer.printRecord(
-                deployment.getStatus(),
-                deployment.getDuration(),
-                deployment.getStart().toInstant(),
-                deployment.getEnd().toInstant(),
-                deployment.getChangeSet().getCreatedFiles(),
-                deployment.getChangeSet().getUpdatedFiles(),
-                deployment.getChangeSet().getDeletedFiles()
+                    deployment.getStatus(),
+                    deployment.getDuration(),
+                    deployment.getStart().toInstant(),
+                    deployment.getEnd().toInstant(),
+                    ListUtils.emptyIfNull(changeSet.getCreatedFiles()),
+                    ListUtils.emptyIfNull(changeSet.getUpdatedFiles()),
+                    ListUtils.emptyIfNull(changeSet.getDeletedFiles())
             );
         } catch (IOException e) {
             throw new DeployerException("Error while writing deployment output file " + outputFile, e);
         }
+
         deployment.addParam(OUTPUT_FILE_PARAM_NAME, outputFile);
 
         logger.info("Successfully wrote deployment output to {}", outputFile);

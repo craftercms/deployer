@@ -19,9 +19,17 @@ Icon?
 ehthumbs.db
 Thumbs.db
 
-# IntelliJIdea files#
+# IntelliJIdea files #
 *.iml
 .idea
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# VS Code files #
+settings.json
 
 # Maven build overlays #
 overlays

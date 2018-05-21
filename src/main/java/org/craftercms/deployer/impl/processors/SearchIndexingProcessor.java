@@ -244,9 +244,9 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
                                   ChangeSet filteredChangeSet) throws DeployerException {
         logger.info("Performing search indexing...");
 
-        List<String> createdFiles = filteredChangeSet.getCreatedFiles();
-        List<String> updatedFiles = filteredChangeSet.getUpdatedFiles();
-        List<String> deletedFiles = filteredChangeSet.getDeletedFiles();
+        List<String> createdFiles = ListUtils.emptyIfNull(filteredChangeSet.getCreatedFiles());
+        List<String> updatedFiles = ListUtils.emptyIfNull(filteredChangeSet.getUpdatedFiles());
+        List<String> deletedFiles = ListUtils.emptyIfNull(filteredChangeSet.getDeletedFiles());
         UpdateSet updateSet = new UpdateSet(ListUtils.union(createdFiles, updatedFiles), deletedFiles);
         UpdateStatus updateStatus = new UpdateStatus();
 
@@ -254,23 +254,9 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
         context = createContentStoreContext();
         try {
-            if (CollectionUtils.isNotEmpty(createdFiles)) {
-                for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet,
-                                        updateStatus);
-                }
-            }
-            if (CollectionUtils.isNotEmpty(updatedFiles)) {
-                for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet,
-                                        updateStatus);
-                }
-            }
-            if (CollectionUtils.isNotEmpty(deletedFiles)) {
-                for (BatchIndexer indexer : batchIndexers) {
-                    indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet,
-                                        updateStatus);
-                }
+            for (BatchIndexer indexer : batchIndexers) {
+                indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet,
+                                    updateStatus);
             }
 
             if (updateStatus.getAttemptedUpdatesAndDeletes() > 0) {
@@ -294,9 +280,9 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         return componentPathPattern.matcher(path).matches();
     }
 
-    protected boolean isBeingUpdated(String path, List<String> createdFiles, List<String> updatedFiles,
-                                     List<String> deletedFiles) {
-        return (createdFiles.contains(path) || updatedFiles.contains(path)) && !deletedFiles.contains(path);
+    protected boolean isBeingUpdatedOrDeleted(String path, List<String> createdFiles, List<String> updatedFiles,
+                                              List<String> deletedFiles) {
+        return createdFiles.contains(path) || updatedFiles.contains(path) || deletedFiles.contains(path);
     }
 
     protected Query createItemsThatIncludeComponentQuery(String componentId) {
@@ -344,7 +330,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         List<String> itemPaths = getItemsThatIncludeComponent(indexId, componentPath);
         if (CollectionUtils.isNotEmpty(itemPaths)) {
             for (String itemPath : itemPaths) {
-                if (!isBeingUpdated(itemPath, createdFiles, updatedFiles, deletedFiles)) {
+                if (!isBeingUpdatedOrDeleted(itemPath, createdFiles, updatedFiles, deletedFiles)) {
                     logger.debug("Item " + itemPath + " includes updated component " + componentPath +
                                  ". Adding it to list of updated files.");
 

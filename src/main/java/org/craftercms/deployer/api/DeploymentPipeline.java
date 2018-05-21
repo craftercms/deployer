@@ -17,8 +17,6 @@
 package org.craftercms.deployer.api;
 
 import java.util.List;
-import java.util.Map;
-
 import org.craftercms.deployer.api.exceptions.DeployerException;
 
 /**

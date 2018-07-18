@@ -202,7 +202,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     @Override
     protected ChangeSet getFilteredChangeSet(ChangeSet changeSet) {
         changeSet = super.getFilteredChangeSet(changeSet);
-        if (xmlFlatteningEnabled && reindexItemsOnComponentUpdates) {
+        if (changeSet != null && !changeSet.isEmpty() && xmlFlatteningEnabled && reindexItemsOnComponentUpdates) {
             List<String> createdFiles = changeSet.getCreatedFiles();
             List<String> updatedFiles = changeSet.getUpdatedFiles();
             List<String> deletedFiles = changeSet.getDeletedFiles();

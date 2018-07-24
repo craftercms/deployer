@@ -16,6 +16,7 @@
  */
 package org.craftercms.deployer.api;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
@@ -127,6 +128,7 @@ public class Deployment {
     /**
      * Returns true if the change set is null or empty.
      */
+    @JsonIgnore
     public boolean isChangeSetEmpty() {
         return changeSet == null || changeSet.isEmpty();
     }

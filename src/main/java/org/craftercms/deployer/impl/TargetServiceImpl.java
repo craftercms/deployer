@@ -96,6 +96,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public static final String YAML_FILE_EXTENSION = "yaml";
     public static final String APPLICATION_CONTEXT_FILENAME_FORMAT = "%s-context.xml";
     public static final String CONFIG_PROPERTY_SOURCE_NAME = "targetConfig";
+    public static final String CONFIG_BEAN_NAME = "targetConfig";
 
     public static final String TARGET_ENV_MODEL_KEY = "env";
     public static final String TARGET_SITE_NAME_MODEL_KEY = "site_name";
@@ -382,6 +383,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
         MutablePropertySources propertySources = context.getEnvironment().getPropertySources();
         propertySources.addFirst(new ApacheCommonsConfiguration2PropertySource(CONFIG_PROPERTY_SOURCE_NAME, config));
+
+        context.getBeanFactory().registerSingleton(CONFIG_BEAN_NAME, config);
 
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
         reader.setValidationMode(XmlBeanDefinitionReader.VALIDATION_XSD);

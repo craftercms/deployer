@@ -73,10 +73,6 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     @Override
     protected void doExecute(Deployment deployment) throws DeployerException {
-        if(deployment.isChangeSetEmpty()) {
-            logger.info("There are no changes in the deployment, no output file will be written");
-            return;
-        }
         File outputFile = getOutputFile(deployment);
         try (FileWriter fileWriter = new FileWriter(outputFile, true)) {
             CSVPrinter printer;

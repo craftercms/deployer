@@ -42,7 +42,7 @@ public class Deployment {
     protected volatile ZonedDateTime start;
     protected volatile ZonedDateTime end;
     protected volatile Status status;
-    protected volatile ChangeSet changeSet;
+    protected volatile ChangeSet changeSet = new ChangeSet();
     protected List<ProcessorExecution> processorExecutions;
     protected Map<String, Object> params;
     protected Lock lock;

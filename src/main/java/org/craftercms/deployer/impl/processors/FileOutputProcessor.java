@@ -104,8 +104,8 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     protected File getOutputFile(Deployment deployment) {
         String targetId = deployment.getTarget().getId();
-        String outputFilename = targetId + "-deployments";
-        File outputFile = new File(outputFolder, outputFilename + ".csv");
+        String outputFilename = targetId + "-deployments.csv";
+        File outputFile = new File(outputFolder, outputFilename);
 
         return outputFile;
     }

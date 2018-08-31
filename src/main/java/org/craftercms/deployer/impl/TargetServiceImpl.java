@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -73,7 +74,6 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
@@ -113,7 +113,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ApplicationContext mainApplicationContext;
     protected DeploymentPipelineFactory deploymentPipelineFactory;
     protected TaskScheduler taskScheduler;
-    protected ThreadPoolTaskExecutor taskExecutor;
+    protected ExecutorService taskExecutor;
     protected ProcessedCommitsStore processedCommitsStore;
     protected Set<Target> loadedTargets;
 
@@ -128,7 +128,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired ApplicationContext mainApplicationContext,
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
         @Autowired TaskScheduler taskScheduler,
-        @Autowired ThreadPoolTaskExecutor taskExecutor,
+        @Autowired ExecutorService taskExecutor,
         @Autowired ProcessedCommitsStore processedCommitsStore) throws IOException {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;

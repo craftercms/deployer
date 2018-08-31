@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -38,7 +39,6 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -229,8 +229,8 @@ public class TargetServiceImplTest {
         return mock(TaskScheduler.class);
     }
 
-    private ThreadPoolTaskExecutor createTaskExecutor() {
-        return mock(ThreadPoolTaskExecutor.class);
+    private ExecutorService createTaskExecutor() {
+        return mock(ExecutorService.class);
     }
 
     private ProcessedCommitsStore createProcessedCommitsStore() {

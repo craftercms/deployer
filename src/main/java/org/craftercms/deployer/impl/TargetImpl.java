@@ -24,8 +24,11 @@ import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
+import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
 import java.util.concurrent.ScheduledFuture;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
@@ -37,7 +40,6 @@ import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.TaskScheduler;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.support.CronTrigger;
 
 /**
@@ -59,11 +61,11 @@ public class TargetImpl implements Target {
     protected ConfigurableApplicationContext applicationContext;
     protected ZonedDateTime loadDate;
     protected ScheduledFuture<?> scheduledDeploymentFuture;
-    protected ThreadPoolTaskExecutor deploymentExecutor;
+    protected ExecutorService deploymentExecutor;
     protected Queue<Deployment> pendingDeployments;
     protected volatile Deployment currentDeployment;
 
-    protected final Object deploymentLock = new Object();
+    protected final Lock deploymentLock = new ReentrantLock();
 
     public static String getId(String env, String siteName) {
         return String.format(TARGET_ID_FORMAT, siteName, env);
@@ -71,7 +73,7 @@ public class TargetImpl implements Target {
 
     public TargetImpl(String env, String siteName, DeploymentPipeline deploymentPipeline, File configurationFile,
                       Configuration configuration, ConfigurableApplicationContext applicationContext,
-                      ThreadPoolTaskExecutor deploymentExecutor) {
+                      ExecutorService deploymentExecutor) {
         this.env = env;
         this.siteName = siteName;
         this.deploymentPipeline = deploymentPipeline;
@@ -174,7 +176,7 @@ public class TargetImpl implements Target {
                 scheduledDeploymentFuture.cancel(true);
             }
 
-            deploymentExecutor.shutdown();
+            deploymentExecutor.shutdownNow();
 
             deploymentPipeline.destroy();
 
@@ -209,32 +211,31 @@ public class TargetImpl implements Target {
 
         @Override
         public void run() {
-            synchronized (TargetImpl.this.deploymentLock) {
-                currentDeployment = pendingDeployments.remove();
+            deploymentLock.lock();
+            currentDeployment = pendingDeployments.remove();
 
-                MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, getId());
+            MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, getId());
 
-                try {
+            try {
 
-                    logger.info("============================================================");
-                    logger.info("Deployment for {} started", getId());
-                    logger.info("============================================================");
+                logger.info("============================================================");
+                logger.info("Deployment for {} started", getId());
+                logger.info("============================================================");
 
-                    deploymentPipeline.execute(currentDeployment);
+                deploymentPipeline.execute(currentDeployment);
 
-                    double durationInSecs = currentDeployment.getDuration() / 1000.0;
+                double durationInSecs = currentDeployment.getDuration() / 1000.0;
 
-                    logger.info("============================================================");
-                    logger.info("Deployment for {} finished in {} secs", getId(), String.format("%.3f", durationInSecs));
-                    logger.info("============================================================");
-                } finally {
-                    currentDeployment = null;
+                logger.info("============================================================");
+                logger.info("Deployment for {} finished in {} secs", getId(), String.format("%.3f", durationInSecs));
+                logger.info("============================================================");
+            } finally {
+                currentDeployment = null;
 
-                    MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
-                }
+                MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
+                deploymentLock.unlock();
             }
         }
-
     }
 
     @Override

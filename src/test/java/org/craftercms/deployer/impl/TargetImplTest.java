@@ -17,12 +17,12 @@
 package org.craftercms.deployer.impl;
 
 import java.util.HashMap;
+import java.util.concurrent.Executors;
 
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.junit.Before;
 import org.junit.Test;
-import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -46,9 +46,8 @@ public class TargetImplTest {
     @Before
     public void setUp() throws Exception {
         count = 0;
-        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
-        executor.initialize();
-        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, createDeploymentPipeline(), null, null, null, executor);
+        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, createDeploymentPipeline(),
+            null, null, null, Executors.newSingleThreadExecutor());
     }
 
     @Test

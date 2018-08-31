@@ -37,6 +37,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCATION;
 
@@ -121,16 +122,17 @@ public class DeployerApplication implements WebMvcConfigurer, SchedulingConfigur
 		return taskScheduler;
 	}
 
-	@Bean(destroyMethod = "shutdown")
-	public ThreadPoolTaskExecutor deploymentTaskExecutor() {
+	@Bean(destroyMethod = "shutdownNow")
+	public ExecutorService deploymentTaskExecutor() {
 		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
 		executor.setCorePoolSize(deploymentPoolSize);
 		executor.setMaxPoolSize(deploymentPoolMaxSize);
 		executor.setQueueCapacity(deploymentPoolQueue);
 		executor.setThreadGroupName(deploymentPoolName);
 		executor.setThreadNamePrefix(deploymentPoolPrefix);
+		executor.initialize();
 
-		return executor;
+		return executor.getThreadPoolExecutor();
 	}
 
 	@Bean

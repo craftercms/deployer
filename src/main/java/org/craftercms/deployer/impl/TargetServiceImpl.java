@@ -73,6 +73,7 @@ import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.Resource;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
@@ -112,6 +113,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ApplicationContext mainApplicationContext;
     protected DeploymentPipelineFactory deploymentPipelineFactory;
     protected TaskScheduler taskScheduler;
+    protected ThreadPoolTaskExecutor taskExecutor;
     protected ProcessedCommitsStore processedCommitsStore;
     protected Set<Target> loadedTargets;
 
@@ -126,6 +128,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired ApplicationContext mainApplicationContext,
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
         @Autowired TaskScheduler taskScheduler,
+        @Autowired ThreadPoolTaskExecutor taskExecutor,
         @Autowired ProcessedCommitsStore processedCommitsStore) throws IOException {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
@@ -137,6 +140,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.mainApplicationContext = mainApplicationContext;
         this.deploymentPipelineFactory = deploymentPipelineFactory;
         this.taskScheduler = taskScheduler;
+        this.taskExecutor = taskExecutor;
         this.processedCommitsStore = processedCommitsStore;
         this.loadedTargets = new HashSet<>();
     }
@@ -338,7 +342,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
             DeploymentPipeline deploymentPipeline = deploymentPipelineFactory.getPipeline(config, context,
                                                                                           TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
-            Target target = new TargetImpl(env, siteName, deploymentPipeline, configFile, config, context);
+            Target target = new TargetImpl(env, siteName, deploymentPipeline, configFile, config, context, taskExecutor);
 
             scheduleDeployment(target);
 

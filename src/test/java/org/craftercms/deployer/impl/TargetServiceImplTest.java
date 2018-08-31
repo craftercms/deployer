@@ -38,6 +38,7 @@ import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.scheduling.TaskScheduler;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
@@ -72,6 +73,7 @@ public class TargetServiceImplTest {
             new ClassPathXmlApplicationContext("test-application-context.xml"),
             createDeploymentPipelineFactory(),
             createTaskScheduler(),
+            createTaskExecutor(),
             createProcessedCommitsStore());
     }
 
@@ -225,6 +227,10 @@ public class TargetServiceImplTest {
 
     private TaskScheduler createTaskScheduler() {
         return mock(TaskScheduler.class);
+    }
+
+    private ThreadPoolTaskExecutor createTaskExecutor() {
+        return mock(ThreadPoolTaskExecutor.class);
     }
 
     private ProcessedCommitsStore createProcessedCommitsStore() {

@@ -70,6 +70,17 @@ deployer:
       processedCommits:
         # The folder path where processed commit files are stored
         folderPath: ${deployer.main.homePath}/processed-commits
+      pool:
+        # Thread pool core size
+        size: 10
+        # Thread pool max size
+        max: 20
+        # Thread pool queue size
+        queue: 10
+        # Thread pool group name
+        name: deployments
+        # Thread pool worker prefix
+        prefix: deployment-
     logging:
       # The folder path where log files are written to
       folderPath: ${deployer.main.homePath}/logs

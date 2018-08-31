@@ -29,13 +29,15 @@ import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
 import org.springframework.scheduling.annotation.EnableScheduling;
 import org.springframework.scheduling.annotation.SchedulingConfigurer;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.scheduling.config.ScheduledTaskRegistrar;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
-import org.springframework.web.servlet.config.annotation.WebMvcConfigurerAdapter;
+import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.File;
 import java.io.IOException;
+import java.util.concurrent.ExecutorService;
 
 import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCATION;
 
@@ -47,7 +49,7 @@ import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCAT
 @SpringBootApplication
 @EnableScheduling
 @ImportResource(CORE_APP_CONTEXT_LOCATION)
-public class DeployerApplication extends WebMvcConfigurerAdapter implements SchedulingConfigurer  {
+public class DeployerApplication implements WebMvcConfigurer, SchedulingConfigurer  {
 
 	private static final Logger logger = LoggerFactory.getLogger(DeployerApplication.class);
 
@@ -69,6 +71,18 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 	private String targetConfigTemplatesEncoding;
 	@Value("${deployer.main.deployments.processedCommits.folderPath}")
 	private File processedCommitsFolder;
+
+	@Value("${deployer.main.deployments.pool.size}")
+	private int deploymentPoolSize;
+	@Value("${deployer.main.deployments.pool.max}")
+	private int deploymentPoolMaxSize;
+	@Value("${deployer.main.deployments.pool.queue}")
+	private int deploymentPoolQueue;
+	@Value("${deployer.main.deployments.pool.name}")
+	private String deploymentPoolName;
+	@Value("${deployer.main.deployments.pool.prefix}")
+	private String deploymentPoolPrefix;
+
 	@Autowired
 	private TargetService targetService;
 
@@ -106,6 +120,19 @@ public class DeployerApplication extends WebMvcConfigurerAdapter implements Sche
 		taskScheduler.setPoolSize(taskSchedulerPoolSize);
 
 		return taskScheduler;
+	}
+
+	@Bean(destroyMethod = "shutdownNow")
+	public ExecutorService deploymentTaskExecutor() {
+		ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
+		executor.setCorePoolSize(deploymentPoolSize);
+		executor.setMaxPoolSize(deploymentPoolMaxSize);
+		executor.setQueueCapacity(deploymentPoolQueue);
+		executor.setThreadGroupName(deploymentPoolName);
+		executor.setThreadNamePrefix(deploymentPoolPrefix);
+		executor.initialize();
+
+		return executor.getThreadPoolExecutor();
 	}
 
 	@Bean

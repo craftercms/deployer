@@ -233,6 +233,7 @@ public class TargetImpl implements Target {
                 currentDeployment = null;
 
                 MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
+                
                 deploymentLock.unlock();
             }
         }

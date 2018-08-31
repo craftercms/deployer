@@ -42,12 +42,11 @@ public class TargetImplTest {
 
     private volatile int count;
     private TargetImpl target;
-    private ThreadPoolTaskExecutor executor;
 
     @Before
     public void setUp() throws Exception {
         count = 0;
-        executor = new ThreadPoolTaskExecutor();
+        ThreadPoolTaskExecutor executor = new ThreadPoolTaskExecutor();
         executor.initialize();
         target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, createDeploymentPipeline(), null, null, null, executor);
     }

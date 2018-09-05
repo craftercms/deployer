@@ -20,20 +20,15 @@ import java.io.File;
 import java.time.ZonedDateTime;
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.Collections;
-import java.util.List;
 import java.util.Map;
 import java.util.Queue;
 import java.util.concurrent.ConcurrentLinkedQueue;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.Executor;
 import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
 import java.util.concurrent.Future;
-import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.ScheduledFuture;
-import java.util.concurrent.ThreadPoolExecutor;
-import java.util.concurrent.TimeUnit;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
@@ -70,12 +65,15 @@ public class TargetImpl implements Target {
     protected Queue<Deployment> pendingDeployments;
     protected volatile Deployment currentDeployment;
 
+    protected final Lock deploymentLock = new ReentrantLock();
+
     public static String getId(String env, String siteName) {
         return String.format(TARGET_ID_FORMAT, siteName, env);
     }
 
     public TargetImpl(String env, String siteName, DeploymentPipeline deploymentPipeline, File configurationFile,
-                      Configuration configuration, ConfigurableApplicationContext applicationContext) {
+                      Configuration configuration, ConfigurableApplicationContext applicationContext,
+                      ExecutorService deploymentExecutor) {
         this.env = env;
         this.siteName = siteName;
         this.deploymentPipeline = deploymentPipeline;
@@ -83,7 +81,7 @@ public class TargetImpl implements Target {
         this.configuration = configuration;
         this.applicationContext = applicationContext;
         this.loadDate = ZonedDateTime.now();
-        this.deploymentExecutor = Executors.newSingleThreadExecutor();
+        this.deploymentExecutor = deploymentExecutor;
         this.pendingDeployments = new ConcurrentLinkedQueue<>();
     }
 
@@ -198,10 +196,12 @@ public class TargetImpl implements Target {
 
         @Override
         public void run() {
-            if (future == null || future.isDone()) {
+            if (future == null || future.isDone() && currentDeployment == null) {
                 pendingDeployments.add(new Deployment(TargetImpl.this));
 
                 future = deploymentExecutor.submit(new DeploymentTask());
+            } else {
+                logger.info("Active deployment detected, skipping scheduled deployment for target {}", getId());
             }
         }
 
@@ -211,11 +211,13 @@ public class TargetImpl implements Target {
 
         @Override
         public void run() {
+            deploymentLock.lock();
             currentDeployment = pendingDeployments.remove();
 
             MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, getId());
 
             try {
+
                 logger.info("============================================================");
                 logger.info("Deployment for {} started", getId());
                 logger.info("============================================================");
@@ -231,9 +233,10 @@ public class TargetImpl implements Target {
                 currentDeployment = null;
 
                 MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
+                
+                deploymentLock.unlock();
             }
         }
-
     }
 
     @Override

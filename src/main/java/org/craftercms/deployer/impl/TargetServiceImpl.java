@@ -35,6 +35,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ExecutorService;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 
@@ -112,6 +113,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ApplicationContext mainApplicationContext;
     protected DeploymentPipelineFactory deploymentPipelineFactory;
     protected TaskScheduler taskScheduler;
+    protected ExecutorService taskExecutor;
     protected ProcessedCommitsStore processedCommitsStore;
     protected Set<Target> loadedTargets;
 
@@ -126,6 +128,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired ApplicationContext mainApplicationContext,
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
         @Autowired TaskScheduler taskScheduler,
+        @Autowired ExecutorService taskExecutor,
         @Autowired ProcessedCommitsStore processedCommitsStore) throws IOException {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
@@ -137,6 +140,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.mainApplicationContext = mainApplicationContext;
         this.deploymentPipelineFactory = deploymentPipelineFactory;
         this.taskScheduler = taskScheduler;
+        this.taskExecutor = taskExecutor;
         this.processedCommitsStore = processedCommitsStore;
         this.loadedTargets = new HashSet<>();
     }
@@ -338,7 +342,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
             DeploymentPipeline deploymentPipeline = deploymentPipelineFactory.getPipeline(config, context,
                                                                                           TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
-            Target target = new TargetImpl(env, siteName, deploymentPipeline, configFile, config, context);
+            Target target = new TargetImpl(env, siteName, deploymentPipeline, configFile, config, context, taskExecutor);
 
             scheduleDeployment(target);
 

@@ -25,6 +25,7 @@ import java.nio.file.Files;
 import java.util.Collections;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
@@ -72,6 +73,7 @@ public class TargetServiceImplTest {
             new ClassPathXmlApplicationContext("test-application-context.xml"),
             createDeploymentPipelineFactory(),
             createTaskScheduler(),
+            createTaskExecutor(),
             createProcessedCommitsStore());
     }
 
@@ -225,6 +227,10 @@ public class TargetServiceImplTest {
 
     private TaskScheduler createTaskScheduler() {
         return mock(TaskScheduler.class);
+    }
+
+    private ExecutorService createTaskExecutor() {
+        return mock(ExecutorService.class);
     }
 
     private ProcessedCommitsStore createProcessedCommitsStore() {

@@ -1,6 +1,7 @@
 target:
   env: test
   siteName: foobar
+  localRepoPath: foobar
   deployment:
     pipeline:
       - processorName: testProcessor

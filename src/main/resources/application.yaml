@@ -61,6 +61,11 @@ deployer:
           enabled: true
           # The cron expression used on scheduled scanning of new/updated targets.
           cron: '0 * * * * *'
+      cleanup:
+        # If scheduled cleanup of targets should be enabled
+        enabled: true
+        # The cron expression used on scheduled cleanup of targets
+        cron: '0 0 3 ? * SUN'
     deployments:
       # The folder path where site deployments are placed
       folderPath: ${deployer.main.homePath}/deployments

@@ -107,6 +107,11 @@ public interface Target {
     Collection<Deployment> getAllDeployments();
 
     /**
+     * Performs a cleanup of the local repository.
+     */
+    void cleanup();
+
+    /**
      * Closes the target and releases any open resources.
      */
     void close();

@@ -174,4 +174,14 @@ public abstract class GitUtils {
         return push.call();
     }
 
+    /**
+     * Executes a git gc.
+     * @param repoPath full path of the repository
+     * @throws GitAPIException if there is an error running the command
+     * @throws IOException if there is an error opening the repository
+     */
+    public static void cleanup(String repoPath) throws GitAPIException, IOException {
+        openRepository(new File(repoPath)).gc().call();
+    }
+
 }

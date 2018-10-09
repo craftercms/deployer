@@ -80,6 +80,7 @@ import org.xml.sax.InputSource;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_ENV_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_ID_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_LOCAL_REPO_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY;
@@ -336,13 +337,15 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             String env = ConfigUtils.getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
             String siteName = ConfigUtils.getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
             String targetId = TargetImpl.getId(env, siteName);
+            String localRepoPath = ConfigUtils.getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
 
             config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
             ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
             DeploymentPipeline deploymentPipeline = deploymentPipelineFactory.getPipeline(config, context,
                                                                                           TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
-            Target target = new TargetImpl(env, siteName, deploymentPipeline, configFile, config, context, taskExecutor);
+            Target target = new TargetImpl(env, siteName, localRepoPath, deploymentPipeline, configFile, config,
+                context, taskExecutor);
 
             scheduleDeployment(target);
 

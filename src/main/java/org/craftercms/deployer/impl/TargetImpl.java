@@ -35,6 +35,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
+import org.craftercms.deployer.utils.GitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -55,6 +56,7 @@ public class TargetImpl implements Target {
 
     protected String env;
     protected String siteName;
+    protected String localRepoPath;
     protected DeploymentPipeline deploymentPipeline;
     protected File configurationFile;
     protected Configuration configuration;
@@ -71,11 +73,12 @@ public class TargetImpl implements Target {
         return String.format(TARGET_ID_FORMAT, siteName, env);
     }
 
-    public TargetImpl(String env, String siteName, DeploymentPipeline deploymentPipeline, File configurationFile,
-                      Configuration configuration, ConfigurableApplicationContext applicationContext,
-                      ExecutorService deploymentExecutor) {
+    public TargetImpl(String env, String siteName, String localRepoPath, DeploymentPipeline deploymentPipeline,
+                      File configurationFile, Configuration configuration,
+                      ConfigurableApplicationContext applicationContext, ExecutorService deploymentExecutor) {
         this.env = env;
         this.siteName = siteName;
+        this.localRepoPath = localRepoPath;
         this.deploymentPipeline = deploymentPipeline;
         this.configurationFile = configurationFile;
         this.configuration = configuration;
@@ -163,6 +166,21 @@ public class TargetImpl implements Target {
         }
 
         return deployments;
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void cleanup() {
+        MDC.put(DeploymentConstants.TARGET_ID_MDC_KEY, getId());
+        try {
+            logger.info("Cleaning up repo for target {}", getId());
+            GitUtils.cleanup(localRepoPath);
+        } catch (Exception e) {
+            logger.warn("Error cleaning up repo for target {}", getId());
+        }
+        MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
     }
 
     @Override

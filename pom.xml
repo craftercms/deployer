@@ -33,6 +33,8 @@
 		<handlebars.version>4.0.6</handlebars.version>
 		<mockito.version>1.10.19</mockito.version>
 		<java.version>1.8</java.version>
+		<!-- Override property setup by Spring Boot Parent -->
+		<jackson.version>2.9.7</jackson.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>

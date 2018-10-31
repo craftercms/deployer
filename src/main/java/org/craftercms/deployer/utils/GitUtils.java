@@ -34,6 +34,9 @@ import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 
+import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
+import static org.eclipse.jgit.lib.Constants.HEAD;
+
 /**
  * Utility methods for Git operations.
  *
@@ -182,6 +185,15 @@ public abstract class GitUtils {
      */
     public static void cleanup(String repoPath) throws GitAPIException, IOException {
         openRepository(new File(repoPath)).gc().call();
+    }
+
+    /**
+     * Executes a git reset to discard all uncommitted changes
+     * @param git the git repository
+     * @throws GitAPIException if there is an error performing the reset
+     */
+    public static void discardAllChanges(Git git) throws GitAPIException {
+        git.reset().setMode(HARD).setRef(HEAD).call();
     }
 
 }

@@ -35,6 +35,8 @@
 		<java.version>1.8</java.version>
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.9.7</jackson.version>
+		<aws.version>1.11.435</aws.version>
+		<saxon.version>9.8.0-14</saxon.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -155,6 +157,23 @@
 			<version>${handlebars.version}</version>
 		</dependency>
 
+		<!-- AWS -->
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-s3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-cloudfront</artifactId>
+		</dependency>
+
+		<!-- Saxon (to support XSLT 2.0) -->
+		<dependency>
+			<groupId>net.sf.saxon</groupId>
+			<artifactId>Saxon-HE</artifactId>
+			<version>${saxon.version}</version>
+		</dependency>
+
 		<!-- Test -->
 		<dependency>
 			<groupId>org.mockito</groupId>
@@ -163,6 +182,19 @@
 			<scope>test</scope>
 		</dependency>
 	</dependencies>
+
+	<dependencyManagement>
+		<dependencies>
+			<!-- AWS SDK -->
+			<dependency>
+				<groupId>com.amazonaws</groupId>
+				<artifactId>aws-java-sdk-bom</artifactId>
+				<version>${aws.version}</version>
+				<type>pom</type>
+				<scope>import</scope>
+			</dependency>
+		</dependencies>
+	</dependencyManagement>
 
 	<build>
 		<finalName>crafter-deployer</finalName>

@@ -1,0 +1,54 @@
+target:
+  env: {{env}}
+  siteName: {{site_name}}
+  deployment:
+    {{#if disable_deploy_cron}}
+    scheduling:
+       enabled: false
+    {{/if}}
+    pipeline:
+      - processorName: gitPullProcessor
+        remoteRepo:
+          url: {{repo_url}}
+          {{#if repo_branch}}
+          branch: {{repo_branch}}
+          {{/if}}
+          {{#if repo_username}}
+          username: {{repo_username}}
+          {{/if}}
+          {{#if repo_password}}
+          password: {{repo_password}}
+          {{/if}}
+          {{#if ssh_private_key_path}}
+          ssh:
+            privateKey:
+              path: {{ssh_private_key_path}}
+              {{#if ssh_private_key_passphrase}}
+              passphrase: {{ssh_private_key_passphrase}}
+              {{/if}}
+          {{/if}}
+      - processorName: gitDiffProcessor
+      - processorName: findAndReplaceProcessor
+        includeFiles: ['^/site/.*$', '^/templates/.*$']
+        excludeFiles: ['^/config/studio/.*$']
+        textPattern: /static-assets(/[^&quot;]+)
+        replacement: {{cloudfront_url}}$1
+      - processorName: searchIndexingProcessor
+      - processorName: s3SyncProcessor
+        excludeFiles: ['^/config/studio/.*$']
+        url: s3://crafter-sites/sites/
+      - processorName: cloudfrontInvalidationProcessor
+        includeFiles: ['^/static-assets/.*$']
+        pregix: '/static-assets'
+        distributions:
+        {{#list distributions}}
+          - {{this}}
+        {{/list}}
+      - processorName: fileOutputProcessor
+      {{#if notification_addresses}}
+      - processorName: mailNotificationProcessor
+        to:
+          {{#list notification_addresses}}
+          - {{this}}
+          {{/list}}
+      {{/if}}

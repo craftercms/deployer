@@ -1,3 +1,7 @@
+aws:
+  region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
+  accessKey: {{#if aws.access_key}}{{aws.access_key}}{{else}}''{{/if}}
+  secretKey: {{#if aws.secret_key}}{{aws.secret_key}}{{else}}''{{/if}}
 target:
   env: {{env}}
   siteName: {{site_name}}
@@ -28,22 +32,35 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
+      {{#if aws.cloudfront.url}}
       - processorName: findAndReplaceProcessor
         includeFiles: ['^/site/.*$', '^/templates/.*$']
         excludeFiles: ['^/config/studio/.*$']
         textPattern: /static-assets(/[^&quot;]+)
-        replacement: {{cloudfront_url}}$1
+        replacement: {{aws.cloudfront.url}}$1
+      {{/if}}
       - processorName: searchIndexingProcessor
       - processorName: s3SyncProcessor
         excludeFiles: ['^/config/studio/.*$']
-        url: s3://crafter-sites/sites/
+        url: {{aws.s3.url}}
+      {{#if aws.cloudfront.url}}
       - processorName: cloudfrontInvalidationProcessor
         includeFiles: ['^/static-assets/.*$']
-        pregix: '/static-assets'
         distributions:
-        {{#list distributions}}
+        {{#list aws.cloudfront.distributions}}
           - {{this}}
         {{/list}}
+      {{/if}}
+      {{#list engine_urls}}
+      - processorName: httpMethodCallProcessor
+        includeFiles: ["^/?config/engine/.*$", "^/?scripts/.*$"]
+        method: GET
+        url: {{this}}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
+      - processorName: httpMethodCallProcessor
+        excludeFiles: ['^/static-assets/.*$']
+        method: GET
+        url: {{this}}/api/1/site/cache/clear.json?crafterSite=${target.siteName}
+      {{/list}}
       - processorName: fileOutputProcessor
       {{#if notification_addresses}}
       - processorName: mailNotificationProcessor

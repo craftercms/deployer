@@ -1,3 +1,20 @@
+/*
+ * Copyright (C) 2007-2018 Crafter Software Corporation.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
+
 package org.craftercms.deployer.impl.processors.aws;
 
 import java.io.File;
@@ -12,13 +29,10 @@ import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
@@ -31,14 +45,11 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that syncs files to an AWS S3 Bucket
  * @author joseross
  */
-public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
+public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3ClientBuilder, AmazonS3> {
 
     private static final Logger logger = LoggerFactory.getLogger(S3SyncProcessor.class);
 
     public static final String CONFIG_KEY_URL = "url";
-    public static final String CONFIG_KEY_REGION = "region";
-    public static final String CONFIG_KEY_ACCESS_KEY = "accessKey";
-    public static final String CONFIG_KEY_SECRET_KEY = "secretKey";
 
     public static final String DELIMITER = "/";
 
@@ -52,21 +63,6 @@ public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
      */
     protected AmazonS3URI s3Url;
 
-    /**
-     * AWS Region
-     */
-    protected String region;
-
-    /**
-     * AWS Access Key
-     */
-    protected String accessKey;
-
-    /**
-     * AWS Secret Key
-     */
-    protected String secretKey;
-
     @Required
     public void setLocalRepoUrl(final String localRepoUrl) {
         this.localRepoUrl = localRepoUrl;
@@ -79,13 +75,6 @@ public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
     protected void doInit(final Configuration config) throws DeployerException {
         s3Url = new AmazonS3URI(StringUtils.appendIfMissing(
             ConfigUtils.getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
-        if(config.containsKey(CONFIG_KEY_REGION)) {
-            region = ConfigUtils.getStringProperty(config, CONFIG_KEY_REGION);
-        }
-        if(config.containsKey(CONFIG_KEY_ACCESS_KEY) && config.containsKey(CONFIG_KEY_SECRET_KEY)) {
-            accessKey = ConfigUtils.getStringProperty(config, CONFIG_KEY_ACCESS_KEY);
-            secretKey = ConfigUtils.getStringProperty(config, CONFIG_KEY_SECRET_KEY);
-        }
     }
 
     /**
@@ -98,7 +87,7 @@ public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
         logger.debug("Syncing with bucket {}", s3Url);
 
         try {
-            AmazonS3 client = getClient();
+            AmazonS3 client = buildClient();
 
             List<String> changedFiles = ListUtils.union(filteredChangeSet.getCreatedFiles(), filteredChangeSet.getUpdatedFiles());
 
@@ -173,19 +162,13 @@ public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
         return s3Url.getKey() + siteName + file;
     }
 
+
     /**
-     * Builds the AWS S3 client
-     * @return the client
+     * {@inheritDoc}
      */
-    protected AmazonS3 getClient() {
-        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-        if(StringUtils.isNotEmpty(region)) {
-            builder.withRegion(region);
-        }
-        if(StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
-            builder.withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)));
-        }
-        return builder.build();
+    @Override
+    protected AmazonS3ClientBuilder createClientBuilder() {
+        return AmazonS3ClientBuilder.standard();
     }
 
     /**

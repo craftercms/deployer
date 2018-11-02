@@ -37,8 +37,14 @@ import com.amazonaws.services.cloudfront.model.InvalidationBatch;
 import com.amazonaws.services.cloudfront.model.Paths;
 
 /**
- * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that invalidates the changed files in the
- * given AWS Cloudfront distributions
+ * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that invalidates the changed
+ * files in the given AWS Cloudfront distributions.
+ * Can be configured with the following YAML properties:
+ *
+ * <ul>
+ *     <li><strong>distributions:</strong> List of distributions ids</li>
+ * </ul>
+ *
  * @author joseross
  */
 public class CloudfrontInvalidationProcessor extends
@@ -86,7 +92,8 @@ public class CloudfrontInvalidationProcessor extends
                 InvalidationBatch batch = new InvalidationBatch().withPaths(paths).withCallerReference(caller);
                 CreateInvalidationRequest request = new CreateInvalidationRequest(distribution, batch);
                 CreateInvalidationResult result = client.createInvalidation(request);
-                logger.info("Created invalidation {} for distribution {}", result.getInvalidation().getId(), distribution);
+                logger.info("Created invalidation {} for distribution {}",
+                    result.getInvalidation().getId(), distribution);
             } catch (Exception e) {
                 logger.error("Error invalidating changed files for distribution " + distribution, e);
                 throw new DeployerException("Error invalidating changed files for distribution " + distribution, e);

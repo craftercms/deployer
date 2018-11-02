@@ -36,6 +36,16 @@ import org.springframework.beans.factory.annotation.Required;
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} to replace a pattern on the
  * content of the created or updated files of a {@link Deployment}.
+ * <p><strong>Note:</strong> the files changed by this processor will not be committed to the git repository and
+ * will be discarded when the next deployment starts.</p>
+ *
+ * Can be configured with the following YAML properties:
+ *
+ * <ul>
+ *     <li><strong>textPattern:</strong> Regular expression to search in files</li>
+ *     <li><strong>replacement:</strong> Expression to replace the matches</li>
+ * </ul>
+ *
  * @author joseross
  */
 public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {

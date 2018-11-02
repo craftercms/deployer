@@ -43,6 +43,12 @@ import com.amazonaws.services.s3.model.PutObjectRequest;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that syncs files to an AWS S3 Bucket
+ * Can be configured with the following YAML properties:
+ *
+ * <ul>
+ *     <li><strong>url:</strong> AWS S3 bucket URL to upload files</li>
+ * </ul>
+ *
  * @author joseross
  */
 public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3ClientBuilder, AmazonS3> {
@@ -59,7 +65,7 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
     protected String localRepoUrl;
 
     /**
-     * AWS S3 Bucket URL
+     * AWS S3 bucket URL
      */
     protected AmazonS3URI s3Url;
 
@@ -89,7 +95,8 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
         try {
             AmazonS3 client = buildClient();
 
-            List<String> changedFiles = ListUtils.union(filteredChangeSet.getCreatedFiles(), filteredChangeSet.getUpdatedFiles());
+            List<String> changedFiles =
+                ListUtils.union(filteredChangeSet.getCreatedFiles(), filteredChangeSet.getUpdatedFiles());
 
             if (CollectionUtils.isNotEmpty(changedFiles)) {
                 uploadFiles(client, changedFiles);
@@ -143,7 +150,8 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
                 files.stream().map(this::getS3Key).collect(Collectors.toList());
 
             try {
-                DeleteObjectsRequest request = new DeleteObjectsRequest(s3Url.getBucket()).withKeys(keys.toArray(new String[] {}));
+                DeleteObjectsRequest request =
+                    new DeleteObjectsRequest(s3Url.getBucket()).withKeys(keys.toArray(new String[] {}));
                 DeleteObjectsResult result = client.deleteObjects(request);
                 logger.debug("Deleted files: {}", result.getDeletedObjects());
             } catch (Exception e) {

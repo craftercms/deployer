@@ -28,6 +28,14 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 
 /**
  * Base implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} for all AWS related services
+ * Can be configured with the following YAML properties:
+ *
+ * <ul>
+ *     <li><strong>region:</strong> AWS Region</li>
+ *     <li><strong>accessKey:</strong> AWS Access Key</li>
+ *     <li><strong>secretKey:</strong> AWS Secret Key</li>
+ * </ul>
+ *
  * @author joseross
  * @param <B> {@link AwsClientBuilder} for the service that will be used
  * @param <T> AWS service interface that will be used

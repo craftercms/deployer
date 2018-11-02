@@ -32,22 +32,29 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-      {{#if aws.cloudfront.url}}
+      {{#if aws.distribution.url}}
       - processorName: findAndReplaceProcessor
-        includeFiles: ['^/site/.*$', '^/templates/.*$']
-        excludeFiles: ['^/config/studio/.*$']
-        textPattern: /static-assets(/[^&quot;]+)
-        replacement: {{aws.cloudfront.url}}$1
+        includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
+        textPattern: (/static-assets/[^&quot;&lt;]+)
+        replacement: {{aws.distribution.url}}$1
       {{/if}}
       - processorName: searchIndexingProcessor
       - processorName: s3SyncProcessor
         excludeFiles: ['^/config/studio/.*$']
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
         url: {{aws.s3.url}}
-      {{#if aws.cloudfront.url}}
+      - processorName: delayProcessor
+        seconds: {{delay}}
+      {{#if aws.distribution.url}}
       - processorName: cloudfrontInvalidationProcessor
         includeFiles: ['^/static-assets/.*$']
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
         distributions:
-        {{#list aws.cloudfront.distributions}}
+        {{#list aws.distribution.ids}}
           - {{this}}
         {{/list}}
       {{/if}}

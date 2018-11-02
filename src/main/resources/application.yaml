@@ -19,8 +19,6 @@ spring:
 logging:
   # Logging path for Spring, which should be the same as the Deployer logging path
   path: ${deployer.main.logging.folderPath}
-  level:
-    org.craftercms.deployer.impl.processors.s3: trace
 
 ####################################################
 ##               Deployer Properties              ##

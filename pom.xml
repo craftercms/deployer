@@ -36,7 +36,6 @@
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.9.7</jackson.version>
 		<aws.version>1.11.435</aws.version>
-		<saxon.version>9.8.0-14</saxon.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -165,13 +164,6 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-cloudfront</artifactId>
-		</dependency>
-
-		<!-- Saxon (to support XSLT 2.0) -->
-		<dependency>
-			<groupId>net.sf.saxon</groupId>
-			<artifactId>Saxon-HE</artifactId>
-			<version>${saxon.version}</version>
 		</dependency>
 
 		<!-- Test -->

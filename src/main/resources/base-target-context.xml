@@ -122,4 +122,21 @@
         <property name="templateEncoding" value="${target.notifications.mail.encoding}"/>
     </bean>
 
+    <!-- AWS -->
+    <bean id="s3SyncProcessor" class="org.craftercms.deployer.impl.processors.aws.S3SyncProcessor"
+          parent="deploymentProcessor">
+        <property name="localRepoUrl" value="${target.localRepoPath}"/>
+    </bean>
+
+    <bean id="cloudfrontInvalidationProcessor" parent="deploymentProcessor"
+          class="org.craftercms.deployer.impl.processors.aws.CloudfrontInvalidationProcessor"/>
+
+    <bean id="findAndReplaceProcessor" class="org.craftercms.deployer.impl.processors.FindAndReplaceProcessor"
+          parent="deploymentProcessor">
+        <property name="localRepoUrl" value="${target.localRepoPath}"/>
+    </bean>
+
+    <bean id="delayProcessor" parent="deploymentProcessor"
+          class="org.craftercms.deployer.impl.processors.DelayProcessor"/>
+
 </beans>

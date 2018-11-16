@@ -96,7 +96,7 @@
                   value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
     </bean>
 
-    <bean id="searchService" class="org.craftercms.search.service.impl.v2.SolrRestClientSearchService">
+    <bean id="searchService" class="org.craftercms.search.service.impl.v3.RestClientSearchService">
         <property name="serverUrl" value="${target.search.serverUrl}"/>
     </bean>
 

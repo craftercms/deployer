@@ -1,0 +1,78 @@
+aws:
+  region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
+  accessKey: {{#if aws.access_key}}{{aws.access_key}}{{else}}''{{/if}}
+  secretKey: {{#if aws.secret_key}}{{aws.secret_key}}{{else}}''{{/if}}
+target:
+  env: {{env}}
+  siteName: {{site_name}}
+  deployment:
+    {{#if disable_deploy_cron}}
+    scheduling:
+       enabled: false
+    {{/if}}
+    pipeline:
+      - processorName: gitPullProcessor
+        remoteRepo:
+          url: {{repo_url}}
+          {{#if repo_branch}}
+          branch: {{repo_branch}}
+          {{/if}}
+          {{#if repo_username}}
+          username: {{repo_username}}
+          {{/if}}
+          {{#if repo_password}}
+          password: {{repo_password}}
+          {{/if}}
+          {{#if ssh_private_key_path}}
+          ssh:
+            privateKey:
+              path: {{ssh_private_key_path}}
+              {{#if ssh_private_key_passphrase}}
+              passphrase: {{ssh_private_key_passphrase}}
+              {{/if}}
+          {{/if}}
+      - processorName: gitDiffProcessor
+      {{#if aws.distribution.url}}
+      - processorName: findAndReplaceProcessor
+        includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
+        textPattern: (/static-assets/[^&quot;&lt;]+)
+        replacement: {{aws.distribution.url}}$1
+      {{/if}}
+      - processorName: searchIndexingProcessor
+      - processorName: s3SyncProcessor
+        excludeFiles: ['^/config/studio/.*$']
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        url: {{aws.s3.url}}
+      - processorName: delayProcessor
+        seconds: {{delay}}
+      {{#if aws.distribution.url}}
+      - processorName: cloudfrontInvalidationProcessor
+        includeFiles: ['^/static-assets/.*$']
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        distributions:
+        {{#list aws.distribution.ids}}
+          - {{this}}
+        {{/list}}
+      {{/if}}
+      {{#list engine_urls}}
+      - processorName: httpMethodCallProcessor
+        includeFiles: ["^/?config/engine/.*$", "^/?scripts/.*$"]
+        method: GET
+        url: {{this}}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
+      - processorName: httpMethodCallProcessor
+        excludeFiles: ['^/static-assets/.*$']
+        method: GET
+        url: {{this}}/api/1/site/cache/clear.json?crafterSite=${target.siteName}
+      {{/list}}
+      - processorName: fileOutputProcessor
+      {{#if notification_addresses}}
+      - processorName: mailNotificationProcessor
+        to:
+          {{#list notification_addresses}}
+          - {{this}}
+          {{/list}}
+      {{/if}}

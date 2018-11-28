@@ -194,8 +194,6 @@ public class TargetImpl implements Target {
                 scheduledDeploymentFuture.cancel(true);
             }
 
-            deploymentExecutor.shutdownNow();
-
             deploymentPipeline.destroy();
 
             if (applicationContext != null) {

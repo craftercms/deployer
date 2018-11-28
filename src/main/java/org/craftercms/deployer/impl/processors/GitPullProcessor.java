@@ -79,6 +79,8 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
         try (Git git = openLocalRepository()) {
             logger.info("Executing git pull for repository {}...", localRepoFolder);
 
+            GitUtils.discardAllChanges(git);
+
             PullResult pullResult = GitUtils.pull(git, remoteRepoBranch, MergeStrategy.THEIRS,
                                                   authenticationConfigurator);
             String details;

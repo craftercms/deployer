@@ -45,6 +45,20 @@ target:
           - application/vnd.ms-excel
           - application/vnd.ms-powerpoint
           - application/vnd.openxmlformats-officedocument.presentationml.presentation
+        # The regex path patterns for the metadata ("jacket") files of binary/document files
+        metadataPathPatterns:
+          - ^/?site/documents/.+\.xml$
+        # The regex path patterns for binary/document files that are store remotely
+        remoteBinaryPathPatterns: &remoteBinaryPathPatterns
+          - ^(http:|https:)//.+$
+          - ^/remote-assets/.+$
+        # The regex path patterns for binary/document files that should be associated to just one metadata file and are
+        # dependant on that parent metadata file, so if the parent is deleted the binary should be deleted from the index
+        childBinaryPathPatterns: *remoteBinaryPathPatterns
+        # The XPaths of the binary references in the metadata files
+        referenceXPaths:
+          - //item/key
+          - //item/url
   notifications:
     mail:
       server:
@@ -73,3 +87,11 @@ target:
       html: true
       # For which status should the notifications be sent
       status: ON_ANY_STATUS
+  config:
+    profiles:
+      aws:
+        # The path for the AWS configuration profile in the local repo
+        path: /config/studio/aws/aws.xml
+      box:
+        # The path for the Box configuration profile in the local repo
+        path: /config/studio/box/box.xml

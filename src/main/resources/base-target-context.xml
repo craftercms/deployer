@@ -119,6 +119,11 @@
     <bean id="remoteFileResolver" class="org.craftercms.commons.file.stores.impl.RemoteFileResolverImpl">
         <property name="pathParsers">
             <map>
+                <!--
+                HTTP/HTTPS URLs are only indexed if they contain the protocol (http:// or https://). Protocol
+                relative URLs (like //mydoc.pdf) are not supported since the protocol is unknown to the back-end
+                indexer.
+                -->
                 <entry key="^(http:|https:)//.+$" value-ref="urlRemotePathParser"/>
                 <entry key="^/?remote-assets/([^/]+)/([^/]+)/(.+)$" value-ref="profileAwareRemotePathParser"/>
             </map>

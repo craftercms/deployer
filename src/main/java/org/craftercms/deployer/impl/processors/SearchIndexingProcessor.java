@@ -21,11 +21,12 @@ import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.search.batch.BatchIndexer;
 import org.craftercms.search.batch.UpdateSet;
 import org.craftercms.search.batch.UpdateStatus;
-import org.craftercms.search.service.Query;
+import org.craftercms.search.rest.v3.requests.SearchRequest;
+import org.craftercms.search.rest.v3.requests.SearchResponse;
 import org.craftercms.search.service.SearchService;
-import org.craftercms.search.service.impl.SolrQuery;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
@@ -62,22 +63,17 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     public static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
 
     private static final String LOCAL_ID_FIELD = "localId";
-    private static final String SEARCH_RESULTS_RESPONSE_PROPERTY = "response";
-    private static final String SEARCH_RESULTS_NUM_FOUND_PROPERTY = "numFound";
-    private static final String SEARCH_RESULTS_DOCUMENTS_PROPERTY = "documents";
 
-    protected String localRepoUrl;
+    protected ObjectFactory<Context> contextFactory;
     protected ContentStoreService contentStoreService;
     protected SearchService searchService;
     protected List<BatchIndexer> batchIndexers;
     protected boolean xmlFlatteningEnabled;
-    protected boolean xmlMergingEnabled;
     protected Pattern componentPathPattern;
     protected String itemsThatIncludeComponentQueryFormat;
     protected int itemsThatIncludeComponentQueryRows;
     protected String indexId;
     protected boolean reindexItemsOnComponentUpdates;
-    protected Context context;
 
     public SearchIndexingProcessor() {
         this.componentPathPattern = DEFAULT_COMPONENT_PATH_PATTERN;
@@ -86,13 +82,11 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     /**
-     * Sets the URL of the local repository that will be passed to the {@link ContentStoreService} to retrieve the
-     * files to
-     * index.
+     * Sets the factory for the {@link Context}.
      */
     @Required
-    public void setLocalRepoUrl(String localRepoUrl) {
-        this.localRepoUrl = localRepoUrl;
+    public void setContextFactory(ObjectFactory<Context> contextFactory) {
+        this.contextFactory = contextFactory;
     }
 
     /**
@@ -133,14 +127,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
      */
     public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {
         this.xmlFlatteningEnabled = xmlFlatteningEnabled;
-    }
-
-    /**
-     * Sets whether XML merging (aka inheritance) should be enabled when retrieving XML from the
-     * {@link ContentStoreService}.
-     */
-    public void setXmlMergingEnabled(boolean xmlMergingEnabled) {
-        this.xmlMergingEnabled = xmlMergingEnabled;
     }
 
     /**
@@ -252,7 +238,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
         execution.setStatusDetails(updateStatus);
 
-        context = createContentStoreContext();
+        Context context = contextFactory.getObject();
         try {
             for (BatchIndexer indexer : batchIndexers) {
                 indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet,
@@ -264,8 +250,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
             }
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);
-        } finally {
-            destroyContentStoreContext(context);
         }
 
         return null;
@@ -285,41 +269,38 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
         return createdFiles.contains(path) || updatedFiles.contains(path) || deletedFiles.contains(path);
     }
 
-    protected Query createItemsThatIncludeComponentQuery(String componentId) {
+    protected SearchRequest createItemsThatIncludeComponentQuery(String componentId) {
         String queryStatement = String.format(itemsThatIncludeComponentQueryFormat, componentId);
-        SolrQuery query = new SolrQuery();
 
-        query.setQuery(queryStatement);
-        query.setFieldsToReturn(LOCAL_ID_FIELD);
-
-        return query;
+        return searchService.createRequest()
+            .setMainQuery(queryStatement);
     }
 
     @SuppressWarnings("unchecked")
     protected List<String> getItemsThatIncludeComponent(String indexId, String componentPath) {
-        Query query = createItemsThatIncludeComponentQuery(componentPath);
+        SearchRequest request = createItemsThatIncludeComponentQuery(componentPath);
         List<String> items = new ArrayList<>();
         int start = 0;
         int rows = itemsThatIncludeComponentQueryRows;
-        int count;
-        Map<String, Object> result;
-        Map<String, Object> response;
-        List<Map<String, Object>> documents;
+        long count = 0;
 
         do {
-            query.setOffset(start);
-            query.setNumResults(rows);
+            request.setOffset(start)
+                    .setLimit(rows)
+                    .setIndexId(indexId);
 
-            result = searchService.search(indexId, query);
-            response = (Map<String, Object>)result.get(SEARCH_RESULTS_RESPONSE_PROPERTY);
-            count = (int)response.get(SEARCH_RESULTS_NUM_FOUND_PROPERTY);
-            documents = (List<Map<String, Object>>)response.get(SEARCH_RESULTS_DOCUMENTS_PROPERTY);
+            try {
+                SearchResponse response = searchService.search(request);
+                count = response.getTotal();
 
-            for (Map<String, Object> document : documents) {
-                items.add((String)document.get(LOCAL_ID_FIELD));
+                for (Map<String, Object> document : response.getItems()) {
+                    items.add((String)document.get(LOCAL_ID_FIELD));
+                }
+
+                start += rows;
+            } catch (Exception e) {
+                logger.error("Error searching for components", e);
             }
-
-            start += rows;
         } while (start <= count);
 
         return items;
@@ -337,30 +318,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
                     updatedFiles.add(itemPath);
                 }
             }
-        }
-    }
-
-    protected Context createContentStoreContext() throws DeployerException {
-        try {
-            Context context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null,
-                                                                null, localRepoUrl, xmlMergingEnabled, false, 0,
-                                                                Context.DEFAULT_IGNORE_HIDDEN_FILES);
-
-            logger.debug("Content store context created: {}", context);
-
-            return context;
-        } catch (Exception e) {
-            throw new DeployerException("Unable to create context for content store @ " + localRepoUrl, e);
-        }
-    }
-
-    protected void destroyContentStoreContext(Context context) {
-        try {
-            contentStoreService.destroyContext(context);
-
-            logger.debug("Content store context destroyed: {}", context);
-        } catch (Exception e) {
-            logger.warn("Unable to destroy context " + context, e);
         }
     }
 

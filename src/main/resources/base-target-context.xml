@@ -35,17 +35,17 @@
     </bean>
 
     <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor" parent="deploymentProcessor">
-        <property name="localRepoUrl" value="file:${target.localRepoPath}"/>
+        <property name="contextFactory" ref="contextFactory"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="searchService" ref="searchService"/>
         <property name="batchIndexers">
             <list>
                 <ref bean="xmlFileBatchIndexer"/>
                 <ref bean="binaryFileBatchIndexer"/>
+                <ref bean="binaryFileWithMetadataBatchIndexer"/>
             </list>
         </property>
         <property name="xmlFlatteningEnabled" value="${target.search.indexing.xml.flattening.enabled}"/>
-        <property name="xmlMergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>
     </bean>
 
     <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor"
@@ -67,6 +67,74 @@
         <property name="defaultHtml" value="${target.notifications.mail.html}"/>
         <property name="defaultStatusCondition" value="${target.notifications.mail.status}"/>
         <property name="defaultDateTimePattern" value="${target.defaultDateTimePattern}"/>
+    </bean>
+
+    <!-- Configuration Profiles -->
+
+    <bean id="s3ProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
+        <property name="profilesUrl" value="${target.config.profiles.aws.path}"/>
+        <property name="profileMapper">
+            <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper"/>
+        </property>
+        <property name="contextFactory" ref="contextFactory"/>
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+    </bean>
+
+    <bean id="boxProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
+        <property name="profilesUrl" value="${target.config.profiles.box.path}"/>
+        <property name="profileMapper">
+            <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper"/>
+        </property>
+        <property name="contextFactory" ref="contextFactory"/>
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+    </bean>
+
+    <!-- Core -->
+
+    <bean id="contextFactory" class="org.craftercms.deployer.utils.core.SingletonContextFactory">
+        <property name="localRepoUrl" value="file:${target.localRepoPath}"/>
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+        <property name="xmlMergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>
+    </bean>
+
+    <!-- Remote File Stores -->
+
+    <bean id="profileAwareRemotePathParser"
+          class="org.craftercms.commons.file.stores.impl.PathPartsBasedProfileAwareRemotePathParser"/>
+
+    <bean id="urlRemotePathParser" class="org.craftercms.commons.file.stores.impl.FixedStoreTypeRemotePathParser">
+        <property name="storeType" value="url"/>
+    </bean>
+
+    <bean id="s3FileStore" class="org.craftercms.commons.file.stores.impl.s3.S3FileStore">
+        <property name="profileLoader" ref="s3ProfileLoader"/>
+    </bean>
+
+    <bean id="boxFileStore" class="org.craftercms.commons.file.stores.impl.box.BoxFileStore">
+        <property name="profileLoader" ref="boxProfileLoader"/>
+    </bean>
+
+    <bean id="urlBasedFileStore" class="org.craftercms.commons.file.stores.impl.UrlBasedFileStore"/>
+
+    <bean id="remoteFileResolver" class="org.craftercms.commons.file.stores.impl.RemoteFileResolverImpl">
+        <property name="pathParsers">
+            <map>
+                <!--
+                HTTP/HTTPS URLs are only indexed if they contain the protocol (http:// or https://). Protocol
+                relative URLs (like //mydoc.pdf) are not supported since the protocol is unknown to the back-end
+                indexer.
+                -->
+                <entry key="^(http:|https:)//.+$" value-ref="urlRemotePathParser"/>
+                <entry key="^/?remote-assets/([^/]+)/([^/]+)/(.+)$" value-ref="profileAwareRemotePathParser"/>
+            </map>
+        </property>
+        <property name="stores">
+            <map>
+                <entry key="s3" value-ref="s3FileStore"/>
+                <entry key="box" value-ref="boxFileStore"/>
+                <entry key="url" value-ref="urlBasedFileStore"/>
+            </map>
+        </property>
     </bean>
 
     <!-- Search -->
@@ -95,11 +163,25 @@
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
     </bean>
-
-    <bean id="searchService" class="org.craftercms.search.service.impl.v2.SolrRestClientSearchService">
-        <property name="serverUrl" value="${target.search.serverUrl}"/>
+    
+    <bean id="binaryFileWithMetadataBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileWithMetadataBatchIndexer">
+        <property name="supportedMimeTypes"
+                  value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
+        <property name="metadataPathPatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.metadataPathPatterns', T(java.util.List))}"/>
+        <property name="remoteBinaryPathPatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.remoteBinaryPathPatterns', T(java.util.List))}"/>
+        <property name="childBinaryPathPatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.childBinaryPathPatterns', T(java.util.List))}"/>
+        <property name="referenceXPaths"
+                  value="#{environment.getProperty('target.search.indexing.binary.referenceXPaths', T(java.util.List))}"/>
+        <property name="remoteFileResolver" ref="remoteFileResolver"/>
+        <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
     </bean>
 
+    <bean id="searchService" class="org.craftercms.search.service.impl.v3.RestClientSearchService">
+        <property name="serverUrl" value="${target.search.serverUrl}"/>
+    </bean>
     <!-- Mail -->
 
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
@@ -123,6 +205,7 @@
     </bean>
 
     <!-- AWS -->
+
     <bean id="s3SyncProcessor" class="org.craftercms.deployer.impl.processors.aws.S3SyncProcessor"
           parent="deploymentProcessor">
         <property name="localRepoUrl" value="${target.localRepoPath}"/>

@@ -16,21 +16,22 @@
  */
 package org.craftercms.deployer.impl.processors;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.ArrayUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.DeploymentConstants;
-import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.craftercms.deployer.utils.ConfigUtils.getStringArrayProperty;
 
 /**
  * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s that are executed during the main deployment phase, which is
@@ -48,9 +49,9 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     protected String[] excludeFiles;
 
     @Override
-    public void init(Configuration config) throws DeployerException {
-        includeFiles = ConfigUtils.getStringArrayProperty(config, DeploymentConstants.PROCESSOR_INCLUDE_FILES_CONFIG_KEY);
-        excludeFiles = ConfigUtils.getStringArrayProperty(config, DeploymentConstants.PROCESSOR_EXCLUDE_FILES_CONFIG_KEY);
+    public void init(Configuration config) throws ConfigurationException, DeployerException {
+        includeFiles = getStringArrayProperty(config, DeploymentConstants.PROCESSOR_INCLUDE_FILES_CONFIG_KEY);
+        excludeFiles = getStringArrayProperty(config, DeploymentConstants.PROCESSOR_EXCLUDE_FILES_CONFIG_KEY);
 
         doInit(config);
     }
@@ -126,7 +127,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
         return deployment.isRunning() && filteredChangeSet != null && !filteredChangeSet.isEmpty();
     }
 
-    protected abstract void doInit(Configuration config) throws DeployerException;
+    protected abstract void doInit(Configuration config) throws ConfigurationException, DeployerException;
 
     protected abstract ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
                                            ChangeSet filteredChangeSet) throws DeployerException;

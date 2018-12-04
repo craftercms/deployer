@@ -1,23 +1,32 @@
+/*
+ * Copyright (C) 2007-2017 Crafter Software Corporation.
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
+ */
 package org.craftercms.deployer.impl.processors;
-
-import java.util.ArrayList;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.regex.Pattern;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Context;
-import org.craftercms.core.store.impl.filesystem.FileSystemContentStoreAdapter;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.search.batch.BatchIndexer;
 import org.craftercms.search.batch.UpdateSet;
 import org.craftercms.search.batch.UpdateStatus;
@@ -28,6 +37,15 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Required;
+
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Pattern;
+
+import static org.craftercms.deployer.utils.ConfigUtils.getBooleanProperty;
+import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
 
 /**
  * Processor that indexes the files on the change set, using one or several {@link BatchIndexer}. After the files have
@@ -153,22 +171,20 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    protected void doInit(Configuration config) throws DeployerException {
-        boolean ignoreIndexId = ConfigUtils.getBooleanProperty(config, IGNORE_INDEX_ID_CONFIG_KEY, false);
+    protected void doInit(Configuration config) throws ConfigurationException {
+        boolean ignoreIndexId = getBooleanProperty(config, IGNORE_INDEX_ID_CONFIG_KEY, false);
         if (ignoreIndexId) {
             indexId = null;
         } else {
-            indexId = ConfigUtils.getStringProperty(config, INDEX_ID_CONFIG_KEY);
+            indexId = getStringProperty(config, INDEX_ID_CONFIG_KEY);
             if (StringUtils.isEmpty(indexId)) {
-                String indexIdFormat = ConfigUtils.getStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY,
-                                                                     DEFAULT_INDEX_ID_FORMAT);
+                String indexIdFormat = getStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY, DEFAULT_INDEX_ID_FORMAT);
 
                 indexId = String.format(indexIdFormat, siteName);
             }
         }
 
-        reindexItemsOnComponentUpdates = ConfigUtils.getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES,
-                                                                        true);
+        reindexItemsOnComponentUpdates = getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES, true);
 
         if (CollectionUtils.isEmpty(batchIndexers)) {
             throw new IllegalStateException("At least one batch indexer should be provided");

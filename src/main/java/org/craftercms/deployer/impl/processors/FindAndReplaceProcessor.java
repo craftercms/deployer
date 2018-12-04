@@ -17,21 +17,23 @@
 
 package org.craftercms.deployer.impl.processors;
 
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
+
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+
+import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringProperty;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} to replace a pattern on the
@@ -79,9 +81,9 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
      * {@inheritDoc}
      */
     @Override
-    protected void doInit(final Configuration config) throws DeployerException {
-        textPattern = ConfigUtils.getRequiredStringProperty(config, CONFIG_KEY_TEXT_PATTERN);
-        replacement = ConfigUtils.getRequiredStringProperty(config, CONFIG_KEY_REPLACEMENT);
+    protected void doInit(final Configuration config) throws ConfigurationException {
+        textPattern = getRequiredStringProperty(config, CONFIG_KEY_TEXT_PATTERN);
+        replacement = getRequiredStringProperty(config, CONFIG_KEY_REPLACEMENT);
     }
 
     /**

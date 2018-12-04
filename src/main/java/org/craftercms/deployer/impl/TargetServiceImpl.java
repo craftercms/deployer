@@ -18,27 +18,6 @@ package org.craftercms.deployer.impl;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.Template;
-
-import java.io.BufferedInputStream;
-import java.io.BufferedWriter;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileWriter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.Writer;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.concurrent.ExecutorService;
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.configuration2.CombinedConfiguration;
@@ -48,18 +27,17 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
-import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
-import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -77,13 +55,14 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
-import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY;
-import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_ENV_CONFIG_KEY;
-import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_ID_CONFIG_KEY;
-import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_LOCAL_REPO_CONFIG_KEY;
-import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY;
-import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY;
-import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY;
+import javax.annotation.PostConstruct;
+import javax.annotation.PreDestroy;
+import java.io.*;
+import java.util.*;
+import java.util.concurrent.ExecutorService;
+
+import static org.craftercms.deployer.impl.DeploymentConstants.*;
+import static org.craftercms.deployer.utils.ConfigUtils.*;
 
 /**
  * Default implementation of {@link TargetService}.
@@ -334,10 +313,10 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected Target createTarget(File configFile, File contextFile) throws TargetServiceException {
         try {
             HierarchicalConfiguration config = loadConfiguration(configFile);
-            String env = ConfigUtils.getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
-            String siteName = ConfigUtils.getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
+            String env = getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
+            String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
             String targetId = TargetImpl.getId(env, siteName);
-            String localRepoPath = ConfigUtils.getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
+            String localRepoPath = getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
 
             config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
@@ -355,12 +334,12 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
     }
 
-    protected HierarchicalConfiguration loadConfiguration(File configFile) throws DeployerConfigurationException {
+    protected HierarchicalConfiguration loadConfiguration(File configFile) throws ConfigurationException {
         String configFilename = configFile.getPath();
 
         logger.debug("Loading target YAML config at {}", configFilename);
 
-        HierarchicalConfiguration config = ConfigUtils.loadYamlConfiguration(configFile);
+        HierarchicalConfiguration config = readYamlConfiguration(configFile);
 
         if (baseTargetYamlConfigResource.exists() || baseTargetYamlConfigOverrideResource.exists()) {
             CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
@@ -370,12 +349,12 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             if (baseTargetYamlConfigOverrideResource.exists()) {
                 logger.debug("Loading base target YAML config override at {}", baseTargetYamlConfigOverrideResource);
 
-                combinedConfig.addConfiguration(ConfigUtils.loadYamlConfiguration(baseTargetYamlConfigOverrideResource));
+                combinedConfig.addConfiguration(readYamlConfiguration(baseTargetYamlConfigOverrideResource));
             }
             if (baseTargetYamlConfigResource.exists()) {
                 logger.debug("Loading base target YAML config at {}", baseTargetYamlConfigResource);
 
-                combinedConfig.addConfiguration(ConfigUtils.loadYamlConfiguration(baseTargetYamlConfigResource));
+                combinedConfig.addConfiguration(readYamlConfiguration(baseTargetYamlConfigResource));
             }
 
             return combinedConfig;
@@ -385,7 +364,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     protected ConfigurableApplicationContext loadApplicationContext(HierarchicalConfiguration config,
-                                                                    File contextFile) throws DeployerConfigurationException {
+                                                                    File contextFile) throws ConfigurationException {
         GenericApplicationContext context = new GenericApplicationContext(mainApplicationContext);
 
         MutablePropertySources propertySources = context.getEnvironment().getPropertySources();
@@ -402,7 +381,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             try {
                 reader.loadBeanDefinitions(baseTargetContextResource);
             } catch (Exception e) {
-                throw new DeployerConfigurationException("Failed to load application context at " + baseTargetContextResource, e);
+                throw new ConfigurationException("Failed to load application context at " + baseTargetContextResource, e);
             }
         }
         if (baseTargetContextOverrideResource.exists()) {
@@ -411,7 +390,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             try {
                 reader.loadBeanDefinitions(baseTargetContextOverrideResource);
             } catch (Exception e) {
-                throw new DeployerConfigurationException("Failed to load application context at " + baseTargetContextOverrideResource, e);
+                throw new ConfigurationException("Failed to load application context at " + baseTargetContextOverrideResource, e);
             }
         }
         if (contextFile.exists()) {
@@ -420,7 +399,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             try (InputStream in = new BufferedInputStream(new FileInputStream(contextFile))) {
                 reader.loadBeanDefinitions(new InputSource(in));
             } catch (Exception e) {
-                throw new DeployerConfigurationException("Failed to load application context at " + contextFile, e);
+                throw new ConfigurationException("Failed to load application context at " + contextFile, e);
             }
         }
 
@@ -429,9 +408,9 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         return context;
     }
 
-    protected void scheduleDeployment(Target target) throws DeployerConfigurationException {
-        boolean enabled =  ConfigUtils.getBooleanProperty(target.getConfiguration(), TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY, true);
-        String cron = ConfigUtils.getStringProperty(target.getConfiguration(), TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY);
+    protected void scheduleDeployment(Target target) throws ConfigurationException {
+        boolean enabled =  getBooleanProperty(target.getConfiguration(), TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY, true);
+        String cron = getStringProperty(target.getConfiguration(), TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY);
 
         if (enabled && StringUtils.isNotEmpty(cron)) {
             logger.info("Deployment for target '{}' scheduled with cron {}", target.getId(), cron);

@@ -26,6 +26,7 @@ import org.craftercms.search.rest.v3.requests.SearchResponse;
 import org.craftercms.search.service.SearchService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Required;
 
 /**
@@ -63,18 +64,16 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     private static final String LOCAL_ID_FIELD = "localId";
 
-    protected String localRepoUrl;
+    protected ObjectFactory<Context> contextFactory;
     protected ContentStoreService contentStoreService;
     protected SearchService searchService;
     protected List<BatchIndexer> batchIndexers;
     protected boolean xmlFlatteningEnabled;
-    protected boolean xmlMergingEnabled;
     protected Pattern componentPathPattern;
     protected String itemsThatIncludeComponentQueryFormat;
     protected int itemsThatIncludeComponentQueryRows;
     protected String indexId;
     protected boolean reindexItemsOnComponentUpdates;
-    protected Context context;
 
     public SearchIndexingProcessor() {
         this.componentPathPattern = DEFAULT_COMPONENT_PATH_PATTERN;
@@ -83,13 +82,11 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
     }
 
     /**
-     * Sets the URL of the local repository that will be passed to the {@link ContentStoreService} to retrieve the
-     * files to
-     * index.
+     * Sets the factory for the {@link Context}.
      */
     @Required
-    public void setLocalRepoUrl(String localRepoUrl) {
-        this.localRepoUrl = localRepoUrl;
+    public void setContextFactory(ObjectFactory<Context> contextFactory) {
+        this.contextFactory = contextFactory;
     }
 
     /**
@@ -130,14 +127,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
      */
     public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {
         this.xmlFlatteningEnabled = xmlFlatteningEnabled;
-    }
-
-    /**
-     * Sets whether XML merging (aka inheritance) should be enabled when retrieving XML from the
-     * {@link ContentStoreService}.
-     */
-    public void setXmlMergingEnabled(boolean xmlMergingEnabled) {
-        this.xmlMergingEnabled = xmlMergingEnabled;
     }
 
     /**
@@ -249,7 +238,7 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
         execution.setStatusDetails(updateStatus);
 
-        context = createContentStoreContext();
+        Context context = contextFactory.getObject();
         try {
             for (BatchIndexer indexer : batchIndexers) {
                 indexer.updateIndex(searchService, indexId, siteName, contentStoreService, context, updateSet,
@@ -261,8 +250,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
             }
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);
-        } finally {
-            destroyContentStoreContext(context);
         }
 
         return null;
@@ -331,30 +318,6 @@ public class SearchIndexingProcessor extends AbstractMainDeploymentProcessor {
                     updatedFiles.add(itemPath);
                 }
             }
-        }
-    }
-
-    protected Context createContentStoreContext() throws DeployerException {
-        try {
-            Context context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null,
-                                                                null, localRepoUrl, xmlMergingEnabled, false, 0,
-                                                                Context.DEFAULT_IGNORE_HIDDEN_FILES);
-
-            logger.debug("Content store context created: {}", context);
-
-            return context;
-        } catch (Exception e) {
-            throw new DeployerException("Unable to create context for content store @ " + localRepoUrl, e);
-        }
-    }
-
-    protected void destroyContentStoreContext(Context context) {
-        try {
-            contentStoreService.destroyContext(context);
-
-            logger.debug("Content store context destroyed: {}", context);
-        } catch (Exception e) {
-            logger.warn("Unable to destroy context " + context, e);
         }
     }
 

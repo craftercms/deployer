@@ -25,6 +25,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -40,6 +41,8 @@ import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.model.PutObjectRequest;
+
+import static org.craftercms.deployer.utils.ConfigUtils.*;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that syncs files to an AWS S3 Bucket
@@ -78,9 +81,8 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
      * {@inheritDoc}
      */
     @Override
-    protected void doInit(final Configuration config) throws DeployerException {
-        s3Url = new AmazonS3URI(StringUtils.appendIfMissing(
-            ConfigUtils.getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+    protected void doInit(final Configuration config) throws ConfigurationException {
+        s3Url = new AmazonS3URI(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
     }
 
     /**

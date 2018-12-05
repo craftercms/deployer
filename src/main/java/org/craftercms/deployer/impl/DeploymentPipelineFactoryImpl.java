@@ -16,22 +16,24 @@
  */
 package org.craftercms.deployer.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.stereotype.Component;
 
+import java.util.ArrayList;
+import java.util.List;
+
+import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
+import static org.craftercms.deployer.utils.ConfigUtils.getRequiredConfigurationsAt;
 
 /**
  * Default implementation of {@link DeploymentPipeline}.
@@ -45,12 +47,13 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
 
     @Override
     public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ApplicationContext applicationContext,
-                                          String pipelinePropertyName) throws DeployerException {
-        List<HierarchicalConfiguration> processorConfigs = ConfigUtils.getRequiredConfigurationsAt(configuration, pipelinePropertyName);
+                                          String pipelinePropertyName) throws ConfigurationException, DeployerException {
+        List<HierarchicalConfiguration<ImmutableNode>> processorConfigs =
+                getRequiredConfigurationsAt(configuration, pipelinePropertyName);
         List<DeploymentProcessor> deploymentProcessors = new ArrayList<>();
 
         for (HierarchicalConfiguration processorConfig : processorConfigs) {
-            String processorName = ConfigUtils.getRequiredStringProperty(processorConfig, PROCESSOR_NAME_CONFIG_KEY);
+            String processorName = getRequiredStringProperty(processorConfig, PROCESSOR_NAME_CONFIG_KEY);
 
             logger.debug("Initializing pipeline processor '{}'", processorName);
 

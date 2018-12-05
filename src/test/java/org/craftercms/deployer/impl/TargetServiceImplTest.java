@@ -29,6 +29,7 @@ import java.util.concurrent.ExecutorService;
 
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -218,7 +219,8 @@ public class TargetServiceImplTest {
         return tempTargetsFolder;
     }
 
-    private DeploymentPipelineFactory createDeploymentPipelineFactory() throws DeployerException {
+    private DeploymentPipelineFactory createDeploymentPipelineFactory() throws ConfigurationException,
+                                                                               DeployerException {
         DeploymentPipelineFactory pipelineFactory = mock(DeploymentPipelineFactory.class);
         when(pipelineFactory.getPipeline(any(), any(), anyString())).thenReturn(mock(DeploymentPipeline.class));
 

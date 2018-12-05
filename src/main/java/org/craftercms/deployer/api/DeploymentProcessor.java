@@ -17,6 +17,7 @@
 package org.craftercms.deployer.api;
 
 import org.apache.commons.configuration2.Configuration;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 
 /**
@@ -31,9 +32,10 @@ public interface DeploymentProcessor {
      *
      * @param config    the processor configuration
      *
-     * @throws DeployerException if a configuration property is missing or if any other error occurred
+     * @throws ConfigurationException if there's configuration related exception
+     * @throws DeployerException if there's a general exception on init
      */
-    void init(Configuration config) throws DeployerException;
+    void init(Configuration config) throws ConfigurationException, DeployerException;
 
     /**
      * Destroys the processor, closing and releasing any used resources.

@@ -17,11 +17,10 @@
 package org.craftercms.deployer.impl;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.DeploymentPipeline;
-import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.ConfigurableApplicationContext;
 
 /**
  * Factory that uses target-specific YAML configuration and Spring configuration to a create the {@link DeploymentPipeline} for a
@@ -40,9 +39,10 @@ public interface DeploymentPipelineFactory {
      *
      * @return the deployment pipeline
      *
-     * @throws DeployerException if an error occurs
+     * @throws ConfigurationException if a configuration related exception occurs
+     * @throws DeployerException if a general error occurs
      */
     DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ApplicationContext applicationContext,
-                                   String pipelinePropertyName) throws DeployerException;
+                                   String pipelinePropertyName) throws ConfigurationException, DeployerException;
 
 }

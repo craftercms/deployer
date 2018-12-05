@@ -16,25 +16,27 @@
  */
 package org.craftercms.deployer.impl.processors;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.git.auth.BasicUsernamePasswordAuthConfigurator;
 import org.craftercms.commons.git.auth.GitAuthenticationConfigurator;
 import org.craftercms.commons.git.auth.SshRsaKeyPairAuthConfigurator;
 import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
-import org.craftercms.deployer.api.exceptions.DeployerConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
+
+import java.io.File;
+import java.io.IOException;
+
+import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
 
 /**
  * Base class for processors that work against a remote repo. It basically provides the code that is used to
@@ -80,14 +82,14 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
     }
 
     @Override
-    protected void doInit(Configuration config) throws DeployerException {
-        remoteRepoUrl = ConfigUtils.getRequiredStringProperty(config, REMOTE_REPO_URL_CONFIG_KEY);
-        remoteRepoBranch = ConfigUtils.getStringProperty(config, REMOTE_REPO_BRANCH_CONFIG_KEY);
+    protected void doInit(Configuration config) throws ConfigurationException {
+        remoteRepoUrl = getRequiredStringProperty(config, REMOTE_REPO_URL_CONFIG_KEY);
+        remoteRepoBranch = getStringProperty(config, REMOTE_REPO_BRANCH_CONFIG_KEY);
         authenticationConfigurator = createAuthenticationConfigurator(config, remoteRepoUrl);
     }
 
     @Override
-    public void destroy() throws DeployerException {
+    public void destroy() {
         // Do nothing
     }
 
@@ -104,20 +106,19 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
 
     protected GitAuthenticationConfigurator createAuthenticationConfigurator(Configuration config,
                                                                              String repoUrl) throws
-        DeployerConfigurationException {
+                                                                                             ConfigurationException {
         GitAuthenticationConfigurator authConfigurator = null;
 
         if (repoUrl.matches(GIT_SSH_URL_REGEX)) {
-            String password = ConfigUtils.getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
+            String password = getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
 
             if (StringUtils.isNotEmpty(password)) {
                 logger.debug("SSH username/password authentication will be used to connect to repo {}", repoUrl);
 
                 authConfigurator = new SshUsernamePasswordAuthConfigurator(password);
             } else {
-                String privateKeyPath = ConfigUtils.getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY);
-                String passphrase = ConfigUtils.getStringProperty(config,
-                                                                  REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY);
+                String privateKeyPath = getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY);
+                String passphrase = getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY);
 
                 logger.debug("SSH RSA key pair authentication will be used to connect to repo {}", repoUrl);
 
@@ -128,8 +129,8 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
                 authConfigurator = keyPairAuthConfigurator;
             }
         } else {
-            String username = ConfigUtils.getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY);
-            String password = ConfigUtils.getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
+            String username = getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY);
+            String password = getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
 
             if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
                 logger.debug("Username/password authentication will be used to connect to repo {}", repoUrl);

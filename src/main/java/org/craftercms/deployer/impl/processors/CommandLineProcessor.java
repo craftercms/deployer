@@ -16,21 +16,23 @@
  */
 package org.craftercms.deployer.impl.processors;
 
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.deployer.api.ChangeSet;
+import org.craftercms.deployer.api.Deployment;
+import org.craftercms.deployer.api.ProcessorExecution;
+import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.util.concurrent.TimeUnit;
 
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.deployer.api.ChangeSet;
-import org.craftercms.deployer.api.Deployment;
-import org.craftercms.deployer.api.ProcessorExecution;
-import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.ConfigUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import static org.craftercms.deployer.utils.ConfigUtils.*;
 
 /**
  * Processor that runs a command line process.
@@ -52,14 +54,14 @@ public class CommandLineProcessor extends AbstractMainDeploymentProcessor {
     private long processTimeoutSecs;
 
     @Override
-    protected void doInit(Configuration config) throws DeployerException {
-        workingDir = ConfigUtils.getStringProperty(config, WORKING_DIR_CONFIG_KEY);
-        command = ConfigUtils.getRequiredStringProperty(config, COMMAND_CONFIG_KEY);
-        processTimeoutSecs = ConfigUtils.getLongProperty(config, PROCESS_TIMEOUT_SECS_CONFIG_KEY, DEFAULT_PROCESS_TIMEOUT_SECS);
+    protected void doInit(Configuration config) throws ConfigurationException {
+        workingDir = getStringProperty(config, WORKING_DIR_CONFIG_KEY);
+        command = getRequiredStringProperty(config, COMMAND_CONFIG_KEY);
+        processTimeoutSecs = getLongProperty(config, PROCESS_TIMEOUT_SECS_CONFIG_KEY, DEFAULT_PROCESS_TIMEOUT_SECS);
     }
 
     @Override
-    public void destroy() throws DeployerException {
+    public void destroy() {
         // Not used
     }
 

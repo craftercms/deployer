@@ -22,6 +22,7 @@ import java.util.UUID;
 
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.configuration2.Configuration;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -35,6 +36,8 @@ import com.amazonaws.services.cloudfront.model.CreateInvalidationRequest;
 import com.amazonaws.services.cloudfront.model.CreateInvalidationResult;
 import com.amazonaws.services.cloudfront.model.InvalidationBatch;
 import com.amazonaws.services.cloudfront.model.Paths;
+
+import static org.craftercms.deployer.utils.ConfigUtils.*;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that invalidates the changed
@@ -63,8 +66,8 @@ public class CloudfrontInvalidationProcessor extends
      * {@inheritDoc}
      */
     @Override
-    protected void doInit(final Configuration config) throws DeployerException {
-        distributions = ConfigUtils.getRequiredStringArrayProperty(config, CONFIG_KEY_DISTRIBUTIONS);
+    protected void doInit(final Configuration config) throws ConfigurationException {
+        distributions = getRequiredStringArrayProperty(config, CONFIG_KEY_DISTRIBUTIONS);
     }
 
     /**

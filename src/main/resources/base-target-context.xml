@@ -179,7 +179,7 @@
         <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
     </bean>
 
-    <bean id="searchService" class="org.craftercms.search.service.impl.v3.RestClientSearchService">
+    <bean id="searchService" class="org.craftercms.search.service.impl.v2.SolrRestClientSearchService">
         <property name="serverUrl" value="${target.search.serverUrl}"/>
     </bean>
     <!-- Mail -->

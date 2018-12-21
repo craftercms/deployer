@@ -37,6 +37,7 @@
 		<jackson.version>2.9.7</jackson.version>
 		<aws.version>1.11.435</aws.version>
 		<box.sdk.version>2.23.0</box.sdk.version>
+		<elasticsearch.version>6.5.3</elasticsearch.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -70,6 +71,11 @@
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-git</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-elasticsearch</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>
@@ -172,6 +178,13 @@
 			<groupId>com.box</groupId>
 			<artifactId>box-java-sdk</artifactId>
 			<version>${box.sdk.version}</version>
+		</dependency>
+
+		<!-- Jackson -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+			<version>${jackson.version}</version>
 		</dependency>
 
 		<!-- Test -->

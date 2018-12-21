@@ -32,10 +32,15 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
+import org.craftercms.commons.elasticsearch.ElasticSearchAdminService;
+import org.craftercms.commons.elasticsearch.exception.ElasticSearchException;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
+import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.utils.GitUtils;
+import org.craftercms.search.exception.SearchException;
+import org.craftercms.search.service.AdminService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -66,6 +71,7 @@ public class TargetImpl implements Target {
     protected ExecutorService deploymentExecutor;
     protected Queue<Deployment> pendingDeployments;
     protected volatile Deployment currentDeployment;
+    protected boolean crafterSearchEnabled;
 
     protected final Lock deploymentLock = new ReentrantLock();
 
@@ -75,7 +81,8 @@ public class TargetImpl implements Target {
 
     public TargetImpl(String env, String siteName, String localRepoPath, DeploymentPipeline deploymentPipeline,
                       File configurationFile, Configuration configuration,
-                      ConfigurableApplicationContext applicationContext, ExecutorService deploymentExecutor) {
+                      ConfigurableApplicationContext applicationContext, ExecutorService deploymentExecutor,
+                      boolean crafterSearchEnabled) {
         this.env = env;
         this.siteName = siteName;
         this.localRepoPath = localRepoPath;
@@ -86,6 +93,7 @@ public class TargetImpl implements Target {
         this.loadDate = ZonedDateTime.now();
         this.deploymentExecutor = deploymentExecutor;
         this.pendingDeployments = new ConcurrentLinkedQueue<>();
+        this.crafterSearchEnabled = crafterSearchEnabled;
     }
 
     @Override
@@ -106,6 +114,11 @@ public class TargetImpl implements Target {
     @Override
     public ZonedDateTime getLoadDate() {
         return loadDate;
+    }
+
+    @Override
+    public boolean isCrafterSearchEnabled() {
+        return crafterSearchEnabled;
     }
 
     @Override
@@ -204,6 +217,51 @@ public class TargetImpl implements Target {
         }
 
         MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void createIndices() throws TargetServiceException {
+        ElasticSearchAdminService elasticSearchService = applicationContext.getBean(ElasticSearchAdminService.class);
+        AdminService adminService = applicationContext.getBean(AdminService.class);
+
+        try {
+            elasticSearchService.createIndex(siteName, !crafterSearchEnabled);
+        } catch (ElasticSearchException e) {
+            throw new TargetServiceException("Error creating index for target " + getId(), e);
+        }
+        if(crafterSearchEnabled) {
+            try {
+                adminService.createIndex(siteName);
+            } catch (SearchException e) {
+                throw new TargetServiceException("Error creating index for target " + getId(), e);
+            }
+        }
+    }
+
+    /**
+     * {@inheritDoc}
+     */
+    @Override
+    public void deleteIndices() throws TargetServiceException {
+        ElasticSearchAdminService elasticSearchService = applicationContext.getBean(ElasticSearchAdminService.class);
+        AdminService adminService = applicationContext.getBean(AdminService.class);
+
+        try {
+            elasticSearchService.deleteIndex(siteName, !crafterSearchEnabled);
+        } catch (ElasticSearchException e) {
+            throw new TargetServiceException("Error deleting index for target " + getId(), e);
+        }
+
+        if(crafterSearchEnabled) {
+            try {
+                adminService.deleteIndex(siteName, AdminService.IndexDeleteMode.ALL_DATA);
+            } catch (SearchException e) {
+                throw new TargetServiceException("Error deleting index for target " + getId(), e);
+            }
+        }
     }
 
     protected class ScheduledDeploymentTask implements Runnable {

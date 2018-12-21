@@ -14,6 +14,12 @@ target:
       # The cron expression used for scheduling target deployments
       cron: '0 * * * * *'
   search:
+    tika:
+      limit: 10000
+    elasticSearch:
+      urls:
+        - http://localhost:9201
+    useSolr: false
     # The base URL of the Crafter Search server
     serverUrl: http://localhost:8080/crafter-search
     indexing:

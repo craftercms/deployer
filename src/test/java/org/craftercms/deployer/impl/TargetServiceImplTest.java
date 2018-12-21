@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.elasticsearch.ElasticSearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -75,7 +76,8 @@ public class TargetServiceImplTest {
             createDeploymentPipelineFactory(),
             createTaskScheduler(),
             createTaskExecutor(),
-            createProcessedCommitsStore());
+            createProcessedCommitsStore(),
+            createElasticSearchAdminService());
     }
 
     @After
@@ -248,6 +250,11 @@ public class TargetServiceImplTest {
         handlebars.prettyPrint(true);
 
         return handlebars;
+    }
+
+    private ElasticSearchAdminService createElasticSearchAdminService() {
+        ElasticSearchAdminService service = mock(ElasticSearchAdminService.class);
+        return service;
     }
 
 }

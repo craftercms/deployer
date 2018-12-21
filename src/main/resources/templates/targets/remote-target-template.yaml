@@ -2,6 +2,7 @@ target:
   env: {{env}}
   siteName: {{site_name}}
   engineUrl: {{#if engine_url}}{{engine_url}}{{else}}http://localhost:8080{{/if}}
+  crafterSearchEnabled: {{#if use_crafter_search}}{{use_crafter_search}}{{else}}false{{/if}}
   deployment:
     {{#if disable_deploy_cron}}
     scheduling:
@@ -29,7 +30,7 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-      - processorName: searchIndexingProcessor
+      - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticSearchIndexingProcessor{{/if}}
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
         method: GET

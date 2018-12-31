@@ -165,6 +165,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
     @Override
     public void destroy() {
+        // Do nothing
     }
 
     /**

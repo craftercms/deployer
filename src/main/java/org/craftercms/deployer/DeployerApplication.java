@@ -1,14 +1,10 @@
 package org.craftercms.deployer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.io.CompositeTemplateLoader;
-import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+
 import freemarker.template.TemplateException;
-import org.craftercms.commons.elasticsearch.ElasticSearchAdminService;
-import org.craftercms.commons.elasticsearch.impl.ElasticSearchAdminServiceImpl;
-import org.craftercms.commons.elasticsearch.spring.ElasticSearchClientFactory;
 import org.craftercms.core.cache.impl.CacheStoreAdapter;
 import org.craftercms.core.cache.impl.store.NoopCacheStoreAdapter;
 import org.craftercms.deployer.api.TargetService;
@@ -16,22 +12,16 @@ import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
 import org.craftercms.deployer.utils.handlebars.ListHelper;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
-import org.craftercms.search.service.AdminService;
-import org.craftercms.search.service.impl.v2.RestClientAdminService;
-import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.beans.factory.config.ConfigurableBeanFactory;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
-import org.springframework.context.annotation.Scope;
-import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -41,14 +31,13 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.List;
-import java.util.concurrent.ExecutorService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.io.CompositeTemplateLoader;
+import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 
 import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCATION;
-import static org.springframework.beans.factory.config.ConfigurableBeanFactory.SCOPE_PROTOTYPE;
 
 /**
  * Launcher class and Spring configuration entry point.

@@ -21,10 +21,7 @@ package org.craftercms.deployer.impl;
  *
  * @author avasquez
  */
-public class DeploymentConstants {
-
-    private DeploymentConstants() {
-    }
+public abstract class DeploymentConstants {
 
     // Target-specific Configuration Keys
 

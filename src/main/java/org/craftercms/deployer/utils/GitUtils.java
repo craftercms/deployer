@@ -18,21 +18,19 @@ package org.craftercms.deployer.utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.Collections;
 
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.git.auth.GitAuthenticationConfigurator;
-import org.eclipse.jgit.api.CloneCommand;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.api.PullCommand;
-import org.eclipse.jgit.api.PullResult;
-import org.eclipse.jgit.api.PushCommand;
+import org.eclipse.jgit.api.*;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.StoredConfig;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
+import org.eclipse.jgit.transport.URIish;
 
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.HEAD;
@@ -72,7 +70,8 @@ public abstract class GitUtils {
     /**
      * Clones a remote repository into a specific local folder.
      *
-     * @param remoteRepoUrl    the URL of the remote repository. This should be a legal Git URL.
+     * @param remoteName       the name of the remote
+     * @param remoteUrl        the URL of the remote. This should be a legal Git URL.
      * @param branch           the branch which should be cloned
      * @param authConfigurator the {@link GitAuthenticationConfigurator} class used to configure the authentication
      *                         with the remote repository
@@ -84,12 +83,13 @@ public abstract class GitUtils {
      * @throws GitAPIException if a Git related error occurs
      * @throws IOException     if an IO error occurs
      */
-    public static Git cloneRemoteRepository(String remoteRepoUrl, String branch,
+    public static Git cloneRemoteRepository(String remoteName, String remoteUrl, String branch,
                                             GitAuthenticationConfigurator authConfigurator, File localFolder,
                                             String bigFileThreshold, Integer compression,
                                             Boolean fileMode) throws GitAPIException, IOException {
         CloneCommand command = Git.cloneRepository();
-        command.setURI(remoteRepoUrl);
+        command.setRemote(remoteName);
+        command.setURI(remoteUrl);
         command.setDirectory(localFolder);
 
         if (StringUtils.isNotEmpty(branch)) {
@@ -127,18 +127,25 @@ public abstract class GitUtils {
      * Execute a Git pull.
      *
      * @param git              the Git instance used to handle the repository
-     * @param authConfigurator the {@link GitAuthenticationConfigurator} class used to configure the authentication
-     *                         with the remote
-     *                         repository
-     * @param branch           the branch from the remote repo to pull
+     * @param remoteName       the name of the remote where to pull from
+     * @param remoteUrl        the URL of the remote (remote will be set to the URL)
+     * @param branch           the branch to pull
      * @param mergeStrategy    the merge strategy to use
+     * @param authConfigurator the {@link GitAuthenticationConfigurator} class used to configure the authentication
+     *                         with the remote repository
      * @return the result of the pull
      * @throws GitAPIException if a Git related error occurs
+     * @throws URISyntaxException if the remote URL is invalid
      */
-    public static PullResult pull(Git git, String branch, MergeStrategy mergeStrategy,
-                                  GitAuthenticationConfigurator authConfigurator) throws GitAPIException {
+    public static PullResult pull(Git git, String remoteName, String remoteUrl, String branch,
+                                  MergeStrategy mergeStrategy, GitAuthenticationConfigurator authConfigurator)
+            throws GitAPIException, URISyntaxException {
+        addRemote(git, remoteName, remoteUrl);
+
         PullCommand command = git.pull();
+        command.setRemote(remoteName);
         command.setRemoteBranchName(branch);
+
         if (mergeStrategy != null) {
             command.setStrategy(mergeStrategy);
         }
@@ -155,7 +162,7 @@ public abstract class GitUtils {
      *
      * @param git              the Git instance used to handle the repository
      * @param remote           remote name or URL
-     * @param branch     the remote branch being pushed to
+     * @param branch           the remote branch being pushed to
      * @param authConfigurator the {@link GitAuthenticationConfigurator} class used to configure the authentication
      *                         with the remote
      *                         repository
@@ -194,6 +201,34 @@ public abstract class GitUtils {
      */
     public static void discardAllChanges(Git git) throws GitAPIException {
         git.reset().setMode(HARD).setRef(HEAD).call();
+    }
+
+    /**
+     * Adds a remote if it doesn't exist. If the remote exists but the URL is different, updates the URL
+     *
+     * @param git the Git repo
+     * @param remoteName the name oif the remote
+     * @param remoteUrl the URL of the remote
+     *
+     * @throws GitAPIException if a Git error occurs
+     * @throws URISyntaxException if the remote URL is an invalid Git URL
+     */
+    private static void addRemote(Git git, String remoteName, String remoteUrl) throws GitAPIException,
+                                                                                       URISyntaxException {
+        String currentUrl = git.getRepository().getConfig().getString("remote", remoteName, "url");
+        if (StringUtils.isNotEmpty(currentUrl)) {
+            if (!currentUrl.equals(remoteUrl)) {
+                RemoteSetUrlCommand remoteSetUrl = git.remoteSetUrl();
+                remoteSetUrl.setName(remoteName);
+                remoteSetUrl.setUri(new URIish(remoteUrl));
+                remoteSetUrl.call();
+            }
+        } else {
+            RemoteAddCommand remoteAdd = git.remoteAdd();
+            remoteAdd.setName(remoteName);
+            remoteAdd.setUri(new URIish(remoteUrl));
+            remoteAdd.call();
+        }
     }
 
 }

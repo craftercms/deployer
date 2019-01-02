@@ -28,7 +28,7 @@
 		<!-- Version Numbers -->
 		<commons.configuration.version>2.1</commons.configuration.version>
 		<commons.csv.version>1.5</commons.csv.version>
-		<jgit.version>4.11.0.201803080745-r</jgit.version>
+		<jgit.version>5.2.0.201812061821-r</jgit.version>
 		<javax.mail.version>1.4.7</javax.mail.version>
 		<handlebars.version>4.0.6</handlebars.version>
 		<mockito.version>1.10.19</mockito.version>

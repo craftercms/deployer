@@ -77,7 +77,8 @@ public class TargetController {
 
     public static final String REPLACE_PARAM_NAME = "replace";
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
-    public static final String TEMPLATE_SEARCH_PARAM_NAME = "use_crafter_search";
+    public static final String TEMPLATE_SEARCH_PARAM_NAME = "search_engine";
+    public static final String TEMPLATE_SEARCH_PARAM_VALUE = "CrafterSearch";
 
     protected TargetService targetService;
     protected DeploymentService deploymentService;
@@ -124,7 +125,7 @@ public class TargetController {
                     templateName = Objects.toString(param.getValue(), "");
                     break;
                 case TEMPLATE_SEARCH_PARAM_NAME:
-                    crafterSearchEnabled = BooleanUtils.toBoolean(param.getValue());
+                    crafterSearchEnabled = TEMPLATE_SEARCH_PARAM_VALUE.equals(param.getValue());
                     break;
                 default:
                     templateParams.put(param.getKey(), param.getValue());
@@ -172,7 +173,7 @@ public class TargetController {
                     templateName = Objects.toString(param.getValue(), "");
                     break;
                 case TEMPLATE_SEARCH_PARAM_NAME:
-                    crafterSearchEnabled = BooleanUtils.toBoolean(param.getValue());
+                    crafterSearchEnabled = TEMPLATE_SEARCH_PARAM_VALUE.equals(param.getValue());
                     break;
                 default:
                     templateParams.put(param.getKey(), param.getValue());

@@ -180,13 +180,6 @@
 			<version>${box.sdk.version}</version>
 		</dependency>
 
-		<!-- Jackson -->
-		<dependency>
-			<groupId>com.fasterxml.jackson.dataformat</groupId>
-			<artifactId>jackson-dataformat-xml</artifactId>
-			<version>${jackson.version}</version>
-		</dependency>
-
 		<!-- Test -->
 		<dependency>
 			<groupId>org.mockito</groupId>

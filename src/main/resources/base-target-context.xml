@@ -255,7 +255,7 @@
 
     <bean id="tika" class="org.apache.tika.Tika"/>
 
-    <bean id="objectMapper" class="com.fasterxml.jackson.dataformat.xml.XmlMapper"/>
+    <bean id="objectMapper" class="org.craftercms.commons.elasticsearch.jackson.CrafterXmlMapper"/>
 
     <bean id="elasticSearchAdminService"
           class="org.craftercms.commons.elasticsearch.impl.ElasticSearchAdminServiceImpl">

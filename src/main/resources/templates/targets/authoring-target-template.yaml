@@ -8,4 +8,5 @@ target:
     pipeline:
       - processorName: gitDiffProcessor
       - processorName: elasticSearchIndexingProcessor
+        indexIdFormat: '%s-authoring'
       - processorName: fileOutputProcessor

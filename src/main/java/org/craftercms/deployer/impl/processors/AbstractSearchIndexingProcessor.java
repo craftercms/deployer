@@ -239,6 +239,8 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             }
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);
+        } finally {
+            contentStoreService.destroyContext(context);
         }
 
         return null;

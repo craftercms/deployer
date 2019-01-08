@@ -35,6 +35,8 @@ import org.springframework.scheduling.TaskScheduler;
  */
 public interface Target {
 
+    String AUTHORING_ENV = "authoring";
+
     /**
      * Returns the ID of the target.
      */
@@ -114,6 +116,12 @@ public interface Target {
     Collection<Deployment> getAllDeployments();
 
     /**
+     * Indicates if the target is for authoring environment.
+     */
+    @JsonIgnore
+    boolean isAuthoring();
+
+    /**
      * Performs a cleanup of the local repository.
      */
     void cleanup();
@@ -127,12 +135,12 @@ public interface Target {
      * Creates all search indices needed for the target
      * @throws TargetServiceException if there is any exception creating the indices
      */
-    void createIndices() throws TargetServiceException;
+    void createIndex() throws TargetServiceException;
 
     /**
      * Deletes all search indices used for the target
      * @throws TargetServiceException
      */
-    void deleteIndices() throws TargetServiceException;
+    void deleteIndex() throws TargetServiceException;
 
 }

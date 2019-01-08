@@ -181,6 +181,11 @@ public class TargetImpl implements Target {
         return deployments;
     }
 
+    @Override
+    public boolean isAuthoring() {
+        return AUTHORING_ENV.equalsIgnoreCase(env);
+    }
+
     /**
      * {@inheritDoc}
      */
@@ -223,12 +228,12 @@ public class TargetImpl implements Target {
      * {@inheritDoc}
      */
     @Override
-    public void createIndices() throws TargetServiceException {
+    public void createIndex() throws TargetServiceException {
         ElasticSearchAdminService elasticSearchService = applicationContext.getBean(ElasticSearchAdminService.class);
         AdminService adminService = applicationContext.getBean(AdminService.class);
 
         try {
-            elasticSearchService.createIndex(siteName, !crafterSearchEnabled);
+            elasticSearchService.createIndex(siteName, isAuthoring());
         } catch (ElasticSearchException e) {
             throw new TargetServiceException("Error creating index for target " + getId(), e);
         }
@@ -245,12 +250,12 @@ public class TargetImpl implements Target {
      * {@inheritDoc}
      */
     @Override
-    public void deleteIndices() throws TargetServiceException {
+    public void deleteIndex() throws TargetServiceException {
         ElasticSearchAdminService elasticSearchService = applicationContext.getBean(ElasticSearchAdminService.class);
         AdminService adminService = applicationContext.getBean(AdminService.class);
 
         try {
-            elasticSearchService.deleteIndex(siteName, !crafterSearchEnabled);
+            elasticSearchService.deleteIndex(siteName, isAuthoring());
         } catch (ElasticSearchException e) {
             throw new TargetServiceException("Error deleting index for target " + getId(), e);
         }

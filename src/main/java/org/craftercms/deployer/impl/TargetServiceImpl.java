@@ -217,7 +217,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         Target target = getTarget(env, siteName);
         String id = target.getId();
 
-        target.deleteIndices();
+        target.deleteIndex();
 
         target.close();
 
@@ -333,7 +333,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 context, taskExecutor, crafterSearchEnabled);
 
             if(createIndex) {
-                target.createIndices();
+                target.createIndex();
             }
 
             scheduleDeployment(target);

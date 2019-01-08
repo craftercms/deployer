@@ -34,10 +34,14 @@ import org.craftercms.commons.elasticsearch.ElasticSearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.search.service.AdminService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.beans.factory.support.DefaultListableBeanFactory;
+import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
+import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.scheduling.TaskScheduler;
@@ -64,6 +68,15 @@ public class TargetServiceImplTest {
     public void setUp() throws Exception {
         targetsFolder = createTargetsFolder();
 
+        DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+        factory.registerSingleton("elasticSearchAdminService", mock(ElasticSearchAdminService.class));
+        factory.registerSingleton("adminService", mock(AdminService.class));
+
+        GenericApplicationContext context = new GenericApplicationContext(factory);
+        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
+        reader.loadBeanDefinitions(new ClassPathResource("test-application-context.xml"));
+        context.refresh();
+
         targetService = new TargetServiceImpl(
             targetsFolder,
             new ClassPathResource("test-base-target.yaml"),
@@ -72,12 +85,11 @@ public class TargetServiceImplTest {
             new ClassPathResource("test-base-target-context-override.xml"),
             "test",
             createHandlebars(),
-            new ClassPathXmlApplicationContext("test-application-context.xml"),
+            context,
             createDeploymentPipelineFactory(),
             createTaskScheduler(),
             createTaskExecutor(),
-            createProcessedCommitsStore(),
-            createElasticSearchAdminService());
+            createProcessedCommitsStore());
     }
 
     @After
@@ -191,7 +203,7 @@ public class TargetServiceImplTest {
         String randomParam = RandomStringUtils.randomAlphanumeric(8);
         Map<String, Object> params = Collections.singletonMap("random_param", randomParam);
 
-        Target target = targetService.createTarget(env, siteName, true, "test", params);
+        Target target = targetService.createTarget(env, siteName, true, "test", true, params);
 
         assertNotNull(target);
         assertEquals(env, target.getConfiguration().getString(DeploymentConstants.TARGET_ENV_CONFIG_KEY));

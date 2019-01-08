@@ -144,7 +144,8 @@
 
     <!-- Search -->
 
-    <bean id="includeDescriptorsProcessor" class="org.craftercms.core.processors.impl.PageAwareIncludeDescriptorsProcessor">
+    <bean id="includeDescriptorsProcessor"
+          class="org.craftercms.commons.core.processors.impl.PageAwareIncludeDescriptorsProcessor">
         <property name="includeElementXPathQuery" value="${target.search.indexing.xml.flattening.includeElementXPathQuery}"/>
         <property name="removeIncludeElement" value="${target.search.indexing.xml.flattening.removeIncludeTags}"/>
         <property name="disabledIncludeNodeXPathQuery" value="${target.search.indexing.xml.flattening.disabledIncludeNodeXPathQuery}"/>

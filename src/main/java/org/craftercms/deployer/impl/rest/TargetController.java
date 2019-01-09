@@ -66,6 +66,8 @@ public class TargetController {
     public static final String GET_TARGET_URL = "/get/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String GET_ALL_TARGETS_URL = "/get-all";
     public static final String DELETE_TARGET_URL = "/delete/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String DELETE_IF_EXIST_TARGET_URL =
+        "/delete-if-exists/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String DEPLOY_TARGET_URL = "/deploy/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String DEPLOY_ALL_TARGETS_URL = "/deploy-all";
     public static final String GET_PENDING_DEPLOYMENTS_URL = "/deployments/get-pending/{" + ENV_PATH_VAR_NAME + "}/" +
@@ -254,6 +256,29 @@ public class TargetController {
     public ResponseEntity<Void> deleteTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
                                              @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
         targetService.deleteTarget(env, siteName);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    /**
+     * Deletes the {@link Target} with the specified environment and site name, does nothing if the target is not found.
+     *
+     * @param env       the target's environment
+     * @param siteName  the target's site name
+     *
+     * @return the response entity with a 204 NO CONTENT status
+     *
+     * @throws DeployerException if an error occurred
+     */
+    @RequestMapping(value = DELETE_IF_EXIST_TARGET_URL, method = RequestMethod.POST)
+    public ResponseEntity<Void> deleteTargetIfExists(@PathVariable(ENV_PATH_VAR_NAME) String env,
+                                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
+
+        try {
+            targetService.deleteTarget(env, siteName);
+        } catch (TargetNotFoundException e) {
+            // do nothing
+        }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

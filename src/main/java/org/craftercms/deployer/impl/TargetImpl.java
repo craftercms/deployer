@@ -232,15 +232,16 @@ public class TargetImpl implements Target {
         ElasticSearchAdminService elasticSearchService = applicationContext.getBean(ElasticSearchAdminService.class);
         AdminService adminService = applicationContext.getBean(AdminService.class);
 
-        try {
-            elasticSearchService.createIndex(siteName, isAuthoring());
-        } catch (ElasticSearchException e) {
-            throw new TargetServiceException("Error creating index for target " + getId(), e);
-        }
         if(crafterSearchEnabled) {
             try {
                 adminService.createIndex(siteName);
             } catch (SearchException e) {
+                throw new TargetServiceException("Error creating index for target " + getId(), e);
+            }
+        } else {
+            try {
+                elasticSearchService.createIndex(siteName, isAuthoring());
+            } catch (ElasticSearchException e) {
                 throw new TargetServiceException("Error creating index for target " + getId(), e);
             }
         }
@@ -254,16 +255,16 @@ public class TargetImpl implements Target {
         ElasticSearchAdminService elasticSearchService = applicationContext.getBean(ElasticSearchAdminService.class);
         AdminService adminService = applicationContext.getBean(AdminService.class);
 
-        try {
-            elasticSearchService.deleteIndex(siteName, isAuthoring());
-        } catch (ElasticSearchException e) {
-            throw new TargetServiceException("Error deleting index for target " + getId(), e);
-        }
-
         if(crafterSearchEnabled) {
             try {
                 adminService.deleteIndex(siteName, AdminService.IndexDeleteMode.ALL_DATA);
             } catch (SearchException e) {
+                throw new TargetServiceException("Error deleting index for target " + getId(), e);
+            }
+        } else {
+            try {
+                elasticSearchService.deleteIndex(siteName, isAuthoring());
+            } catch (ElasticSearchException e) {
                 throw new TargetServiceException("Error deleting index for target " + getId(), e);
             }
         }

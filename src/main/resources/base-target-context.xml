@@ -261,8 +261,8 @@
     <bean id="elasticSearchAdminService"
           class="org.craftercms.commons.elasticsearch.impl.ElasticSearchAdminServiceImpl">
         <property name="elasticSearchClient" ref="elasticSearch"/>
-        <property name="authoringIndexSettings" value="classpath:crafter/elasticsearch/default-index-settings.json"/>
-        <property name="previewIndexSettings" value="classpath:crafter/elasticsearch/default-index-settings.json"/>
+        <property name="authoringIndexSettings" value="${target.search.elasticSearch.settings.authoring}"/>
+        <property name="previewIndexSettings" value="${${target.search.elasticSearch.settings.preview}}"/>
     </bean>
 
     <bean id="elasticSearchDocumentBuilder"

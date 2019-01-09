@@ -17,6 +17,9 @@ target:
     tika:
       limit: 10000
     elasticSearch:
+      settings:
+        authoring: 'classpath:crafter/elasticsearch/default-index-settings.json'
+        preview: 'classpath:crafter/elasticsearch/default-index-settings.json'
       urls:
         - http://localhost:9201
     useSolr: false

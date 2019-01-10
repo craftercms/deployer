@@ -73,7 +73,7 @@ public class SingletonContextFactory implements ObjectFactory<Context> {
     public Context getObject() throws BeansException {
         if (context == null) {
             try {
-                context = contentStoreService.createContext(targetId, FileSystemContentStoreAdapter.STORE_TYPE,
+                context = contentStoreService.getContext(targetId, FileSystemContentStoreAdapter.STORE_TYPE,
                     localRepoUrl, xmlMergingEnabled, false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
 
                 logger.debug("Content store context created: {}", context);

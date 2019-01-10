@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="UTF-8"?>
+<!--
+  ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
+  ~
+  ~ This program is free software: you can redistribute it and/or modify
+  ~ it under the terms of the GNU General Public License as published by
+  ~ the Free Software Foundation, either version 3 of the License, or
+  ~ (at your option) any later version.
+  ~
+  ~ This program is distributed in the hope that it will be useful,
+  ~ but WITHOUT ANY WARRANTY; without even the implied warranty of
+  ~ MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+  ~ GNU General Public License for more details.
+  ~
+  ~ You should have received a copy of the GNU General Public License
+  ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
+  -->
+
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
@@ -28,13 +45,13 @@
 		<!-- Version Numbers -->
 		<commons.configuration.version>2.1</commons.configuration.version>
 		<commons.csv.version>1.5</commons.csv.version>
-		<jgit.version>4.11.0.201803080745-r</jgit.version>
+		<jgit.version>5.2.0.201812061821-r</jgit.version>
 		<javax.mail.version>1.4.7</javax.mail.version>
 		<handlebars.version>4.0.6</handlebars.version>
 		<mockito.version>1.10.19</mockito.version>
 		<java.version>1.8</java.version>
 		<!-- Override property setup by Spring Boot Parent -->
-		<jackson.version>2.9.7</jackson.version>
+		<jackson.version>2.9.8</jackson.version>
 		<aws.version>1.11.435</aws.version>
 		<box.sdk.version>2.23.0</box.sdk.version>
 		<elasticsearch.version>6.5.3</elasticsearch.version>

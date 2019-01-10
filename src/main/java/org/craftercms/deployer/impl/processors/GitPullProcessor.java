@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2018 Crafter Software Corporation. All rights reserved.
+ * Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -18,8 +18,11 @@ package org.craftercms.deployer.impl.processors;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.URISyntaxException;
 
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -29,9 +32,12 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
  * Processor that clones/pulls a remote Git repository into a local path in the filesystem. A processor instance
@@ -39,6 +45,7 @@ import org.slf4j.LoggerFactory;
  *
  * <ul>
  *     <li><strong>remoteRepo.url:</strong> The URL of the remote Git repo to pull.</li>
+ *     <li><strong>remoteRepo.name:</strong> The name to use for the remote repo when pulling from it (origin by default).</li>
  *     <li><strong>remoteRepo.branch:</strong> The branch of the remote Git repo to pull.</li>
  *     <li><strong>remoteRepo.username:</strong> The username for authentication with the remote Git repo.
  *     Not needed when SSH with RSA key pair authentication is used.</li>
@@ -54,7 +61,18 @@ import org.slf4j.LoggerFactory;
  */
 public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
+    public static final String REMOTE_REPO_NAME_CONFIG_KEY = "remoteRepo.name";
+
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
+
+    protected String remoteRepoName;
+
+    @Override
+    protected void doInit(Configuration config) throws ConfigurationException {
+        super.doInit(config);
+
+        remoteRepoName = getStringProperty(config, REMOTE_REPO_NAME_CONFIG_KEY, Constants.DEFAULT_REMOTE_NAME);
+    }
 
     @Override
     protected boolean failDeploymentOnProcessorFailure() {
@@ -81,8 +99,8 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
             GitUtils.discardAllChanges(git);
 
-            PullResult pullResult = GitUtils.pull(git, remoteRepoBranch, MergeStrategy.THEIRS,
-                                                  authenticationConfigurator);
+            PullResult pullResult = GitUtils.pull(git, remoteRepoName, remoteRepoUrl, remoteRepoBranch,
+                                                  MergeStrategy.THEIRS, authenticationConfigurator);
             String details;
 
             if (pullResult != null && pullResult.getMergeResult() != null) {
@@ -94,7 +112,7 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
             logger.info(details);
 
             execution.setStatusDetails(details);
-        } catch (GitAPIException e) {
+        } catch (GitAPIException | URISyntaxException e) {
             throw new DeployerException("Execution of git pull failed:", e);
         }
     }
@@ -143,8 +161,9 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
             logger.info("Cloning Git remote repository {} into {}", remoteRepoUrl, localRepoFolder);
 
-            return GitUtils.cloneRemoteRepository(remoteRepoUrl, remoteRepoBranch, authenticationConfigurator,
-                                                  localRepoFolder, null, null, null);
+            return GitUtils.cloneRemoteRepository(remoteRepoName, remoteRepoUrl, remoteRepoBranch,
+                                                  authenticationConfigurator, localRepoFolder, null,
+                                                  null, null);
         } catch (IOException | GitAPIException | IllegalArgumentException e) {
             // Force delete so there's no invalid remains
             FileUtils.deleteQuietly(localRepoFolder);

@@ -35,6 +35,7 @@ import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.utils.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -61,9 +62,12 @@ public class TargetController {
 
     public static final String BASE_URL = "/api/1/target";
     public static final String CREATE_TARGET_URL = "/create";
+    public static final String UPSERT_URL = "/upsert";
     public static final String GET_TARGET_URL = "/get/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String GET_ALL_TARGETS_URL = "/get-all";
     public static final String DELETE_TARGET_URL = "/delete/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String DELETE_IF_EXIST_TARGET_URL =
+        "/delete-if-exists/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String DEPLOY_TARGET_URL = "/deploy/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String DEPLOY_ALL_TARGETS_URL = "/deploy-all";
     public static final String GET_PENDING_DEPLOYMENTS_URL = "/deployments/get-pending/{" + ENV_PATH_VAR_NAME + "}/" +
@@ -75,6 +79,8 @@ public class TargetController {
 
     public static final String REPLACE_PARAM_NAME = "replace";
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
+    public static final String TEMPLATE_SEARCH_PARAM_NAME = "search_engine";
+    public static final String TEMPLATE_SEARCH_PARAM_VALUE = "CrafterSearch";
 
     protected TargetService targetService;
     protected DeploymentService deploymentService;
@@ -103,6 +109,7 @@ public class TargetController {
         String siteName = "";
         boolean replace = false;
         String templateName = "";
+        boolean crafterSearchEnabled = false;
         Map<String, Object> templateParams = new HashMap<>();
 
         for (Map.Entry<String, Object> param : params.entrySet()) {
@@ -118,6 +125,9 @@ public class TargetController {
                     break;
                 case TEMPLATE_NAME_PARAM_NAME:
                     templateName = Objects.toString(param.getValue(), "");
+                    break;
+                case TEMPLATE_SEARCH_PARAM_NAME:
+                    crafterSearchEnabled = TEMPLATE_SEARCH_PARAM_VALUE.equals(param.getValue());
                     break;
                 default:
                     templateParams.put(param.getKey(), param.getValue());
@@ -137,11 +147,63 @@ public class TargetController {
             throw new ValidationException(validationResult);
         }
 
-        targetService.createTarget(env, siteName, replace, templateName, templateParams);
+        targetService.createTarget(env, siteName, replace, templateName, crafterSearchEnabled, templateParams);
 
         return new ResponseEntity<>(Result.OK,
                                     RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
                                     HttpStatus.CREATED);
+    }
+
+    @RequestMapping(value = UPSERT_URL, method = RequestMethod.POST)
+    public ResponseEntity<Result> createTargetIfNotExists(@RequestBody Map<String, Object> params) throws DeployerException,
+        ValidationException {
+        String env = "";
+        String siteName = "";
+        String templateName = "";
+        boolean crafterSearchEnabled = false;
+        Map<String, Object> templateParams = new HashMap<>();
+
+        for (Map.Entry<String, Object> param : params.entrySet()) {
+            switch (param.getKey()) {
+                case ENV_PATH_VAR_NAME:
+                    env = Objects.toString(param.getValue(), "");
+                    break;
+                case SITE_NAME_PATH_VAR_NAME:
+                    siteName = Objects.toString(param.getValue(), "");
+                    break;
+                case TEMPLATE_NAME_PARAM_NAME:
+                    templateName = Objects.toString(param.getValue(), "");
+                    break;
+                case TEMPLATE_SEARCH_PARAM_NAME:
+                    crafterSearchEnabled = TEMPLATE_SEARCH_PARAM_VALUE.equals(param.getValue());
+                    break;
+                default:
+                    templateParams.put(param.getKey(), param.getValue());
+                    break;
+            }
+        }
+
+        ValidationResult validationResult = new ValidationResult();
+
+        if (StringUtils.isEmpty(env)) {
+            validationResult.addError(ENV_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
+        }
+        if (StringUtils.isEmpty(siteName)) {
+            validationResult.addError(SITE_NAME_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
+        }
+        if (validationResult.hasErrors()) {
+            throw new ValidationException(validationResult);
+        }
+
+        try {
+            targetService.getTarget(env, siteName);
+        } catch (TargetNotFoundException e) {
+            targetService.createTarget(env, siteName, false, templateName, crafterSearchEnabled, templateParams);
+        }
+
+        return new ResponseEntity<>(Result.OK,
+            RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
+            HttpStatus.CREATED);
     }
 
     /**
@@ -194,6 +256,29 @@ public class TargetController {
     public ResponseEntity<Void> deleteTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
                                              @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
         targetService.deleteTarget(env, siteName);
+
+        return new ResponseEntity<>(HttpStatus.NO_CONTENT);
+    }
+
+    /**
+     * Deletes the {@link Target} with the specified environment and site name, does nothing if the target is not found.
+     *
+     * @param env       the target's environment
+     * @param siteName  the target's site name
+     *
+     * @return the response entity with a 204 NO CONTENT status
+     *
+     * @throws DeployerException if an error occurred
+     */
+    @RequestMapping(value = DELETE_IF_EXIST_TARGET_URL, method = RequestMethod.POST)
+    public ResponseEntity<Void> deleteTargetIfExists(@PathVariable(ENV_PATH_VAR_NAME) String env,
+                                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
+
+        try {
+            targetService.deleteTarget(env, siteName);
+        } catch (TargetNotFoundException e) {
+            // do nothing
+        }
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }

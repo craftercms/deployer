@@ -82,6 +82,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public static final String TARGET_ENV_MODEL_KEY = "env";
     public static final String TARGET_SITE_NAME_MODEL_KEY = "site_name";
     public static final String TARGET_ID_MODEL_KEY = "target_id";
+    public static final String TARGET_CRAFTER_SEARCH_MODEL_KEY = "use_crafter_search";
 
     protected File targetConfigFolder;
     protected Resource baseTargetYamlConfigResource;
@@ -109,7 +110,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
         @Autowired TaskScheduler taskScheduler,
         @Autowired ExecutorService taskExecutor,
-        @Autowired ProcessedCommitsStore processedCommitsStore) throws IOException {
+        @Autowired ProcessedCommitsStore processedCommitsStore) {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
@@ -169,7 +170,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             closeTargetsWithNoConfigFile(configFiles);
 
             for (File file : configFiles) {
-                Target target = resolveTargetFromConfigFile(file);
+                Target target = resolveTargetFromConfigFile(file, false);
                 targets.add(target);
             }
         }
@@ -196,7 +197,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
     @Override
     public synchronized Target createTarget(String env, String siteName, boolean replace, String templateName,
-                                            Map<String, Object> templateParams) throws TargetAlreadyExistsException,
+                                            boolean useCrafterSearch, Map<String, Object> templateParams)
+        throws TargetAlreadyExistsException,
         TargetServiceException {
         String id = TargetImpl.getId(env, siteName);
         File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
@@ -204,16 +206,18 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         if (!replace && configFile.exists()) {
             throw new TargetAlreadyExistsException(id, env, siteName);
         } else {
-            createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
+            createConfigFromTemplate(env, siteName, id, templateName, useCrafterSearch, templateParams, configFile);
         }
 
-        return resolveTargetFromConfigFile(configFile);
+        return resolveTargetFromConfigFile(configFile, true);
     }
 
     @Override
     public synchronized void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException {
         Target target = getTarget(env, siteName);
         String id = target.getId();
+
+        target.deleteIndex();
 
         target.close();
 
@@ -275,7 +279,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
     }
 
-    protected Target resolveTargetFromConfigFile(File configFile) throws TargetServiceException {
+    protected Target resolveTargetFromConfigFile(File configFile, boolean createIndex) throws TargetServiceException {
         String baseName = FilenameUtils.getBaseName(configFile.getName());
         File contextFile = new File(targetConfigFolder, String.format(APPLICATION_CONTEXT_FILENAME_FORMAT, baseName));
         Target target = findLoadedTargetByConfigFile(configFile);
@@ -303,28 +307,34 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         if (target == null) {
             logger.info("Loading target for configuration file {}", configFile);
 
-            target = createTarget(configFile, contextFile);
+            target = createTarget(configFile, contextFile, createIndex);
             loadedTargets.add(target);
         }
 
         return target;
     }
 
-    protected Target createTarget(File configFile, File contextFile) throws TargetServiceException {
+    protected Target createTarget(File configFile, File contextFile, boolean createIndex) throws TargetServiceException {
         try {
             HierarchicalConfiguration config = loadConfiguration(configFile);
             String env = getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
             String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
             String targetId = TargetImpl.getId(env, siteName);
             String localRepoPath = getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
+            boolean crafterSearchEnabled = getBooleanProperty(config, TARGET_CRAFTER_SEARCH_CONFIG_KEY, false);
 
             config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
             ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
             DeploymentPipeline deploymentPipeline = deploymentPipelineFactory.getPipeline(config, context,
                                                                                           TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
+
             Target target = new TargetImpl(env, siteName, localRepoPath, deploymentPipeline, configFile, config,
-                context, taskExecutor);
+                context, taskExecutor, crafterSearchEnabled);
+
+            if(createIndex) {
+                target.createIndex();
+            }
 
             scheduleDeployment(target);
 
@@ -420,7 +430,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     protected void createConfigFromTemplate(String env, String siteName, String targetId, String templateName,
-                                            Map<String, Object> templateParameters, File configFile) throws TargetServiceException {
+                                            boolean useCrafterSearch, Map<String, Object> templateParameters,
+                                            File configFile) throws TargetServiceException {
         if (StringUtils.isEmpty(templateName)) {
             templateName = defaultTargetConfigTemplateName;
         }
@@ -429,6 +440,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         templateModel.put(TARGET_ENV_MODEL_KEY, env);
         templateModel.put(TARGET_SITE_NAME_MODEL_KEY, siteName);
         templateModel.put(TARGET_ID_MODEL_KEY, targetId);
+        templateModel.put(TARGET_CRAFTER_SEARCH_MODEL_KEY, useCrafterSearch);
 
         if (MapUtils.isNotEmpty(templateParameters)) {
             templateModel.putAll(templateParameters);

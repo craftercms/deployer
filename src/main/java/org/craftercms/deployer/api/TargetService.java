@@ -45,7 +45,7 @@ public interface TargetService {
      * @throws TargetAlreadyExistsException if the target for the specified env and site name already exists
      * @throws TargetServiceException if a general error occurs
      */
-    Target createTarget(String env, String siteName, boolean replace, String templateName,
+    Target createTarget(String env, String siteName, boolean replace, String templateName, boolean crafterSearchEnabled,
                         Map<String, Object> templateParams) throws TargetAlreadyExistsException, TargetServiceException;
 
     /**

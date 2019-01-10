@@ -25,6 +25,7 @@ import java.util.Collection;
 import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
+import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
@@ -33,6 +34,8 @@ import org.springframework.scheduling.TaskScheduler;
  * @author avasquez
  */
 public interface Target {
+
+    String AUTHORING_ENV = "authoring";
 
     /**
      * Returns the ID of the target.
@@ -57,6 +60,12 @@ public interface Target {
      */
     @JsonProperty("load_date")
     ZonedDateTime getLoadDate();
+
+    /**
+     * Indicates if Crafter Search should be used instead of ElasticSearch.
+     */
+    @JsonProperty("crafter_search_enabled")
+    boolean isCrafterSearchEnabled();
 
     /**
      * Returns the YAML configuration file of the target.
@@ -107,6 +116,12 @@ public interface Target {
     Collection<Deployment> getAllDeployments();
 
     /**
+     * Indicates if the target is for authoring environment.
+     */
+    @JsonIgnore
+    boolean isAuthoring();
+
+    /**
      * Performs a cleanup of the local repository.
      */
     void cleanup();
@@ -115,5 +130,17 @@ public interface Target {
      * Closes the target and releases any open resources.
      */
     void close();
+
+    /**
+     * Creates all search indices needed for the target
+     * @throws TargetServiceException if there is any exception creating the indices
+     */
+    void createIndex() throws TargetServiceException;
+
+    /**
+     * Deletes all search indices used for the target
+     * @throws TargetServiceException
+     */
+    void deleteIndex() throws TargetServiceException;
 
 }

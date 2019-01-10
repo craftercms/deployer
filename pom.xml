@@ -54,6 +54,7 @@
 		<jackson.version>2.9.8</jackson.version>
 		<aws.version>1.11.435</aws.version>
 		<box.sdk.version>2.23.0</box.sdk.version>
+		<elasticsearch.version>6.5.3</elasticsearch.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -87,6 +88,11 @@
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-git</artifactId>
+			<version>${project.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-elasticsearch</artifactId>
 			<version>${project.version}</version>
 		</dependency>
 		<dependency>

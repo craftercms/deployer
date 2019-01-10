@@ -1,0 +1,12 @@
+target:
+  env: {{env}}
+  siteName: {{site_name}}
+  localRepoPath: {{repo_url}}
+  deployment:
+    scheduling:
+       enabled: false
+    pipeline:
+      - processorName: gitDiffProcessor
+      - processorName: elasticSearchIndexingProcessor
+        indexIdFormat: '%s-authoring'
+      - processorName: fileOutputProcessor

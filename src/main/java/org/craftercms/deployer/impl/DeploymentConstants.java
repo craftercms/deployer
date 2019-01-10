@@ -21,10 +21,7 @@ package org.craftercms.deployer.impl;
  *
  * @author avasquez
  */
-public class DeploymentConstants {
-
-    private DeploymentConstants() {
-    }
+public abstract class DeploymentConstants {
 
     // Target-specific Configuration Keys
 
@@ -35,6 +32,7 @@ public class DeploymentConstants {
     public static final String TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY = "target.deployment.scheduling.enabled";
     public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
     public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
+    public static final String TARGET_CRAFTER_SEARCH_CONFIG_KEY = "target.crafterSearchEnabled";
 
     // Processor-specific Configuration Keys
 

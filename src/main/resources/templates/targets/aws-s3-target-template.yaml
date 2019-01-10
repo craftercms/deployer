@@ -5,6 +5,7 @@ aws:
 target:
   env: {{env}}
   siteName: {{site_name}}
+  crafterSearchEnabled: {{#if use_crafter_search}}{{use_crafter_search}}{{else}}false{{/if}}
   deployment:
     {{#if disable_deploy_cron}}
     scheduling:
@@ -38,7 +39,7 @@ target:
         textPattern: (/static-assets/[^&quot;&lt;]+)
         replacement: {{aws.distribution.url}}$1
       {{/if}}
-      - processorName: searchIndexingProcessor
+      - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticSearchIndexingProcessor{{/if}}
       - processorName: s3SyncProcessor
         excludeFiles: ['^/config/studio/.*$']
         region: ${aws.region}

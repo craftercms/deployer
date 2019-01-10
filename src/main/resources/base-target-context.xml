@@ -51,9 +51,15 @@
         <property name="processedCommitsStore" ref="processedCommitsStore"/>
     </bean>
 
-    <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor" parent="deploymentProcessor">
+    <bean id="abstractSearchIndexingProcessor" class="org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor"
+          parent="deploymentProcessor">
         <property name="contextFactory" ref="contextFactory"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
+        <property name="xmlFlatteningEnabled" value="${target.search.indexing.xml.flattening.enabled}"/>
+    </bean>
+
+    <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor"
+          parent="abstractSearchIndexingProcessor">
         <property name="searchService" ref="searchService"/>
         <property name="batchIndexers">
             <list>
@@ -62,7 +68,6 @@
                 <ref bean="binaryFileWithMetadataBatchIndexer"/>
             </list>
         </property>
-        <property name="xmlFlatteningEnabled" value="${target.search.indexing.xml.flattening.enabled}"/>
     </bean>
 
     <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor"
@@ -109,6 +114,8 @@
     <!-- Core -->
 
     <bean id="contextFactory" class="org.craftercms.deployer.utils.core.SingletonContextFactory">
+        <property name="targetId"
+                  value="#{T(org.craftercms.deployer.impl.TargetImpl).getId('${target.env}', '${target.siteName}')}"/>
         <property name="localRepoUrl" value="file:${target.localRepoPath}"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlMergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>
@@ -156,7 +163,8 @@
 
     <!-- Search -->
 
-    <bean id="includeDescriptorsProcessor" class="org.craftercms.core.processors.impl.PageAwareIncludeDescriptorsProcessor">
+    <bean id="includeDescriptorsProcessor"
+          class="org.craftercms.commons.core.processors.impl.PageAwareIncludeDescriptorsProcessor">
         <property name="includeElementXPathQuery" value="${target.search.indexing.xml.flattening.includeElementXPathQuery}"/>
         <property name="removeIncludeElement" value="${target.search.indexing.xml.flattening.removeIncludeTags}"/>
         <property name="disabledIncludeNodeXPathQuery" value="${target.search.indexing.xml.flattening.disabledIncludeNodeXPathQuery}"/>
@@ -169,19 +177,29 @@
         <property name="flag" value="${target.search.indexing.xml.flattening.enabled}"/>
         <property name="actualBean" ref="includeDescriptorsProcessor"/>
     </bean>
-    
-    <bean id="xmlFileBatchIndexer" class="org.craftercms.search.batch.impl.XmlFileBatchIndexer">
+
+    <bean id="abstractXmlFileBatchIndexer" abstract="true">
         <property name="includePathPatterns"
                   value="#{environment.getProperty('target.search.indexing.xml.includePatterns', T(java.util.List))}"/>
         <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
     </bean>
 
-    <bean id="binaryFileBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileBatchIndexer">
+    <bean id="xmlFileBatchIndexer" class="org.craftercms.search.batch.impl.XmlFileBatchIndexer"
+          parent="abstractXmlFileBatchIndexer">
+        <property name="searchService" ref="searchService"/>
+    </bean>
+
+    <bean id="abstractBinaryFileBatchIndexer" abstract="true">
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
     </bean>
-    
-    <bean id="binaryFileWithMetadataBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileWithMetadataBatchIndexer">
+
+    <bean id="binaryFileBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileBatchIndexer"
+          parent="abstractBinaryFileBatchIndexer">
+        <property name="searchService" ref="searchService"/>
+    </bean>
+
+    <bean id="abstractBinaryFileWithMetadataBatchIndexer" abstract="true">
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
         <property name="metadataPathPatterns"
@@ -196,9 +214,20 @@
         <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
     </bean>
 
+    <bean id="binaryFileWithMetadataBatchIndexer" parent="abstractBinaryFileWithMetadataBatchIndexer"
+          class="org.craftercms.search.batch.impl.BinaryFileWithMetadataBatchIndexer">
+        <property name="searchService" ref="searchService"/>
+    </bean>
+
     <bean id="searchService" class="org.craftercms.search.service.impl.v2.SolrRestClientSearchService">
         <property name="serverUrl" value="${target.search.serverUrl}"/>
     </bean>
+
+    <bean id="searchAdminService" class="org.craftercms.search.service.impl.v2.RestClientAdminService">
+        <property name="serverUrl" value="${target.search.serverUrl}"/>
+        <property name="restTemplate" ref="restTemplate"/>
+    </bean>
+
     <!-- Mail -->
 
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
@@ -238,5 +267,65 @@
 
     <bean id="delayProcessor" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.DelayProcessor"/>
+
+    <!-- ElasticSearch -->
+    <bean id="elasticSearch" class="org.craftercms.commons.elasticsearch.spring.ElasticSearchClientFactory">
+        <property name="serverUrls" value="${target.search.elasticSearch.urls}"/>
+    </bean>
+
+    <bean id="tika" class="org.apache.tika.Tika"/>
+
+    <bean id="objectMapper" class="org.craftercms.commons.elasticsearch.jackson.CrafterXmlMapper"/>
+
+    <bean id="elasticSearchAdminService"
+          class="org.craftercms.commons.elasticsearch.impl.ElasticSearchAdminServiceImpl">
+        <property name="elasticSearchClient" ref="elasticSearch"/>
+        <property name="authoringIndexSettings" value="${target.search.elasticSearch.settings.authoring}"/>
+        <property name="previewIndexSettings" value="${${target.search.elasticSearch.settings.preview}}"/>
+    </bean>
+
+    <bean id="elasticSearchDocumentBuilder"
+          class="org.craftercms.commons.elasticsearch.impl.ElasticSearchDocumentBuilder">
+        <property name="objectMapper" ref="objectMapper"/>
+    </bean>
+
+    <bean id="tikaDocumentParser" class="org.craftercms.commons.elasticsearch.impl.TikaDocumentParser">
+        <property name="charLimit" value="${target.search.tika.limit}"/>
+        <property name="objectMapper" ref="objectMapper"/>
+        <property name="tika" ref="tika"/>
+    </bean>
+
+    <bean id="elasticSearchService" class="org.craftercms.commons.elasticsearch.impl.ElasticSearchServiceImpl">
+        <property name="client" ref="elasticSearch"/>
+        <property name="documentBuilder" ref="elasticSearchDocumentBuilder"/>
+        <property name="documentParser" ref="tikaDocumentParser"/>
+    </bean>
+
+    <bean id="elasticSearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
+          class="org.craftercms.commons.elasticsearch.batch.ElasticSearchXmlFileBatchIndexer">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+    </bean>
+
+    <bean id="elasticSearchBinaryFileBatchIndexer" parent="abstractBinaryFileBatchIndexer"
+          class="org.craftercms.commons.elasticsearch.batch.ElasticSearchBinaryFileBatchIndexer">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+    </bean>
+
+    <bean id="elasticSearchBinaryFileWithMetadataBatchIndexer" parent="abstractBinaryFileWithMetadataBatchIndexer"
+          class="org.craftercms.commons.elasticsearch.batch.ElasticSearchBinaryFileWithMetadataBatchIndexer">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+    </bean>
+
+    <bean id="elasticSearchIndexingProcessor" parent="abstractSearchIndexingProcessor"
+          class="org.craftercms.deployer.impl.processors.elasticsearch.ElasticSearchIndexingProcessor">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="batchIndexers">
+            <list>
+                <ref bean="elasticSearchXmlFileBatchIndexer"/>
+                <ref bean="elasticSearchBinaryFileBatchIndexer"/>
+                <ref bean="elasticSearchBinaryFileWithMetadataBatchIndexer"/>
+            </list>
+        </property>
+    </bean>
 
 </beans>

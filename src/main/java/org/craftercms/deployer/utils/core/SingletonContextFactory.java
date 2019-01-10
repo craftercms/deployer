@@ -42,11 +42,17 @@ public class SingletonContextFactory implements ObjectFactory<Context> {
 
     private static final Logger logger = LoggerFactory.getLogger(SingletonContextFactory.class);
 
+    private String targetId;
     private String localRepoUrl;
     private ContentStoreService contentStoreService;
     private boolean xmlMergingEnabled;
 
     private Context context;
+
+    @Required
+    public void setTargetId(final String targetId) {
+        this.targetId = targetId;
+    }
 
     @Required
     public void setLocalRepoUrl(String localRepoUrl) {
@@ -67,9 +73,8 @@ public class SingletonContextFactory implements ObjectFactory<Context> {
     public Context getObject() throws BeansException {
         if (context == null) {
             try {
-                context = contentStoreService.createContext(FileSystemContentStoreAdapter.STORE_TYPE, null, null,
-                                                            null, localRepoUrl, xmlMergingEnabled, false, 0,
-                                                            Context.DEFAULT_IGNORE_HIDDEN_FILES);
+                context = contentStoreService.createContext(targetId, FileSystemContentStoreAdapter.STORE_TYPE,
+                    localRepoUrl, xmlMergingEnabled, false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
 
                 logger.debug("Content store context created: {}", context);
             } catch (Exception e) {

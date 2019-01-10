@@ -97,6 +97,8 @@
     <!-- Core -->
 
     <bean id="contextFactory" class="org.craftercms.deployer.utils.core.SingletonContextFactory">
+        <property name="targetId"
+                  value="#{T(org.craftercms.deployer.impl.TargetImpl).getId('${target.siteName}', '${target.env}')}"/>
         <property name="localRepoUrl" value="file:${target.localRepoPath}"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlMergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>

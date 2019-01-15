@@ -7,6 +7,6 @@ target:
        enabled: false
     pipeline:
       - processorName: gitDiffProcessor
-      - processorName: elasticSearchIndexingProcessor
+      - processorName: authoringElasticSearchIndexingProcessor
         indexIdFormat: '%s-authoring'
       - processorName: fileOutputProcessor

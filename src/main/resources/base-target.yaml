@@ -15,13 +15,18 @@ target:
       cron: '0 * * * * *'
   search:
     tika:
+      # Limit of words to be parsed from binary files
       limit: 10000
     elasticSearch:
       settings:
+        # JSON file containing the settings for authoring indexes
         authoring: 'classpath:crafter/elasticsearch/default-index-settings.json'
+        # JSON file containing the settings for preview indexes
         preview: 'classpath:crafter/elasticsearch/default-index-settings.json'
+      # List of URLs for ElasticSearch
       urls:
         - http://localhost:9201
+    # Indicates if Solr should be used instead of ElasticSearch
     useSolr: false
     # The base URL of the Crafter Search server
     serverUrl: http://localhost:8080/crafter-search
@@ -70,6 +75,28 @@ target:
         referenceXPaths:
           - //item/key
           - //item/url
+        # The maximum file size in bytes to index
+        maxFileSize: 104857600
+        # Setting specific for authoring indexes
+        authoring:
+          # Same as for delivery but include images and videos
+          supportedMimeTypes:
+            - application/pdf
+            - application/msword
+            - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+            - application/vnd.ms-excel
+            - application/vnd.ms-powerpoint
+            - application/vnd.openxmlformats-officedocument.presentationml.presentation
+            - image/*
+            - video/*
+          # Look into all XML descriptors to index all binary files referenced
+          metadataPathPatterns:
+            - ^/?site/.+\.xml$
+          # Include all fields marked as remote resources (S3, Box, CMIS)
+          referenceXPaths:
+            - //item/key
+            - //item/url
+            - //*[@remote="true"]
   notifications:
     mail:
       server:

@@ -22,7 +22,7 @@
 
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>3.0.19</version><!-- craftercms version flag -->
+	<version>3.0.20-SNAPSHOT</version><!-- craftercms version flag -->
 	<packaging>jar</packaging>
 
 	<name>Crafter Deployer</name>

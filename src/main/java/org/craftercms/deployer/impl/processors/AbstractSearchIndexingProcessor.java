@@ -208,7 +208,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
                 }
             }
 
-            return new ChangeSet(createdFiles, newUpdatedFiles, deletedFiles);
+            ChangeSet filteredChangeSet = new ChangeSet(createdFiles, newUpdatedFiles, deletedFiles);
+            filteredChangeSet.setUpdateDetails(changeSet.getUpdateDetails());
+            filteredChangeSet.setUpdateLog(changeSet.getUpdateLog());
+            return filteredChangeSet;
         } else {
             return changeSet;
         }
@@ -223,6 +226,8 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         List<String> updatedFiles = ListUtils.emptyIfNull(filteredChangeSet.getUpdatedFiles());
         List<String> deletedFiles = ListUtils.emptyIfNull(filteredChangeSet.getDeletedFiles());
         UpdateSet updateSet = new UpdateSet(ListUtils.union(createdFiles, updatedFiles), deletedFiles);
+        updateSet.setUpdateDetails(filteredChangeSet.getUpdateDetails());
+        updateSet.setUpdateLog(filteredChangeSet.getUpdateLog());
         UpdateStatus updateStatus = new UpdateStatus();
 
         execution.setStatusDetails(updateStatus);

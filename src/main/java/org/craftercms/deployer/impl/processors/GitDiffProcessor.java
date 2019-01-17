@@ -18,22 +18,27 @@ package org.craftercms.deployer.impl.processors;
 
 import java.io.File;
 import java.io.IOException;
+import java.time.Instant;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 
-import org.apache.commons.collections.MapUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.search.batch.UpdateDetail;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
+import org.craftercms.deployer.utils.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.Constants;
@@ -64,8 +69,11 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(GitDiffProcessor.class);
 
+    public static final String INCLUDE_GIT_LOG_CONFIG_KEY = "includeGitLog";
+
     protected File localRepoFolder;
     protected ProcessedCommitsStore processedCommitsStore;
+    protected boolean includeGitLog;
 
     /**
      * Sets the local filesystem folder the contains the deployed repository.
@@ -84,7 +92,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    protected void doInit(Configuration config) throws DeployerException {
+    protected void doInit(Configuration config) throws ConfigurationException {
+        this.includeGitLog = ConfigUtils.getBooleanProperty(config, INCLUDE_GIT_LOG_CONFIG_KEY, false);
     }
 
     @Override
@@ -110,9 +119,13 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         try (Git git = openLocalRepository()) {
             ObjectId previousCommitId = processedCommitsStore.load(targetId);
             ObjectId latestCommitId = getLatestCommitId(git);
+
             ChangeSet changeSet = resolveChangeSetFromCommits(git, previousCommitId, latestCommitId);
 
             if (changeSet != null) {
+                if(includeGitLog) {
+                    updateChangeDetails(changeSet, git, previousCommitId, latestCommitId);
+                }
                 execution.setStatusDetails("Changes detected and resolved successfully");
             } else {
                 execution.setStatusDetails("No changes detected");
@@ -121,6 +134,47 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
             processedCommitsStore.store(targetId, latestCommitId);
 
             return changeSet;
+        }
+    }
+
+    protected void updateChangeDetails(ChangeSet changeSet, Git git, ObjectId previousCommitId,
+                                       ObjectId latestCommitId) {
+        Map<String, UpdateDetail> changeDetails = new HashMap<>();
+        Map<String, String> changeLog = new HashMap<>();
+
+        try {
+            LogCommand logCmd = git.log();
+            if(previousCommitId != null && latestCommitId != null) {
+                logCmd.addRange(git.getRepository().parseCommit(previousCommitId),
+                    git.getRepository().parseCommit(latestCommitId));
+            }
+            Iterable<RevCommit> log = logCmd.call();
+            for(RevCommit commit : log) {
+                UpdateDetail detail = new UpdateDetail();
+                detail.setAuthor(commit.getAuthorIdent().getName());
+                detail.setDate(Instant.ofEpochSecond(commit.getCommitTime()));
+                changeDetails.put(commit.getName(), detail);
+
+                if(commit.getParentCount() > 0) {
+                    try(ObjectReader reader = git.getRepository().newObjectReader()) {
+                        RevCommit parent = commit.getParent(0);
+                        AbstractTreeIterator oldTreeParser = getTreeIteratorForCommit(git, reader, parent);
+                        AbstractTreeIterator newTreeParser = getTreeIteratorForCommit(git, reader, commit);
+                        List<DiffEntry> diff =
+                            git.diff().setOldTree(oldTreeParser).setNewTree(newTreeParser).call();
+                        diff.forEach(entry -> {
+                            if(entry.getChangeType() != DiffEntry.ChangeType.DELETE) {
+                                changeLog.putIfAbsent(entry.getNewPath(), commit.getName());
+                            }
+                        });
+                    }
+                }
+            }
+
+            changeSet.setUpdateDetails(changeDetails);
+            changeSet.setUpdateLog(changeLog);
+        } catch (Exception e) {
+            logger.error("Error getting git log for commits {} {}", previousCommitId, latestCommitId, e);
         }
     }
 

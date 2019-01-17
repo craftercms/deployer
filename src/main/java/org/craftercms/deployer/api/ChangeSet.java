@@ -22,15 +22,18 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.craftercms.commons.search.batch.AbstractUpdateDetailProvider;
+import org.craftercms.commons.search.batch.UpdateDetail;
 
 /**
  * The collection of created, updated and deleted files that have been changed in a deployment.
  *
  * @author avasquez
  */
-public class ChangeSet {
+public class ChangeSet extends AbstractUpdateDetailProvider {
 
     protected List<String> createdFiles;
     protected List<String> updatedFiles;

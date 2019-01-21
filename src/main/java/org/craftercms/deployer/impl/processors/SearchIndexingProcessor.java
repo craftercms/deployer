@@ -21,7 +21,7 @@ import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
-import org.craftercms.commons.search.batch.BatchIndexer;
+import org.craftercms.search.batch.BatchIndexer;
 import org.craftercms.search.service.Query;
 import org.craftercms.search.service.SearchService;
 import org.craftercms.search.service.impl.SolrQuery;

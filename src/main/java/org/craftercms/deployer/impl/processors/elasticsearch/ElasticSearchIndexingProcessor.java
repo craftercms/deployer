@@ -19,8 +19,8 @@ package org.craftercms.deployer.impl.processors.elasticsearch;
 
 import java.util.List;
 
-import org.craftercms.commons.elasticsearch.ElasticSearchService;
-import org.craftercms.commons.elasticsearch.exception.ElasticSearchException;
+import org.craftercms.search.elasticsearch.ElasticSearchService;
+import org.craftercms.search.elasticsearch.exception.ElasticSearchException;
 import org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor;
 import org.craftercms.search.exception.SearchException;
 import org.elasticsearch.index.query.BoolQueryBuilder;

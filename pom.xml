@@ -92,8 +92,14 @@
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
-			<artifactId>crafter-commons-elasticsearch</artifactId>
+			<artifactId>crafter-search-elasticsearch</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.slf4j</groupId>
+					<artifactId>slf4j-log4j12</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
@@ -108,7 +114,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
-			<artifactId>crafter-search-client</artifactId>
+			<artifactId>crafter-search-solr-client</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
@@ -119,7 +125,7 @@
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
-			<artifactId>crafter-search-api</artifactId>
+			<artifactId>crafter-search-solr-api</artifactId>
 			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>

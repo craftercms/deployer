@@ -164,7 +164,7 @@
     <!-- Search -->
 
     <bean id="includeDescriptorsProcessor"
-          class="org.craftercms.commons.core.processors.impl.PageAwareIncludeDescriptorsProcessor">
+          class="org.craftercms.core.processors.impl.PageAwareIncludeDescriptorsProcessor">
         <property name="includeElementXPathQuery" value="${target.search.indexing.xml.flattening.includeElementXPathQuery}"/>
         <property name="removeIncludeElement" value="${target.search.indexing.xml.flattening.removeIncludeTags}"/>
         <property name="disabledIncludeNodeXPathQuery" value="${target.search.indexing.xml.flattening.disabledIncludeNodeXPathQuery}"/>
@@ -269,50 +269,50 @@
           class="org.craftercms.deployer.impl.processors.DelayProcessor"/>
 
     <!-- ElasticSearch -->
-    <bean id="elasticSearch" class="org.craftercms.commons.elasticsearch.spring.ElasticSearchClientFactory">
+    <bean id="elasticSearch" class="org.craftercms.search.elasticsearch.spring.ElasticSearchClientFactory">
         <property name="serverUrls" value="${target.search.elasticSearch.urls}"/>
     </bean>
 
     <bean id="tika" class="org.apache.tika.Tika"/>
 
-    <bean id="objectMapper" class="org.craftercms.commons.elasticsearch.jackson.CrafterXmlMapper"/>
+    <bean id="objectMapper" class="org.craftercms.search.elasticsearch.jackson.CrafterXmlMapper"/>
 
     <bean id="elasticSearchAdminService"
-          class="org.craftercms.commons.elasticsearch.impl.ElasticSearchAdminServiceImpl">
+          class="org.craftercms.search.elasticsearch.impl.ElasticSearchAdminServiceImpl">
         <property name="elasticSearchClient" ref="elasticSearch"/>
         <property name="authoringIndexSettings" value="${target.search.elasticSearch.settings.authoring}"/>
         <property name="previewIndexSettings" value="${${target.search.elasticSearch.settings.preview}}"/>
     </bean>
 
     <bean id="elasticSearchDocumentBuilder"
-          class="org.craftercms.commons.elasticsearch.impl.ElasticSearchDocumentBuilder">
+          class="org.craftercms.search.elasticsearch.impl.ElasticSearchDocumentBuilder">
         <property name="objectMapper" ref="objectMapper"/>
     </bean>
 
-    <bean id="tikaDocumentParser" class="org.craftercms.commons.elasticsearch.impl.TikaDocumentParser">
+    <bean id="tikaDocumentParser" class="org.craftercms.search.elasticsearch.impl.TikaDocumentParser">
         <property name="charLimit" value="${target.search.tika.limit}"/>
         <property name="objectMapper" ref="objectMapper"/>
         <property name="tika" ref="tika"/>
     </bean>
 
-    <bean id="elasticSearchService" class="org.craftercms.commons.elasticsearch.impl.ElasticSearchServiceImpl">
+    <bean id="elasticSearchService" class="org.craftercms.search.elasticsearch.impl.ElasticSearchServiceImpl">
         <property name="client" ref="elasticSearch"/>
         <property name="documentBuilder" ref="elasticSearchDocumentBuilder"/>
         <property name="documentParser" ref="tikaDocumentParser"/>
     </bean>
 
     <bean id="elasticSearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
-          class="org.craftercms.commons.elasticsearch.batch.ElasticSearchXmlFileBatchIndexer">
+          class="org.craftercms.search.elasticsearch.batch.ElasticSearchXmlFileBatchIndexer">
         <property name="elasticSearchService" ref="elasticSearchService"/>
     </bean>
 
     <bean id="elasticSearchBinaryFileBatchIndexer" parent="abstractBinaryFileBatchIndexer"
-          class="org.craftercms.commons.elasticsearch.batch.ElasticSearchBinaryFileBatchIndexer">
+          class="org.craftercms.search.elasticsearch.batch.ElasticSearchBinaryFileBatchIndexer">
         <property name="elasticSearchService" ref="elasticSearchService"/>
     </bean>
 
     <bean id="elasticSearchBinaryFileWithMetadataBatchIndexer" parent="abstractBinaryFileWithMetadataBatchIndexer"
-          class="org.craftercms.commons.elasticsearch.batch.ElasticSearchBinaryFileWithMetadataBatchIndexer">
+          class="org.craftercms.search.elasticsearch.batch.ElasticSearchBinaryFileWithMetadataBatchIndexer">
         <property name="elasticSearchService" ref="elasticSearchService"/>
     </bean>
 

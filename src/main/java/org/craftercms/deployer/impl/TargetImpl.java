@@ -32,8 +32,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
-import org.craftercms.commons.elasticsearch.ElasticSearchAdminService;
-import org.craftercms.commons.elasticsearch.exception.ElasticSearchException;
+import org.craftercms.search.elasticsearch.ElasticSearchAdminService;
+import org.craftercms.search.elasticsearch.exception.ElasticSearchException;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;

@@ -395,10 +395,16 @@
     <bean id="authoringElasticSearchContentTypeMetadataBatchIndexer"
           class="org.craftercms.search.elasticsearch.batch.ElasticSearchContentTypeMetadataBatchIndexer">
         <property name="elasticSearchService" ref="elasticSearchService"/>
-        <property name="configTemplate" value="/config/studio/content-types{name}/config.xml"/>
-        <property name="formDefinitionTemplate" value="/config/studio/content-types{name}/form-definition.xml"/>
         <property name="fieldXpath" value="*/content-type"/>
-        <property name="includePath" value="^/?site/.+\.xml$"/>
+        <property name="includePatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
+    </bean>
+
+    <bean id="authoringElasticSearcFileSizeMetadataBatchIndexer"
+          class="org.craftercms.search.elasticsearch.batch.ElasticSearchFileSizeBatchIndexer">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="includePatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
     </bean>
 
     <bean id="authoringElasticSearchIndexingProcessor" parent="elasticSearchIndexingProcessor">
@@ -408,6 +414,7 @@
                 <ref bean="authoringElasticSearchBinaryFileBatchIndexer"/>
                 <ref bean="authoringElasticSearchBinaryFileWithMetadataBatchIndexer"/>
                 <ref bean="authoringElasticSearchContentTypeMetadataBatchIndexer"/>
+                <ref bean="authoringElasticSearcFileSizeMetadataBatchIndexer"/>
             </list>
         </property>
     </bean>

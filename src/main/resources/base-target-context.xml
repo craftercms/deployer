@@ -375,6 +375,8 @@
     <bean id="authoringElasticSearchBinaryFileBatchIndexer" parent="abstractBinaryFileBatchIndexer"
           class="org.craftercms.search.elasticsearch.batch.ElasticSearchBinaryFileBatchIndexer">
         <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="excludePathPatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.excludePathPatterns', T(java.util.List))}"/>
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.supportedMimeTypes', T(java.util.List))}"/>
     </bean>

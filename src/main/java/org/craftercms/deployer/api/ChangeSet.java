@@ -24,13 +24,14 @@ import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.craftercms.search.batch.AbstractUpdateDetailProvider;
 
 /**
  * The collection of created, updated and deleted files that have been changed in a deployment.
  *
  * @author avasquez
  */
-public class ChangeSet {
+public class ChangeSet extends AbstractUpdateDetailProvider {
 
     protected List<String> createdFiles;
     protected List<String> updatedFiles;

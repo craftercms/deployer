@@ -192,6 +192,7 @@
     <bean id="abstractBinaryFileBatchIndexer" abstract="true">
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
+        <property name="maxFileSize" value="${target.search.indexing.binary.maxFileSize}"/>
     </bean>
 
     <bean id="binaryFileBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileBatchIndexer"
@@ -212,6 +213,7 @@
                   value="#{environment.getProperty('target.search.indexing.binary.referenceXPaths', T(java.util.List))}"/>
         <property name="remoteFileResolver" ref="remoteFileResolver"/>
         <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
+        <property name="maxFileSize" value="${target.search.indexing.binary.maxFileSize}"/>
     </bean>
 
     <bean id="binaryFileWithMetadataBatchIndexer" parent="abstractBinaryFileWithMetadataBatchIndexer"
@@ -289,9 +291,16 @@
         <property name="objectMapper" ref="objectMapper"/>
     </bean>
 
-    <bean id="tikaDocumentParser" class="org.craftercms.search.elasticsearch.impl.TikaDocumentParser">
+    <bean id="tikaDocumentParser" class="org.craftercms.search.elasticsearch.impl.tika.TikaDocumentParser">
         <property name="charLimit" value="${target.search.tika.limit}"/>
         <property name="objectMapper" ref="objectMapper"/>
+        <property name="metadataExtractors">
+            <list>
+                <ref bean="coreTikaMetadataExtractor"/>
+                <ref bean="imageTikaMetadataExtractor"/>
+                <ref bean="videoTikaMetadataExtractor"/>
+            </list>
+        </property>
         <property name="tika" ref="tika"/>
     </bean>
 
@@ -316,6 +325,41 @@
         <property name="elasticSearchService" ref="elasticSearchService"/>
     </bean>
 
+    <bean id="coreTikaMetadataExtractor" class="org.craftercms.search.elasticsearch.impl.tika.TikaMetadataExtractor">
+        <property name="mapping">
+            <map>
+                <entry key="author" value="#{T(org.apache.tika.metadata.TikaCoreProperties).CREATOR}"/>
+                <entry key="title" value="#{T(org.apache.tika.metadata.TikaCoreProperties).TITLE}"/>
+                <entry key="keywords" value="#{T(org.apache.tika.metadata.TikaCoreProperties).KEYWORDS}"/>
+                <entry key="description" value="#{T(org.apache.tika.metadata.TikaCoreProperties).DESCRIPTION}"/>
+                <entry key="contentType" value="#{T(org.apache.tika.metadata.HttpHeaders).CONTENT_TYPE}"/>
+                <entry key="contentLength" value="#{T(org.apache.tika.metadata.HttpHeaders).CONTENT_LENGTH}"/>
+                <entry key="created" value="#{T(org.apache.tika.metadata.TikaCoreProperties).CREATED}"/>
+                <entry key="modified" value="#{T(org.apache.tika.metadata.TikaCoreProperties).MODIFIED}"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="imageTikaMetadataExtractor" class="org.craftercms.search.elasticsearch.impl.tika.TikaMetadataExtractor">
+        <property name="supportedMimeTypes" value="image/*,video/*"/>
+        <property name="mapping">
+            <map>
+                <entry key="height" value="#{T(org.apache.tika.metadata.TIFF).IMAGE_LENGTH}"/>
+                <entry key="width" value="#{T(org.apache.tika.metadata.TIFF).IMAGE_WIDTH}"/>
+            </map>
+        </property>
+    </bean>
+
+    <bean id="videoTikaMetadataExtractor" class="org.craftercms.search.elasticsearch.impl.tika.TikaMetadataExtractor">
+        <property name="supportedMimeTypes" value="video/*"/>
+        <property name="mapping">
+            <map>
+                <entry key="duration" value="#{T(org.apache.tika.metadata.XMPDM).DURATION}"/>
+                <entry key="frameRate" value="#{T(org.apache.tika.metadata.XMPDM).VIDEO_FRAME_RATE}"/>
+            </map>
+        </property>
+    </bean>
+
     <bean id="elasticSearchIndexingProcessor" parent="abstractSearchIndexingProcessor"
           class="org.craftercms.deployer.impl.processors.elasticsearch.ElasticSearchIndexingProcessor">
         <property name="elasticSearchService" ref="elasticSearchService"/>
@@ -324,6 +368,55 @@
                 <ref bean="elasticSearchXmlFileBatchIndexer"/>
                 <ref bean="elasticSearchBinaryFileBatchIndexer"/>
                 <ref bean="elasticSearchBinaryFileWithMetadataBatchIndexer"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="authoringElasticSearchBinaryFileBatchIndexer" parent="abstractBinaryFileBatchIndexer"
+          class="org.craftercms.search.elasticsearch.batch.ElasticSearchBinaryFileBatchIndexer">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="excludePathPatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.excludePathPatterns', T(java.util.List))}"/>
+        <property name="supportedMimeTypes"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.supportedMimeTypes', T(java.util.List))}"/>
+    </bean>
+
+    <bean id="authoringElasticSearchBinaryFileWithMetadataBatchIndexer"
+          parent="abstractBinaryFileWithMetadataBatchIndexer"
+          class="org.craftercms.search.elasticsearch.batch.ElasticSearchBinaryFileWithMetadataBatchIndexer">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="supportedMimeTypes"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.supportedMimeTypes', T(java.util.List))}"/>
+        <property name="metadataPathPatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
+        <property name="referenceXPaths"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.referenceXPaths', T(java.util.List))}"/>
+    </bean>
+
+    <!--TODO: Extract values-->
+    <bean id="authoringElasticSearchContentTypeMetadataBatchIndexer"
+          class="org.craftercms.search.elasticsearch.batch.ElasticSearchContentTypeMetadataBatchIndexer">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="fieldXpath" value="*/content-type"/>
+        <property name="includePatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
+    </bean>
+
+    <bean id="authoringElasticSearcFileSizeMetadataBatchIndexer"
+          class="org.craftercms.search.elasticsearch.batch.ElasticSearchFileSizeBatchIndexer">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="includePatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
+    </bean>
+
+    <bean id="authoringElasticSearchIndexingProcessor" parent="elasticSearchIndexingProcessor">
+        <property name="batchIndexers">
+            <list>
+                <ref bean="elasticSearchXmlFileBatchIndexer"/>
+                <ref bean="authoringElasticSearchBinaryFileBatchIndexer"/>
+                <ref bean="authoringElasticSearchBinaryFileWithMetadataBatchIndexer"/>
+                <ref bean="authoringElasticSearchContentTypeMetadataBatchIndexer"/>
+                <ref bean="authoringElasticSearcFileSizeMetadataBatchIndexer"/>
             </list>
         </property>
     </bean>

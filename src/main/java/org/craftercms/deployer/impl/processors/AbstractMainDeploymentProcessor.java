@@ -111,7 +111,10 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
                 }
             }
 
-            return new ChangeSet(matchedCreatedFiles, matchedUpdatedFiles, matchedDeletedFiles);
+            ChangeSet filteredChangeSet = new ChangeSet(matchedCreatedFiles, matchedUpdatedFiles, matchedDeletedFiles);
+            filteredChangeSet.setUpdateDetails(changeSet.getUpdateDetails());
+            filteredChangeSet.setUpdateLog(changeSet.getUpdateLog());
+            return filteredChangeSet;
         } else {
             return changeSet;
         }

@@ -20,7 +20,7 @@ target:
     elasticSearch:
       settings:
         # JSON file containing the settings for authoring indexes
-        authoring: 'classpath:crafter/elasticsearch/default-index-settings.json'
+        authoring: 'classpath:crafter/elasticsearch/authoring-index-settings.json'
         # JSON file containing the settings for preview indexes
         preview: 'classpath:crafter/elasticsearch/default-index-settings.json'
       # List of URLs for ElasticSearch

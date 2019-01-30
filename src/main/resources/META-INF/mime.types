@@ -1,4 +1,11 @@
-text/groovy groovy
-text/freemarker ftl
+text/x-groovy groovy
+text/x-freemarker ftl
 text/css css
 text/javascript js
+application/pdf pdf
+application/msword doc dot
+application/vnd.openxmlformats-officedocument.wordprocessingml.document	docx
+application/vnd.ms-excel xls xlm xla xlc xlt xlw
+application/vnd.openxmlformats-officedocument.spreadsheetml.sheet xlsx
+application/vnd.ms-powerpoint ppt pps pot
+application/vnd.openxmlformats-officedocument.presentationml.presentation pptx

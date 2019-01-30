@@ -1,7 +1,6 @@
 target:
   env: {{env}}
   siteName: {{site_name}}
-  engineUrl: {{#if engine_url}}{{engine_url}}{{else}}http://localhost:8080{{/if}}
   localRepoPath: {{repo_url}}
   crafterSearchEnabled: {{#if use_crafter_search}}{{use_crafter_search}}{{else}}false{{/if}}
   deployment:

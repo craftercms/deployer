@@ -7,6 +7,8 @@ target:
   localRepoPath: ${deployer.main.deployments.folderPath}/${target.env}/${target.siteName}
   # The default datetime pattern that will be used
   defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
+  # The default Engine URL
+  engineUrl: http://localhost:8080
   deployment:
     scheduling:
       # If scheduling of target deployments is enabled

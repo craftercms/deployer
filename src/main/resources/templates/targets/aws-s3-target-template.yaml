@@ -47,7 +47,7 @@ target:
         secretKey: ${aws.secretKey}
         url: {{aws.s3.url}}
       - processorName: delayProcessor
-        seconds: {{delay}}
+        {{#if delay}}seconds: {{delay}}{{/if}}
       {{#if aws.distribution.url}}
       - processorName: cloudfrontInvalidationProcessor
         includeFiles: ['^/static-assets/.*$']
@@ -59,16 +59,18 @@ target:
           - {{this}}
         {{/list}}
       {{/if}}
-      {{#list engine_urls}}
-      - processorName: httpMethodCallProcessor
-        includeFiles: ["^/?config/engine/.*$", "^/?scripts/.*$"]
-        method: GET
-        url: {{this}}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
-      - processorName: httpMethodCallProcessor
-        excludeFiles: ['^/static-assets/.*$']
-        method: GET
-        url: {{this}}/api/1/site/cache/clear.json?crafterSite=${target.siteName}
-      {{/list}}
+      {{#if engine_urls}}
+        {{#list engine_urls}}
+        - processorName: httpMethodCallProcessor
+          includeFiles: ["^/?config/engine/.*$", "^/?scripts/.*$"]
+          method: GET
+          url: {{this}}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
+        - processorName: httpMethodCallProcessor
+          excludeFiles: ['^/static-assets/.*$']
+          method: GET
+          url: {{this}}/api/1/site/cache/clear.json?crafterSite=${target.siteName}
+        {{/list}}
+      {{/if}}
       - processorName: fileOutputProcessor
       {{#if notification_addresses}}
       - processorName: mailNotificationProcessor

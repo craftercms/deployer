@@ -30,7 +30,6 @@ import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.ConfigUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -169,7 +168,12 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
      * @return the full S3 key
      */
     protected String getS3Key(String file) {
-        return s3Url.getKey() + siteName + file;
+        String key = siteName + file;
+        if(StringUtils.isNotEmpty(s3Url.getKey())) {
+            return s3Url.getKey() + key;
+        } else {
+            return key;
+        }
     }
 
 

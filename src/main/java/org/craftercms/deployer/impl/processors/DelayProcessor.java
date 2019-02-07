@@ -51,7 +51,7 @@ public class DelayProcessor extends AbstractMainDeploymentProcessor {
      */
     @Override
     protected void doInit(final Configuration config) {
-        seconds = config.getLong(CONFIG_KEY_SECONDS, 0);
+        seconds = config.getLong(CONFIG_KEY_SECONDS, 5);
     }
 
     /**

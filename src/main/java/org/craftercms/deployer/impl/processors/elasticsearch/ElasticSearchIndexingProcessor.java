@@ -51,7 +51,7 @@ public class ElasticSearchIndexingProcessor extends AbstractSearchIndexingProces
     @Override
     protected List<String> getItemsThatIncludeComponent(final String indexId, final String componentPath) {
         try {
-            return elasticSearchService.searchField(indexId, "_id",
+            return elasticSearchService.searchField(indexId, "localId",
                 new BoolQueryBuilder()
                     .filter(new TermQueryBuilder("includedDescriptors", componentPath))
             );

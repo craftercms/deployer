@@ -393,20 +393,27 @@
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.referenceXPaths', T(java.util.List))}"/>
     </bean>
 
-    <!--TODO: Extract values-->
     <bean id="authoringElasticSearchContentTypeMetadataBatchIndexer"
           class="org.craftercms.search.elasticsearch.batch.ElasticSearchContentTypeMetadataBatchIndexer">
         <property name="elasticSearchService" ref="elasticSearchService"/>
-        <property name="fieldXpath" value="*/content-type"/>
+        <property name="fieldXpath" value="${target.search.indexing.binary.authoring.contentType.xpath}"/>
         <property name="includePatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
     </bean>
 
-    <bean id="authoringElasticSearcFileSizeMetadataBatchIndexer"
+    <bean id="authoringElasticSearchFileSizeMetadataBatchIndexer"
           class="org.craftercms.search.elasticsearch.batch.ElasticSearchFileSizeBatchIndexer">
         <property name="elasticSearchService" ref="elasticSearchService"/>
         <property name="includePatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
+    </bean>
+
+    <bean id="authoringElasticSearchInternalNameMetadataBatchIndexer"
+          class="org.craftercms.search.elasticsearch.batch.ElasticSearchInternalNameBatchIndexer">
+        <property name="elasticSearchService" ref="elasticSearchService"/>
+        <property name="internalNameFieldXpath" value="${target.search.indexing.binary.authoring.internalName.xpath}"/>
+        <property name="includePatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.internalName.includePatterns', T(java.util.List))}"/>
     </bean>
 
     <bean id="authoringElasticSearchIndexingProcessor" parent="elasticSearchIndexingProcessor">
@@ -416,7 +423,8 @@
                 <ref bean="authoringElasticSearchBinaryFileBatchIndexer"/>
                 <ref bean="authoringElasticSearchBinaryFileWithMetadataBatchIndexer"/>
                 <ref bean="authoringElasticSearchContentTypeMetadataBatchIndexer"/>
-                <ref bean="authoringElasticSearcFileSizeMetadataBatchIndexer"/>
+                <ref bean="authoringElasticSearchFileSizeMetadataBatchIndexer"/>
+                <ref bean="authoringElasticSearchInternalNameMetadataBatchIndexer"/>
             </list>
         </property>
     </bean>

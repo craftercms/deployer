@@ -81,6 +81,17 @@ target:
         maxFileSize: 104857600
         # Setting specific for authoring indexes
         authoring:
+          # Xpath for the internal name field
+          internalName:
+            xpath: '*/internal-name'
+            includePatterns:
+              - ^/?site/.+$
+              - ^/?static-assets/.+$
+              - ^/?remote-assets/.+$
+              - ^/?scripts/.+$
+              - ^/?templates/.+$
+          contentType:
+            xpath: '*/content-type'
           # Same as for delivery but include images and videos
           supportedMimeTypes:
             - application/pdf

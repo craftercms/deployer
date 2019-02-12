@@ -237,10 +237,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             for (BatchIndexer indexer : batchIndexers) {
                 indexer.updateIndex(indexId, siteName, contentStoreService, context, updateSet,
                                     updateStatus);
-            }
 
-            if (updateStatus.getAttemptedUpdatesAndDeletes() > 0) {
-                doCommit(indexId);
+                if (updateStatus.getAttemptedUpdatesAndDeletes() > 0) {
+                    doCommit(indexId);
+                }
             }
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);

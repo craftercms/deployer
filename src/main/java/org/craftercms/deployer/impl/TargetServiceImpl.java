@@ -217,7 +217,11 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         Target target = getTarget(env, siteName);
         String id = target.getId();
 
-        target.deleteIndex();
+        try {
+            target.deleteIndex();
+        } catch (Exception e) {
+            logger.error("Error deleting the search index for target {}/{}", env, siteName, e);
+        }
 
         target.close();
 
@@ -333,7 +337,12 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 context, taskExecutor, crafterSearchEnabled);
 
             if(createIndex) {
-                target.createIndex();
+                try {
+                    target.createIndex();
+                } catch (Exception e) {
+                    FileUtils.deleteQuietly(configFile);
+                    throw e;
+                }
             }
 
             scheduleDeployment(target);

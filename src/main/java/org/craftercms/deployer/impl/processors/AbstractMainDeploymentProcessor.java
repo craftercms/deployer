@@ -58,34 +58,34 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
 
     @Override
     public void execute(Deployment deployment) {
-        ChangeSet filteredChangeSet = getFilteredChangeSet(deployment.getChangeSet());
-        
-        if (shouldExecute(deployment, filteredChangeSet)) {
-            ProcessorExecution execution = new ProcessorExecution(name);
+        ProcessorExecution execution = new ProcessorExecution(name);
+        try {
+            ChangeSet filteredChangeSet = getFilteredChangeSet(deployment.getChangeSet());
 
-            deployment.addProcessorExecution(execution);
+            if (shouldExecute(deployment, filteredChangeSet)) {
+                deployment.addProcessorExecution(execution);
 
-            try {
                 logger.info("----- < {} @ {} > -----", name, targetId);
 
                 ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet);
+
                 if (processedChangeSet != null) {
                     deployment.setChangeSet(processedChangeSet);
                 }
 
                 execution.endExecution(Deployment.Status.SUCCESS);
-            } catch (Exception e) {
-                logger.error("Processor '" + name + "' for target '" + targetId + "' failed", e);
-
-                execution.setStatusDetails(e.toString());
-                execution.endExecution(Deployment.Status.FAILURE);
-
-                if (failDeploymentOnProcessorFailure()) {
-                    deployment.end(Deployment.Status.FAILURE);
-                }
-            } finally {
-                logger.info("----- </ {} @ {} > -----", name, targetId);
             }
+        } catch (Exception e) {
+            logger.error("Processor '" + name + "' for target '" + targetId + "' failed", e);
+
+            execution.setStatusDetails(e.toString());
+            execution.endExecution(Deployment.Status.FAILURE);
+
+            if (failDeploymentOnProcessorFailure()) {
+                deployment.end(Deployment.Status.FAILURE);
+            }
+        } finally {
+            logger.info("----- </ {} @ {} > -----", name, targetId);
         }
     }
 

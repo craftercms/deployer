@@ -5,7 +5,16 @@ aws:
 target:
   env: {{env}}
   siteName: {{site_name}}
+  {{#if local_repo_path}}
+  localRepoPath: {{local_repo_path}}
+  {{/if}}
   crafterSearchEnabled: {{#if use_crafter_search}}{{use_crafter_search}}{{else}}false{{/if}}
+  {{#if elastic_search_url}}
+  search:
+    elasticSearch:
+      urls:
+        - {{elastic_search_url}}
+  {{/if}}
   deployment:
     {{#if disable_deploy_cron}}
     scheduling:
@@ -60,16 +69,16 @@ target:
         {{/list}}
       {{/if}}
       {{#if engine_urls}}
-        {{#list engine_urls}}
-        - processorName: httpMethodCallProcessor
-          includeFiles: ["^/?config/engine/.*$", "^/?scripts/.*$"]
-          method: GET
-          url: {{this}}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
-        - processorName: httpMethodCallProcessor
-          excludeFiles: ['^/static-assets/.*$']
-          method: GET
-          url: {{this}}/api/1/site/cache/clear.json?crafterSite=${target.siteName}
-        {{/list}}
+      {{#list engine_urls}}
+      - processorName: httpMethodCallProcessor
+        includeFiles: ["^/?config/engine/.*$", "^/?scripts/.*$"]
+        method: GET
+        url: {{this}}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
+      - processorName: httpMethodCallProcessor
+        excludeFiles: ['^/static-assets/.*$']
+        method: GET
+        url: {{this}}/api/1/site/cache/clear.json?crafterSite=${target.siteName}
+      {{/list}}
       {{/if}}
       - processorName: fileOutputProcessor
       {{#if notification_addresses}}

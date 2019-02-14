@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Configuration status="WARN" monitorInterval="30">
+    <Properties>
+        <Property name="LOG_PATTERN">
+            %d{yyyy-MM-dd HH:mm:ss.SSS} %5p %pid{ } --- [%t] %-40.40c{39} : %m%n%ex
+        </Property>
+    </Properties>
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+        </Console>
+        <RollingFile name="FileAppender" fileName="${sys:logs.dir}/crafter-deployer.log"
+                     filePattern="${sys:logs.dir}/crafter-deployer-%d.log.gz">
+            <PatternLayout pattern="${LOG_PATTERN}"/>
+            <SizeBasedTriggeringPolicy size="10MB"/>
+        </RollingFile>
+        <Routing name="RoutingAppender">
+            <Routes pattern="$${ctx:targetId}">
+                <Route>
+                    <RollingFile name="File-${ctx:targetId:-deployer-general}"
+                                 fileName="${sys:logs.dir}/${ctx:targetId:-deployer-general}.log"
+                                 filePattern="${sys:logs.dir}/${ctx:targetId:-deployer-general}-%d.log.gz">
+                        <PatternLayout pattern="${LOG_PATTERN}"/>
+                        <SizeBasedTriggeringPolicy size="10 MB" />
+                    </RollingFile>
+                </Route>
+            </Routes>
+        </Routing>
+    </Appenders>
+    <Loggers>
+        <Logger name="org.springframework" level="warn"/>
+        <Logger name="org.craftercms" level="info"/>
+
+        <Root level="info">
+            <AppenderRef ref="ConsoleAppender"/>
+            <AppenderRef ref="FileAppender"/>
+            <AppenderRef ref="RoutingAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>

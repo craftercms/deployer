@@ -299,6 +299,9 @@
 				<configuration>
 					<systemPropertyVariables>
 						<deployer.main.homePath>target/test-resources</deployer.main.homePath>
+						<targets.dir>target/test-resources/targets</targets.dir>
+						<deployments.dir>target/test-logs</deployments.dir>
+						<processedCommits.dir>target/test-resources/processed-commits</processedCommits.dir>
 						<logs.dir>target/test-logs</logs.dir>
 					</systemPropertyVariables>
 				</configuration>

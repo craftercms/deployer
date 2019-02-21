@@ -30,7 +30,7 @@ deployer:
     targets:
       config:
         # The folder path for target configuration files
-        folderPath: ${deployer.main.config.folderPath}/targets
+        folderPath: ${targets.dir}
         baseYaml:
           # The location (Spring URL) of the base YAML configuration for targets
           location: classpath:base-target.yaml
@@ -65,13 +65,13 @@ deployer:
         cron: '0 0 3 ? * SUN'
     deployments:
       # The folder path where site deployments are placed
-      folderPath: ${deployer.main.homePath}/deployments
+      folderPath: ${deployments.dir}
       output:
         # The folder path where deployment output files are written to
         folderPath: ${logs.dir}
       processedCommits:
         # The folder path where processed commit files are stored
-        folderPath: ${deployer.main.homePath}/processed-commits
+        folderPath: ${processedCommits.dir}
       pool:
         # Thread pool core size
         size: 10

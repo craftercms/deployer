@@ -39,9 +39,11 @@ import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
-import com.amazonaws.services.s3.model.PutObjectRequest;
+import com.amazonaws.services.s3.transfer.MultipleFileUpload;
+import com.amazonaws.services.s3.transfer.TransferManager;
+import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 
-import static org.craftercms.deployer.utils.ConfigUtils.*;
+import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringProperty;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that syncs files to an AWS S3 Bucket
@@ -117,24 +119,24 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
     /**
      * Performs the upload of the given files.
      * @param client AWS S3 client
-     * @param files list of files to upload
+     * @param paths list of files to upload
      * @throws DeployerException if there is any error reading or uploading the files
      */
-    protected void uploadFiles(AmazonS3 client, List<String> files) throws DeployerException {
-        logger.info("Uploading {} files", files.size());
-        for(String file : files) {
-            logger.debug("Uploading file: {}", file);
-            try {
-                File localFile = new File(localRepoUrl, file);
-                PutObjectRequest request = new PutObjectRequest(s3Url.getBucket(), getS3Key(file), localFile);
-                client.putObject(request);
-            } catch (Exception e) {
-                logger.error("Error uploading file " + file, e);
-                throw new DeployerException("Error uploading file " + file, e);
-            }
-            logger.debug("Uploaded file: {}", file);
+    protected void uploadFiles(AmazonS3 client, List<String> paths) throws DeployerException {
+        logger.info("Uploading {} files", paths.size());
+        TransferManager transferManager = TransferManagerBuilder.standard().withS3Client(client).build();
+        List<File> files = paths.stream().map(path -> new File(localRepoUrl, path)).collect(Collectors.toList());
+        try {
+            MultipleFileUpload upload = transferManager.uploadFileList(s3Url.getBucket(),
+                StringUtils.prependIfMissing(siteName, s3Url.getKey()), new File(localRepoUrl), files);
+            upload.waitForCompletion();
+            logger.debug("Uploads completed");
+        } catch (Exception e) {
+            logger.error("Error uploading files " + paths, e);
+            throw new DeployerException("Error uploading files " + paths, e);
+        } finally {
+            transferManager.shutdownNow(false);
         }
-        logger.debug("Uploads completed");
     }
 
     /**

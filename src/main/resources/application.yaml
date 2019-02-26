@@ -16,9 +16,6 @@ spring:
   freemarker:
     # If Spring should check it's default template location (always false since we handle our own Freemarker templates)
     checkTemplateLocation: false
-logging:
-  # Logging path for Spring, which should be the same as the Deployer logging path
-  path: ${deployer.main.logging.folderPath}
 
 ####################################################
 ##               Deployer Properties              ##
@@ -33,7 +30,7 @@ deployer:
     targets:
       config:
         # The folder path for target configuration files
-        folderPath: ${deployer.main.config.folderPath}/targets
+        folderPath: ${targets.dir}
         baseYaml:
           # The location (Spring URL) of the base YAML configuration for targets
           location: classpath:base-target.yaml
@@ -68,13 +65,13 @@ deployer:
         cron: '0 0 3 ? * SUN'
     deployments:
       # The folder path where site deployments are placed
-      folderPath: ${deployer.main.homePath}/deployments
+      folderPath: ${deployments.dir}
       output:
         # The folder path where deployment output files are written to
-        folderPath: ${deployer.main.homePath}/logs
+        folderPath: ${logs.dir}
       processedCommits:
         # The folder path where processed commit files are stored
-        folderPath: ${deployer.main.homePath}/processed-commits
+        folderPath: ${processedCommits.dir}
       pool:
         # Thread pool core size
         size: 10
@@ -86,9 +83,6 @@ deployer:
         name: deployments
         # Thread pool worker prefix
         prefix: deployment-
-    logging:
-      # The folder path where log files are written to
-      folderPath: ${deployer.main.homePath}/logs
     taskScheduler:
       # Thread pool size of the task scheduler
       poolSize: 10

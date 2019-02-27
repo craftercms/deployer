@@ -1,3 +1,4 @@
+<?xml version="1.0" encoding="UTF-8"?>
 <!--
   ~ Copyright (C) 2007-2019 Crafter Software Corporation. All Rights Reserved.
   ~
@@ -14,22 +15,19 @@
   ~ You should have received a copy of the GNU General Public License
   ~ along with this program.  If not, see <http://www.gnu.org/licenses/>.
   -->
+<Configuration>
+    <Appenders>
+        <Console name="ConsoleAppender" target="SYSTEM_OUT">
+            <PatternLayout pattern="%d{yyyy-MM-dd_HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"/>
+        </Console>
+    </Appenders>
+    <Loggers>
+        <Logger name="net.sf.ehcache" level="error"/>
+        <Logger name="org.springframework" level="warn"/>
+        <Logger name="org.craftercms" level="info"/>
 
-<configuration>
-
-    <appender name="CONSOLE" class="ch.qos.logback.core.ConsoleAppender">
-        <encoder>
-            <pattern>%d{yyyy-MM-dd_HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
-            <charset>utf8</charset>
-        </encoder>
-    </appender>
-
-    <logger name="net.sf.ehcache" level="ERROR"/>
-    <logger name="org.springframework" level="WARN"/>
-    <logger name="org.craftercms" level="INFO"/>
-
-    <root level="INFO">
-        <appender-ref ref="CONSOLE" />
-    </root>
-
-</configuration>
+        <Root level="info">
+            <AppenderRef ref="ConsoleAppender"/>
+        </Root>
+    </Loggers>
+</Configuration>

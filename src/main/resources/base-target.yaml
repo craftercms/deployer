@@ -52,6 +52,9 @@ target:
         # The regex patterns of the XML files that should be included for indexing
         includePatterns:
           - ^/?site/.+\.xml$
+      html:
+        pattern: .+_html
+        suffix: _raw
       binary:
         # The list of binary file mime types that should be indexed
         supportedMimeTypes:

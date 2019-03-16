@@ -67,7 +67,7 @@ public class CommandLineProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet) throws DeployerException {
+                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         ProcessBuilder processBuilder = new ProcessBuilder(command.split("\\s"));
 
         if (StringUtils.isNotEmpty(workingDir)) {

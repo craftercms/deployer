@@ -55,7 +55,7 @@ public class TestDeploymentProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet) throws DeployerException {
+                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) {
         logger.info("Test deployment processor running");
 
         return filteredChangeSet;

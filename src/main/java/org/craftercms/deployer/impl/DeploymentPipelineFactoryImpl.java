@@ -22,6 +22,7 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
@@ -46,8 +47,9 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentPipelineFactoryImpl.class);
 
     @Override
-    public DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ApplicationContext applicationContext,
-                                          String pipelinePropertyName) throws ConfigurationException, DeployerException {
+    public DeploymentPipeline getPipeline(HierarchicalConfiguration<ImmutableNode> configuration,
+                                          ApplicationContext applicationContext, String pipelinePropertyName)
+            throws ConfigurationException, DeployerException {
         List<HierarchicalConfiguration<ImmutableNode>> processorConfigs =
                 getRequiredConfigurationsAt(configuration, pipelinePropertyName);
         List<DeploymentProcessor> deploymentProcessors = new ArrayList<>();
@@ -66,6 +68,17 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
                 throw new DeployerException("No processor prototype bean found with name '" + processorName + "'", e);
             } catch (Exception e) {
                 throw new DeployerException("Failed to initialize pipeline processor '" + processorName + "'", e);
+            }
+        }
+
+        // Check that no main deployment processor is defined after a post deployment processor
+        boolean postProcessorFound = false;
+        for (DeploymentProcessor processor : deploymentProcessors) {
+            if (!processor.isPostDeployment() && postProcessorFound) {
+                throw new DeployerException("Processor " + processor + " can't be defined after a post processor " +
+                                            "has already being defined");
+            } else if (processor.isPostDeployment()) {
+                postProcessorFound = true;
             }
         }
 

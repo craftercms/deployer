@@ -70,10 +70,10 @@ public abstract class AbstractAwsDeploymentProcessor<B extends AwsClientBuilder,
     @Override
     public void init(final Configuration config) throws ConfigurationException, DeployerException {
         super.init(config);
-        if(config.containsKey(CONFIG_KEY_REGION)) {
+        if (config.containsKey(CONFIG_KEY_REGION)) {
             region = getStringProperty(config, CONFIG_KEY_REGION);
         }
-        if(config.containsKey(CONFIG_KEY_ACCESS_KEY) && config.containsKey(CONFIG_KEY_SECRET_KEY)) {
+        if (config.containsKey(CONFIG_KEY_ACCESS_KEY) && config.containsKey(CONFIG_KEY_SECRET_KEY)) {
             accessKey = getStringProperty(config, CONFIG_KEY_ACCESS_KEY);
             secretKey = getStringProperty(config, CONFIG_KEY_SECRET_KEY);
         }
@@ -84,10 +84,10 @@ public abstract class AbstractAwsDeploymentProcessor<B extends AwsClientBuilder,
      * @param builder the client builder
      */
     protected void setCredentials(AwsClientBuilder builder) {
-        if(StringUtils.isNotEmpty(region)) {
+        if (StringUtils.isNotEmpty(region)) {
             builder.withRegion(region);
         }
-        if(StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
+        if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
             builder.withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)));
         }
     }

@@ -90,9 +90,8 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
      * {@inheritDoc}
      */
     @Override
-    protected ChangeSet doExecute(final Deployment deployment, final ProcessorExecution execution,
-                                  final ChangeSet filteredChangeSet) throws DeployerException {
-
+    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
+                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         logger.info("Performing find and replace...");
         logger.debug("Pattern '{}' will be replaced with '{}'", textPattern, replacement);
 

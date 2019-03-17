@@ -18,10 +18,10 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.time.Instant;
-import java.util.Collections;
 import java.util.Properties;
 
-import static org.craftercms.deployer.utils.ConfigUtils.*;
+import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
 
 /**
  * Triggers a deployment event that consumers of the repository (Crafter Engines) can subscribe to by reading a file

@@ -22,7 +22,6 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;

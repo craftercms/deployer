@@ -16,7 +16,6 @@
  */
 package org.craftercms.deployer.impl.processors;
 
-import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.config.ConfigurationException;

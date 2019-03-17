@@ -117,7 +117,7 @@ public class FileBasedDeploymentEventProcessor extends AbstractMainDeploymentPro
 
     @Override
     public void destroy() throws DeployerException {
-
+        // Nothing to do
     }
 
 }

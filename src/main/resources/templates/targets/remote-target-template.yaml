@@ -32,8 +32,13 @@ target:
       - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticSearchIndexingProcessor{{/if}}
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
+        excludeFiles: ["^/?config/studio/content-types.*$"]
         method: GET
         url: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
+      - processorName: httpMethodCallProcessor
+        includeFiles: ["^/?config/studio/content-types.*$"]
+        method: GET
+        url: ${target.engineUrl}/api/1/site/context/graphql/rebuild.json?crafterSite=${target.siteName}
       - processorName: httpMethodCallProcessor
         method: GET
         url: ${target.engineUrl}/api/1/site/cache/clear.json?crafterSite=${target.siteName}

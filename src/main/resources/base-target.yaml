@@ -52,23 +52,36 @@ target:
         # The regex patterns of the XML files that should be included for indexing
         includePatterns:
           - ^/?site/.+\.xml$
+      # Configurations for fields during indexing
       field:
         name:
+          # The name for the unique id field
           id: id
+          # The name for the root id field
           rootId: rootId
+          # The name for the site field
           site: crafterSite
+          # The name for the local id field
           localId: localId
+          # The name for the content-type field
           contentType: content-type
+          # The name for the file name field
           fileName: file-name
           publishedDate:
+            # The name for the publish date field (indexed as text)
             name: crafterPublishedDate
+            # The alternate name for the publish date field (indexed as a date)
             alt: crafterPublishedDate_dt
         type:
           html:
+            # The suffix used for fields containing HTML markup (only text will be indexed)
             suffix: _html
+            # The suffix added for the copy of the field (will be indexed as a string including markup)
             copy: _raw
           dateTime:
+            # The suffix used for fields containing date time values
             suffix: _dt
+            # The pattern used to parse the date time values
             pattern: yyyy-MM-dd'T'HH:mm:ss.SSSZ
 
       binary:

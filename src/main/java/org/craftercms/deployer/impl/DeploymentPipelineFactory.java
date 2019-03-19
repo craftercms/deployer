@@ -17,6 +17,7 @@
 package org.craftercms.deployer.impl;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -42,7 +43,8 @@ public interface DeploymentPipelineFactory {
      * @throws ConfigurationException if a configuration related exception occurs
      * @throws DeployerException if a general error occurs
      */
-    DeploymentPipeline getPipeline(HierarchicalConfiguration configuration, ApplicationContext applicationContext,
-                                   String pipelinePropertyName) throws ConfigurationException, DeployerException;
+    DeploymentPipeline getPipeline(HierarchicalConfiguration<ImmutableNode> configuration,
+                                   ApplicationContext applicationContext, String pipelinePropertyName)
+            throws ConfigurationException, DeployerException;
 
 }

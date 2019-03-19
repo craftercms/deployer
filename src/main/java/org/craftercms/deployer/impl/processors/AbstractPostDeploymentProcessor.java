@@ -22,14 +22,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s that are executed during the post deployment phase, which is
- * the phase that happens after all the files from the change set have been processed.
+ * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s that are executed during the post
+ * deployment phase, which is the phase that happens after all the files from the change set have been processed.
  *
  * @author avasquez
  */
 public abstract class AbstractPostDeploymentProcessor extends AbstractDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractPostDeploymentProcessor.class);
+
+    @Override
+    public boolean isPostDeployment() {
+        return true;
+    }
 
     @Override
     public void execute(Deployment deployment) {

@@ -71,7 +71,7 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet) throws DeployerException {
+                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         HttpUriRequest request = createRequest();
 
         logger.info("Executing request {}...", request);

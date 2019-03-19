@@ -75,8 +75,8 @@ public class CloudfrontInvalidationProcessor extends
      */
     @Override
     @SuppressWarnings("unchecked")
-    protected ChangeSet doExecute(final Deployment deployment, final ProcessorExecution execution,
-                                  final ChangeSet filteredChangeSet) throws DeployerException {
+    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
+                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
 
         logger.info("Performing Cloudfront invalidation...");
 
@@ -96,7 +96,7 @@ public class CloudfrontInvalidationProcessor extends
                 CreateInvalidationRequest request = new CreateInvalidationRequest(distribution, batch);
                 CreateInvalidationResult result = client.createInvalidation(request);
                 logger.info("Created invalidation {} for distribution {}",
-                    result.getInvalidation().getId(), distribution);
+                            result.getInvalidation().getId(), distribution);
             } catch (Exception e) {
                 logger.error("Error invalidating changed files for distribution " + distribution, e);
                 throw new DeployerException("Error invalidating changed files for distribution " + distribution, e);

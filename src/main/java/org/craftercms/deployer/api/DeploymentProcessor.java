@@ -28,6 +28,11 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 public interface DeploymentProcessor {
 
     /**
+     * Returns true if this processor runs after the deployment has finalized.
+     */
+    boolean isPostDeployment();
+
+    /**
      * Initializes the processor, configuring it by using the specified configuration.
      *
      * @param config    the processor configuration

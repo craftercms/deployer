@@ -2,6 +2,8 @@ target:
   env: test
   siteName: foobar
   localRepoPath: foobar
+  search:
+    indexIdFormat: '%s'
   deployment:
     pipeline:
       - processorName: testProcessor

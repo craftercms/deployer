@@ -16,6 +16,8 @@ target:
       # The cron expression used for scheduling target deployments
       cron: '0 * * * * *'
   search:
+    # The format used for the index id
+    indexIdFormat: '%s'
     tika:
       # Limit of words to be parsed from binary files
       limit: 10000

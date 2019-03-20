@@ -325,6 +325,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
             String targetId = TargetImpl.getId(env, siteName);
             String localRepoPath = getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
+            String indexIdFormat = getRequiredStringProperty(config, TARGET_INDEX_ID_FORMAT_CONFIG_KEY);
             boolean crafterSearchEnabled = getBooleanProperty(config, TARGET_CRAFTER_SEARCH_CONFIG_KEY, false);
 
             config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
@@ -334,7 +335,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                                                                                           TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
 
             Target target = new TargetImpl(env, siteName, localRepoPath, deploymentPipeline, configFile, config,
-                context, taskExecutor, crafterSearchEnabled);
+                context, taskExecutor, crafterSearchEnabled, indexIdFormat);
 
             if(createIndex) {
                 try {

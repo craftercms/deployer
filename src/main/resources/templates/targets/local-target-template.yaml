@@ -3,6 +3,8 @@ target:
   siteName: {{site_name}}
   localRepoPath: {{repo_url}}
   crafterSearchEnabled: {{#if use_crafter_search}}{{use_crafter_search}}{{else}}false{{/if}}
+  search:
+    indexIdFormat: '%s-preview'
   deployment:
     {{#if disable_deploy_cron}}
     scheduling:
@@ -11,6 +13,7 @@ target:
     pipeline:
       - processorName: gitDiffProcessor
       - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticSearchIndexingProcessor{{/if}}
+        indexIdFormat: ${target.search.indexIdFormat}
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
         method: GET

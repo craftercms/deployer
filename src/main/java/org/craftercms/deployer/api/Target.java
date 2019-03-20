@@ -68,6 +68,12 @@ public interface Target {
     boolean isCrafterSearchEnabled();
 
     /**
+     * Returns the format used for the index id
+     */
+    @JsonProperty("index_id_format")
+    String getIndexIdFormat();
+
+    /**
      * Returns the YAML configuration file of the target.
      */
     @JsonIgnore

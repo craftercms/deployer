@@ -2,6 +2,8 @@ target:
   env: {{env}}
   siteName: {{site_name}}
   localRepoPath: {{repo_url}}
+  search:
+    indexIdFormat: '%s-authoring'
   deployment:
     scheduling:
        enabled: false
@@ -9,6 +11,6 @@ target:
       - processorName: gitDiffProcessor
         includeGitLog: true
       - processorName: authoringElasticSearchIndexingProcessor
-        indexIdFormat: '%s-authoring'
+        indexIdFormat: ${target.search.indexIdFormat}
         reindexItemsOnComponentUpdates: false
       - processorName: fileOutputProcessor

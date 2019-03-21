@@ -21,6 +21,7 @@ target:
        enabled: false
     {{/if}}
     pipeline:
+      # -------------------- START OF MAIN PIPELINE --------------------
       - processorName: gitPullProcessor
         remoteRepo:
           url: {{repo_url}}
@@ -50,7 +51,6 @@ target:
       {{/if}}
       - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticSearchIndexingProcessor{{/if}}
       - processorName: s3SyncProcessor
-        excludeFiles: ['^/config/studio/.*$']
         region: ${aws.region}
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
@@ -68,18 +68,19 @@ target:
           - {{this}}
         {{/list}}
       {{/if}}
-      {{#if engine_urls}}
-      {{#list engine_urls}}
-      - processorName: httpMethodCallProcessor
+      - processorName: fileBasedDeploymentEventProcessor
         includeFiles: ["^/?config/engine/.*$", "^/?scripts/.*$"]
-        method: GET
-        url: {{this}}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}
-      - processorName: httpMethodCallProcessor
+        eventName: 'events.deployment.rebuildContext'
+      - processorName: fileBasedDeploymentEventProcessor
         excludeFiles: ['^/static-assets/.*$']
-        method: GET
-        url: {{this}}/api/1/site/cache/clear.json?crafterSite=${target.siteName}
-      {{/list}}
-      {{/if}}
+        eventName: 'events.deployment.clearCache'
+      - processorName: s3SyncProcessor
+        includeFiles: ['^/?deployment-events\.properties$']
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        url: {{aws.s3.url}}
+      # -------------------- END OF MAIN PIPELINE --------------------
       - processorName: fileOutputProcessor
       {{#if notification_addresses}}
       - processorName: mailNotificationProcessor

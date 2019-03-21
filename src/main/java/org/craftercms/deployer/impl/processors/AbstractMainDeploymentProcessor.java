@@ -34,10 +34,10 @@ import java.util.List;
 import static org.craftercms.deployer.utils.ConfigUtils.getStringArrayProperty;
 
 /**
- * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s that are executed during the main deployment phase, which is
- * the phase where the change set is retrieved and the files are processed. Inclusion/exclusion of files is handled by this class, through
- * YAML configuration properties {@code includeFiles} and {@code excludeFiles}. So basically each processor instance can have its own
- * set of inclusions/exclusions.
+ * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s that are executed during the main
+ * deployment phase, which is the phase where the change set is retrieved and the files are processed.
+ * Inclusion/exclusion of files is handled by this class, through YAML configuration properties {@code includeFiles}
+ * and {@code excludeFiles}. So basically each processor instance can have its own set of inclusions/exclusions.
  *
  * @author avasquez
  */
@@ -47,6 +47,11 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
 
     protected String[] includeFiles;
     protected String[] excludeFiles;
+
+    @Override
+    public boolean isPostDeployment() {
+        return false;
+    }
 
     @Override
     public void init(Configuration config) throws ConfigurationException, DeployerException {
@@ -60,17 +65,18 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     public void execute(Deployment deployment) {
         ProcessorExecution execution = new ProcessorExecution(name);
         try {
-            ChangeSet filteredChangeSet = getFilteredChangeSet(deployment.getChangeSet());
+            ChangeSet originalChangeSet = deployment.getChangeSet();
+            ChangeSet filteredChangeSet = getFilteredChangeSet(originalChangeSet);
 
             if (shouldExecute(deployment, filteredChangeSet)) {
                 deployment.addProcessorExecution(execution);
 
                 logger.info("----- < {} @ {} > -----", name, targetId);
 
-                ChangeSet processedChangeSet = doExecute(deployment, execution, filteredChangeSet);
+                ChangeSet newChangeSet = doExecute(deployment, execution, filteredChangeSet, originalChangeSet);
 
-                if (processedChangeSet != null) {
-                    deployment.setChangeSet(processedChangeSet);
+                if (newChangeSet != null) {
+                    deployment.setChangeSet(newChangeSet);
                 }
 
                 execution.endExecution(Deployment.Status.SUCCESS);
@@ -114,6 +120,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
             ChangeSet filteredChangeSet = new ChangeSet(matchedCreatedFiles, matchedUpdatedFiles, matchedDeletedFiles);
             filteredChangeSet.setUpdateDetails(changeSet.getUpdateDetails());
             filteredChangeSet.setUpdateLog(changeSet.getUpdateLog());
+
             return filteredChangeSet;
         } else {
             return changeSet;
@@ -133,7 +140,8 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     protected abstract void doInit(Configuration config) throws ConfigurationException, DeployerException;
 
     protected abstract ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                           ChangeSet filteredChangeSet) throws DeployerException;
+                                           ChangeSet filteredChangeSet, ChangeSet originalChangeSet)
+            throws DeployerException;
 
     protected abstract boolean failDeploymentOnProcessorFailure();
 

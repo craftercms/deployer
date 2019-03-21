@@ -108,7 +108,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet) throws DeployerException {
+                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         boolean reprocessAllFiles = getReprocessAllFilesParam(deployment);
         if (reprocessAllFiles) {
             processedCommitsStore.delete(targetId);
@@ -123,7 +123,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
             ChangeSet changeSet = resolveChangeSetFromCommits(git, previousCommitId, latestCommitId);
 
             if (changeSet != null) {
-                if(includeGitLog) {
+                if (includeGitLog) {
                     updateChangeDetails(changeSet, git, previousCommitId, latestCommitId);
                 }
                 execution.setStatusDetails("Changes detected and resolved successfully");
@@ -144,24 +144,23 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
         try {
             LogCommand logCmd = git.log();
-            if(previousCommitId != null && latestCommitId != null) {
+            if (previousCommitId != null && latestCommitId != null) {
                 logCmd.addRange(git.getRepository().parseCommit(previousCommitId),
                     git.getRepository().parseCommit(latestCommitId));
             }
+
             Iterable<RevCommit> log = logCmd.call();
-            for(RevCommit commit : log) {
+            for (RevCommit commit : log) {
                 UpdateDetail detail = new UpdateDetail();
                 detail.setAuthor(commit.getAuthorIdent().getName());
                 detail.setDate(Instant.ofEpochSecond(commit.getCommitTime()));
                 changeDetails.put(commit.getName(), detail);
 
-                if(commit.getParentCount() > 0) {
-                    try(ObjectReader reader = git.getRepository().newObjectReader()) {
+                if (commit.getParentCount() > 0) {
+                    try (ObjectReader reader = git.getRepository().newObjectReader()) {
                         RevCommit parent = commit.getParent(0);
-                        AbstractTreeIterator oldTreeParser = getTreeIteratorForCommit(git, reader, parent);
-                        AbstractTreeIterator newTreeParser = getTreeIteratorForCommit(git, reader, commit);
-                        List<DiffEntry> diff =
-                            git.diff().setOldTree(oldTreeParser).setNewTree(newTreeParser).call();
+                        List<DiffEntry> diff = doDiff(git, reader, parent, commit);
+
                         diff.forEach(entry -> {
                             if(entry.getChangeType() != DiffEntry.ChangeType.DELETE) {
                                 changeLog.putIfAbsent(entry.getNewPath(), commit.getName());
@@ -201,7 +200,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         }
     }
 
-    protected ChangeSet resolveChangeSetFromCommits(Git git, ObjectId fromCommitId, ObjectId toCommitId) throws DeployerException {
+    protected ChangeSet resolveChangeSetFromCommits(Git git, ObjectId fromCommitId,
+                                                    ObjectId toCommitId) throws DeployerException {
         String fromCommitIdStr = fromCommitId != null? fromCommitId.name(): "{empty}";
         String toCommitIdStr = toCommitId != null? toCommitId.name(): "{empty}";
 
@@ -209,14 +209,10 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
             logger.info("Calculating change set from commits: {} -> {}", fromCommitIdStr, toCommitIdStr);
 
             try (ObjectReader reader = git.getRepository().newObjectReader()) {
-                AbstractTreeIterator fromTreeIter = getTreeIteratorForCommit(git, reader, fromCommitId);
-                AbstractTreeIterator toTreeIter = getTreeIteratorForCommit(git, reader, toCommitId);
-
-                List<DiffEntry> diffEntries = git.diff().setOldTree(fromTreeIter).setNewTree(toTreeIter).call();
-
-                return processDiffEntries(diffEntries);
+                return processDiffEntries(doDiff(git, reader, fromCommitId, toCommitId));
             } catch (IOException | GitAPIException e) {
-                throw new DeployerException("Failed to calculate change set from commits: " + fromCommitIdStr + " -> " + toCommitIdStr, e);
+                throw new DeployerException("Failed to calculate change set from commits: " + fromCommitIdStr +
+                                            " -> " + toCommitIdStr, e);
             }
         } else {
             logger.info("Commits are the same. No change set will be calculated", fromCommitIdStr, toCommitIdStr);
@@ -225,7 +221,16 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         }
     }
 
-    protected AbstractTreeIterator getTreeIteratorForCommit(Git git, ObjectReader reader, ObjectId commitId) throws IOException {
+    protected List<DiffEntry> doDiff(Git git, ObjectReader reader, ObjectId fromCommitId,
+                                     ObjectId toCommitId) throws IOException, GitAPIException {
+        AbstractTreeIterator fromTreeIter = getTreeIteratorForCommit(git, reader, fromCommitId);
+        AbstractTreeIterator toTreeIter = getTreeIteratorForCommit(git, reader, toCommitId);
+
+        return git.diff().setOldTree(fromTreeIter).setNewTree(toTreeIter).call();
+    }
+
+    protected AbstractTreeIterator getTreeIteratorForCommit(Git git, ObjectReader reader,
+                                                            ObjectId commitId) throws IOException {
         if (commitId != null) {
             RevTree tree = getTreeForCommit(git.getRepository(), commitId);
             CanonicalTreeParser treeParser = new CanonicalTreeParser();

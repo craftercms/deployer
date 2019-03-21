@@ -3,6 +3,8 @@ target:
   siteName: {{site_name}}
   localRepoPath: {{site_name}}
   randomParam: {{random_param}}
+  search:
+    indexIdFormat: '%s'
   deployment:
     pipeline:
       - processorName: testProcessor

@@ -283,8 +283,6 @@
 
     <bean id="tika" class="org.apache.tika.Tika"/>
 
-    <bean id="objectMapper" class="org.craftercms.search.elasticsearch.jackson.CrafterXmlMapper"/>
-
     <bean id="elasticSearchAdminService"
           class="org.craftercms.search.elasticsearch.impl.ElasticSearchAdminServiceImpl">
         <property name="elasticSearchClient" ref="elasticSearch"/>
@@ -292,20 +290,60 @@
         <property name="previewIndexSettings" value="${${target.search.elasticSearch.settings.preview}}"/>
     </bean>
 
-    <bean id="elasticSearchDocumentBuilder"
-          class="org.craftercms.search.elasticsearch.impl.ElasticSearchDocumentBuilder">
-        <property name="objectMapper" ref="objectMapper"/>
-        <property name="copyFields">
+    <bean id="tokenizedElementParser"
+          class="org.craftercms.search.commons.service.impl.TokenizedElementParser"/>
+
+    <bean id="htmlStrippingConverter"
+          class="org.craftercms.search.commons.service.impl.HtmlStrippingConverter"/>
+
+    <bean id="dateTimeConverter" class="org.craftercms.search.commons.service.impl.DateTimeConverter">
+        <property name="dateTimeFieldPattern" value="${target.search.indexing.field.type.dateTime.pattern}"/>
+    </bean>
+
+    <bean id="fieldValueConverter" class="org.craftercms.search.commons.service.impl.CompositeSuffixBasedConverter">
+        <property name="converterMappings">
             <map>
-                <entry key="${target.search.indexing.html.pattern}" value="${target.search.indexing.html.suffix}"/>
+                <entry key="${target.search.indexing.field.type.html.suffix}"
+                       value-ref="htmlStrippingConverter"/>
+                <entry key="${target.search.indexing.field.type.dateTime.suffix}"
+                       value-ref="dateTimeConverter"/>
             </map>
         </property>
-        <property name="markupFieldPattern" value="${target.search.indexing.html.pattern}"/>
+    </bean>
+
+    <bean id="elementParser" class="org.craftercms.search.elasticsearch.impl.ElasticSearchElementParserImpl">
+        <property name="fieldValueConverter" ref="fieldValueConverter"/>
+    </bean>
+
+    <bean id="elementParserService" class="org.craftercms.search.commons.service.impl.ElementParserServiceImpl">
+        <property name="parsers">
+            <list>
+                <ref bean="tokenizedElementParser"/>
+                <ref bean="elementParser"/>
+            </list>
+        </property>
+    </bean>
+
+    <bean id="elasticSearchDocumentBuilder"
+          class="org.craftercms.search.elasticsearch.impl.ElasticSearchDocumentBuilder">
+        <property name="idFieldName" value="${target.search.indexing.field.name.id}"/>
+        <property name="rootIdFieldName" value="${target.search.indexing.field.name.rootId}"/>
+        <property name="siteFieldName" value="${target.search.indexing.field.name.site}"/>
+        <property name="localIdFieldName" value="${target.search.indexing.field.name.localId}"/>
+        <property name="publishingDateFieldName" value="${target.search.indexing.field.name.publishedDate.name}"/>
+        <property name="publishingDateAltFieldName" value="${target.search.indexing.field.name.publishedDate.alt}"/>
+        <property name="fieldValueConverter" ref="fieldValueConverter"/>
+        <property name="parserService" ref="elementParserService"/>
+        <property name="copyFields">
+            <map>
+                <entry key=".+${target.search.indexing.field.type.html.suffix}"
+                       value="${target.search.indexing.field.type.html.copy}"/>
+            </map>
+        </property>
     </bean>
 
     <bean id="tikaDocumentParser" class="org.craftercms.search.elasticsearch.impl.tika.TikaDocumentParser">
         <property name="charLimit" value="${target.search.tika.limit}"/>
-        <property name="objectMapper" ref="objectMapper"/>
         <property name="metadataExtractors">
             <list>
                 <ref bean="coreTikaMetadataExtractor"/>

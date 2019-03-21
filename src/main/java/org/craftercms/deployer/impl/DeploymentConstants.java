@@ -33,6 +33,7 @@ public abstract class DeploymentConstants {
     public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
     public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
     public static final String TARGET_CRAFTER_SEARCH_CONFIG_KEY = "target.crafterSearchEnabled";
+    public static final String TARGET_INDEX_ID_FORMAT_CONFIG_KEY = "target.search.indexIdFormat";
 
     // Processor-specific Configuration Keys
 

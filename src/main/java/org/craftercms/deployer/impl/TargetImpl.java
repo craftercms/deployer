@@ -72,6 +72,7 @@ public class TargetImpl implements Target {
     protected Queue<Deployment> pendingDeployments;
     protected volatile Deployment currentDeployment;
     protected boolean crafterSearchEnabled;
+    protected String indexIdFormat;
 
     protected final Lock deploymentLock = new ReentrantLock();
 
@@ -82,7 +83,7 @@ public class TargetImpl implements Target {
     public TargetImpl(String env, String siteName, String localRepoPath, DeploymentPipeline deploymentPipeline,
                       File configurationFile, Configuration configuration,
                       ConfigurableApplicationContext applicationContext, ExecutorService deploymentExecutor,
-                      boolean crafterSearchEnabled) {
+                      boolean crafterSearchEnabled, String indexIdFormat) {
         this.env = env;
         this.siteName = siteName;
         this.localRepoPath = localRepoPath;
@@ -94,6 +95,7 @@ public class TargetImpl implements Target {
         this.deploymentExecutor = deploymentExecutor;
         this.pendingDeployments = new ConcurrentLinkedQueue<>();
         this.crafterSearchEnabled = crafterSearchEnabled;
+        this.indexIdFormat = indexIdFormat;
     }
 
     @Override
@@ -119,6 +121,11 @@ public class TargetImpl implements Target {
     @Override
     public boolean isCrafterSearchEnabled() {
         return crafterSearchEnabled;
+    }
+
+    @Override
+    public String getIndexIdFormat() {
+        return indexIdFormat;
     }
 
     @Override
@@ -234,13 +241,13 @@ public class TargetImpl implements Target {
 
         if(crafterSearchEnabled) {
             try {
-                adminService.createIndex(siteName);
+                adminService.createIndex(String.format(indexIdFormat, siteName));
             } catch (SearchException e) {
                 throw new TargetServiceException("Error creating index for target " + getId(), e);
             }
         } else {
             try {
-                elasticSearchService.createIndex(siteName, isAuthoring());
+                elasticSearchService.createIndex(String.format(indexIdFormat, siteName), isAuthoring());
             } catch (ElasticSearchException e) {
                 throw new TargetServiceException("Error creating index for target " + getId(), e);
             }
@@ -257,13 +264,13 @@ public class TargetImpl implements Target {
 
         if(crafterSearchEnabled) {
             try {
-                adminService.deleteIndex(siteName, AdminService.IndexDeleteMode.ALL_DATA);
+                adminService.deleteIndex(String.format(indexIdFormat, siteName), AdminService.IndexDeleteMode.ALL_DATA);
             } catch (SearchException e) {
                 throw new TargetServiceException("Error deleting index for target " + getId(), e);
             }
         } else {
             try {
-                elasticSearchService.deleteIndex(siteName, isAuthoring());
+                elasticSearchService.deleteIndex(String.format(indexIdFormat, siteName));
             } catch (ElasticSearchException e) {
                 throw new TargetServiceException("Error deleting index for target " + getId(), e);
             }

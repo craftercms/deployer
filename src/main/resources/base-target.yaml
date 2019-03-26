@@ -21,16 +21,16 @@ target:
     tika:
       # Limit of words to be parsed from binary files
       limit: 10000
-    elasticSearch:
+    elasticsearch:
       settings:
         # JSON file containing the settings for authoring indexes
         authoring: 'classpath:crafter/elasticsearch/authoring-index-settings.json'
         # JSON file containing the settings for preview indexes
         preview: 'classpath:crafter/elasticsearch/default-index-settings.json'
-      # List of URLs for ElasticSearch
+      # List of URLs for Elasticsearch
       urls:
         - http://localhost:9201
-    # Indicates if Solr should be used instead of ElasticSearch
+    # Indicates if Solr should be used instead of Elasticsearch
     useSolr: false
     # The base URL of the Crafter Search server
     serverUrl: http://localhost:8080/crafter-search

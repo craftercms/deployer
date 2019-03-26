@@ -12,7 +12,7 @@ target:
     {{/if}}
     pipeline:
       - processorName: gitDiffProcessor
-      - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticSearchIndexingProcessor{{/if}}
+      - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticsearchIndexingProcessor{{/if}}
         indexIdFormat: ${target.search.indexIdFormat}
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]

@@ -30,7 +30,7 @@ import java.util.concurrent.ExecutorService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.search.elasticsearch.ElasticSearchAdminService;
+import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -68,7 +68,7 @@ public class TargetServiceImplTest {
         targetsFolder = createTargetsFolder();
 
         DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-        factory.registerSingleton("elasticSearchAdminService", mock(ElasticSearchAdminService.class));
+        factory.registerSingleton("elasticsearchAdminService", mock(ElasticsearchAdminService.class));
         factory.registerSingleton("adminService", mock(AdminService.class));
 
         GenericApplicationContext context = new GenericApplicationContext(factory);
@@ -263,8 +263,8 @@ public class TargetServiceImplTest {
         return handlebars;
     }
 
-    private ElasticSearchAdminService createElasticSearchAdminService() {
-        ElasticSearchAdminService service = mock(ElasticSearchAdminService.class);
+    private ElasticsearchAdminService createElasticsearchAdminService() {
+        ElasticsearchAdminService service = mock(ElasticsearchAdminService.class);
         return service;
     }
 

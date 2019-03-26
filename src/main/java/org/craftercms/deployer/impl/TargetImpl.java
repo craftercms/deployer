@@ -32,8 +32,8 @@ import java.util.concurrent.locks.ReentrantLock;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
-import org.craftercms.search.elasticsearch.ElasticSearchAdminService;
-import org.craftercms.search.elasticsearch.exception.ElasticSearchException;
+import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
+import org.craftercms.search.elasticsearch.exception.ElasticsearchException;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
@@ -236,7 +236,7 @@ public class TargetImpl implements Target {
      */
     @Override
     public void createIndex() throws TargetServiceException {
-        ElasticSearchAdminService elasticSearchService = applicationContext.getBean(ElasticSearchAdminService.class);
+        ElasticsearchAdminService elasticsearchService = applicationContext.getBean(ElasticsearchAdminService.class);
         AdminService adminService = applicationContext.getBean(AdminService.class);
 
         if(crafterSearchEnabled) {
@@ -247,8 +247,8 @@ public class TargetImpl implements Target {
             }
         } else {
             try {
-                elasticSearchService.createIndex(String.format(indexIdFormat, siteName), isAuthoring());
-            } catch (ElasticSearchException e) {
+                elasticsearchService.createIndex(String.format(indexIdFormat, siteName), isAuthoring());
+            } catch (ElasticsearchException e) {
                 throw new TargetServiceException("Error creating index for target " + getId(), e);
             }
         }
@@ -259,7 +259,7 @@ public class TargetImpl implements Target {
      */
     @Override
     public void deleteIndex() throws TargetServiceException {
-        ElasticSearchAdminService elasticSearchService = applicationContext.getBean(ElasticSearchAdminService.class);
+        ElasticsearchAdminService elasticsearchService = applicationContext.getBean(ElasticsearchAdminService.class);
         AdminService adminService = applicationContext.getBean(AdminService.class);
 
         if(crafterSearchEnabled) {
@@ -270,8 +270,8 @@ public class TargetImpl implements Target {
             }
         } else {
             try {
-                elasticSearchService.deleteIndex(String.format(indexIdFormat, siteName));
-            } catch (ElasticSearchException e) {
+                elasticsearchService.deleteIndex(String.format(indexIdFormat, siteName));
+            } catch (ElasticsearchException e) {
                 throw new TargetServiceException("Error deleting index for target " + getId(), e);
             }
         }

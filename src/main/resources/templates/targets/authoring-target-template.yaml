@@ -10,7 +10,7 @@ target:
     pipeline:
       - processorName: gitDiffProcessor
         includeGitLog: true
-      - processorName: authoringElasticSearchIndexingProcessor
+      - processorName: authoringElasticsearchIndexingProcessor
         indexIdFormat: ${target.search.indexIdFormat}
         reindexItemsOnComponentUpdates: false
       - processorName: fileOutputProcessor

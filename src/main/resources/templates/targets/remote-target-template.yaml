@@ -29,7 +29,7 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-      - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticSearchIndexingProcessor{{/if}}
+      - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticsearchIndexingProcessor{{/if}}
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
         excludeFiles: ["^/?config/studio/content-types.*$"]

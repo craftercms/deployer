@@ -19,8 +19,8 @@ package org.craftercms.deployer.impl.processors.elasticsearch;
 
 import java.util.List;
 
-import org.craftercms.search.elasticsearch.ElasticSearchService;
-import org.craftercms.search.elasticsearch.exception.ElasticSearchException;
+import org.craftercms.search.elasticsearch.ElasticsearchService;
+import org.craftercms.search.elasticsearch.exception.ElasticsearchException;
 import org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor;
 import org.craftercms.search.exception.SearchException;
 import org.elasticsearch.index.query.BoolQueryBuilder;
@@ -30,19 +30,19 @@ import org.springframework.beans.factory.annotation.Required;
 /**
  * @author joseross
  */
-public class ElasticSearchIndexingProcessor extends AbstractSearchIndexingProcessor {
+public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProcessor {
 
-    protected ElasticSearchService elasticSearchService;
+    protected ElasticsearchService elasticsearchService;
 
     @Required
-    public void setElasticSearchService(final ElasticSearchService elasticSearchService) {
-        this.elasticSearchService = elasticSearchService;
+    public void setElasticsearchService(final ElasticsearchService elasticsearchService) {
+        this.elasticsearchService = elasticsearchService;
     }
 
     @Override
     protected void doCommit(final String indexId) {
         try {
-            elasticSearchService.flush(indexId);
+            elasticsearchService.flush(indexId);
         } catch (Exception e) {
             throw new SearchException(indexId, "Error committing changes", e);
         }
@@ -51,11 +51,11 @@ public class ElasticSearchIndexingProcessor extends AbstractSearchIndexingProces
     @Override
     protected List<String> getItemsThatIncludeComponent(final String indexId, final String componentPath) {
         try {
-            return elasticSearchService.searchField(indexId, "localId",
+            return elasticsearchService.searchField(indexId, "localId",
                 new BoolQueryBuilder()
                     .filter(new TermQueryBuilder("includedDescriptors", componentPath))
             );
-        } catch (ElasticSearchException e) {
+        } catch (ElasticsearchException e) {
             throw new SearchException(indexId, "Error executing search for " + componentPath, e);
         }
     }

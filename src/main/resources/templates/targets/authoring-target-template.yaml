@@ -11,6 +11,5 @@ target:
       - processorName: gitDiffProcessor
         includeGitLog: true
       - processorName: authoringElasticsearchIndexingProcessor
-        indexIdFormat: ${target.search.indexIdFormat}
         reindexItemsOnComponentUpdates: false
       - processorName: fileOutputProcessor

@@ -51,9 +51,6 @@ import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
  *     <li><strong>ignoreIndexId:</strong> If the index ID should be ignored, in other words, if the index ID should
  *     always be null on update calls.</li>
  *     <li><strong>indexId:</strong> The specific index ID to use</li>
- *     <li><strong>indexIdFormat:</strong> The String.format, based onf the site name, that should be used to generate
- *     the index ID. E.g. a <emp>%s-default'</emp> format with a <em>mysite</em> site name will generate a
- *     <em>mysite-default</em> index ID.</li>
  *     <li><strong>reindexItemsOnComponentUpdates:</strong> Flag that indicates that if a component is updated, all
  *     other pages and components that include it should be updated too. This needs to be done when flattening is
  *     enabled, since the component needs to be re-included in pages/components. By default is true.</li>
@@ -64,8 +61,6 @@ import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
 public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractSearchIndexingProcessor.class);
-
-    public static final String DEFAULT_INDEX_ID_FORMAT = "%s";
 
     public static final String INDEX_ID_CONFIG_KEY = "indexId";
     public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
@@ -81,6 +76,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected boolean xmlFlatteningEnabled;
     protected Pattern componentPathPattern;
     protected int itemsThatIncludeComponentQueryRows;
+    protected String indexIdFormat;
+
+    // Config properties (populated on init)
+
     protected String indexId;
     protected boolean reindexItemsOnComponentUpdates;
 
@@ -142,6 +141,14 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         this.itemsThatIncludeComponentQueryRows = itemsThatIncludeComponentQueryRows;
     }
 
+    /**
+     * The format used for the index id
+     */
+    @Required
+    public void setIndexIdFormat(String indexIdFormat) {
+        this.indexIdFormat = indexIdFormat;
+    }
+
     @Override
     protected void doInit(Configuration config) throws ConfigurationException {
         boolean ignoreIndexId = getBooleanProperty(config, IGNORE_INDEX_ID_CONFIG_KEY, false);
@@ -150,8 +157,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         } else {
             indexId = getStringProperty(config, INDEX_ID_CONFIG_KEY);
             if (StringUtils.isEmpty(indexId)) {
-                String indexIdFormat = getStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY, DEFAULT_INDEX_ID_FORMAT);
-
                 indexId = String.format(indexIdFormat, siteName);
             }
         }

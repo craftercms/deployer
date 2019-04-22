@@ -45,6 +45,8 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractMainDeploymentProcessor.class);
 
+    // Config properties (populated on init)
+
     protected String[] includeFiles;
     protected String[] excludeFiles;
 

@@ -65,6 +65,8 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 
+    // Config properties (populated on init)
+
     protected String remoteRepoName;
 
     @Override

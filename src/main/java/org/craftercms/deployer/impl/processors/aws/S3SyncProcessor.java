@@ -68,6 +68,8 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
      */
     protected String localRepoUrl;
 
+    // Config properties (populated on init)
+
     /**
      * AWS S3 bucket URL
      */

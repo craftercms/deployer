@@ -62,11 +62,12 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
      */
     protected String localRepoUrl;
 
+    // Config properties (populated on init)
+
     /**
      * Regular expression to search in files.
      */
     protected String textPattern;
-
     /**
      * Expression to replace the matches.
      */

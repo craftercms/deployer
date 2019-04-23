@@ -49,6 +49,8 @@ public class CommandLineProcessor extends AbstractMainDeploymentProcessor {
 
     public static final long DEFAULT_PROCESS_TIMEOUT_SECS = 30;
 
+    // Config properties (populated on init)
+
     private String workingDir;
     private String command;
     private long processTimeoutSecs;

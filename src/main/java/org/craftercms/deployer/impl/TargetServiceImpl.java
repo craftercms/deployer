@@ -331,8 +331,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
             ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
-            DeploymentPipeline deploymentPipeline = deploymentPipelineFactory.getPipeline(config, context,
-                                                                                          TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
+            DeploymentPipeline deploymentPipeline = deploymentPipelineFactory.getPipeline(
+                    config, context, TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
 
             Target target = new TargetImpl(env, siteName, localRepoPath, deploymentPipeline, configFile, config,
                 context, taskExecutor, crafterSearchEnabled, indexIdFormat);

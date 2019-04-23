@@ -57,6 +57,8 @@ public class CloudfrontInvalidationProcessor extends
 
     public static final String CONFIG_KEY_DISTRIBUTIONS = "distributions";
 
+    // Config properties (populated on init)
+
     /**
      * List of distribution ids
      */

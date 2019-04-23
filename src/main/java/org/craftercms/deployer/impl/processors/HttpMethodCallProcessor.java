@@ -53,6 +53,8 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
     public static final String URL_CONFIG_KEY = "url";
     public static final String METHOD_CONFIG_KEY = "method";
 
+    // Config properties (populated on init)
+
     protected String url;
     protected String method;
     protected CloseableHttpClient httpClient;

@@ -56,6 +56,7 @@
         <property name="contextFactory" ref="contextFactory"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlFlatteningEnabled" value="${target.search.indexing.xml.flattening.enabled}"/>
+        <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
     </bean>
 
     <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor"
@@ -114,8 +115,7 @@
     <!-- Core -->
 
     <bean id="contextFactory" class="org.craftercms.deployer.utils.core.SingletonContextFactory">
-        <property name="targetId"
-                  value="#{T(org.craftercms.deployer.impl.TargetImpl).getId('${target.env}', '${target.siteName}')}"/>
+        <property name="targetId" value="${target.id}"/>
         <property name="localRepoUrl" value="file:${target.localRepoPath}"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlMergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>

@@ -63,7 +63,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     private static final Logger logger = LoggerFactory.getLogger(AbstractSearchIndexingProcessor.class);
 
     public static final String INDEX_ID_CONFIG_KEY = "indexId";
-    public static final String INDEX_ID_FORMAT_CONFIG_KEY = "indexIdFormat";
     public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
     public static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
 

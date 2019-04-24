@@ -95,6 +95,17 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     public static final String STATUS_MODEL_KEY = "status";
     public static final String OUTPUT_ATTACHED_MODEL_KEY = "outputAttached";
 
+    protected String defaultTemplateName;
+    protected String defaultFrom;
+    protected String defaultSubject;
+    protected boolean defaultHtml;
+    protected String defaultStatusCondition;
+    protected String defaultDateTimePattern;
+    protected EmailFactory emailFactory;
+    protected ObjectMapper objectMapper;
+
+    // Config properties (populated on init)
+
     protected String templateName;
     protected String from;
     protected String[] to;
@@ -102,15 +113,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     protected boolean html;
     protected String serverName;
     protected StatusCondition statusCondition;
-    protected String defaultTemplateName;
-    protected String defaultFrom;
-    protected String defaultSubject;
-    protected boolean defaultHtml;
-    protected String defaultStatusCondition;
-    protected String defaultDateTimePattern;
     protected DateTimeFormatter dateTimeFormatter;
-    protected EmailFactory emailFactory;
-    protected ObjectMapper objectMapper;
 
     /**
      * Sets the default name of the Freemarker template used for email creation.

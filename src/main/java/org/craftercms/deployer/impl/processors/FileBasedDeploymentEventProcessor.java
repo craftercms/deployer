@@ -59,11 +59,12 @@ public class FileBasedDeploymentEventProcessor extends AbstractMainDeploymentPro
      */
     protected String localRepoUrl;
 
+    // Config properties (populated on init)
+
     /**
      * URL of the deployment events file, relative to the local git repo.
      */
     protected String deploymentEventsFileUrl;
-
     /**
      * Name of the event to trigger when this processor runs.
      */

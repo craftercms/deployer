@@ -73,6 +73,9 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
     protected File localRepoFolder;
     protected ProcessedCommitsStore processedCommitsStore;
+
+    // Config properties (populated on init)
+
     protected boolean includeGitLog;
 
     /**

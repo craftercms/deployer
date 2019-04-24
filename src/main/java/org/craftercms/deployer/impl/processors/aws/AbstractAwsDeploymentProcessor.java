@@ -49,16 +49,16 @@ public abstract class AbstractAwsDeploymentProcessor<B extends AwsClientBuilder,
     public static final String CONFIG_KEY_ACCESS_KEY = "accessKey";
     public static final String CONFIG_KEY_SECRET_KEY = "secretKey";
 
+    // Config properties (populated on init)
+
     /**
      * AWS Region
      */
     protected String region;
-
     /**
      * AWS Access Key
      */
     protected String accessKey;
-
     /**
      * AWS Secret Key
      */

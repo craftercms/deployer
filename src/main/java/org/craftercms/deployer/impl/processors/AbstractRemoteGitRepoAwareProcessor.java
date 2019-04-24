@@ -72,6 +72,9 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 
     protected File localRepoFolder;
+
+    // Config properties (populated on init)
+
     protected String remoteRepoUrl;
     protected String remoteRepoBranch;
     protected GitAuthenticationConfigurator authenticationConfigurator;

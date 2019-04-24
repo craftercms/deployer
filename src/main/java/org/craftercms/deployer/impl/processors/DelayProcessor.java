@@ -41,6 +41,8 @@ public class DelayProcessor extends AbstractMainDeploymentProcessor {
 
     public static final String CONFIG_KEY_SECONDS = "seconds";
 
+    // Config properties (populated in init)
+
     /**
      * Amount of seconds to wait
      */

@@ -77,8 +77,8 @@ public class CloudfrontInvalidationProcessor extends
      */
     @Override
     @SuppressWarnings("unchecked")
-    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
 
         logger.info("Performing Cloudfront invalidation...");
 

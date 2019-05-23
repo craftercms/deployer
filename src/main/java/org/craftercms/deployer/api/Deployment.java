@@ -199,6 +199,15 @@ public class Deployment {
         return params.get(name);
     }
 
+    /**
+     * Removes the specified param
+     *
+     * @param name the name of the param
+     */
+    public void removeParam(String name) {
+        params.remove(name);
+    }
+
     public enum Status {
         SUCCESS, FAILURE
     }

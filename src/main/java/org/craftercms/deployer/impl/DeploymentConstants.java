@@ -38,6 +38,8 @@ public abstract class DeploymentConstants {
     // Processor-specific Configuration Keys
 
     public static final String PROCESSOR_NAME_CONFIG_KEY = "processorName";
+    public static final String PROCESSOR_LABEL_CONFIG_KEY = "processorLabel";
+    public static final String PROCESSOR_JUMP_TO_CONFIG_KEY = "jumpTo";
     public static final String PROCESSOR_INCLUDE_FILES_CONFIG_KEY = "includeFiles";
     public static final String PROCESSOR_EXCLUDE_FILES_CONFIG_KEY = "excludeFiles";
 

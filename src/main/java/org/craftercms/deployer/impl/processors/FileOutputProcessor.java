@@ -57,7 +57,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    public void init(Configuration config) throws DeployerException {
+    public void doInit(Configuration config) throws DeployerException {
         if (!outputFolder.exists()) {
             try {
                 FileUtils.forceMkdir(outputFolder);
@@ -72,7 +72,8 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doExecute(Deployment deployment) throws DeployerException {
+    protected ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
+                                      ChangeSet originalChangeSet) throws DeployerException {
         File outputFile = getOutputFile(deployment);
         try (FileWriter fileWriter = new FileWriter(outputFile, true)) {
             CSVPrinter printer;
@@ -100,14 +101,15 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
         deployment.addParam(OUTPUT_FILE_PARAM_NAME, outputFile);
 
         logger.info("Successfully wrote deployment output to {}", outputFile);
+
+        return null;
     }
 
     protected File getOutputFile(Deployment deployment) {
         String targetId = deployment.getTarget().getId();
         String outputFilename = targetId + "-deployments.csv";
-        File outputFile = new File(outputFolder, outputFilename);
 
-        return outputFile;
+        return new File(outputFolder, outputFilename);
     }
 
 }

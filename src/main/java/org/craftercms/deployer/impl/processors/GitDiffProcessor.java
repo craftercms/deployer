@@ -110,8 +110,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         boolean reprocessAllFiles = getReprocessAllFilesParam(deployment);
         if (reprocessAllFiles) {
             processedCommitsStore.delete(targetId);

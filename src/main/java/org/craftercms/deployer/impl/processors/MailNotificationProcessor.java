@@ -22,6 +22,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.mail.Email;
 import org.craftercms.commons.mail.EmailFactory;
+import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -179,7 +180,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    public void init(Configuration config) throws ConfigurationException, DeployerException {
+    public void doInit(Configuration config) throws ConfigurationException, DeployerException {
         templateName = getStringProperty(config, TEMPLATE_NAME_CONFIG_KEY, defaultTemplateName);
         from = getStringProperty(config, FROM_CONFIG_KEY, defaultFrom);
         to = getRequiredStringArrayProperty(config, TO_CONFIG_KEY);
@@ -205,14 +206,16 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doExecute(Deployment deployment) throws DeployerException {
+    protected ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
+                                      ChangeSet originalChangeSet) throws DeployerException {
         Deployment.Status status = deployment.getStatus();
-        if((statusCondition == StatusCondition.ON_TOTAL_FAILURE && status != Deployment.Status.FAILURE) ||
+        if ((statusCondition == StatusCondition.ON_TOTAL_FAILURE && status != Deployment.Status.FAILURE) ||
             (statusCondition == StatusCondition.ON_ANY_FAILURE && !hasExecutionsFailures(deployment))) {
                 logger.info("Skipping notification because status '{}' does not match the condition '{}'",
-                status, statusCondition);
-                return;
+                            status, statusCondition);
+                return null;
         }
+
         Map<String, Object> templateModel = new HashMap<>();
         templateModel.put(SERVER_NAME_MODEL_KEY, serverName);
         templateModel.put(TARGET_ID_MODEL_KEY, deployment.getTarget().getId());
@@ -258,11 +261,13 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
                 tempFile.delete();
             }
         }
+
+        return null;
     }
 
     protected boolean hasExecutionsFailures(Deployment deployment) {
-        for(ProcessorExecution execution : deployment.getProcessorExecutions()) {
-            if(execution.getStatus() == Deployment.Status.FAILURE) {
+        for (ProcessorExecution execution : deployment.getProcessorExecutions()) {
+            if (execution.getStatus() == Deployment.Status.FAILURE) {
                 return true;
             }
         }

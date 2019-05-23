@@ -83,8 +83,8 @@ public class FileBasedDeploymentEventProcessor extends AbstractMainDeploymentPro
     }
 
     @Override
-    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         Path deploymentEventsPath = Paths.get(localRepoUrl, deploymentEventsFileUrl);
         Properties deploymentEvents = loadDeploymentEvents(deploymentEventsPath);
         boolean newFile = deploymentEvents.isEmpty();

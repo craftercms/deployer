@@ -42,7 +42,7 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
     @Override
     protected void doCommit(final String indexId) {
         try {
-            elasticsearchService.flush(indexId);
+            elasticsearchService.refresh(indexId);
         } catch (Exception e) {
             throw new SearchException(indexId, "Error committing changes", e);
         }

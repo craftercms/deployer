@@ -19,8 +19,10 @@
 <beans xmlns="http://www.springframework.org/schema/beans"
        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
        xmlns:context="http://www.springframework.org/schema/context"
+       xmlns:util="http://www.springframework.org/schema/util"
        xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
-       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd">
+       http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+       http://www.springframework.org/schema/util http://www.springframework.org/schema/util/spring-util.xsd">
 
     <context:annotation-config/>
     <context:property-placeholder/>
@@ -422,13 +424,10 @@
         </property>
     </bean>
 
-    <bean id="authoringElasticsearchBinaryFileBatchIndexer" parent="abstractBinaryFileBatchIndexer"
-          class="org.craftercms.search.elasticsearch.batch.ElasticsearchBinaryFileBatchIndexer">
+    <bean id="authoringElasticsearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
+          class="org.craftercms.search.elasticsearch.batch.ElasticsearchXmlFileBatchIndexer">
         <property name="elasticsearchService" ref="elasticsearchService"/>
-        <property name="excludePathPatterns"
-                  value="#{environment.getProperty('target.search.indexing.binary.authoring.excludePathPatterns', T(java.util.List))}"/>
-        <property name="supportedMimeTypes"
-                  value="#{environment.getProperty('target.search.indexing.binary.authoring.supportedMimeTypes', T(java.util.List))}"/>
+        <property name="metadataExtractors" ref="authoringMetadataExtractors"/>
     </bean>
 
     <bean id="authoringElasticsearchBinaryFileWithMetadataBatchIndexer"
@@ -439,28 +438,25 @@
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.supportedMimeTypes', T(java.util.List))}"/>
         <property name="metadataPathPatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
+        <property name="binaryPathPatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.binaryPathPatterns', T(java.util.List))}"/>
         <property name="referenceXPaths"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.referenceXPaths', T(java.util.List))}"/>
+        <property name="metadataExtractors" ref="authoringMetadataExtractors"/>
     </bean>
 
-    <bean id="authoringElasticsearchContentTypeMetadataBatchIndexer"
-          class="org.craftercms.search.elasticsearch.batch.ElasticsearchContentTypeMetadataBatchIndexer">
-        <property name="elasticsearchService" ref="elasticsearchService"/>
+    <bean id="contentTypeMetadataExtractor" class="org.craftercms.search.metadata.impl.ContentTypeMetadadataExtractor">
         <property name="fieldXpath" value="${target.search.indexing.binary.authoring.contentType.xpath}"/>
         <property name="includePatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
     </bean>
 
-    <bean id="authoringElasticsearchFileSizeMetadataBatchIndexer"
-          class="org.craftercms.search.elasticsearch.batch.ElasticsearchFileSizeBatchIndexer">
-        <property name="elasticsearchService" ref="elasticsearchService"/>
+    <bean id="fileSizeMetadataExtractor" class="org.craftercms.search.metadata.impl.FileSizeMetadataExtractor">
         <property name="includePatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
     </bean>
 
-    <bean id="authoringElasticsearchInternalNameMetadataBatchIndexer"
-          class="org.craftercms.search.elasticsearch.batch.ElasticsearchInternalNameBatchIndexer">
-        <property name="elasticsearchService" ref="elasticsearchService"/>
+    <bean id="internalNameMetadataExtractor" class="org.craftercms.search.metadata.impl.InternalNameMetadataExtractor">
         <property name="internalNameFieldXpath" value="${target.search.indexing.binary.authoring.internalName.xpath}"/>
         <property name="includePatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.internalName.includePatterns', T(java.util.List))}"/>
@@ -469,14 +465,16 @@
     <bean id="authoringElasticsearchIndexingProcessor" parent="elasticsearchIndexingProcessor">
         <property name="batchIndexers">
             <list>
-                <ref bean="elasticsearchXmlFileBatchIndexer"/>
-                <ref bean="authoringElasticsearchBinaryFileBatchIndexer"/>
+                <ref bean="authoringElasticsearchXmlFileBatchIndexer"/>
                 <ref bean="authoringElasticsearchBinaryFileWithMetadataBatchIndexer"/>
-                <ref bean="authoringElasticsearchContentTypeMetadataBatchIndexer"/>
-                <ref bean="authoringElasticsearchFileSizeMetadataBatchIndexer"/>
-                <ref bean="authoringElasticsearchInternalNameMetadataBatchIndexer"/>
             </list>
         </property>
     </bean>
+
+    <util:list id="authoringMetadataExtractors">
+        <ref bean="internalNameMetadataExtractor"/>
+        <ref bean="fileSizeMetadataExtractor"/>
+        <ref bean="contentTypeMetadataExtractor"/>
+    </util:list>
 
 </beans>

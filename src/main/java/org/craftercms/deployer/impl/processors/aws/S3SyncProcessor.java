@@ -92,8 +92,8 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
      * {@inheritDoc}
      */
     @Override
-    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         logger.info("Performing S3 sync...");
         logger.debug("Syncing with bucket {}", s3Url);
 

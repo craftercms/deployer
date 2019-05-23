@@ -61,8 +61,8 @@ public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
     private static final Logger logger = LoggerFactory.getLogger(GitPushProcessor.class);
 
     @Override
-    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         File gitFolder = new File(localRepoFolder, GitUtils.GIT_FOLDER_NAME);
 
         if (localRepoFolder.exists() && gitFolder.exists()) {

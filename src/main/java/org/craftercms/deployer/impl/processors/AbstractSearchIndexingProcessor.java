@@ -222,8 +222,8 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     }
 
     @Override
-    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         logger.info("Performing search indexing...");
 
         List<String> createdFiles = ListUtils.emptyIfNull(filteredChangeSet.getCreatedFiles());

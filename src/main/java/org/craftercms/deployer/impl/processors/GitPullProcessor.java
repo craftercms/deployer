@@ -82,8 +82,8 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
     }
 
     @Override
-    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         File gitFolder = new File(localRepoFolder, GitUtils.GIT_FOLDER_NAME);
 
         if (localRepoFolder.exists() && gitFolder.exists()) {

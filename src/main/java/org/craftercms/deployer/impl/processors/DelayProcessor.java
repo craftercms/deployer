@@ -60,8 +60,8 @@ public class DelayProcessor extends AbstractMainDeploymentProcessor {
      * {@inheritDoc}
      */
     @Override
-    protected ChangeSet doExecute(Deployment deployment, ProcessorExecution execution,
-                                  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) {
+    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) {
 
         logger.info("Delaying pipeline execution for {} seconds", seconds);
 

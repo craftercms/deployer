@@ -138,7 +138,9 @@ target:
             - video/*
           # Look into all XML descriptors to index all binary files referenced
           metadataPathPatterns:
-            - ^/?site/.+\.xml$
+            - ^/(?!config).+\.xml$
+          binaryPathPatterns:
+            - ^/(?!config).+$
           excludePathPatterns:
             - ^/?config/.*$
           # Include all fields marked as remote resources (S3, Box, CMIS)

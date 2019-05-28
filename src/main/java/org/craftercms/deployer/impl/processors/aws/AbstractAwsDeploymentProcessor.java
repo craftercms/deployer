@@ -104,7 +104,7 @@ public abstract class AbstractAwsDeploymentProcessor<B extends AwsClientBuilder,
 
     /**
      * Creates an {@link AwsClientBuilder} for any service.
-     * @return
+     * @return the client builder
      */
     protected abstract AwsClientBuilder<B, T> createClientBuilder();
 

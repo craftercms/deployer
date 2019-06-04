@@ -85,6 +85,11 @@ target:
             suffix: _dt
             # The pattern used to parse the date time values
             pattern: yyyy-MM-dd'T'HH:mm:ss.SSSZ
+          timeOnly:
+            # The suffix used for fields containing time values
+            suffix: _to
+            # The pattern used to parse the time values
+            pattern: HH:mm:ss
 
       binary:
         # The list of binary file mime types that should be indexed

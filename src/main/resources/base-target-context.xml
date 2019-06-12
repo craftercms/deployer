@@ -302,6 +302,10 @@
         <property name="dateTimeFieldPattern" value="${target.search.indexing.field.type.dateTime.pattern}"/>
     </bean>
 
+    <bean id="timeOnlyConverter" class="org.craftercms.search.commons.service.impl.DateTimeConverter">
+        <property name="dateTimeFieldPattern" value="${target.search.indexing.field.type.timeOnly.pattern}"/>
+    </bean>
+
     <bean id="fieldValueConverter" class="org.craftercms.search.commons.service.impl.CompositeSuffixBasedConverter">
         <property name="converterMappings">
             <map>
@@ -309,6 +313,8 @@
                        value-ref="htmlStrippingConverter"/>
                 <entry key="${target.search.indexing.field.type.dateTime.suffix}"
                        value-ref="dateTimeConverter"/>
+                <entry key="${target.search.indexing.field.type.timeOnly.suffix}"
+                       value-ref="timeOnlyConverter"/>
             </map>
         </property>
     </bean>

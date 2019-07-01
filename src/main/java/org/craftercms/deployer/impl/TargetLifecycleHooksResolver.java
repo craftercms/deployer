@@ -19,32 +19,34 @@ package org.craftercms.deployer.impl;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.springframework.context.ApplicationContext;
 
+import java.util.List;
+
 /**
- * Factory that uses target-specific YAML configuration and Spring configuration to create the
- * {@link DeploymentPipeline} for a target.
+ * Resolver that uses target-specific YAML configuration and Spring configuration to retrieve the
+ * {@link TargetLifecycleHook}s for a target.
  *
  * @author avasquez
  */
-public interface DeploymentPipelineFactory {
+public interface TargetLifecycleHooksResolver {
 
     /**
-     * Creates a {@link DeploymentPipeline} based on the specified configuration
+     * Resolved a {@link TargetLifecycleHook} based on the specified configuration
      *
-     * @param configuration         the target's YAML configuration
-     * @param applicationContext    the target's application context
-     * @param pipelinePropertyName  the name of the pipeline property in the YAML configuration
+     * @param configuration                 the target's YAML configuration
+     * @param applicationContext            the target's application context
+     * @param lifecycleHooksPropertyName    the name of the hook list property in the YAML configuration
      *
-     * @return the deployment pipeline
+     * @return the lifecycle hooks
      *
      * @throws ConfigurationException if a configuration related exception occurs
      * @throws DeployerException if a general error occurs
      */
-    DeploymentPipeline getPipeline(HierarchicalConfiguration<ImmutableNode> configuration,
-                                   ApplicationContext applicationContext, String pipelinePropertyName)
+    List<TargetLifecycleHook> getHooks(HierarchicalConfiguration<ImmutableNode> configuration,
+                                       ApplicationContext applicationContext, String lifecycleHooksPropertyName)
             throws ConfigurationException, DeployerException;
 
 }

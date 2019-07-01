@@ -64,7 +64,7 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
 
                 deploymentProcessors.add(processor);
             } catch (NoSuchBeanDefinitionException e) {
-                throw new DeployerException("No processor prototype bean found with name '" + processorName + "'", e);
+                throw new DeployerException("No processor bean found with name '" + processorName + "'", e);
             } catch (Exception e) {
                 throw new DeployerException("Failed to initialize pipeline processor '" + processorName + "'", e);
             }

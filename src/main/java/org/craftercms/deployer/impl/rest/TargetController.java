@@ -16,15 +16,11 @@
  */
 package org.craftercms.deployer.impl.rest;
 
-import java.util.Collection;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.concurrent.ExecutionException;
+import java.util.*;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.collections.SetUtils;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
 import org.craftercms.commons.validation.ValidationException;
@@ -35,7 +31,9 @@ import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.utils.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
@@ -60,27 +58,34 @@ import static org.craftercms.deployer.impl.rest.RestConstants.WAIT_TILL_DONE_PAR
 @RequestMapping(TargetController.BASE_URL)
 public class TargetController {
 
-    public static final String BASE_URL = "/api/1/target";
-    public static final String CREATE_TARGET_URL = "/create";
-    public static final String UPSERT_URL = "/upsert";
-    public static final String GET_TARGET_URL = "/get/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
-    public static final String GET_ALL_TARGETS_URL = "/get-all";
-    public static final String DELETE_TARGET_URL = "/delete/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
-    public static final String DELETE_IF_EXIST_TARGET_URL =
-        "/delete-if-exists/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
-    public static final String DEPLOY_TARGET_URL = "/deploy/{" + ENV_PATH_VAR_NAME + "}/{" + SITE_NAME_PATH_VAR_NAME + "}";
-    public static final String DEPLOY_ALL_TARGETS_URL = "/deploy-all";
-    public static final String GET_PENDING_DEPLOYMENTS_URL = "/deployments/get-pending/{" + ENV_PATH_VAR_NAME + "}/" +
-                                                             "{" + SITE_NAME_PATH_VAR_NAME + "}";
-    public static final String GET_CURRENT_DEPLOYMENT_URL = "/deployments/get-current/{" + ENV_PATH_VAR_NAME + "}/" +
-                                                            "{" + SITE_NAME_PATH_VAR_NAME + "}";
-    public static final String GET_ALL_DEPLOYMENTS_URL = "/deployments/get-all/{" + ENV_PATH_VAR_NAME + "}/" +
-                                                         "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String BASE_URL                        = "/api/1/target";
+    public static final String CREATE_TARGET_URL               = "/create";
+    public static final String CREATE_TARGET_IF_NOT_EXISTS_URL = "/create-if-not-exists";
+    public static final String GET_TARGET_URL                  = "/get/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                                 "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String GET_ALL_TARGETS_URL             = "/get-all";
+    public static final String DELETE_TARGET_URL               = "/delete/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                                 "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String DELETE_IF_EXIST_TARGET_URL      = "/delete-if-exists/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                                 "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String DEPLOY_TARGET_URL               = "/deploy/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                                 "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String DEPLOY_ALL_TARGETS_URL          = "/deploy-all";
+    public static final String GET_PENDING_DEPLOYMENTS_URL     = "/deployments/get-pending/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                                 "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String GET_CURRENT_DEPLOYMENT_URL      = "/deployments/get-current/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                                 "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String GET_ALL_DEPLOYMENTS_URL         = "/deployments/get-all/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                                 "{" + SITE_NAME_PATH_VAR_NAME + "}";
 
     public static final String REPLACE_PARAM_NAME = "replace";
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
-    public static final String TEMPLATE_SEARCH_PARAM_NAME = "search_engine";
-    public static final String TEMPLATE_SEARCH_PARAM_VALUE = "CrafterSearch";
+    public static final String SEARCH_ENGINE_PARAM_NAME = "search_engine";
+    public static final String SEARCH_ENGINE_PARAM_VALUE = "CrafterSearch";
+
+    private static final Set<String> RESERVED_CREATE_PARAMS =
+            SetUtils.asSet(ENV_PATH_VAR_NAME, SITE_NAME_PATH_VAR_NAME, REPLACE_PARAM_NAME, TEMPLATE_NAME_PARAM_NAME,
+                           SEARCH_ENGINE_PARAM_NAME);
 
     protected TargetService targetService;
     protected DeploymentService deploymentService;
@@ -94,9 +99,9 @@ public class TargetController {
     /**
      * Creates a Deployer {@link Target}.
      *
-     * @param params the body of the request with the template parameters that will be used to create the target. The body must
-     *                   contain at least a {@code env} and {@code site_name} parameter. Other required parameters depend on the
-     *                   template used.
+     * @param params the body of the request with the template parameters that will be used to create the target.
+     *               The body must contain at least a {@code env} and {@code site_name} parameter. Other required
+     *               parameters depend on the template used.
      *
      * @return the response entity 201 CREATED status
      *
@@ -104,106 +109,15 @@ public class TargetController {
      * @throws ValidationException if a required parameter is missing
      */
     @RequestMapping(value = CREATE_TARGET_URL, method = RequestMethod.POST)
-    public ResponseEntity<Result> createTarget(@RequestBody Map<String, Object> params) throws DeployerException, ValidationException {
-        String env = "";
-        String siteName = "";
-        boolean replace = false;
-        String templateName = "";
-        boolean crafterSearchEnabled = false;
-        Map<String, Object> templateParams = new HashMap<>();
-
-        for (Map.Entry<String, Object> param : params.entrySet()) {
-            switch (param.getKey()) {
-                case ENV_PATH_VAR_NAME:
-                    env = Objects.toString(param.getValue(), "");
-                    break;
-                case SITE_NAME_PATH_VAR_NAME:
-                    siteName = Objects.toString(param.getValue(), "");
-                    break;
-                case REPLACE_PARAM_NAME:
-                    replace = BooleanUtils.toBoolean(param.getValue());
-                    break;
-                case TEMPLATE_NAME_PARAM_NAME:
-                    templateName = Objects.toString(param.getValue(), "");
-                    break;
-                case TEMPLATE_SEARCH_PARAM_NAME:
-                    crafterSearchEnabled = TEMPLATE_SEARCH_PARAM_VALUE.equals(param.getValue());
-                    break;
-                default:
-                    templateParams.put(param.getKey(), param.getValue());
-                    break;
-            }
-        }
-
-        ValidationResult validationResult = new ValidationResult();
-        
-        if (StringUtils.isEmpty(env)) {
-            validationResult.addError(ENV_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
-        }
-        if (StringUtils.isEmpty(siteName)) {
-            validationResult.addError(SITE_NAME_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
-        }
-        if (validationResult.hasErrors()) {
-            throw new ValidationException(validationResult);
-        }
-
-        targetService.createTarget(env, siteName, replace, templateName, crafterSearchEnabled, templateParams);
-
-        return new ResponseEntity<>(Result.OK,
-                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
-                                    HttpStatus.CREATED);
+    public ResponseEntity<Result> createTarget(@RequestBody Map<String, Object> params) throws DeployerException,
+                                                                                               ValidationException {
+        return createTarget(params, false);
     }
 
-    @RequestMapping(value = UPSERT_URL, method = RequestMethod.POST)
-    public ResponseEntity<Result> createTargetIfNotExists(@RequestBody Map<String, Object> params) throws DeployerException,
-        ValidationException {
-        String env = "";
-        String siteName = "";
-        String templateName = "";
-        boolean crafterSearchEnabled = false;
-        Map<String, Object> templateParams = new HashMap<>();
-
-        for (Map.Entry<String, Object> param : params.entrySet()) {
-            switch (param.getKey()) {
-                case ENV_PATH_VAR_NAME:
-                    env = Objects.toString(param.getValue(), "");
-                    break;
-                case SITE_NAME_PATH_VAR_NAME:
-                    siteName = Objects.toString(param.getValue(), "");
-                    break;
-                case TEMPLATE_NAME_PARAM_NAME:
-                    templateName = Objects.toString(param.getValue(), "");
-                    break;
-                case TEMPLATE_SEARCH_PARAM_NAME:
-                    crafterSearchEnabled = TEMPLATE_SEARCH_PARAM_VALUE.equals(param.getValue());
-                    break;
-                default:
-                    templateParams.put(param.getKey(), param.getValue());
-                    break;
-            }
-        }
-
-        ValidationResult validationResult = new ValidationResult();
-
-        if (StringUtils.isEmpty(env)) {
-            validationResult.addError(ENV_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
-        }
-        if (StringUtils.isEmpty(siteName)) {
-            validationResult.addError(SITE_NAME_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
-        }
-        if (validationResult.hasErrors()) {
-            throw new ValidationException(validationResult);
-        }
-
-        try {
-            targetService.getTarget(env, siteName);
-        } catch (TargetNotFoundException e) {
-            targetService.createTarget(env, siteName, false, templateName, crafterSearchEnabled, templateParams);
-        }
-
-        return new ResponseEntity<>(Result.OK,
-            RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
-            HttpStatus.CREATED);
+    @RequestMapping(value = CREATE_TARGET_IF_NOT_EXISTS_URL, method = RequestMethod.POST)
+    public ResponseEntity<Result> createTargetIfNotExists(
+            @RequestBody Map<String, Object> params) throws DeployerException, ValidationException {
+        return createTarget(params, true);
     }
 
     /**
@@ -218,11 +132,12 @@ public class TargetController {
      */
     @RequestMapping(value = GET_TARGET_URL, method = RequestMethod.GET)
     public ResponseEntity<Target> getTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
-                                            @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
+                                            @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
+            throws DeployerException {
         Target target = targetService.getTarget(env, siteName);
 
         return new ResponseEntity<>(target,
-                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_TARGET_URL, env, siteName),
+                                    createResponseHeaders(BASE_URL + GET_TARGET_URL, env, siteName),
                                     HttpStatus.OK);
     }
 
@@ -238,7 +153,7 @@ public class TargetController {
         List<Target> targets = targetService.getAllTargets();
 
         return new ResponseEntity<>(targets,
-                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_ALL_TARGETS_URL),
+                                    createResponseHeaders(BASE_URL + GET_ALL_TARGETS_URL),
                                     HttpStatus.OK);
     }
 
@@ -254,7 +169,8 @@ public class TargetController {
      */
     @RequestMapping(value = DELETE_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Void> deleteTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
-                                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
+                                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
+            throws DeployerException {
         targetService.deleteTarget(env, siteName);
 
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
@@ -272,7 +188,8 @@ public class TargetController {
      */
     @RequestMapping(value = DELETE_IF_EXIST_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Void> deleteTargetIfExists(@PathVariable(ENV_PATH_VAR_NAME) String env,
-                                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
+                                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
+            throws DeployerException {
 
         try {
             targetService.deleteTarget(env, siteName);
@@ -288,7 +205,8 @@ public class TargetController {
      *
      * @param env       the target's environment
      * @param siteName  the target's site name
-     * @param params    any additional parameters that can be used by the {@link org.craftercms.deployer.api.DeploymentProcessor}s, for
+     * @param params    any additional parameters that can be used by the
+     *                  {@link org.craftercms.deployer.api.DeploymentProcessor}s, for
      *                  example {@code reprocess_all_files}
      *
      * @return the response entity with a 200 OK status
@@ -299,7 +217,7 @@ public class TargetController {
     public ResponseEntity<Result> deployTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
                                                @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
                                                @RequestBody(required = false) Map<String, Object> params)
-                            throws DeployerException, ExecutionException, InterruptedException {
+                            throws DeployerException {
         if (params == null) {
             params = new HashMap<>();
         }
@@ -317,7 +235,8 @@ public class TargetController {
     /**
      * Deploys all current {@link Target}s.
      *
-     * @param params    any additional parameters that can be used by the {@link org.craftercms.deployer.api.DeploymentProcessor}s, for
+     * @param params    any additional parameters that can be used by the
+     *                  {@link org.craftercms.deployer.api.DeploymentProcessor}s, for
      *                  example {@code reprocess_all_files}
      *
      * @return the response entity with a 200 OK status
@@ -325,7 +244,8 @@ public class TargetController {
      * @throws DeployerException if an error occurred
      */
     @RequestMapping(value = DEPLOY_ALL_TARGETS_URL, method = RequestMethod.POST)
-    public ResponseEntity<Result> deployAllTargets(@RequestBody(required = false) Map<String, Object> params) throws DeployerException {
+    public ResponseEntity<Result> deployAllTargets(@RequestBody(required = false) Map<String, Object> params)
+            throws DeployerException {
         if (params == null) {
             params = new HashMap<>();
         }
@@ -351,15 +271,14 @@ public class TargetController {
      * @throws DeployerException if an error occurred
      */
     @RequestMapping(value = GET_PENDING_DEPLOYMENTS_URL, method = RequestMethod.GET)
-    public ResponseEntity<Collection<Deployment>> getPendingDeployments(@PathVariable(ENV_PATH_VAR_NAME) String env,
-                                                                        @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
-        throws DeployerException {
+    public ResponseEntity<Collection<Deployment>> getPendingDeployments(
+            @PathVariable(ENV_PATH_VAR_NAME) String env,
+            @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
         Target target = targetService.getTarget(env, siteName);
         Collection<Deployment> deployments = target.getPendingDeployments();
 
         return new ResponseEntity<>(deployments,
-                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL +GET_PENDING_DEPLOYMENTS_URL,
-                                                                       env, siteName),
+                                    createResponseHeaders(BASE_URL +GET_PENDING_DEPLOYMENTS_URL, env, siteName),
                                     HttpStatus.OK);
     }
 
@@ -376,13 +295,12 @@ public class TargetController {
     @RequestMapping(value = GET_CURRENT_DEPLOYMENT_URL, method = RequestMethod.GET)
     public ResponseEntity<Deployment> getCurrentDeployment(@PathVariable(ENV_PATH_VAR_NAME) String env,
                                                            @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
-        throws DeployerException {
+            throws DeployerException {
         Target target = targetService.getTarget(env, siteName);
         Deployment deployment = target.getCurrentDeployment();
 
         return new ResponseEntity<>(deployment,
-                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_CURRENT_DEPLOYMENT_URL,
-                                                                       env, siteName),
+                                    createResponseHeaders(BASE_URL + GET_CURRENT_DEPLOYMENT_URL, env, siteName),
                                     HttpStatus.OK);
     }
 
@@ -398,16 +316,76 @@ public class TargetController {
      * @throws DeployerException if an error occurred
      */
     @RequestMapping(value = GET_ALL_DEPLOYMENTS_URL, method = RequestMethod.GET)
-    public ResponseEntity<Collection<Deployment>> getAllDeployments(@PathVariable(ENV_PATH_VAR_NAME) String env,
-                                                                    @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
-        throws DeployerException {
+    public ResponseEntity<Collection<Deployment>> getAllDeployments(
+            @PathVariable(ENV_PATH_VAR_NAME) String env,
+            @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName) throws DeployerException {
         Target target = targetService.getTarget(env, siteName);
         Collection<Deployment> deployments = target.getAllDeployments();
 
         return new ResponseEntity<>(deployments,
-                                    RestServiceUtils.setLocationHeader(new HttpHeaders(), BASE_URL + GET_ALL_DEPLOYMENTS_URL,
-                                                                       env, siteName),
+                                    createResponseHeaders(BASE_URL + GET_ALL_DEPLOYMENTS_URL, env, siteName),
                                     HttpStatus.OK);
+    }
+
+    protected ResponseEntity<Result> createTarget(Map<String, Object> params, boolean createIfNotExists)
+            throws ValidationException, TargetServiceException, TargetAlreadyExistsException {
+        String env = "";
+        String siteName = "";
+        boolean replace = false;
+        String templateName = "";
+        boolean crafterSearchEnabled = false;
+        Map<String, Object> templateParams = new HashMap<>();
+
+        for (Map.Entry<String, Object> param : params.entrySet()) {
+            switch (param.getKey()) {
+                case ENV_PATH_VAR_NAME:
+                    env = param.getValue().toString();
+                    break;
+                case SITE_NAME_PATH_VAR_NAME:
+                    siteName = param.getValue().toString();
+                    break;
+                case REPLACE_PARAM_NAME:
+                    replace = BooleanUtils.toBoolean(param.getValue());
+                    break;
+                case TEMPLATE_NAME_PARAM_NAME:
+                    templateName = param.getValue().toString();
+                    break;
+                case SEARCH_ENGINE_PARAM_NAME:
+                    crafterSearchEnabled = SEARCH_ENGINE_PARAM_VALUE.equals(param.getValue());
+                    break;
+                default:
+                    templateParams.put(param.getKey(), param.getValue());
+                    break;
+            }
+        }
+
+        ValidationResult validationResult = new ValidationResult();
+        if (StringUtils.isEmpty(env)) {
+            validationResult.addError(ENV_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
+        }
+        if (StringUtils.isEmpty(siteName)) {
+            validationResult.addError(SITE_NAME_PATH_VAR_NAME, ErrorCodes.FIELD_MISSING_ERROR_CODE);
+        }
+
+        if (validationResult.hasErrors()) {
+            throw new ValidationException(validationResult);
+        }
+
+        if (createIfNotExists) {
+            if (!targetService.targetExists(env, siteName)) {
+                targetService.createTarget(env, siteName, false, templateName, crafterSearchEnabled, templateParams);
+            }
+        } else {
+            targetService.createTarget(env, siteName, replace, templateName, crafterSearchEnabled, templateParams);
+        }
+
+        return new ResponseEntity<>(Result.OK,
+                                    createResponseHeaders(BASE_URL + GET_TARGET_URL, env, siteName),
+                                    HttpStatus.CREATED);
+    }
+
+    protected HttpHeaders createResponseHeaders(String locationUrlTemplate, Object... variables) {
+        return RestServiceUtils.setLocationHeader(new HttpHeaders(), locationUrlTemplate, variables);
     }
 
 }

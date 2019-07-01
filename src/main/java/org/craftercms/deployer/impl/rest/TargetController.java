@@ -16,16 +16,13 @@
  */
 package org.craftercms.deployer.impl.rest;
 
-import java.util.*;
-
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.collections.SetUtils;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
+import org.craftercms.commons.validation.ErrorCodes;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
-import org.craftercms.commons.validation.ErrorCodes;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
@@ -39,15 +36,14 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import static org.craftercms.deployer.impl.rest.RestConstants.ENV_PATH_VAR_NAME;
-import static org.craftercms.deployer.impl.rest.RestConstants.SITE_NAME_PATH_VAR_NAME;
-import static org.craftercms.deployer.impl.rest.RestConstants.WAIT_TILL_DONE_PARAM_NAME;
+import java.util.Collection;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+
+import static org.craftercms.deployer.impl.rest.RestConstants.*;
 
 /**
  * Main controller for target related operations.

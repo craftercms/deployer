@@ -60,7 +60,7 @@ public class TargetController {
 
     public static final String BASE_URL                        = "/api/1/target";
     public static final String CREATE_TARGET_URL               = "/create";
-    public static final String CREATE_TARGET_IF_NOT_EXISTS_URL = "/create-if-not-exists";
+    public static final String CREATE_TARGET_IF_NOT_EXISTS_URL = "/create_if_not_exists";
     public static final String GET_TARGET_URL                  = "/get/{" + ENV_PATH_VAR_NAME + "}/" +
                                                                  "{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String GET_ALL_TARGETS_URL             = "/get-all";
@@ -82,10 +82,6 @@ public class TargetController {
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
     public static final String SEARCH_ENGINE_PARAM_NAME = "search_engine";
     public static final String SEARCH_ENGINE_PARAM_VALUE = "CrafterSearch";
-
-    private static final Set<String> RESERVED_CREATE_PARAMS =
-            SetUtils.asSet(ENV_PATH_VAR_NAME, SITE_NAME_PATH_VAR_NAME, REPLACE_PARAM_NAME, TEMPLATE_NAME_PARAM_NAME,
-                           SEARCH_ENGINE_PARAM_NAME);
 
     protected TargetService targetService;
     protected DeploymentService deploymentService;

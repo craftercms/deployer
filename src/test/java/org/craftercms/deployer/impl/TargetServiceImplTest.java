@@ -270,12 +270,6 @@ public class TargetServiceImplTest {
         return resolver;
     }
 
-    private List<TargetLifecycleHook> createDeleteHooks() {
-        deleteHooks = Collections.singletonList(mock(TargetLifecycleHook.class));
-
-        return deleteHooks;
-    }
-
     private Handlebars createHandlebars() {
         SpringTemplateLoader templateLoader = new SpringTemplateLoader(new DefaultResourceLoader());
         templateLoader.setPrefix("classpath:templates/targets");
@@ -285,11 +279,6 @@ public class TargetServiceImplTest {
         handlebars.prettyPrint(true);
 
         return handlebars;
-    }
-
-    private ElasticsearchAdminService createElasticsearchAdminService() {
-        ElasticsearchAdminService service = mock(ElasticsearchAdminService.class);
-        return service;
     }
 
 }

@@ -19,17 +19,13 @@ package org.craftercms.deployer.impl.lifecycle;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.TargetLifecycleException;
-import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
-import org.craftercms.search.elasticsearch.exception.ElasticsearchException;
 import org.craftercms.search.exception.SearchException;
 import org.craftercms.search.service.AdminService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
-
-import static org.craftercms.deployer.api.Target.AUTHORING_ENV;
 
 /**
  * Implementation of {@link TargetLifecycleHook} that deletes an Elasticsearch index or a Crafter Search

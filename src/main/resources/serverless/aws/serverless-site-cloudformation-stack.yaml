@@ -1,0 +1,99 @@
+AWSTemplateFormatVersion: 2010-09-09
+Description: Default Crafter Serverless Site Stack
+Parameters:
+  S3BucketName:
+    Type: String
+  CloudFrontDistributionAllowedMethods:
+    Type: CommaDelimitedList
+    Default: 'HEAD,GET'
+  CloudFrontDistributionCachedMethods:
+    Type: CommaDelimitedList
+    Default: 'HEAD,GET'
+  CloudFrontDistributionForwardedHeaderValues:
+    Type: CommaDelimitedList
+    Default: 'Access-Control-Request-Headers,Access-Control-Request-Method,Origin'
+  CloudFrontDistributionPriceClass:
+    Type: String
+    Default: PriceClass_100
+    AllowedValues:
+      - PriceClass_100
+      - PriceClass_200
+      - PriceClass_All
+  S3BucketCorsAllowedHeaders:
+    Type: CommaDelimitedList
+    Default: '*'
+  S3BucketCorsAllowedMethods:
+    Type: CommaDelimitedList
+    Default: 'HEAD,GET'
+  S3BucketCorsAllowedOrigins:
+    Type: CommaDelimitedList
+    Default: '*'
+  S3BucketCorsMaxAge:
+    Type: String
+    Default: 3000
+Resources:
+  CloudFrontOriginAccessIdentity:
+    Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
+    Properties:
+      CloudFrontOriginAccessIdentityConfig:
+        Comment: OAI for Serverless Site CloudFront
+  S3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Properties:
+      BucketName: !Ref S3BucketName
+      AccessControl: Private
+      CorsConfiguration:
+        CorsRules:
+          - AllowedHeaders: !Ref S3BucketCorsAllowedHeaders
+            AllowedMethods: !Ref S3BucketCorsAllowedMethods
+            AllowedOrigins: !Ref S3BucketCorsAllowedOrigins
+            MaxAge: !Ref S3BucketCorsMaxAge
+  S3BucketPolicy:
+    Type: 'AWS::S3::BucketPolicy'
+    Properties:
+      Bucket: !Ref S3Bucket
+      PolicyDocument:
+        Version: 2012-10-17
+        Statement:
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              AWS: !Sub 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontOriginAccessIdentity}'
+            Action: 's3:GetObject'
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+  CloudFrontDistribution:
+    Type: 'AWS::CloudFront::Distribution'
+    Properties:
+      DistributionConfig:
+        Enabled: true
+        PriceClass: !Ref CloudFrontDistributionPriceClass
+        DefaultCacheBehavior:
+          TargetOriginId: !Sub 'S3-${S3Bucket}'
+          ViewerProtocolPolicy: allow-all
+          MinTTL: 0
+          AllowedMethods: !Ref CloudFrontDistributionAllowedMethods
+          CachedMethods: !Ref CloudFrontDistributionCachedMethods
+          ForwardedValues:
+            QueryString: false
+            Headers: !Ref CloudFrontDistributionForwardedHeaderValues
+            Cookies:
+              Forward: none
+        Origins:
+          - DomainName: !Sub '${S3Bucket}.s3.amazonaws.com'
+            Id: !Sub 'S3-${S3Bucket}'
+            S3OriginConfig:
+              OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
+        Restrictions:
+          GeoRestriction:
+            RestrictionType: none
+            Locations: []
+        ViewerCertificate:
+          CloudFrontDefaultCertificate: 'true'
+          MinimumProtocolVersion: TLSv1
+Outputs:
+  S3BucketDomainName:
+    Value: !GetAtt S3Bucket.DomainName
+  CloudFrontDistributionId:
+    Value: !Ref CloudFrontDistribution
+  CloudFrontDistributionDomainName:
+    Value: !GetAtt CloudFrontDistribution.DomainName

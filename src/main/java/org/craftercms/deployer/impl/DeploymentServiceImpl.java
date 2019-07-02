@@ -47,7 +47,8 @@ public class DeploymentServiceImpl implements DeploymentService {
     }
 
     @Override
-    public List<Deployment> deployAllTargets(boolean waitTillDone, Map<String, Object> params) throws DeploymentServiceException {
+    public List<Deployment> deployAllTargets(boolean waitTillDone,
+                                             Map<String, Object> params) throws DeploymentServiceException {
         List<Target> targets;
         try {
             targets = targetService.getAllTargets();
@@ -69,11 +70,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
     @Override
     public Deployment deployTarget(String env, String siteName, boolean waitTillDone,
-                                   Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException {
+                                   Map<String, Object> params) throws TargetNotFoundException,
+                                                                      DeploymentServiceException {
         try {
             return targetService.getTarget(env, siteName).deploy(waitTillDone, params);
         } catch (TargetServiceException e) {
-            throw new DeploymentServiceException("Error while deploying target for env = " + env + ", site = " + siteName, e);
+            throw new DeploymentServiceException("Error while deploying target for env = " + env + ", site = " +
+                                                 siteName, e);
         }
     }
 

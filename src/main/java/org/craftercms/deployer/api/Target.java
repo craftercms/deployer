@@ -22,10 +22,11 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import java.io.File;
 import java.time.ZonedDateTime;
 import java.util.Collection;
+import java.util.List;
 import java.util.Map;
 
 import org.apache.commons.configuration2.Configuration;
-import org.craftercms.deployer.api.exceptions.TargetServiceException;
+import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.springframework.scheduling.TaskScheduler;
 
 /**
@@ -85,6 +86,10 @@ public interface Target {
     @JsonIgnore
     Configuration getConfiguration();
 
+    List<TargetLifecycleHook> getCreateHooks();
+
+    List<TargetLifecycleHook> getDeleteHooks();
+
     /**
      * Deploys the target.
      *
@@ -125,7 +130,7 @@ public interface Target {
      * Indicates if the target is for authoring environment.
      */
     @JsonIgnore
-    boolean isAuthoring();
+    boolean isEnvAuthoring();
 
     /**
      * Performs a cleanup of the local repository.
@@ -136,17 +141,5 @@ public interface Target {
      * Closes the target and releases any open resources.
      */
     void close();
-
-    /**
-     * Creates all search indices needed for the target
-     * @throws TargetServiceException if there is any exception creating the indices
-     */
-    void createIndex() throws TargetServiceException;
-
-    /**
-     * Deletes all search indices used for the target
-     * @throws TargetServiceException
-     */
-    void deleteIndex() throws TargetServiceException;
 
 }

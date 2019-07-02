@@ -38,6 +38,7 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
+import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -59,6 +60,7 @@ import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.*;
 import java.util.*;
+import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 
 import static org.craftercms.deployer.impl.DeploymentConstants.*;
@@ -96,7 +98,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected TaskScheduler taskScheduler;
     protected ExecutorService taskExecutor;
     protected ProcessedCommitsStore processedCommitsStore;
-    protected Set<Target> loadedTargets;
+    protected TargetLifecycleHooksResolver targetLifecycleHooksResolver;
+    protected Set<Target> currentTargets;
 
     public TargetServiceImpl(
         @Value("${deployer.main.targets.config.folderPath}") File targetConfigFolder,
@@ -110,7 +113,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
         @Autowired TaskScheduler taskScheduler,
         @Autowired ExecutorService taskExecutor,
-        @Autowired ProcessedCommitsStore processedCommitsStore) {
+        @Autowired ProcessedCommitsStore processedCommitsStore,
+        @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver) {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
@@ -123,7 +127,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.taskScheduler = taskScheduler;
         this.taskExecutor = taskExecutor;
         this.processedCommitsStore = processedCommitsStore;
-        this.loadedTargets = new HashSet<>();
+        this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
+        this.currentTargets = new CopyOnWriteArraySet<>();
     }
 
     @PostConstruct
@@ -156,8 +161,32 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public void destroy() {
         logger.info("Closing all targets...");
 
-        if (CollectionUtils.isNotEmpty(loadedTargets)) {
-            loadedTargets.forEach(Target::close);
+        if (CollectionUtils.isNotEmpty(currentTargets)) {
+            currentTargets.forEach(Target::close);
+        }
+    }
+
+    @Override
+    public List<Target> getAllTargets() throws TargetServiceException {
+        return new ArrayList<>(currentTargets);
+    }
+
+    @Override
+    public boolean targetExists(String env, String siteName) throws TargetServiceException {
+        String id = TargetImpl.getId(env, siteName);
+
+        return findLoadedTargetById(id) != null;
+    }
+
+    @Override
+    public Target getTarget(String env, String siteName) throws TargetNotFoundException {
+        String id = TargetImpl.getId(env, siteName);
+        Target target = findLoadedTargetById(id);
+
+        if (target != null) {
+            return target;
+        } else {
+            throw new TargetNotFoundException(id, env, siteName);
         }
     }
 
@@ -179,23 +208,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     @Override
-    public List<Target> getAllTargets() throws TargetServiceException {
-        return new ArrayList<>(loadedTargets);
-    }
-
-    @Override
-    public synchronized Target getTarget(String env, String siteName) throws TargetNotFoundException {
-        String id = TargetImpl.getId(env, siteName);
-        Target target = findLoadedTargetById(id);
-
-        if (target != null) {
-            return target;
-        } else {
-            throw new TargetNotFoundException(id, env, siteName);
-        }
-    }
-
-    @Override
     public synchronized Target createTarget(String env, String siteName, boolean replace, String templateName,
                                             boolean useCrafterSearch, Map<String, Object> templateParams)
         throws TargetAlreadyExistsException,
@@ -213,26 +225,28 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     @Override
-    public synchronized void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException {
+    public synchronized void deleteTarget(String env, String siteName) throws TargetNotFoundException,
+                                                                              TargetServiceException {
         Target target = getTarget(env, siteName);
         String id = target.getId();
 
         try {
-            target.deleteIndex();
+            executeDeleteHooks(target);
         } catch (Exception e) {
-            logger.error("Error deleting the search index for target {}/{}", env, siteName, e);
+            logger.error("Error while executing delete hooks for target '{}'", id);
         }
 
         target.close();
 
         logger.info("Removing loaded target '{}'", id);
 
-        loadedTargets.remove(target);
+        currentTargets.remove(target);
 
         try {
             processedCommitsStore.delete(id);
         } catch (DeployerException e) {
-            throw new TargetServiceException("Error while deleting processed commit from store for target '" + id + "'", e);
+            throw new TargetServiceException("Error while deleting processed commit from store for target '" + id +
+                                             "'", e);
         }
 
         File configFile =  target.getConfigurationFile();
@@ -242,7 +256,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             FileUtils.deleteQuietly(configFile);
         }
 
-        File contextFile = new File(targetConfigFolder, String.format(APPLICATION_CONTEXT_FILENAME_FORMAT, configFile.getName()));
+        File contextFile = new File(targetConfigFolder, String.format(APPLICATION_CONTEXT_FILENAME_FORMAT,
+                                                                      configFile.getName()));
         if (contextFile.exists()) {
             logger.info("Deleting target context file at {}", contextFile);
 
@@ -267,11 +282,12 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     protected void closeTargetsWithNoConfigFile(Collection<File> configFiles) {
-        if (CollectionUtils.isNotEmpty(loadedTargets)) {
-            loadedTargets.removeIf(target -> {
+        if (CollectionUtils.isNotEmpty(currentTargets)) {
+            currentTargets.removeIf(target -> {
                 File configFile = target.getConfigurationFile();
                 if (!configFiles.contains(configFile)) {
-                    logger.info("Config file {} doesn't exist anymore for target '{}'. Closing target...", configFile);
+                    logger.info("Config file {} doesn't exist anymore for target '{}'. Closing target...",
+                                configFile, target.getId());
 
                     target.close();
 
@@ -283,7 +299,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
     }
 
-    protected Target resolveTargetFromConfigFile(File configFile, boolean createIndex) throws TargetServiceException {
+    protected Target resolveTargetFromConfigFile(File configFile, boolean create) throws TargetServiceException {
         String baseName = FilenameUtils.getBaseName(configFile.getName());
         File contextFile = new File(targetConfigFolder, String.format(APPLICATION_CONTEXT_FILENAME_FORMAT, baseName));
         Target target = findLoadedTargetByConfigFile(configFile);
@@ -296,11 +312,12 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
             // Refresh if the files have been modified.
             if (yamlLastModified >= targetLoadedDate || contextLastModified >= targetLoadedDate) {
-                logger.info("Configuration files haven been updated for '{}'. The target will be reloaded.", target.getId());
+                logger.info("Configuration files haven been updated for '{}'. The target will be reloaded.",
+                            target.getId());
 
                 target.close();
 
-                loadedTargets.remove(target);
+                currentTargets.remove(target);
 
                 target = null;
             }
@@ -311,14 +328,15 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         if (target == null) {
             logger.info("Loading target for configuration file {}", configFile);
 
-            target = createTarget(configFile, contextFile, createIndex);
-            loadedTargets.add(target);
+            target = loadTarget(configFile, contextFile, create);
+            currentTargets.add(target);
         }
 
         return target;
     }
 
-    protected Target createTarget(File configFile, File contextFile, boolean createIndex) throws TargetServiceException {
+    @SuppressWarnings("unchecked")
+    protected Target loadTarget(File configFile, File contextFile, boolean create) throws TargetServiceException {
         try {
             HierarchicalConfiguration config = loadConfiguration(configFile);
             String env = getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
@@ -331,25 +349,29 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
             ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
-            DeploymentPipeline deploymentPipeline = deploymentPipelineFactory.getPipeline(
-                    config, context, TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
+            DeploymentPipeline deploymentPipeline =
+                    deploymentPipelineFactory.getPipeline(config, context, TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
+            List<TargetLifecycleHook> createHooks =
+                    targetLifecycleHooksResolver.getHooks(config, context, CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+            List<TargetLifecycleHook> deleteHooks =
+                    targetLifecycleHooksResolver.getHooks(config, context, DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
 
             Target target = new TargetImpl(env, siteName, localRepoPath, deploymentPipeline, configFile, config,
-                context, taskExecutor, crafterSearchEnabled, indexIdFormat);
+                                           context, taskExecutor, crafterSearchEnabled, indexIdFormat, createHooks,
+                                           deleteHooks);
 
-            if(createIndex) {
-                try {
-                    target.createIndex();
-                } catch (Exception e) {
-                    FileUtils.deleteQuietly(configFile);
-                    throw e;
-                }
+            if (create) {
+                executeCreateHooks(target);
             }
 
             scheduleDeployment(target);
 
             return target;
         } catch (Exception e) {
+            if (create) {
+                FileUtils.deleteQuietly(configFile);
+            }
+
             throw new TargetServiceException("Failed to create target for configuration file " + configFile, e);
         }
     }
@@ -401,7 +423,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             try {
                 reader.loadBeanDefinitions(baseTargetContextResource);
             } catch (Exception e) {
-                throw new ConfigurationException("Failed to load application context at " + baseTargetContextResource, e);
+                throw new ConfigurationException("Failed to load application context at " + baseTargetContextResource,
+                                                 e);
             }
         }
         if (baseTargetContextOverrideResource.exists()) {
@@ -410,7 +433,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             try {
                 reader.loadBeanDefinitions(baseTargetContextOverrideResource);
             } catch (Exception e) {
-                throw new ConfigurationException("Failed to load application context at " + baseTargetContextOverrideResource, e);
+                throw new ConfigurationException("Failed to load application context at " +
+                                                 baseTargetContextOverrideResource, e);
             }
         }
         if (contextFile.exists()) {
@@ -429,7 +453,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     protected void scheduleDeployment(Target target) throws ConfigurationException {
-        boolean enabled =  getBooleanProperty(target.getConfiguration(), TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY, true);
+        boolean enabled =  getBooleanProperty(target.getConfiguration(),
+                                              TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY, true);
         String cron = getStringProperty(target.getConfiguration(), TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY);
 
         if (enabled && StringUtils.isNotEmpty(cron)) {
@@ -471,7 +496,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
     }
 
-    protected void processConfigTemplate(String templateName, Object templateModel, Writer out) throws TargetServiceException {
+    protected void processConfigTemplate(String templateName, Object templateModel, Writer out)
+            throws TargetServiceException {
         MissingValueHelper helper = MissingValueHelper.INSTANCE;
 
         try {
@@ -491,18 +517,40 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     protected Target findLoadedTargetByConfigFile(File configFile) {
-        if (CollectionUtils.isNotEmpty(loadedTargets)) {
-            return loadedTargets.stream().filter(target -> target.getConfigurationFile().equals(configFile)).findFirst().orElse(null);
+        if (CollectionUtils.isNotEmpty(currentTargets)) {
+            return currentTargets.stream()
+                                 .filter(target -> target.getConfigurationFile().equals(configFile))
+                                 .findFirst()
+                                 .orElse(null);
         } else {
             return null;
         }
     }
 
     protected Target findLoadedTargetById(String id) {
-        if (CollectionUtils.isNotEmpty(loadedTargets)) {
-            return loadedTargets.stream().filter(target -> target.getId().equals(id)).findFirst().orElse(null);
+        if (CollectionUtils.isNotEmpty(currentTargets)) {
+            return currentTargets.stream()
+                                 .filter(target -> target.getId().equals(id))
+                                 .findFirst()
+                                 .orElse(null);
         } else {
             return null;
+        }
+    }
+
+    protected void executeCreateHooks(Target target) throws Exception {
+        logger.info("Executing create hooks for target '{}'", target.getId());
+
+        for (TargetLifecycleHook hook : target.getCreateHooks()) {
+            hook.execute(target);
+        }
+    }
+
+    protected void executeDeleteHooks(Target target) throws Exception {
+        logger.info("Executing delete hooks for target '{}'", target.getId());
+
+        for (TargetLifecycleHook hook : target.getDeleteHooks()) {
+            hook.execute(target);
         }
     }
 

@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
@@ -45,13 +46,13 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.scheduling.TaskScheduler;
 
+import static org.craftercms.deployer.impl.DeploymentConstants.CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Mockito.any;
-import static org.mockito.Mockito.anyString;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.when;
+import static org.mockito.Matchers.eq;
+import static org.mockito.Mockito.*;
 
 /**
  * Unit tests for {@link TargetServiceImplTest}.
@@ -62,6 +63,8 @@ public class TargetServiceImplTest {
 
     private TargetServiceImpl targetService;
     private File targetsFolder;
+    private List<TargetLifecycleHook> createHooks;
+    private List<TargetLifecycleHook> deleteHooks;
 
     @Before
     public void setUp() throws Exception {
@@ -88,7 +91,8 @@ public class TargetServiceImplTest {
             createDeploymentPipelineFactory(),
             createTaskScheduler(),
             createTaskExecutor(),
-            createProcessedCommitsStore());
+            createProcessedCommitsStore(),
+            createTargetLifecycleHooksResolver());
     }
 
     @After
@@ -208,6 +212,7 @@ public class TargetServiceImplTest {
         assertEquals(env, target.getConfiguration().getString(DeploymentConstants.TARGET_ENV_CONFIG_KEY));
         assertEquals(siteName, target.getConfiguration().getString(DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY));
         assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
+        verify(createHooks.get(0)).execute(target);
     }
 
     @Test
@@ -221,6 +226,7 @@ public class TargetServiceImplTest {
         targets = targetService.resolveTargets();
 
         assertEquals(0, targets.size());
+        verify(deleteHooks.get(0)).execute(any());
     }
 
     private File createTargetsFolder() throws IOException {
@@ -252,6 +258,18 @@ public class TargetServiceImplTest {
         return mock(ProcessedCommitsStore.class);
     }
 
+    private TargetLifecycleHooksResolver createTargetLifecycleHooksResolver() throws ConfigurationException,
+                                                                                     DeployerException {
+        createHooks = Collections.singletonList(mock(TargetLifecycleHook.class));
+        deleteHooks = Collections.singletonList(mock(TargetLifecycleHook.class));
+
+        TargetLifecycleHooksResolver resolver = mock(TargetLifecycleHooksResolver.class);
+        when(resolver.getHooks(any(), any(), eq(CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY))).thenReturn(createHooks);
+        when(resolver.getHooks(any(), any(), eq(DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY))).thenReturn(deleteHooks);
+
+        return resolver;
+    }
+
     private Handlebars createHandlebars() {
         SpringTemplateLoader templateLoader = new SpringTemplateLoader(new DefaultResourceLoader());
         templateLoader.setPrefix("classpath:templates/targets");
@@ -261,11 +279,6 @@ public class TargetServiceImplTest {
         handlebars.prettyPrint(true);
 
         return handlebars;
-    }
-
-    private ElasticsearchAdminService createElasticsearchAdminService() {
-        ElasticsearchAdminService service = mock(ElasticsearchAdminService.class);
-        return service;
     }
 
 }

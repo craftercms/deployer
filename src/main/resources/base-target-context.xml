@@ -27,6 +27,18 @@
     <context:annotation-config/>
     <context:property-placeholder/>
 
+    <!-- Lifecycle hooks -->
+
+    <bean id="createIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.CreateIndexLifecycleHook">
+        <property name="crafterSearchAdminService" ref="searchAdminService"/>
+        <property name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
+    </bean>
+
+    <bean id="deleteIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.DeleteIndexLifecycleHook">
+        <property name="crafterSearchAdminService" ref="searchAdminService"/>
+        <property name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
+    </bean>
+
     <!-- Deployment Processors -->
 
     <!--
@@ -54,7 +66,7 @@
     </bean>
 
     <bean id="abstractSearchIndexingProcessor" class="org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor"
-          parent="deploymentProcessor">
+          parent="deploymentProcessor" abstract="true">
         <property name="contextFactory" ref="contextFactory"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlFlatteningEnabled" value="${target.search.indexing.xml.flattening.enabled}"/>

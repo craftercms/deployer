@@ -34,6 +34,11 @@ public abstract class DeploymentConstants {
     public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
     public static final String TARGET_CRAFTER_SEARCH_CONFIG_KEY = "target.crafterSearchEnabled";
     public static final String TARGET_INDEX_ID_FORMAT_CONFIG_KEY = "target.search.indexIdFormat";
+    public static final String CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.create";
+    public static final String DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.delete";
+
+    // Target lifecycle hooks configuration keys
+    public static final String HOOK_NAME_CONFIG_KEY = "hookName";
 
     // Processor-specific Configuration Keys
 

@@ -31,12 +31,25 @@ import org.craftercms.deployer.api.exceptions.TargetServiceException;
  */
 public interface TargetService {
 
+
     /**
-     * Creates a new target with it's own configuration.
+     * Returns true if the target associated to the env and site name exists.
+     *
+     * @param env       the target's environment (e.g. dev)
+     * @param siteName  the target's site name (e.g. mysite)
+     *
+     * @return true if the target exists, false otherwise
+     * @throws TargetServiceException if a general error occurs
+     */
+    boolean targetExists(String env, String siteName) throws TargetServiceException;
+
+    /**
+     * Creates a new target with it's own configuration. Creating a target also triggers its create lifecycle hooks.
      *
      * @param env               the target's environment (e.g. dev)
      * @param siteName          the target's site name (e.g. mysite)
-     * @param replace           indicates that if there's a target with the same name, the target config should be replaced.
+     * @param replace           indicates that if there's a target with the same name, the target config should be
+     *                          replaced.
      * @param templateName      the name of the template used to create the target configuration (can be null).
      * @param templateParams    the parameters that the template needs.
      *
@@ -49,7 +62,7 @@ public interface TargetService {
                         Map<String, Object> templateParams) throws TargetAlreadyExistsException, TargetServiceException;
 
     /**
-     * Deletes a target with the given ID.
+     * Deletes a target with the given ID. Deleting the target also triggers its delete lifecycle hooks.
      *
      * @param env       the target's environment (e.g. dev)
      * @param siteName  the target's site name (e.g. mysite)
@@ -60,7 +73,8 @@ public interface TargetService {
     void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
 
     /**
-     * Scans for target configurations, loading targets with new/modified configuration and deleting targets with no configuration.
+     * Scans for target configurations, loading targets with new/modified configuration and unloading targets with
+     * no configuration. This method triggers no lifecycle hooks.
      *
      * @return existing targets, after being loaded
      *
@@ -69,7 +83,7 @@ public interface TargetService {
     List<Target> resolveTargets() throws TargetServiceException;
 
     /**
-     * Returns all current loaded targets
+     * Returns all targets.
      *
      * @return the list of targets
      *
@@ -78,7 +92,7 @@ public interface TargetService {
     List<Target> getAllTargets() throws TargetServiceException;
 
     /**
-     * Returns the loaded target with the given ID
+     * Returns the current target with the given ID
      *
      * @param env       the target's environment (e.g. dev)
      * @param siteName  the target's site name (e.g. mysite) 

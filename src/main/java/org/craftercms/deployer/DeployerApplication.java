@@ -66,8 +66,6 @@ import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCAT
 @ImportResource(CORE_APP_CONTEXT_LOCATION)
 public class DeployerApplication implements WebMvcConfigurer  {
 
-	private static final Logger logger = LoggerFactory.getLogger(DeployerApplication.class);
-
 	public static final String CORE_APP_CONTEXT_LOCATION = "classpath:crafter/core/core-context.xml";
 
 	@Value("${deployer.main.taskScheduler.poolSize}")

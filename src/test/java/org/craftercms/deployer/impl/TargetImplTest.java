@@ -46,8 +46,8 @@ public class TargetImplTest {
     @Before
     public void setUp() throws Exception {
         count = 0;
-        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, null, createDeploymentPipeline(),
-            null, null, null, Executors.newSingleThreadExecutor(), true, null);
+        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, null, createDeploymentPipeline(), null, null, null,
+                                Executors.newSingleThreadExecutor(), true, null, null, null);
     }
 
     @Test

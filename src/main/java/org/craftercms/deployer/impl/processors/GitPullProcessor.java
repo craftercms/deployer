@@ -61,7 +61,7 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  */
 public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
-    public static final String REMOTE_REPO_NAME_CONFIG_KEY = "remoteRepo.name";
+    protected static final String REMOTE_REPO_NAME_CONFIG_KEY = "remoteRepo.name";
 
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 

@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Required;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 import static org.craftercms.deployer.utils.ConfigUtils.getStringArrayProperty;
 
@@ -59,9 +60,12 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     protected String siteName;
     protected String targetId;
     protected String name;
+    protected boolean initialized;
 
     // Config properties (populated on init)
 
+    protected Configuration config;
+    protected boolean lazyInit;
     protected String label;
     protected String jumpTo;
     protected String[] includeFiles;
@@ -107,12 +111,26 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
 
     @Override
     public void init(Configuration config) throws ConfigurationException, DeployerException {
+        this.config = config;
+
+        lazyInit = getBooleanProperty(config, DeploymentConstants.PROCESSOR_LAZY_INIT_KEY, false);
         label = getStringProperty(config, DeploymentConstants.PROCESSOR_LABEL_CONFIG_KEY);
         jumpTo = getStringProperty(config, DeploymentConstants.PROCESSOR_JUMP_TO_CONFIG_KEY);
         includeFiles = getStringArrayProperty(config, DeploymentConstants.PROCESSOR_INCLUDE_FILES_CONFIG_KEY);
         excludeFiles = getStringArrayProperty(config, DeploymentConstants.PROCESSOR_EXCLUDE_FILES_CONFIG_KEY);
 
-        doInit(config);
+        if (!lazyInit) {
+            doInit(config);
+            initialized = true;
+        }
+    }
+
+
+    @Override
+    public void destroy() throws DeployerException {
+        if (initialized) {
+            doDestroy();
+        }
     }
 
     @Override
@@ -121,6 +139,16 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
         ChangeSet filteredChangeSet = getFilteredChangeSet(originalChangeSet);
 
         if (!isJumpToActive(deployment) && shouldExecute(deployment, filteredChangeSet)) {
+            if (!initialized) {
+                try {
+                    doInit(config);
+                    initialized = true;
+                } catch (ConfigurationException | DeployerException e) {
+                    logger.error("Unable to initialize processor {} @ {} ", name, targetId, e);
+                    return;
+                }
+            }
+
             logger.info("----- < {} @ {} > -----", name, targetId);
 
             try {
@@ -199,6 +227,8 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     protected abstract boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet);
 
     protected abstract void doInit(Configuration config) throws ConfigurationException, DeployerException;
+
+    protected abstract void doDestroy() throws DeployerException;
 
     protected abstract ChangeSet doExecute(Deployment deployment, ChangeSet filteredChangeSet,
                                            ChangeSet originalChangeSet) throws Exception;

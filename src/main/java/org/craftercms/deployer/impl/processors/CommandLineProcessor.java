@@ -43,11 +43,11 @@ public class CommandLineProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(CommandLineProcessor.class);
 
-    public static final String WORKING_DIR_CONFIG_KEY = "workingDir";
-    public static final String COMMAND_CONFIG_KEY = "command";
-    public static final String PROCESS_TIMEOUT_SECS_CONFIG_KEY = "processTimeoutSecs";
+    protected static final String WORKING_DIR_CONFIG_KEY = "workingDir";
+    protected static final String COMMAND_CONFIG_KEY = "command";
+    protected static final String PROCESS_TIMEOUT_SECS_CONFIG_KEY = "processTimeoutSecs";
 
-    public static final long DEFAULT_PROCESS_TIMEOUT_SECS = 30;
+    protected static final long DEFAULT_PROCESS_TIMEOUT_SECS = 30;
 
     // Config properties (populated on init)
 
@@ -63,8 +63,8 @@ public class CommandLineProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    public void destroy() {
-        // Not used
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
     @Override

@@ -32,12 +32,12 @@ import org.springframework.beans.factory.annotation.Required;
  */
 public class SearchIndexingProcessor extends AbstractSearchIndexingProcessor {
 
-    private static final String LOCAL_ID_FIELD = "localId";
-    private static final String SEARCH_RESULTS_RESPONSE_PROPERTY = "response";
-    private static final String SEARCH_RESULTS_NUM_FOUND_PROPERTY = "numFound";
-    private static final String SEARCH_RESULTS_DOCUMENTS_PROPERTY = "documents";
+    protected static final String LOCAL_ID_FIELD = "localId";
+    protected static final String SEARCH_RESULTS_RESPONSE_PROPERTY = "response";
+    protected static final String SEARCH_RESULTS_NUM_FOUND_PROPERTY = "numFound";
+    protected static final String SEARCH_RESULTS_DOCUMENTS_PROPERTY = "documents";
 
-    public static final String DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_FORMAT = "includedDescriptors:\"%s\"";
+    protected static final String DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_FORMAT = "includedDescriptors:\"%s\"";
 
     protected String itemsThatIncludeComponentQueryFormat;
 

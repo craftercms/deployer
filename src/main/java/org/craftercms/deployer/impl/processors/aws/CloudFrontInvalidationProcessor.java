@@ -27,7 +27,8 @@ import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.ConfigUtils;
+import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
+import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import com.amazonaws.services.cloudfront.AmazonCloudFront;
@@ -50,15 +51,18 @@ import static org.craftercms.deployer.utils.ConfigUtils.*;
  *
  * @author joseross
  */
-public class CloudfrontInvalidationProcessor extends
-    AbstractAwsDeploymentProcessor<AmazonCloudFrontClientBuilder, AmazonCloudFront> {
+public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(CloudfrontInvalidationProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(CloudFrontInvalidationProcessor.class);
 
-    public static final String CONFIG_KEY_DISTRIBUTIONS = "distributions";
+    protected static final String CONFIG_KEY_DISTRIBUTIONS = "distributions";
 
     // Config properties (populated on init)
 
+    /**
+     * Helper class the configures credentials and other properties for a {@link AmazonCloudFront} client.
+     */
+    protected AwsClientBuilderConfigurer builderConfigurer;
     /**
      * List of distribution ids
      */
@@ -69,6 +73,7 @@ public class CloudfrontInvalidationProcessor extends
      */
     @Override
     protected void doInit(final Configuration config) throws ConfigurationException {
+        builderConfigurer = new AwsClientBuilderConfigurer(config);
         distributions = getRequiredStringArrayProperty(config, CONFIG_KEY_DISTRIBUTIONS);
     }
 
@@ -90,17 +95,19 @@ public class CloudfrontInvalidationProcessor extends
 
         logger.info("Will invalidate {} files", changedFiles.size());
 
-        for(String distribution : distributions) {
+        for (String distribution : distributions) {
             try {
                 String caller = UUID.randomUUID().toString();
+
                 logger.info("Creating invalidation for distribution {} with reference {}", distribution, caller);
+
                 InvalidationBatch batch = new InvalidationBatch().withPaths(paths).withCallerReference(caller);
                 CreateInvalidationRequest request = new CreateInvalidationRequest(distribution, batch);
                 CreateInvalidationResult result = client.createInvalidation(request);
-                logger.info("Created invalidation {} for distribution {}",
-                            result.getInvalidation().getId(), distribution);
+
+                logger.info("Created invalidation {} for distribution {}", result.getInvalidation().getId(),
+                            distribution);
             } catch (Exception e) {
-                logger.error("Error invalidating changed files for distribution " + distribution, e);
                 throw new DeployerException("Error invalidating changed files for distribution " + distribution, e);
             }
         }
@@ -109,11 +116,13 @@ public class CloudfrontInvalidationProcessor extends
     }
 
     /**
-     * {@inheritDoc}
+     * Builds the {@link AmazonCloudFront} client.
      */
-    @Override
-    protected AmazonCloudFrontClientBuilder createClientBuilder() {
-        return AmazonCloudFrontClientBuilder.standard();
+    protected AmazonCloudFront buildClient() {
+        AmazonCloudFrontClientBuilder builder = AmazonCloudFrontClientBuilder.standard();
+        builderConfigurer.configureClientBuilder(builder);
+
+        return builder.build();
     }
 
     /**
@@ -128,8 +137,8 @@ public class CloudfrontInvalidationProcessor extends
      * {@inheritDoc}
      */
     @Override
-    public void destroy() {
-        // nothing to do...
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
 }

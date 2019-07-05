@@ -42,9 +42,10 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(FileOutputProcessor.class);
 
-    public static final String OUTPUT_FILE_PARAM_NAME = "outputFile";
-    public static final String[] HEADERS = { "status", "duration", "start", "end", "created_files", "deleted_files",
-        "updated_files" };
+    protected static final String OUTPUT_FILE_PARAM_NAME = "outputFile";
+    protected static final String[] HEADERS = {
+            "status", "duration", "start", "end", "created_files", "deleted_files", "updated_files"
+    };
 
     protected File outputFolder;
 
@@ -68,7 +69,8 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    public void destroy() throws DeployerException {
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
     @Override

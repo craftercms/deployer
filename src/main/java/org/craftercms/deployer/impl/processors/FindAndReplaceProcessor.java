@@ -54,8 +54,8 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(FindAndReplaceProcessor.class);
 
-    public static final String CONFIG_KEY_TEXT_PATTERN = "textPattern";
-    public static final String CONFIG_KEY_REPLACEMENT = "replacement";
+    protected static final String CONFIG_KEY_TEXT_PATTERN = "textPattern";
+    protected static final String CONFIG_KEY_REPLACEMENT = "replacement";
 
     /**
      * URL for the local git repository.
@@ -93,8 +93,7 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
     @Override
     protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
                                       ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        logger.info("Performing find and replace...");
-        logger.debug("Pattern '{}' will be replaced with '{}'", textPattern, replacement);
+        logger.info("Performing find & replace. Pattern '{}' will be replaced with '{}'...", textPattern, replacement);
 
         for(String file :
             ListUtils.union(filteredChangeSet.getCreatedFiles(), filteredChangeSet.getUpdatedFiles())) {
@@ -131,8 +130,8 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
      * {@inheritDoc}
      */
     @Override
-    public void destroy() {
-        // nothing to do...
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
 }

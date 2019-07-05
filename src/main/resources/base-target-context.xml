@@ -30,14 +30,27 @@
     <!-- Lifecycle hooks -->
 
     <bean id="createIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.CreateIndexLifecycleHook">
+        <property name="siteName" value="${target.siteName}"/>
+        <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
         <property name="crafterSearchAdminService" ref="searchAdminService"/>
         <property name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
     </bean>
 
     <bean id="deleteIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.DeleteIndexLifecycleHook">
+        <property name="siteName" value="${target.siteName}"/>
+        <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
         <property name="crafterSearchAdminService" ref="searchAdminService"/>
         <property name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
     </bean>
+
+    <bean id="createCloudFormationLifecycleHook"
+          class="org.craftercms.deployer.impl.lifecycle.aws.CreateCloudFormationLifecycleHook">
+        <property name="templatesResource" value="${deployer.main.targets.config.aws.cloudformation.location}"/>
+        <property name="templatesOverrideResource" value="${deployer.main.targets.config.aws.cloudformation.overrideLocation}"/>
+    </bean>
+
+    <bean id="deleteCloudFormationLifecycleHook"
+          class="org.craftercms.deployer.impl.lifecycle.aws.DeleteCloudFormationLifecycleHook"/>
 
     <!-- Deployment Processors -->
 
@@ -268,13 +281,19 @@
 
     <!-- AWS -->
 
+    <bean id="verifyCloudFormationStatusProcessor"
+          class="org.craftercms.deployer.impl.processors.aws.VerifyCloudFormationStatusProcessor"
+          parent="deploymentProcessor">
+        <property name="targetConfig" ref="targetConfig"/>
+    </bean>
+
     <bean id="s3SyncProcessor" class="org.craftercms.deployer.impl.processors.aws.S3SyncProcessor"
           parent="deploymentProcessor">
         <property name="localRepoUrl" value="${target.localRepoPath}"/>
     </bean>
 
     <bean id="cloudfrontInvalidationProcessor" parent="deploymentProcessor"
-          class="org.craftercms.deployer.impl.processors.aws.CloudfrontInvalidationProcessor"/>
+          class="org.craftercms.deployer.impl.processors.aws.CloudFrontInvalidationProcessor"/>
 
     <bean id="findAndReplaceProcessor" class="org.craftercms.deployer.impl.processors.FindAndReplaceProcessor"
           parent="deploymentProcessor">

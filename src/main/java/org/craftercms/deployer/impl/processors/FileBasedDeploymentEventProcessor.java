@@ -49,10 +49,10 @@ public class FileBasedDeploymentEventProcessor extends AbstractMainDeploymentPro
 
     private static final Logger logger = LoggerFactory.getLogger(FileBasedDeploymentEventProcessor.class);
 
-    private static final String DEFAULT_DEPLOYMENT_EVENTS_FILE_URL= "deployment-events.properties";
+    protected static final String DEFAULT_DEPLOYMENT_EVENTS_FILE_URL= "deployment-events.properties";
 
-    public static final String CONFIG_KEY_DEPLOYMENT_EVENTS_FILE_URL = "deploymentEventsFileUrl";
-    public static final String CONFIG_KEY_EVENT_NAME = "eventName";
+    protected static final String CONFIG_KEY_DEPLOYMENT_EVENTS_FILE_URL = "deploymentEventsFileUrl";
+    protected static final String CONFIG_KEY_EVENT_NAME = "eventName";
 
     /**
      * URL for the local git repository.
@@ -133,8 +133,8 @@ public class FileBasedDeploymentEventProcessor extends AbstractMainDeploymentPro
     }
 
     @Override
-    public void destroy() throws DeployerException {
-        // Nothing to do
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
 }

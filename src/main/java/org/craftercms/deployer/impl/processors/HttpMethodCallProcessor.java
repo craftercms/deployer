@@ -50,8 +50,8 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(HttpMethodCallProcessor.class);
 
-    public static final String URL_CONFIG_KEY = "url";
-    public static final String METHOD_CONFIG_KEY = "method";
+    protected static final String URL_CONFIG_KEY = "url";
+    protected static final String METHOD_CONFIG_KEY = "method";
 
     // Config properties (populated on init)
 
@@ -67,8 +67,8 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    public void destroy() {
-        IOUtils.closeQuietly(httpClient);
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
     @Override

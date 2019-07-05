@@ -62,12 +62,12 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractSearchIndexingProcessor.class);
 
-    public static final String INDEX_ID_CONFIG_KEY = "indexId";
-    public static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
-    public static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
+    protected static final String INDEX_ID_CONFIG_KEY = "indexId";
+    protected static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
+    protected static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
 
-    public static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
-    public static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
+    protected static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
+    protected static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
 
     protected ObjectFactory<Context> contextFactory;
     protected ContentStoreService contentStoreService;
@@ -168,7 +168,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     }
 
     @Override
-    public void destroy() {
+    protected void doDestroy() throws DeployerException {
         // Do nothing
     }
 

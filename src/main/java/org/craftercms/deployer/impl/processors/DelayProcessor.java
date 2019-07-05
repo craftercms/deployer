@@ -21,6 +21,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
+import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -39,7 +40,7 @@ public class DelayProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(DelayProcessor.class);
 
-    public static final String CONFIG_KEY_SECONDS = "seconds";
+    protected static final String CONFIG_KEY_SECONDS = "seconds";
 
     // Config properties (populated in init)
 
@@ -86,8 +87,8 @@ public class DelayProcessor extends AbstractMainDeploymentProcessor {
      * {@inheritDoc}
      */
     @Override
-    public void destroy() {
-        // nothing to do...
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
 }

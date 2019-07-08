@@ -34,6 +34,11 @@ target:
           S3BucketName: ${aws.cloudformation.s3BucketName}
     delete:
       - hookName: deleteIndexLifecycleHook
+      - hookName: clearS3BucketLifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        bucketName: ${aws.cloudformation.s3BucketName}
       - hookName: deleteCloudFormationLifecycleHook
         region: ${aws.region}
         accessKey: ${aws.cloudformation.accessKey}

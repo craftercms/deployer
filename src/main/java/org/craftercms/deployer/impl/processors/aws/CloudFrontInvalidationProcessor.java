@@ -17,11 +17,15 @@
 
 package org.craftercms.deployer.impl.processors.aws;
 
+import java.nio.charset.StandardCharsets;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.http.client.utils.URLEncodedUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
@@ -37,6 +41,7 @@ import com.amazonaws.services.cloudfront.model.CreateInvalidationRequest;
 import com.amazonaws.services.cloudfront.model.CreateInvalidationResult;
 import com.amazonaws.services.cloudfront.model.InvalidationBatch;
 import com.amazonaws.services.cloudfront.model.Paths;
+import org.springframework.web.util.UriUtils;
 
 import static org.craftercms.deployer.utils.ConfigUtils.*;
 
@@ -89,27 +94,36 @@ public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProce
 
         AmazonCloudFront client = buildClient();
 
-        List<String> changedFiles =
-            ListUtils.union(filteredChangeSet.getCreatedFiles(), filteredChangeSet.getUpdatedFiles());
-        Paths paths = new Paths().withItems(changedFiles).withQuantity(changedFiles.size());
+        List<String> changedFiles = ListUtils.union(filteredChangeSet.getCreatedFiles(),
+                                                    filteredChangeSet.getUpdatedFiles());
 
-        logger.info("Will invalidate {} files", changedFiles.size());
+        if (CollectionUtils.isNotEmpty(changedFiles)) {
+            changedFiles = changedFiles.stream()
+                                       .map(f -> UriUtils.encodePath(f, StandardCharsets.UTF_8))
+                                       .collect(Collectors.toList());
 
-        for (String distribution : distributions) {
-            try {
-                String caller = UUID.randomUUID().toString();
+            Paths paths = new Paths().withItems(changedFiles).withQuantity(changedFiles.size());
 
-                logger.info("Creating invalidation for distribution {} with reference {}", distribution, caller);
+            logger.info("Will invalidate {} files", changedFiles.size());
 
-                InvalidationBatch batch = new InvalidationBatch().withPaths(paths).withCallerReference(caller);
-                CreateInvalidationRequest request = new CreateInvalidationRequest(distribution, batch);
-                CreateInvalidationResult result = client.createInvalidation(request);
+            for (String distribution : distributions) {
+                try {
+                    String caller = UUID.randomUUID().toString();
 
-                logger.info("Created invalidation {} for distribution {}", result.getInvalidation().getId(),
-                            distribution);
-            } catch (Exception e) {
-                throw new DeployerException("Error invalidating changed files for distribution " + distribution, e);
+                    logger.info("Creating invalidation for distribution {} with reference {}", distribution, caller);
+
+                    InvalidationBatch batch = new InvalidationBatch().withPaths(paths).withCallerReference(caller);
+                    CreateInvalidationRequest request = new CreateInvalidationRequest(distribution, batch);
+                    CreateInvalidationResult result = client.createInvalidation(request);
+
+                    logger.info("Created invalidation {} for distribution {}", result.getInvalidation().getId(),
+                                distribution);
+                } catch (Exception e) {
+                    throw new DeployerException("Error invalidating changed files for distribution " + distribution, e);
+                }
             }
+        } else {
+            logger.info("No actual files that need to be invalidated");
         }
 
         return null;

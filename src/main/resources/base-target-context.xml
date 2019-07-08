@@ -52,6 +52,9 @@
     <bean id="deleteCloudFormationLifecycleHook"
           class="org.craftercms.deployer.impl.lifecycle.aws.DeleteCloudFormationLifecycleHook"/>
 
+    <bean id="clearS3BucketLifecycleHook"
+          class="org.craftercms.deployer.impl.lifecycle.aws.ClearS3BucketLifecycleHook"/>
+
     <!-- Deployment Processors -->
 
     <!--

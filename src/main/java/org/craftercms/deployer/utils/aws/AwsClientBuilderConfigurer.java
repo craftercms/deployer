@@ -14,8 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
-package org.craftercms.deployer.impl.processors.aws;
+package org.craftercms.deployer.utils.aws;
 
 import com.amazonaws.auth.AWSStaticCredentialsProvider;
 import com.amazonaws.auth.BasicAWSCredentials;
@@ -23,33 +22,19 @@ import com.amazonaws.client.builder.AwsClientBuilder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 
-import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
- * Base implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} for all AWS related services
- * Can be configured with the following YAML properties:
+ * Helper class the configures a {@code AwsClientBuilder} with properties like region and credentials.
  *
- * <ul>
- *     <li><strong>region:</strong> AWS Region</li>
- *     <li><strong>accessKey:</strong> AWS Access Key</li>
- *     <li><strong>secretKey:</strong> AWS Secret Key</li>
- * </ul>
- *
- * @author joseross
- * @param <B> {@link AwsClientBuilder} for the service that will be used
- * @param <T> AWS service interface that will be used
+ * @author avasquez
  */
-public abstract class AbstractAwsDeploymentProcessor<B extends AwsClientBuilder, T>
-    extends AbstractMainDeploymentProcessor {
+public class AwsClientBuilderConfigurer {
 
     public static final String CONFIG_KEY_REGION = "region";
     public static final String CONFIG_KEY_ACCESS_KEY = "accessKey";
     public static final String CONFIG_KEY_SECRET_KEY = "secretKey";
-
-    // Config properties (populated on init)
 
     /**
      * AWS Region
@@ -65,11 +50,12 @@ public abstract class AbstractAwsDeploymentProcessor<B extends AwsClientBuilder,
     protected String secretKey;
 
     /**
-     * {@inheritDoc}
+     * Main constructor Extracts the region and credentials from the config.
+     *
+     * @param config the config with the client properties
+     * @throws ConfigurationException if an exception occurs while reading the configuration
      */
-    @Override
-    public void init(final Configuration config) throws ConfigurationException, DeployerException {
-        super.init(config);
+    public AwsClientBuilderConfigurer(Configuration config) throws ConfigurationException {
         if (config.containsKey(CONFIG_KEY_REGION)) {
             region = getStringProperty(config, CONFIG_KEY_REGION);
         }
@@ -80,10 +66,11 @@ public abstract class AbstractAwsDeploymentProcessor<B extends AwsClientBuilder,
     }
 
     /**
-     * Sets the credentials (if provided) for the given {@link AwsClientBuilder}
-     * @param builder the client builder
+     * Configures the specified builder, with any credentials and other properties provided in the configuration.
+     *
+     * @param builder the AWS client builder
      */
-    protected void setCredentials(AwsClientBuilder builder) {
+    public void configureClientBuilder(AwsClientBuilder<?, ?> builder) {
         if (StringUtils.isNotEmpty(region)) {
             builder.withRegion(region);
         }
@@ -91,21 +78,5 @@ public abstract class AbstractAwsDeploymentProcessor<B extends AwsClientBuilder,
             builder.withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)));
         }
     }
-
-    /**
-     * Created a new instance of an {@link AwsClientBuilder} and configures the credentials
-     * @return the client builder
-     */
-    protected T buildClient() {
-        AwsClientBuilder<B, T> builder = createClientBuilder();
-        setCredentials(builder);
-        return builder.build();
-    }
-
-    /**
-     * Creates an {@link AwsClientBuilder} for any service.
-     * @return the client builder
-     */
-    protected abstract AwsClientBuilder<B, T> createClientBuilder();
 
 }

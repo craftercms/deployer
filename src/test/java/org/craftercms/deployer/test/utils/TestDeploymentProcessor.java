@@ -44,13 +44,13 @@ public class TestDeploymentProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    public void destroy() {
-        // Do nothing
+    protected void doInit(Configuration config) throws ConfigurationException {
+        text = getStringProperty(config, "text");
     }
 
     @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        text = getStringProperty(config, "text");
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
     @Override

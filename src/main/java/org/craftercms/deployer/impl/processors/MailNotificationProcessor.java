@@ -202,7 +202,8 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    public void destroy() throws DeployerException {
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
     @Override

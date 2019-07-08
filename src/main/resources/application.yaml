@@ -42,16 +42,22 @@ deployer:
           # The override location (Spring URL) of the base Spring context file for targets
           overrideLocation: file:${deployer.main.config.folderPath}/base-target-context.xml
         templates:
-          # The location (Spring URL) where target YAML templates can be found. Target templates are used to create new targets.
-          location: classpath:templates/targets
-          # The override location (Spring URL) where target YAML templates can be found. Target templates are used to create new targets.
-          overrideLocation: file:${deployer.main.config.folderPath}/templates/targets
+          # The location (Spring URL) of the base folder where target YAML templates can be found. Target templates are used to create new targets.
+          location: classpath:templates/targets/
+          # The override location (Spring URL) of the base folder where target YAML templates can be found. Target templates are used to create new targets.
+          overrideLocation: file:${deployer.main.config.folderPath}/templates/targets/
           # The encoding used to read the templates
           encoding: UTF-8
           # The name of the default template
           default: default
           # The suffix used to resolve the final name of a target template
           suffix: -target-template.yaml
+        aws:
+          cloudformation:
+            # The location (Spring URL) of the base folder where AWS CloudFormation template files can be found (should end in /)
+            location: classpath:aws/cloudformation/
+            # The override location of the base folder where AWS CloudFormation template files can be found (should end in /)
+            overrideLocation: file:${deployer.main.config.folderPath}/aws/cloudformation/
       scan:
         scheduling:
           # If scheduled scanning of new/updated targets should be enabled

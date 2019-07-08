@@ -69,7 +69,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(GitDiffProcessor.class);
 
-    public static final String INCLUDE_GIT_LOG_CONFIG_KEY = "includeGitLog";
+    protected static final String INCLUDE_GIT_LOG_CONFIG_KEY = "includeGitLog";
 
     protected File localRepoFolder;
     protected ProcessedCommitsStore processedCommitsStore;
@@ -100,7 +100,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    public void destroy() throws DeployerException {
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
 
     @Override

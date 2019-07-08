@@ -270,13 +270,13 @@ public class TargetImpl implements Target {
                 logger.info("============================================================");
 
                 deploymentPipeline.execute(currentDeployment);
-
+            } finally {
                 double durationInSecs = currentDeployment.getDuration() / 1000.0;
 
                 logger.info("============================================================");
                 logger.info("Deployment for {} finished in {} secs", getId(), String.format("%.3f", durationInSecs));
                 logger.info("============================================================");
-            } finally {
+
                 currentDeployment = null;
 
                 MDC.remove(DeploymentConstants.TARGET_ID_MDC_KEY);

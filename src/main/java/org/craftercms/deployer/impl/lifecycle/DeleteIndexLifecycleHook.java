@@ -16,16 +16,13 @@
  */
 package org.craftercms.deployer.impl.lifecycle;
 
-import org.apache.commons.configuration2.Configuration;
 import org.craftercms.deployer.api.Target;
-import org.craftercms.deployer.api.exceptions.TargetLifecycleException;
+import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
-import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.search.exception.SearchException;
 import org.craftercms.search.service.AdminService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
 /**
  * Implementation of {@link TargetLifecycleHook} that deletes an Elasticsearch index or a Crafter Search
@@ -33,42 +30,24 @@ import org.springframework.beans.factory.annotation.Required;
  *
  * @author avasquez
  */
-public class DeleteIndexLifecycleHook implements TargetLifecycleHook {
+public class DeleteIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
 
     private static final Logger logger = LoggerFactory.getLogger(CreateIndexLifecycleHook.class);
 
-    private AdminService crafterSearchAdminService;
-    private ElasticsearchAdminService elasticsearchAdminService;
-
-    @Required
-    public void setCrafterSearchAdminService(AdminService crafterSearchAdminService) {
-        this.crafterSearchAdminService = crafterSearchAdminService;
-    }
-
-    @Required
-    public void setElasticsearchAdminService(ElasticsearchAdminService elasticsearchAdminService) {
-        this.elasticsearchAdminService = elasticsearchAdminService;
-    }
-
     @Override
-    public void init(Configuration config) {
-        // Nothing to do
-    }
-
-    @Override
-    public void execute(Target target) throws TargetLifecycleException {
+    public void execute(Target target) throws DeployerException {
         try {
             if (target.isCrafterSearchEnabled()) {
                 logger.info("Deleting Crafter Search based index for target '{}'", target.getId());
 
-                crafterSearchAdminService.deleteIndex(target.getId(), AdminService.IndexDeleteMode.ALL_DATA);
+                crafterSearchAdminService.deleteIndex(indexId, AdminService.IndexDeleteMode.ALL_DATA);
             } else {
                 logger.info("Deleting Elasticsearch index for target '{}'", target.getId());
 
-                elasticsearchAdminService.deleteIndex(target.getId());
+                elasticsearchAdminService.deleteIndex(indexId);
             }
         } catch (SearchException e) {
-            throw new TargetLifecycleException("Error creating index for target " + target.getId(), e);
+            throw new DeployerException("Error creating index for target " + target.getId(), e);
         }
     }
 

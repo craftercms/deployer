@@ -60,14 +60,14 @@ import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
  */
 public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDeploymentProcessor {
 
-    public static final String REMOTE_REPO_URL_CONFIG_KEY = "remoteRepo.url";
-    public static final String REMOTE_REPO_BRANCH_CONFIG_KEY = "remoteRepo.branch";
-    public static final String REMOTE_REPO_USERNAME_CONFIG_KEY = "remoteRepo.username";
-    public static final String REMOTE_REPO_PASSWORD_CONFIG_KEY = "remoteRepo.password";
-    public static final String REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY = "remoteRepo.ssh.privateKey.path";
-    public static final String REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY = "remoteRepo.ssh.privateKey.passphrase";
+    protected static final String REMOTE_REPO_URL_CONFIG_KEY = "remoteRepo.url";
+    protected static final String REMOTE_REPO_BRANCH_CONFIG_KEY = "remoteRepo.branch";
+    protected static final String REMOTE_REPO_USERNAME_CONFIG_KEY = "remoteRepo.username";
+    protected static final String REMOTE_REPO_PASSWORD_CONFIG_KEY = "remoteRepo.password";
+    protected static final String REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY = "remoteRepo.ssh.privateKey.path";
+    protected static final String REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY = "remoteRepo.ssh.privateKey.passphrase";
 
-    public static final String GIT_SSH_URL_REGEX = "^(ssh://.+)|([a-zA-Z0-9._-]+@.+)$";
+    protected static final String GIT_SSH_URL_REGEX = "^(ssh://.+)|([a-zA-Z0-9._-]+@.+)$";
 
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 
@@ -92,7 +92,7 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
     }
 
     @Override
-    public void destroy() {
+    protected void doDestroy() throws DeployerException {
         // Do nothing
     }
 

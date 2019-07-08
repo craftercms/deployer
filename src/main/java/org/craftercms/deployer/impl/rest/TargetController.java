@@ -180,7 +180,7 @@ public class TargetController {
      */
     @RequestMapping(value = DELETE_IF_EXIST_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Void> deleteTargetIfExists(@PathVariable(ENV_PATH_VAR_NAME) String env,
-                                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
+                                                     @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName)
             throws DeployerException {
 
         try {

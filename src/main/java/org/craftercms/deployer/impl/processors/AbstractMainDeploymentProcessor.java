@@ -33,7 +33,6 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     protected ChangeSet doExecute(Deployment deployment, ChangeSet filteredChangeSet,
                                   ChangeSet originalChangeSet) throws Exception {
         ProcessorExecution execution = new ProcessorExecution(name);
-
         deployment.addProcessorExecution(execution);
 
         try {

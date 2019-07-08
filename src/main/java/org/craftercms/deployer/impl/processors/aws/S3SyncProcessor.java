@@ -21,6 +21,8 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import com.amazonaws.services.cloudfront.AmazonCloudFront;
+import com.amazonaws.services.cloudfront.AmazonCloudFrontClientBuilder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
@@ -30,6 +32,8 @@ import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
+import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -55,13 +59,13 @@ import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringPropert
  *
  * @author joseross
  */
-public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3ClientBuilder, AmazonS3> {
+public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(S3SyncProcessor.class);
 
-    public static final String CONFIG_KEY_URL = "url";
+    protected static final String CONFIG_KEY_URL = "url";
 
-    public static final String DELIMITER = "/";
+    protected static final String DELIMITER = "/";
 
     /**
      * URL for the local git repository
@@ -70,6 +74,10 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
 
     // Config properties (populated on init)
 
+    /**
+     * Helper class the configures credentials and other properties for a {@link AmazonS3} client.
+     */
+    protected AwsClientBuilderConfigurer builderConfigurer;
     /**
      * AWS S3 bucket URL
      */
@@ -85,6 +93,7 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
      */
     @Override
     protected void doInit(final Configuration config) throws ConfigurationException {
+        builderConfigurer = new AwsClientBuilderConfigurer(config);
         s3Url = new AmazonS3URI(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
     }
 
@@ -94,8 +103,7 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
     @Override
     protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
                                       ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        logger.info("Performing S3 sync...");
-        logger.debug("Syncing with bucket {}", s3Url);
+        logger.info("Performing S3 sync with bucket {}...", s3Url);
 
         try {
             AmazonS3 client = buildClient();
@@ -111,7 +119,6 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
                 deleteFiles(client, filteredChangeSet.getDeletedFiles());
             }
         } catch (AmazonS3Exception e) {
-            logger.error("Error connecting to S3", e);
             throw new DeployerException("Error connecting to S3", e);
         }
 
@@ -126,15 +133,18 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
      */
     protected void uploadFiles(AmazonS3 client, List<String> paths) throws DeployerException {
         logger.info("Uploading {} files", paths.size());
+
         TransferManager transferManager = TransferManagerBuilder.standard().withS3Client(client).build();
         List<File> files = paths.stream().map(path -> new File(localRepoUrl, path)).collect(Collectors.toList());
+
         try {
-            MultipleFileUpload upload = transferManager.uploadFileList(s3Url.getBucket(),
-                StringUtils.prependIfMissing(siteName, s3Url.getKey()), new File(localRepoUrl), files);
+            MultipleFileUpload upload = transferManager.uploadFileList(
+                    s3Url.getBucket(), StringUtils.prependIfMissing(siteName, s3Url.getKey()),
+                    new File(localRepoUrl), files);
             upload.waitForCompletion();
+
             logger.debug("Uploads completed");
         } catch (Exception e) {
-            logger.error("Error uploading files " + paths, e);
             throw new DeployerException("Error uploading files " + paths, e);
         } finally {
             transferManager.shutdownNow(false);
@@ -158,9 +168,9 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
                 DeleteObjectsRequest request =
                     new DeleteObjectsRequest(s3Url.getBucket()).withKeys(keys.toArray(new String[] {}));
                 DeleteObjectsResult result = client.deleteObjects(request);
+
                 logger.debug("Deleted files: {}", result.getDeletedObjects());
             } catch (Exception e) {
-                logger.error("Error deleting files", e);
                 throw new DeployerException("Error deleting files", e);
             }
         }
@@ -182,11 +192,13 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
 
 
     /**
-     * {@inheritDoc}
+     * Builds the {@link AmazonS3} client.
      */
-    @Override
-    protected AmazonS3ClientBuilder createClientBuilder() {
-        return AmazonS3ClientBuilder.standard();
+    protected AmazonS3 buildClient() {
+        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+        builderConfigurer.configureClientBuilder(builder);
+
+        return builder.build();
     }
 
     /**
@@ -201,8 +213,7 @@ public class S3SyncProcessor extends AbstractAwsDeploymentProcessor<AmazonS3Clie
      * {@inheritDoc}
      */
     @Override
-    public void destroy() {
-        // nothing to do...
+    protected void doDestroy() throws DeployerException {
+        // Do nothing
     }
-
 }

@@ -1,0 +1,137 @@
+aws:
+  region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
+  accessKey: {{#if aws.access_key}}{{aws.access_key}}{{else}}''{{/if}}
+  secretKey: {{#if aws.secret_key}}{{aws.secret_key}}{{else}}''{{/if}}
+  cloudformation:
+    accessKey: {{#if aws.cloudformation.access_key}}{{aws.cloudformation.access_key}}{{else}}''{{/if}}
+    secretKey: {{#if aws.cloudformation.secret_key}}{{aws.cloudformation.secret_key}}{{else}}''{{/if}}
+    stackName: {{aws.resources_prefix}}{{site_name}}-stack
+    s3BucketName: {{aws.resources_prefix}}{{site_name}}-site
+    s3Url: s3://${aws.cloudformation.s3BucketName}
+target:
+  env: {{env}}
+  siteName: {{site_name}}
+  {{#if local_repo_path}}
+  localRepoPath: {{local_repo_path}}
+  {{/if}}
+  crafterSearchEnabled: {{#if use_crafter_search}}{{use_crafter_search}}{{else}}false{{/if}}
+  {{#if elastic_search_url}}
+  search:
+    elasticsearch:
+      urls:
+        - {{elastic_search_url}}
+  {{/if}}
+  lifecycleHooks:
+    create:
+      - hookName: createIndexLifecycleHook
+      - hookName: createCloudFormationLifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        stackName: ${aws.cloudformation.stackName}
+        templateFilename: serverless-site-stack.yaml
+        templateParams:
+          S3BucketName: ${aws.cloudformation.s3BucketName}
+    delete:
+      - hookName: deleteIndexLifecycleHook
+      - hookName: clearS3BucketLifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        bucketName: ${aws.cloudformation.s3BucketName}
+      - hookName: deleteCloudFormationLifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        stackName: ${aws.cloudformation.stackName}
+  deployment:
+    {{#if disable_deploy_cron}}
+    scheduling:
+       enabled: false
+    {{/if}}
+    pipeline:
+      - processorName: verifyCloudFormationStatusProcessor
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        stackName: ${aws.cloudformation.stackName}
+        outputMappings:
+          CloudFrontDistributionId: aws.cloudformation.cloudfrontDistribution.id
+          CloudFrontDistributionDomainName: aws.cloudformation.cloudfrontDistribution.domainName
+      # -------------------- START OF MAIN PIPELINE --------------------
+      - processorName: gitPullProcessor
+        lazyInit: true
+        remoteRepo:
+          url: {{repo_url}}
+          {{#if repo_branch}}
+          branch: {{repo_branch}}
+          {{/if}}
+          {{#if repo_username}}
+          username: {{repo_username}}
+          {{/if}}
+          {{#if repo_password}}
+          password: {{repo_password}}
+          {{/if}}
+          {{#if ssh_private_key_path}}
+          ssh:
+            privateKey:
+              path: {{ssh_private_key_path}}
+              {{#if ssh_private_key_passphrase}}
+              passphrase: {{ssh_private_key_passphrase}}
+              {{/if}}
+          {{/if}}
+      - processorName: gitDiffProcessor
+        lazyInit: true
+      - processorName: findAndReplaceProcessor
+        lazyInit: true
+        includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
+        textPattern: (/static-assets/[^&quot;&lt;]+)
+        replacement: http://${aws.cloudformation.cloudfrontDistribution.domainName}$1
+      - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticsearchIndexingProcessor{{/if}}
+        lazyInit: true
+      - processorName: s3SyncProcessor
+        lazyInit: true
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        url: ${aws.cloudformation.s3Url}
+      - processorName: delayProcessor
+        lazyInit: true
+        {{#if delay}}seconds: {{delay}}{{/if}}
+      - processorName: cloudfrontInvalidationProcessor
+        lazyInit: true
+        includeFiles: ['^/static-assets/.*$']
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        distributions:
+          - ${aws.cloudformation.cloudfrontDistribution.id}
+      - processorName: fileBasedDeploymentEventProcessor
+        lazyInit: true
+        includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
+        excludeFiles: ['^/config/studio/content-types/.*$']
+        eventName: 'events.deployment.rebuildContext'
+      - processorName: fileBasedDeploymentEventProcessor
+        lazyInit: true
+        excludeFiles: ['^/static-assets/.*$']
+        eventName: 'events.deployment.clearCache'
+      - processorName: fileBasedDeploymentEventProcessor
+        lazyInit: true
+        includeFiles: ['^/config/studio/content-types/.*$']
+        eventName: 'events.deployment.rebuildGraphQL'
+      - processorName: s3SyncProcessor
+        lazyInit: true
+        includeFiles: ['^/?deployment-events\.properties$']
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        url: ${aws.cloudformation.s3Url}
+      # -------------------- END OF MAIN PIPELINE --------------------
+      - processorName: fileOutputProcessor
+      {{#if notification_addresses}}
+      - processorName: mailNotificationProcessor
+        to:
+          {{#list notification_addresses}}
+          - {{this}}
+          {{/list}}
+      {{/if}}

@@ -16,9 +16,12 @@
  */
 package org.craftercms.deployer.impl;
 
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.slf4j.Logger;
@@ -30,6 +33,7 @@ import org.springframework.stereotype.Component;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.commons.config.ConfigUtils.getConfigurationsAt;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.HOOK_NAME_CONFIG_KEY;
 import static org.craftercms.deployer.utils.ConfigUtils.getRequiredConfigurationsAt;
@@ -48,24 +52,26 @@ public class TargetLifecycleHooksResolverImpl implements TargetLifecycleHooksRes
     public List<TargetLifecycleHook> getHooks(HierarchicalConfiguration<ImmutableNode> configuration,
                                               ApplicationContext applicationContext, String lifecycleHooksPropertyName)
             throws ConfigurationException, DeployerException {
-        List<HierarchicalConfiguration<ImmutableNode>> hookConfigs =
-                getRequiredConfigurationsAt(configuration, lifecycleHooksPropertyName);
+        List<HierarchicalConfiguration<ImmutableNode>> hookConfigs = getConfigurationsAt(configuration,
+                                                                                         lifecycleHooksPropertyName);
         List<TargetLifecycleHook> hooks = new ArrayList<>();
 
-        for (HierarchicalConfiguration hookConfig : hookConfigs) {
-            String hookName = getRequiredStringProperty(hookConfig, HOOK_NAME_CONFIG_KEY);
+        if (CollectionUtils.isNotEmpty(hookConfigs)) {
+            for (HierarchicalConfiguration hookConfig : hookConfigs) {
+                String hookName = getRequiredStringProperty(hookConfig, HOOK_NAME_CONFIG_KEY);
 
-            logger.debug("Initializing target lifecycle hook '{}'", hookName);
+                logger.debug("Initializing target lifecycle hook '{}'", hookName);
 
-            try {
-                TargetLifecycleHook hook = applicationContext.getBean(hookName, TargetLifecycleHook.class);
-                hook.init(hookConfig);
+                try {
+                    TargetLifecycleHook hook = applicationContext.getBean(hookName, TargetLifecycleHook.class);
+                    hook.init(hookConfig);
 
-                hooks.add(hook);
-            } catch (NoSuchBeanDefinitionException e) {
-                throw new DeployerException("No target lifecycle hook bean found with name '" + hookName + "'", e);
-            } catch (Exception e) {
-                throw new DeployerException("Failed to initialize target lifecycle hook '" + hookName + "'", e);
+                    hooks.add(hook);
+                } catch (NoSuchBeanDefinitionException e) {
+                    throw new DeployerException("No target lifecycle hook bean found with name '" + hookName + "'", e);
+                } catch (Exception e) {
+                    throw new DeployerException("Failed to initialize target lifecycle hook '" + hookName + "'", e);
+                }
             }
         }
 

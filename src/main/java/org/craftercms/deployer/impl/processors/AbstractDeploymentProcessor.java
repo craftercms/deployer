@@ -64,8 +64,6 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
 
     // Config properties (populated on init)
 
-    protected Configuration config;
-    protected boolean lazyInit;
     protected String label;
     protected String jumpTo;
     protected String[] includeFiles;
@@ -111,26 +109,18 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
 
     @Override
     public void init(Configuration config) throws ConfigurationException, DeployerException {
-        this.config = config;
-
-        lazyInit = getBooleanProperty(config, DeploymentConstants.PROCESSOR_LAZY_INIT_KEY, false);
         label = getStringProperty(config, DeploymentConstants.PROCESSOR_LABEL_CONFIG_KEY);
         jumpTo = getStringProperty(config, DeploymentConstants.PROCESSOR_JUMP_TO_CONFIG_KEY);
         includeFiles = getStringArrayProperty(config, DeploymentConstants.PROCESSOR_INCLUDE_FILES_CONFIG_KEY);
         excludeFiles = getStringArrayProperty(config, DeploymentConstants.PROCESSOR_EXCLUDE_FILES_CONFIG_KEY);
 
-        if (!lazyInit) {
-            doInit(config);
-            initialized = true;
-        }
+        doInit(config);
     }
 
 
     @Override
     public void destroy() throws DeployerException {
-        if (initialized) {
-            doDestroy();
-        }
+        doDestroy();
     }
 
     @Override
@@ -139,16 +129,6 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
         ChangeSet filteredChangeSet = getFilteredChangeSet(originalChangeSet);
 
         if (!isJumpToActive(deployment) && shouldExecute(deployment, filteredChangeSet)) {
-            if (!initialized) {
-                try {
-                    doInit(config);
-                    initialized = true;
-                } catch (ConfigurationException | DeployerException e) {
-                    logger.error("Unable to initialize processor {} @ {} ", name, targetId, e);
-                    return;
-                }
-            }
-
             logger.info("----- < {} @ {} > -----", name, targetId);
 
             try {

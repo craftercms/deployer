@@ -19,28 +19,19 @@ package org.craftercms.deployer.api;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.utils.beans.InitializableByConfigBean;
 
 /**
  * Represents a single deployment processor.
  *
  * @author avasquez
  */
-public interface DeploymentProcessor {
+public interface DeploymentProcessor extends InitializableByConfigBean {
 
     /**
      * Returns true if this processor runs after the deployment has finalized.
      */
     boolean isPostDeployment();
-
-    /**
-     * Initializes the processor, configuring it by using the specified configuration.
-     *
-     * @param config    the processor configuration
-     *
-     * @throws ConfigurationException if there's configuration related exception
-     * @throws DeployerException if there's a general exception on init
-     */
-    void init(Configuration config) throws ConfigurationException, DeployerException;
 
     /**
      * Destroys the processor, closing and releasing any used resources.

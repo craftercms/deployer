@@ -52,6 +52,11 @@
     <bean id="deleteCloudFormationLifecycleHook"
           class="org.craftercms.deployer.impl.lifecycle.aws.DeleteCloudFormationLifecycleHook"/>
 
+    <bean id="waitTillCloudFormationStackUsableLifecycleHook"
+          class="org.craftercms.deployer.impl.lifecycle.aws.WaitTillCloudFormationStackUsableLifecycleHook">
+        <property name="targetConfig" ref="targetConfig"/>
+    </bean>
+
     <bean id="clearS3BucketLifecycleHook"
           class="org.craftercms.deployer.impl.lifecycle.aws.ClearS3BucketLifecycleHook"/>
 
@@ -283,12 +288,6 @@
     </bean>
 
     <!-- AWS -->
-
-    <bean id="verifyCloudFormationStatusProcessor"
-          class="org.craftercms.deployer.impl.processors.aws.VerifyCloudFormationStatusProcessor"
-          parent="deploymentProcessor">
-        <property name="targetConfig" ref="targetConfig"/>
-    </bean>
 
     <bean id="s3SyncProcessor" class="org.craftercms.deployer.impl.processors.aws.S3SyncProcessor"
           parent="deploymentProcessor">

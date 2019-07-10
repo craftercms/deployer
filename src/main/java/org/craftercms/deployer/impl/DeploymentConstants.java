@@ -33,8 +33,8 @@ public abstract class DeploymentConstants {
     public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
     public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
     public static final String TARGET_CRAFTER_SEARCH_CONFIG_KEY = "target.crafterSearchEnabled";
-    public static final String TARGET_INDEX_ID_FORMAT_CONFIG_KEY = "target.search.indexIdFormat";
     public static final String CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.create";
+    public static final String INIT_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.init";
     public static final String DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.delete";
 
     // Target lifecycle hooks configuration keys
@@ -44,7 +44,6 @@ public abstract class DeploymentConstants {
 
     public static final String PROCESSOR_NAME_CONFIG_KEY = "processorName";
     public static final String PROCESSOR_LABEL_CONFIG_KEY = "processorLabel";
-    public static final String PROCESSOR_LAZY_INIT_KEY = "lazyInit";
     public static final String PROCESSOR_JUMP_TO_CONFIG_KEY = "jumpTo";
     public static final String PROCESSOR_INCLUDE_FILES_CONFIG_KEY = "includeFiles";
     public static final String PROCESSOR_EXCLUDE_FILES_CONFIG_KEY = "excludeFiles";

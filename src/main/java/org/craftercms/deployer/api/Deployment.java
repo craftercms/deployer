@@ -209,7 +209,7 @@ public class Deployment {
     }
 
     public enum Status {
-        SUCCESS, FAILURE
+        SUCCESS, FAILURE, INTERRUPTED
     }
 
     @Override

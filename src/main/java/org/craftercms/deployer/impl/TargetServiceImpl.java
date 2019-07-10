@@ -31,7 +31,6 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
-import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -59,6 +58,7 @@ import org.xml.sax.InputSource;
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import java.io.*;
+import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
@@ -230,17 +230,11 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         Target target = getTarget(env, siteName);
         String id = target.getId();
 
-        try {
-            executeDeleteHooks(target);
-        } catch (Exception e) {
-            logger.error("Error while executing delete hooks for target '{}'", id);
-        }
-
-        target.close();
-
         logger.info("Removing loaded target '{}'", id);
 
         currentTargets.remove(target);
+
+        target.delete();
 
         try {
             processedCommitsStore.delete(id);
@@ -343,28 +337,21 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
             String targetId = TargetImpl.getId(env, siteName);
             String localRepoPath = getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
-            String indexIdFormat = getRequiredStringProperty(config, TARGET_INDEX_ID_FORMAT_CONFIG_KEY);
             boolean crafterSearchEnabled = getBooleanProperty(config, TARGET_CRAFTER_SEARCH_CONFIG_KEY, false);
 
             config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
             ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
-            List<TargetLifecycleHook> createHooks =
-                    targetLifecycleHooksResolver.getHooks(config, context, CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
-            List<TargetLifecycleHook> deleteHooks =
-                    targetLifecycleHooksResolver.getHooks(config, context, DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
-            DeploymentPipeline deploymentPipeline =
-                    deploymentPipelineFactory.getPipeline(config, context, TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
 
-            Target target = new TargetImpl(env, siteName, localRepoPath, deploymentPipeline, configFile, config,
-                                           context, taskExecutor, crafterSearchEnabled, indexIdFormat, createHooks,
-                                           deleteHooks);
+            Target target = new TargetImpl(ZonedDateTime.now(), env, siteName, localRepoPath, configFile, config,
+                                           context, taskExecutor, taskScheduler, targetLifecycleHooksResolver,
+                                           deploymentPipelineFactory, crafterSearchEnabled);
 
             if (create) {
                 executeCreateHooks(target);
             }
 
-            scheduleDeployment(target);
+            startInit(target);
 
             return target;
         } catch (Exception e) {
@@ -372,7 +359,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 FileUtils.deleteQuietly(configFile);
             }
 
-            throw new TargetServiceException("Failed to create target for configuration file " + configFile, e);
+            throw new TargetServiceException("Failed to load target for configuration file " + configFile, e);
         }
     }
 
@@ -452,18 +439,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         return context;
     }
 
-    protected void scheduleDeployment(Target target) throws ConfigurationException {
-        boolean enabled =  getBooleanProperty(target.getConfiguration(),
-                                              TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY, true);
-        String cron = getStringProperty(target.getConfiguration(), TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY);
-
-        if (enabled && StringUtils.isNotEmpty(cron)) {
-            logger.info("Deployment for target '{}' scheduled with cron {}", target.getId(), cron);
-
-            target.scheduleDeployment(taskScheduler, cron);
-        }
-    }
-
     protected void createConfigFromTemplate(String env, String siteName, String targetId, String templateName,
                                             boolean useCrafterSearch, Map<String, Object> templateParameters,
                                             File configFile) throws TargetServiceException {
@@ -539,19 +514,18 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     protected void executeCreateHooks(Target target) throws Exception {
+        List<TargetLifecycleHook> createHooks = targetLifecycleHooksResolver.getHooks(
+                target.getConfiguration(), target.getApplicationContext(), CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+
         logger.info("Executing create hooks for target '{}'", target.getId());
 
-        for (TargetLifecycleHook hook : target.getCreateHooks()) {
+        for (TargetLifecycleHook hook : createHooks) {
             hook.execute(target);
         }
     }
 
-    protected void executeDeleteHooks(Target target) throws Exception {
-        logger.info("Executing delete hooks for target '{}'", target.getId());
-
-        for (TargetLifecycleHook hook : target.getDeleteHooks()) {
-            hook.execute(target);
-        }
+    protected void startInit(Target target) {
+        taskExecutor.execute(target::init);
     }
 
     protected class CustomConfigFileFilter extends AbstractFileFilter {

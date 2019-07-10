@@ -62,25 +62,30 @@ public class ClearS3BucketLifecycleHook implements TargetLifecycleHook {
         try {
             boolean done = false;
             AmazonS3 s3 = buildClient();
-            ObjectListing listing = s3.listObjects(bucketName);
 
-            logger.info("Clearing S3 bucket '{}'...", bucketName);
+            if (s3.doesBucketExistV2(bucketName)) {
+                ObjectListing listing = s3.listObjects(bucketName);
 
-            while (!done) {
-                List<DeleteObjectsRequest.KeyVersion> objectsToDelete =
-                        listing.getObjectSummaries().stream()
-                               .map(object -> new DeleteObjectsRequest.KeyVersion(object.getKey()))
-                               .collect(Collectors.toList());
+                logger.info("Clearing S3 bucket '{}'...", bucketName);
 
-                logger.info("Deleting {} files", objectsToDelete.size());
+                while (!done) {
+                    List<DeleteObjectsRequest.KeyVersion> objectsToDelete =
+                            listing.getObjectSummaries().stream()
+                                   .map(object -> new DeleteObjectsRequest.KeyVersion(object.getKey()))
+                                   .collect(Collectors.toList());
 
-                s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(objectsToDelete));
+                    logger.info("Deleting {} files", objectsToDelete.size());
 
-                if (listing.isTruncated()) {
-                    listing = s3.listNextBatchOfObjects(listing);
-                } else {
-                    done = true;
+                    s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(objectsToDelete));
+
+                    if (listing.isTruncated()) {
+                        listing = s3.listNextBatchOfObjects(listing);
+                    } else {
+                        done = true;
+                    }
                 }
+            } else {
+
             }
         } catch (Exception e) {
             throw new DeployerException("Error while trying to clear S3 bucket '" + bucketName + "'", e);

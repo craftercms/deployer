@@ -64,7 +64,6 @@ public class TargetServiceImplTest {
     private TargetServiceImpl targetService;
     private File targetsFolder;
     private List<TargetLifecycleHook> createHooks;
-    private List<TargetLifecycleHook> deleteHooks;
 
     @Before
     public void setUp() throws Exception {
@@ -226,7 +225,6 @@ public class TargetServiceImplTest {
         targets = targetService.resolveTargets();
 
         assertEquals(0, targets.size());
-        verify(deleteHooks.get(0)).execute(any());
     }
 
     private File createTargetsFolder() throws IOException {
@@ -261,11 +259,9 @@ public class TargetServiceImplTest {
     private TargetLifecycleHooksResolver createTargetLifecycleHooksResolver() throws ConfigurationException,
                                                                                      DeployerException {
         createHooks = Collections.singletonList(mock(TargetLifecycleHook.class));
-        deleteHooks = Collections.singletonList(mock(TargetLifecycleHook.class));
 
         TargetLifecycleHooksResolver resolver = mock(TargetLifecycleHooksResolver.class);
         when(resolver.getHooks(any(), any(), eq(CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY))).thenReturn(createHooks);
-        when(resolver.getHooks(any(), any(), eq(DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY))).thenReturn(deleteHooks);
 
         return resolver;
     }

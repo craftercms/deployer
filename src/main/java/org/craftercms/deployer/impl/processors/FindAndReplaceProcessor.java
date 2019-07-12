@@ -99,18 +99,17 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
             ListUtils.union(filteredChangeSet.getCreatedFiles(), filteredChangeSet.getUpdatedFiles())) {
 
             try {
-                logger.info("Performing find and replace for file {}", file);
                 Path path = Paths.get(localRepoUrl, file);
                 String content = new String(Files.readAllBytes(path));
                 String updated = content.replaceAll(textPattern, replacement);
+
                 if(StringUtils.equals(content, updated)) {
-                    logger.debug("No matches found on file {}", file);
+                    logger.debug("No matches found for file {}", file);
                 } else {
-                    logger.debug("Updating content for file {}", file);
+                    logger.debug("Writing changes to file {}", file);
                     Files.write(path, updated.getBytes());
                 }
             } catch (Exception e) {
-                logger.error("Error performing find and replace on file " + file, e);
                 throw new DeployerException("Error performing find and replace on file " + file, e);
             }
         }

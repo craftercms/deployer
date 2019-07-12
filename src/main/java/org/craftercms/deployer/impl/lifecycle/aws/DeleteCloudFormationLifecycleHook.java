@@ -17,10 +17,9 @@
 package org.craftercms.deployer.impl.lifecycle.aws;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.cloudformation.model.*;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.IOUtils;
+import org.apache.commons.lang.ArrayUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -29,13 +28,6 @@ import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsCloudFormationUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
-import org.springframework.core.io.Resource;
-
-import java.io.FileNotFoundException;
-import java.nio.charset.StandardCharsets;
-import java.util.Collection;
-import java.util.Iterator;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
@@ -49,6 +41,12 @@ public class DeleteCloudFormationLifecycleHook implements TargetLifecycleHook {
     private static final Logger logger = LoggerFactory.getLogger(DeleteCloudFormationLifecycleHook.class);
 
     protected static final String CONFIG_KEY_STACK_NAME = "stackName";
+
+    protected static final String[] STACK_STATUS_CODES_DELETED = {
+            "DELETE_COMPLETE",
+            "DELETE_FAILED",
+            "DELETE_IN_PROGRESS"
+    };
 
     // Config properties (populated on init)
 
@@ -64,8 +62,9 @@ public class DeleteCloudFormationLifecycleHook implements TargetLifecycleHook {
     @Override
     public void execute(Target target) throws DeployerException {
         AmazonCloudFormation cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
+        Stack stack = AwsCloudFormationUtils.getStack(cloudFormation, stackName);
 
-        if (AwsCloudFormationUtils.stackExists(cloudFormation, stackName)) {
+        if (stack != null && !ArrayUtils.contains(STACK_STATUS_CODES_DELETED, stack.getStackStatus())) {
             logger.info("Deleting CloudFormation stack '{}'", stackName);
 
             try {
@@ -76,7 +75,7 @@ public class DeleteCloudFormationLifecycleHook implements TargetLifecycleHook {
                 throw new DeployerException("Error while deleting CloudFormation stack '" + stackName + "'", e);
             }
         } else {
-            logger.info("CloudFormation stack '{}' doesn't exist. Skipping delete...", stackName);
+            logger.info("CloudFormation stack '{}' doesn't exist or has been deleted. Skipping delete...", stackName);
         }
     }
 

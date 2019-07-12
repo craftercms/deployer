@@ -17,11 +17,9 @@
 package org.craftercms.deployer.impl;
 
 import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.slf4j.Logger;
@@ -36,7 +34,6 @@ import java.util.List;
 import static org.craftercms.commons.config.ConfigUtils.getConfigurationsAt;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.HOOK_NAME_CONFIG_KEY;
-import static org.craftercms.deployer.utils.ConfigUtils.getRequiredConfigurationsAt;
 
 /**
  * Default implementation of {@link TargetLifecycleHooksResolver}.

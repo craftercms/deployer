@@ -84,8 +84,6 @@ public class ClearS3BucketLifecycleHook implements TargetLifecycleHook {
                         done = true;
                     }
                 }
-            } else {
-
             }
         } catch (Exception e) {
             throw new DeployerException("Error while trying to clear S3 bucket '" + bucketName + "'", e);

@@ -34,7 +34,6 @@ import org.springframework.beans.factory.annotation.Required;
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 import static org.craftercms.deployer.utils.ConfigUtils.getStringArrayProperty;
 

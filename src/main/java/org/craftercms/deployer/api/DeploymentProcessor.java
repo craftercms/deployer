@@ -16,8 +16,6 @@
  */
 package org.craftercms.deployer.api;
 
-import org.apache.commons.configuration2.Configuration;
-import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.utils.beans.InitializableByConfigBean;
 

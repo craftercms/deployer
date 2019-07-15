@@ -27,6 +27,8 @@ target:
           url: {{repo_url}}
           {{#if repo_branch}}
           branch: {{repo_branch}}
+          {{else}}
+          branch: live
           {{/if}}
           {{#if repo_username}}
           username: {{repo_username}}

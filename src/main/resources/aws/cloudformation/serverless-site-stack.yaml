@@ -91,8 +91,6 @@ Resources:
           CloudFrontDefaultCertificate: 'true'
           MinimumProtocolVersion: TLSv1
 Outputs:
-  S3BucketDomainName:
-    Value: !GetAtt S3Bucket.DomainName
   CloudFrontDistributionId:
     Value: !Ref CloudFrontDistribution
   CloudFrontDistributionDomainName:

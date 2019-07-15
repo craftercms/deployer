@@ -1,12 +1,13 @@
 aws:
   region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
-  accessKey: {{#if aws.access_key}}{{aws.access_key}}{{else}}''{{/if}}
-  secretKey: {{#if aws.secret_key}}{{aws.secret_key}}{{else}}''{{/if}}
+  accessKey: {{#if aws.default_access_key}}{{aws.default_access_key}}{{else}}''{{/if}}
+  secretKey: {{#if aws.default_secret_key}}{{aws.default_secret_key}}{{else}}''{{/if}}
   cloudformation:
-    accessKey: {{#if aws.cloudformation.access_key}}{{aws.cloudformation.access_key}}{{else}}''{{/if}}
-    secretKey: {{#if aws.cloudformation.secret_key}}{{aws.cloudformation.secret_key}}{{else}}''{{/if}}
-    stackName: {{aws.resources_prefix}}{{site_name}}-stack
-    s3BucketName: {{aws.resources_prefix}}{{site_name}}-site
+    namespace: {{aws.cloudformation.namespace}}
+    accessKey: {{#if aws.cloudformation.access_key}}{{aws.cloudformation.access_key}}{{else}}${aws.accessKey}{{/if}}
+    secretKey: {{#if aws.cloudformation.secret_key}}{{aws.cloudformation.secret_key}}{{else}}${aws.secretKey}{{/if}}
+    stackName: ${aws.cloudformation.namespace}-{{site_name}}-stack
+    s3BucketName: ${aws.cloudformation.namespace}-{{site_name}}-content
     s3Url: s3://${aws.cloudformation.s3BucketName}
 target:
   env: {{env}}
@@ -32,6 +33,15 @@ target:
         templateFilename: serverless-site-stack.yaml
         templateParams:
           S3BucketName: ${aws.cloudformation.s3BucketName}
+    init:
+      - hookName: waitTillCloudFormationStackUsableLifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        stackName: ${aws.cloudformation.stackName}
+        outputMappings:
+          CloudFrontDistributionId: aws.cloudformation.cloudfrontDistribution.id
+          CloudFrontDistributionDomainName: aws.cloudformation.cloudfrontDistribution.domainName
     delete:
       - hookName: deleteIndexLifecycleHook
       - hookName: clearS3BucketLifecycleHook
@@ -50,17 +60,8 @@ target:
        enabled: false
     {{/if}}
     pipeline:
-      - processorName: verifyCloudFormationStatusProcessor
-        region: ${aws.region}
-        accessKey: ${aws.cloudformation.accessKey}
-        secretKey: ${aws.cloudformation.secretKey}
-        stackName: ${aws.cloudformation.stackName}
-        outputMappings:
-          CloudFrontDistributionId: aws.cloudformation.cloudfrontDistribution.id
-          CloudFrontDistributionDomainName: aws.cloudformation.cloudfrontDistribution.domainName
       # -------------------- START OF MAIN PIPELINE --------------------
       - processorName: gitPullProcessor
-        lazyInit: true
         remoteRepo:
           url: {{repo_url}}
           {{#if repo_branch}}
@@ -81,25 +82,19 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-        lazyInit: true
       - processorName: findAndReplaceProcessor
-        lazyInit: true
         includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
         textPattern: (/static-assets/[^&quot;&lt;]+)
         replacement: http://${aws.cloudformation.cloudfrontDistribution.domainName}$1
       - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticsearchIndexingProcessor{{/if}}
-        lazyInit: true
       - processorName: s3SyncProcessor
-        lazyInit: true
         region: ${aws.region}
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
         url: ${aws.cloudformation.s3Url}
       - processorName: delayProcessor
-        lazyInit: true
         {{#if delay}}seconds: {{delay}}{{/if}}
       - processorName: cloudfrontInvalidationProcessor
-        lazyInit: true
         includeFiles: ['^/static-assets/.*$']
         region: ${aws.region}
         accessKey: ${aws.accessKey}
@@ -107,20 +102,16 @@ target:
         distributions:
           - ${aws.cloudformation.cloudfrontDistribution.id}
       - processorName: fileBasedDeploymentEventProcessor
-        lazyInit: true
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
         excludeFiles: ['^/config/studio/content-types/.*$']
         eventName: 'events.deployment.rebuildContext'
       - processorName: fileBasedDeploymentEventProcessor
-        lazyInit: true
         excludeFiles: ['^/static-assets/.*$']
         eventName: 'events.deployment.clearCache'
       - processorName: fileBasedDeploymentEventProcessor
-        lazyInit: true
         includeFiles: ['^/config/studio/content-types/.*$']
         eventName: 'events.deployment.rebuildGraphQL'
       - processorName: s3SyncProcessor
-        lazyInit: true
         includeFiles: ['^/?deployment-events\.properties$']
         region: ${aws.region}
         accessKey: ${aws.accessKey}

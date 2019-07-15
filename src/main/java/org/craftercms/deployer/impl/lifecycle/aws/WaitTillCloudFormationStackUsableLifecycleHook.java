@@ -14,7 +14,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.processors.aws;
+package org.craftercms.deployer.impl.lifecycle.aws;
 
 import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.model.Output;
@@ -23,11 +23,9 @@ import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang.ArrayUtils;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.deployer.api.ChangeSet;
-import org.craftercms.deployer.api.Deployment;
-import org.craftercms.deployer.api.ProcessorExecution;
+import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
+import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsCloudFormationUtils;
 import org.slf4j.Logger;
@@ -39,20 +37,20 @@ import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 
+import static org.craftercms.commons.config.ConfigUtils.getIntegerProperty;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
- * Processor that verifies the status of a CloudFormation stack. If the status indicates the stack is usable,
- * deployment continues and the outputs of the stack are mapped to target configuration properties that can be used
- * by other processors. If the stack has an operation in progress (most of the time, create), the deployment
- * will be finished immediately so a future deployment can check again if the stack is ready. If the stack is
- * in an unusable state, and exception is thrown to indicate that any issues should be fixed before continuing.
+ * {@link TargetLifecycleHook} that waits until a CloudFormation stack is usable, and then maps the outputs of the
+ * stack to target configuration properties.
  *
  * @author avasquez
  */
-public class VerifyCloudFormationStatusProcessor extends AbstractMainDeploymentProcessor {
+public class WaitTillCloudFormationStackUsableLifecycleHook implements TargetLifecycleHook {
 
-    private static final Logger logger = LoggerFactory.getLogger(VerifyCloudFormationStatusProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(WaitTillCloudFormationStackUsableLifecycleHook.class);
+
+    public static final int DEFAULT_SECONDS_BEFORE_CHECKING_STATUS = 60;
 
     protected static final String[] STACK_STATUS_CODES_USABLE = {
             "CREATE_COMPLETE",
@@ -71,6 +69,7 @@ public class VerifyCloudFormationStatusProcessor extends AbstractMainDeploymentP
 
     protected static final String CONFIG_KEY_STACK_NAME = "stackName";
     protected static final String CONFIG_KEY_OUTPUT_MAPPINGS = "outputMappings";
+    protected static final String CONFIG_KEY_SECONDS_BEFORE_CHECKING_STATUS = "secondsBeforeCheckingStatus";
 
     protected Configuration targetConfig;
 
@@ -79,8 +78,9 @@ public class VerifyCloudFormationStatusProcessor extends AbstractMainDeploymentP
     protected AwsClientBuilderConfigurer builderConfigurer;
     protected String stackName;
     protected Map<String, String> outputMappings;
+    protected int secondsBeforeCheckingStatus;
 
-    public VerifyCloudFormationStatusProcessor() {
+    public WaitTillCloudFormationStackUsableLifecycleHook() {
         this.outputMappings = new HashMap<>();
     }
 
@@ -90,15 +90,11 @@ public class VerifyCloudFormationStatusProcessor extends AbstractMainDeploymentP
     }
 
     @Override
-    protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
-        // Run if the deployment is running
-        return deployment.isRunning();
-    }
-
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
+    public void init(Configuration config) throws ConfigurationException {
         builderConfigurer = new AwsClientBuilderConfigurer(config);
         stackName = getRequiredStringProperty(config, CONFIG_KEY_STACK_NAME);
+        secondsBeforeCheckingStatus = getIntegerProperty(config, CONFIG_KEY_SECONDS_BEFORE_CHECKING_STATUS,
+                                                         DEFAULT_SECONDS_BEFORE_CHECKING_STATUS);
 
         Configuration outputMappingsConfig = config.subset(CONFIG_KEY_OUTPUT_MAPPINGS);
         if (outputMappingsConfig != null) {
@@ -113,41 +109,42 @@ public class VerifyCloudFormationStatusProcessor extends AbstractMainDeploymentP
     }
 
     @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
+    public void execute(Target target) throws DeployerException {
+        AmazonCloudFormation cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
+
+        while (!isTargetDeleted(target) && !isStackUsable(cloudFormation)) {
+            try {
+                Thread.sleep(secondsBeforeCheckingStatus * 1000);
+            } catch (InterruptedException e) {
+                logger.debug(
+                        "Thread interrupted while waiting to check again for CloudFormation stack '{}' status", stackName);
+            }
+        }
     }
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution, ChangeSet filteredChangeSet,
-                                      ChangeSet originalChangeSet) throws DeployerException {
-        AmazonCloudFormation cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
+    protected boolean isStackUsable(AmazonCloudFormation cloudFormation) throws DeployerException {
         Stack stack = AwsCloudFormationUtils.getStack(cloudFormation, stackName);
-
         if (stack != null) {
             String statusCode = stack.getStackStatus();
             if (ArrayUtils.contains(STACK_STATUS_CODES_USABLE, statusCode)) {
                 logger.info("CloudFormation stack '{}' is usable (status '{}')", stackName, statusCode);
 
                 mapOutputsToConfig(stack.getOutputs());
+
+                return true;
             } else if (ArrayUtils.contains(STACK_STATUS_CODES_IN_PROGRESS, statusCode)) {
-                String msg = "CloudFormation stack '" + stackName + "' is not yet usable because there's an " +
-                             "operation in progress (status '" + statusCode + "'). This deployment will end " +
-                             "immediately, and next deployment will check again if the stack is ready";
 
-                logger.info(msg);
+                logger.info("CloudFormation stack '" + stackName + "' is not yet usable because there's an " +
+                            "operation in progress (status '" + statusCode + "')");
 
-                execution.setStatusDetails(msg);
-                deployment.end(Deployment.Status.SUCCESS);
+                return false;
             } else {
                 throw new DeployerException("CloudFormation stack '" + stackName + "' is in an unusable state " +
-                                            "(status '" + statusCode + "), probably caused by an operation failure " +
-                                            ". Deployments can't continue until all issues are fixed");
+                                            "(status '" + statusCode + ")");
             }
         } else {
             throw new DeployerException("CloudFormation stack '" + stackName + "' doesn't exist");
         }
-
-        return null;
     }
 
     protected void mapOutputsToConfig(List<Output> outputs) {
@@ -161,9 +158,8 @@ public class VerifyCloudFormationStatusProcessor extends AbstractMainDeploymentP
         }
     }
 
-    @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return true;
+    protected boolean isTargetDeleted(Target target) {
+        return target.getStatus() == Target.Status.DELETE_IN_PROGRESS || target.getStatus() == Target.Status.DELETED;
     }
 
 }

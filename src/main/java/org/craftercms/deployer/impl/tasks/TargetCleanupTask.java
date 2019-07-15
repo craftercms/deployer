@@ -47,7 +47,7 @@ public class TargetCleanupTask {
     public void cleanupAllTargets() {
         try {
             logger.info("Starting cleanup for all targets");
-            targetService.getAllTargets().forEach(Target::cleanup);
+            targetService.getAllTargets().forEach(Target::cleanRepo);
         } catch (TargetServiceException e) {
             logger.error("Error getting loaded targets", e);
         }

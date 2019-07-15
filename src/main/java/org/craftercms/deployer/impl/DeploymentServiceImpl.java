@@ -27,7 +27,10 @@ import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -38,6 +41,8 @@ import org.springframework.stereotype.Component;
  */
 @Component("deploymentService")
 public class DeploymentServiceImpl implements DeploymentService {
+
+    private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
     protected final TargetService targetService;
 
@@ -60,8 +65,13 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         if (CollectionUtils.isNotEmpty(targets)) {
             for (Target target : targets) {
-                Deployment deployment = target.deploy(waitTillDone, params);
-                deployments.add(deployment);
+                Deployment deployment;
+                try {
+                    deployment = target.deploy(waitTillDone, params);
+                    deployments.add(deployment);
+                } catch (TargetNotReadyException e) {
+                    logger.error(e.getMessage());
+                }
             }
         }
 
@@ -74,9 +84,9 @@ public class DeploymentServiceImpl implements DeploymentService {
                                                                       DeploymentServiceException {
         try {
             return targetService.getTarget(env, siteName).deploy(waitTillDone, params);
-        } catch (TargetServiceException e) {
-            throw new DeploymentServiceException("Error while deploying target for env = " + env + ", site = " +
-                                                 siteName, e);
+        } catch (TargetServiceException | TargetNotReadyException e) {
+            throw new DeploymentServiceException("Error while deploying target '" + TargetImpl.getId(env, siteName) +
+                                                 "'", e);
         }
     }
 

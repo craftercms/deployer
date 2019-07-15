@@ -14,35 +14,17 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.api;
-
-import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.beans.InitializableByConfigBean;
+package org.craftercms.deployer.api.exceptions;
 
 /**
- * Represents a single deployment processor.
+ * Exception thrown when a target is not ready yet to accept deployments.
  *
  * @author avasquez
  */
-public interface DeploymentProcessor extends InitializableByConfigBean {
+public class TargetNotReadyException extends DeployerException {
 
-    /**
-     * Returns true if this processor runs after the deployment has finalized.
-     */
-    boolean isPostDeployment();
-
-    /**
-     * Destroys the processor, closing and releasing any used resources.
-     *
-     * @throws DeployerException if an error occurs
-     */
-    void destroy() throws DeployerException;
-
-    /**
-     * Executes the processor
-     *
-     * @param deployment    the current deployment info
-     */
-    void execute(Deployment deployment);
+    public TargetNotReadyException(String message) {
+        super(message);
+    }
 
 }

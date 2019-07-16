@@ -33,6 +33,7 @@ target:
         templateFilename: serverless-site-stack.yaml
         templateParams:
           S3BucketName: ${aws.cloudformation.s3BucketName}
+          CloudFrontDistributionOriginPath: /${target.siteName}
     init:
       - hookName: waitTillCloudFormationStackUsableLifecycleHook
         region: ${aws.region}

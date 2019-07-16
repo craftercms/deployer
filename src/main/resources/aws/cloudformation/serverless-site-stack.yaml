@@ -3,6 +3,8 @@ Description: Default Crafter Serverless Site Stack
 Parameters:
   S3BucketName:
     Type: String
+  CloudFrontDistributionOriginPath:
+    Type: String
   CloudFrontDistributionAllowedMethods:
     Type: CommaDelimitedList
     Default: 'HEAD,GET'
@@ -81,6 +83,7 @@ Resources:
         Origins:
           - DomainName: !Sub '${S3Bucket}.s3.amazonaws.com'
             Id: !Sub 'S3-${S3Bucket}'
+            OriginPath: !Ref CloudFrontDistributionOriginPath
             S3OriginConfig:
               OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
         Restrictions:

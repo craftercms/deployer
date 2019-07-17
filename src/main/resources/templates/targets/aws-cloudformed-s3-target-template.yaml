@@ -33,7 +33,7 @@ target:
         templateFilename: serverless-site-stack.yaml
         templateParams:
           S3BucketName: ${aws.cloudformation.s3BucketName}
-          CloudFrontDistributionOriginPath: /${target.siteName}
+          CloudFrontDistributionOriginPath: /${target.siteName}/static-assets
     init:
       - hookName: waitTillCloudFormationStackUsableLifecycleHook
         region: ${aws.region}
@@ -87,7 +87,7 @@ target:
       - processorName: gitDiffProcessor
       - processorName: findAndReplaceProcessor
         includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
-        textPattern: (/static-assets/[^&quot;&lt;]+)
+        textPattern: /static-assets(/[^&quot;&lt;]+)
         replacement: http://${aws.cloudformation.cloudfrontDistribution.domainName}$1
       - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticsearchIndexingProcessor{{/if}}
       - processorName: s3SyncProcessor

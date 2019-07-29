@@ -195,16 +195,14 @@
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
 				<artifactId>spring-boot-maven-plugin</artifactId>
-				<configuration>
-					<layout>ZIP</layout>
-				</configuration>
 				<executions>
 					<execution>
+						<id>repackage</id>
 						<goals>
 							<goal>repackage</goal>
 						</goals>
 						<configuration>
-							<classifier>exec</classifier>
+							<attach>false</attach>
 						</configuration>
 					</execution>
 				</executions>

@@ -56,7 +56,7 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
     @Override
     protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
         // Run if the deployment is running and change set is not empty
-        return deployment.isRunning() && filteredChangeSet != null && !filteredChangeSet.isEmpty();
+        return deployment.isRunning() && (alwaysRun || (filteredChangeSet != null && !filteredChangeSet.isEmpty()));
     }
 
     protected abstract ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,

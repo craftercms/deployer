@@ -47,6 +47,7 @@ public abstract class DeploymentConstants {
     public static final String PROCESSOR_JUMP_TO_CONFIG_KEY = "jumpTo";
     public static final String PROCESSOR_INCLUDE_FILES_CONFIG_KEY = "includeFiles";
     public static final String PROCESSOR_EXCLUDE_FILES_CONFIG_KEY = "excludeFiles";
+    public static final String PROCESSOR_ALWAYS_RUN_CONFIG_KEY = "alwaysRun";
 
     // Processor params
 

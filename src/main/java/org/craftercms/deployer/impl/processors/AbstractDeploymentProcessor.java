@@ -34,6 +34,7 @@ import org.springframework.beans.factory.annotation.Required;
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 import static org.craftercms.deployer.utils.ConfigUtils.getStringArrayProperty;
 
@@ -45,6 +46,11 @@ import static org.craftercms.deployer.utils.ConfigUtils.getStringArrayProperty;
  * <p>
  * This class also handles processor "jumping", which is triggered when a processor explicitly indicates that after
  * a successful execution the pipeline should skip directly to executing a processor with a certain label.
+ * </p>
+ *
+ * <p>
+ * It is also possible to make sure a processor is always executed even if the current {@code ChangeSet} is empty, this
+ * can be accomplished with the {@code alwaysRun} property in the YAML configuration.
  * </p>
  *
  * @author avasquez
@@ -67,6 +73,7 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     protected String jumpTo;
     protected String[] includeFiles;
     protected String[] excludeFiles;
+    protected boolean alwaysRun;
 
     /**
      * Sets the environment of the site.
@@ -112,6 +119,7 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
         jumpTo = getStringProperty(config, DeploymentConstants.PROCESSOR_JUMP_TO_CONFIG_KEY);
         includeFiles = getStringArrayProperty(config, DeploymentConstants.PROCESSOR_INCLUDE_FILES_CONFIG_KEY);
         excludeFiles = getStringArrayProperty(config, DeploymentConstants.PROCESSOR_EXCLUDE_FILES_CONFIG_KEY);
+        alwaysRun = getBooleanProperty(config, DeploymentConstants.PROCESSOR_ALWAYS_RUN_CONFIG_KEY, false);
 
         doInit(config);
     }

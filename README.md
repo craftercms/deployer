@@ -1,3 +1,5 @@
+![build status](https://travis-ci.org/craftercms/deployer.svg?branch=develop)
+
 deployer
 ==========
 

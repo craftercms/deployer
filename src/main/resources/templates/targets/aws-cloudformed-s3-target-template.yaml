@@ -15,7 +15,6 @@ target:
   {{#if local_repo_path}}
   localRepoPath: {{local_repo_path}}
   {{/if}}
-  crafterSearchEnabled: {{#if use_crafter_search}}{{use_crafter_search}}{{else}}false{{/if}}
   {{#if elastic_search_url}}
   search:
     elasticsearch:
@@ -85,7 +84,7 @@ target:
         includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
         textPattern: /static-assets(/[^&quot;&lt;]+)
         replacement: http://${aws.cloudformation.cloudfrontDistribution.domainName}$1
-      - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticsearchIndexingProcessor{{/if}}
+      - processorName: elasticsearchIndexingProcessor
       - processorName: s3SyncProcessor
         region: ${aws.region}
         accessKey: ${aws.accessKey}

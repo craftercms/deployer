@@ -237,6 +237,7 @@
 						</goals>
 						<configuration>
 							<attach>false</attach>
+							<layout>ZIP</layout>
 						</configuration>
 					</execution>
 				</executions>

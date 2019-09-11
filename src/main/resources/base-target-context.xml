@@ -147,6 +147,15 @@
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
     </bean>
 
+    <bean id="webDavProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
+        <property name="profilesUrl" value="${target.config.profiles.webdav.path}"/>
+        <property name="profileMapper">
+            <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMappper"/>
+        </property>
+        <property name="contextFactory" ref="contextFactory"/>
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+    </bean>
+
     <!-- Core -->
 
     <bean id="contextFactory" class="org.craftercms.deployer.utils.core.SingletonContextFactory">
@@ -173,6 +182,10 @@
         <property name="profileLoader" ref="boxProfileLoader"/>
     </bean>
 
+    <bean id="webDavFileStore" class="org.craftercms.commons.file.stores.impl.webdav.WebDavFileStore">
+        <property name="profileLoader" ref="webDavProfileLoader"/>
+    </bean>
+
     <bean id="urlBasedFileStore" class="org.craftercms.commons.file.stores.impl.UrlBasedFileStore"/>
 
     <bean id="remoteFileResolver" class="org.craftercms.commons.file.stores.impl.RemoteFileResolverImpl">
@@ -192,6 +205,7 @@
                 <entry key="s3" value-ref="s3FileStore"/>
                 <entry key="box" value-ref="boxFileStore"/>
                 <entry key="url" value-ref="urlBasedFileStore"/>
+                <entry key="webdav" value-ref="webDavFileStore"/>
             </map>
         </property>
     </bean>

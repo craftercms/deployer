@@ -49,6 +49,7 @@
 		<javax.mail.version>1.4.7</javax.mail.version>
 		<handlebars.version>4.0.6</handlebars.version>
 		<mockito.version>1.10.19</mockito.version>
+		<sardine.version>5.9</sardine.version>
 		<java.version>1.8</java.version>
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.9.9</jackson.version>
@@ -56,6 +57,7 @@
 		<aws.version>1.11.435</aws.version>
 		<box.sdk.version>2.28.1</box.sdk.version>
 		<elasticsearch.version>6.5.3</elasticsearch.version>
+
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -199,6 +201,13 @@
 			<groupId>com.box</groupId>
 			<artifactId>box-java-sdk</artifactId>
 			<version>${box.sdk.version}</version>
+		</dependency>
+
+		<!-- WebDAV -->
+		<dependency>
+			<groupId>com.github.lookfirst</groupId>
+			<artifactId>sardine</artifactId>
+			<version>${sardine.version}</version>
 		</dependency>
 
 		<!-- Test -->

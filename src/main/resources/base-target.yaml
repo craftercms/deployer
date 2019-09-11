@@ -189,6 +189,9 @@ target:
       box:
         # The path for the Box configuration profile in the local repo
         path: /config/studio/box/box.xml
+      webdav:
+        # The path for the WebDav configuration profile in the local repo
+        path: /config/studio/webdav/webdav.xml
   lifecycleHooks:
     # The lifecycle hooks executed during a target create
     create:

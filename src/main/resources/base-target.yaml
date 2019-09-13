@@ -141,6 +141,8 @@ target:
             - application/vnd.openxmlformats-officedocument.presentationml.presentation
             - image/*
             - video/*
+            - text/x-freemarker
+            - text/x-groovy
           # Look into all XML descriptors to index all binary files referenced
           metadataPathPatterns:
             - ^/(?!config).+\.xml$

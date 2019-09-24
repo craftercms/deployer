@@ -51,6 +51,9 @@ target:
         merging:
           # If XML merging should be done when indexing XML
           enabled: true
+          levelDescriptor:
+            # The name of the level descriptor file
+            name: crafter-level-descriptor.level.xml
         # The regex patterns of the XML files that should be included for indexing
         includePatterns:
           - ^/?site/.+\.xml$

@@ -99,6 +99,7 @@
         <property name="searchService" ref="searchService"/>
         <property name="batchIndexers">
             <list>
+                <ref bean="mergeStrategyAwareBatchIndexer"/>
                 <ref bean="xmlFileBatchIndexer"/>
                 <ref bean="binaryFileBatchIndexer"/>
                 <ref bean="binaryFileWithMetadataBatchIndexer"/>
@@ -225,6 +226,11 @@
     <bean id="disableAwareIncludeDescriptorsProcessor" class="org.craftercms.commons.spring.ConditionalFactoryBean">
         <property name="flag" value="${target.search.indexing.xml.flattening.enabled}"/>
         <property name="actualBean" ref="includeDescriptorsProcessor"/>
+    </bean>
+
+    <bean id="mergeStrategyAwareBatchIndexer" class="org.craftercms.search.batch.impl.MergeStrategyAwareBatchIndexer">
+        <constructor-arg value="${target.search.indexing.xml.merging.levelDescriptor.name}"/>
+        <constructor-arg ref="crafter.mergeStrategyResolverChain"/>
     </bean>
 
     <bean id="abstractXmlFileBatchIndexer" abstract="true">
@@ -470,6 +476,7 @@
         <property name="elasticsearchService" ref="elasticsearchService"/>
         <property name="batchIndexers">
             <list>
+                <ref bean="mergeStrategyAwareBatchIndexer"/>
                 <ref bean="elasticsearchXmlFileBatchIndexer"/>
                 <ref bean="elasticsearchBinaryFileBatchIndexer"/>
                 <ref bean="elasticsearchBinaryFileWithMetadataBatchIndexer"/>
@@ -518,6 +525,7 @@
     <bean id="authoringElasticsearchIndexingProcessor" parent="elasticsearchIndexingProcessor">
         <property name="batchIndexers">
             <list>
+                <ref bean="mergeStrategyAwareBatchIndexer"/>
                 <ref bean="authoringElasticsearchXmlFileBatchIndexer"/>
                 <ref bean="authoringElasticsearchBinaryFileWithMetadataBatchIndexer"/>
             </list>

@@ -46,6 +46,8 @@ public class SingletonContextFactory implements ObjectFactory<Context> {
     private String localRepoUrl;
     private ContentStoreService contentStoreService;
     private boolean xmlMergingEnabled;
+    private boolean enableCache = false;
+    private int maxAllowedItemsInCache = 0;
 
     private Context context;
 
@@ -69,12 +71,21 @@ public class SingletonContextFactory implements ObjectFactory<Context> {
         this.xmlMergingEnabled = xmlMergingEnabled;
     }
 
+    public void setEnableCache(final boolean enableCache) {
+        this.enableCache = enableCache;
+    }
+
+    public void setMaxAllowedItemsInCache(final int maxAllowedItemsInCache) {
+        this.maxAllowedItemsInCache = maxAllowedItemsInCache;
+    }
+
     @Override
     public Context getObject() throws BeansException {
         if (context == null) {
             try {
                 context = contentStoreService.getContext(targetId, FileSystemContentStoreAdapter.STORE_TYPE,
-                    localRepoUrl, xmlMergingEnabled, false, 0, Context.DEFAULT_IGNORE_HIDDEN_FILES);
+                    localRepoUrl, xmlMergingEnabled, enableCache, maxAllowedItemsInCache,
+                    Context.DEFAULT_IGNORE_HIDDEN_FILES);
 
                 logger.debug("Content store context created: {}", context);
             } catch (Exception e) {

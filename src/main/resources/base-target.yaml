@@ -51,9 +51,8 @@ target:
         merging:
           # If XML merging should be done when indexing XML
           enabled: true
-          levelDescriptor:
-            # The name of the level descriptor file
-            name: crafter-level-descriptor.level.xml
+          inherits:
+            field: inheritsFrom_smv
         # The regex patterns of the XML files that should be included for indexing
         includePatterns:
           - ^/?site/.+\.xml$
@@ -204,3 +203,9 @@ target:
     # The lifecycle hooks executed during a target delete
     delete:
       - hookName: deleteIndexLifecycleHook
+  core:
+    cache:
+      # Indicates if the cache should be using while reading files from the repo
+      enabled: true
+      # Maximum number of items allowed in the cache
+      maxItems: 100

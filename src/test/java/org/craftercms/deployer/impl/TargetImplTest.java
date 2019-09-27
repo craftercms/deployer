@@ -24,12 +24,17 @@ import java.util.concurrent.Executors;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.core.service.CacheService;
+import org.craftercms.core.service.Context;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
+import org.craftercms.deployer.utils.core.SingletonContextFactory;
 import org.junit.Before;
 import org.junit.Test;
+import org.springframework.context.support.GenericApplicationContext;
 
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -50,9 +55,9 @@ public class TargetImplTest {
     @Before
     public void setUp() throws Exception {
         count = 0;
-        target = new TargetImpl(ZonedDateTime.now(), TEST_ENV, TEST_SITE_NAME, null, null, createConfig(), null,
-                                Executors.newSingleThreadExecutor(), null, createTargetLifecycleHooksResolver(),
-                                createDeploymentPipelineFactory(), false);
+        target = new TargetImpl(ZonedDateTime.now(), TEST_ENV, TEST_SITE_NAME, null, null, createConfig(),
+            createApplicationContext(), Executors.newSingleThreadExecutor(), null, createTargetLifecycleHooksResolver(),
+            createDeploymentPipelineFactory(), false, createCacheTemplate());
     }
 
     @Test
@@ -124,6 +129,22 @@ public class TargetImplTest {
         }).when(pipeline).execute(any(Deployment.class));
 
         return pipeline;
+    }
+
+    private CacheTemplate createCacheTemplate() {
+        CacheTemplate cacheTemplate = mock(CacheTemplate.class);
+        when(cacheTemplate.getCacheService()).thenReturn(mock(CacheService.class));
+        return cacheTemplate;
+    }
+
+    private GenericApplicationContext createApplicationContext() {
+        GenericApplicationContext appContext = mock(GenericApplicationContext.class);
+        SingletonContextFactory factory = mock(SingletonContextFactory.class);
+
+        when(appContext.getBean(SingletonContextFactory.class)).thenReturn(factory);
+        when(factory.getObject()).thenReturn(mock(Context.class));
+
+        return appContext;
     }
 
 }

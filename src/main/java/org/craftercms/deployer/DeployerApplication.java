@@ -23,8 +23,6 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.CompositeTemplateLoader;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 import freemarker.template.TemplateException;
-import org.craftercms.core.cache.impl.CacheStoreAdapter;
-import org.craftercms.core.cache.impl.store.NoopCacheStoreAdapter;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
@@ -95,14 +93,6 @@ public class DeployerApplication implements WebMvcConfigurer  {
 
 	public static void main(String[] args) {
 		SpringApplication.run(DeployerApplication.class, args);
-	}
-
-	/**
-	 * Overwrites the default Crafter Core cache store adapter.
-	 */
-	@Bean("crafter.cacheStoreAdapter")
-	public CacheStoreAdapter cacheStoreAdapter() {
-		return new NoopCacheStoreAdapter();
 	}
 
 	@Bean

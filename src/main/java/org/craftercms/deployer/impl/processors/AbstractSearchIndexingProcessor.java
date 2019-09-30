@@ -193,53 +193,56 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     @Override
     protected ChangeSet getFilteredChangeSet(ChangeSet changeSet) {
         changeSet = super.getFilteredChangeSet(changeSet);
+        if (changeSet != null && !changeSet.isEmpty() && xmlFlatteningEnabled) {
+            List<String> createdFiles = changeSet.getCreatedFiles();
+            List<String> updatedFiles = changeSet.getUpdatedFiles();
+            List<String> deletedFiles = changeSet.getDeletedFiles();
+            List<String> newUpdatedFiles = new ArrayList<>(updatedFiles);
 
-        if(changeSet == null || changeSet.isEmpty()) {
+            if (CollectionUtils.isNotEmpty(createdFiles)) {
+                for (String path : createdFiles) {
+                    if (isDescriptor(path)) {
+                        addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
+                                                                        deletedFiles);
+                    }
+                    if (reindexItemsOnComponentUpdates && isComponent(path)) {
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
+                }
+            }
+
+            if (CollectionUtils.isNotEmpty(updatedFiles)) {
+                for (String path : updatedFiles) {
+                    if (isDescriptor(path)) {
+                        addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
+                                                                        deletedFiles);
+                    }
+                    if (reindexItemsOnComponentUpdates && isComponent(path)) {
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
+                }
+            }
+
+
+            if (CollectionUtils.isNotEmpty(deletedFiles)) {
+                for (String path : deletedFiles) {
+                    if (isDescriptor(path)) {
+                        addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
+                                                                        deletedFiles);
+                    }
+                    if (reindexItemsOnComponentUpdates && isComponent(path)) {
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
+                }
+            }
+
+            ChangeSet filteredChangeSet = new ChangeSet(createdFiles, newUpdatedFiles, deletedFiles);
+            filteredChangeSet.setUpdateDetails(changeSet.getUpdateDetails());
+            filteredChangeSet.setUpdateLog(changeSet.getUpdateLog());
+            return filteredChangeSet;
+        } else {
             return changeSet;
         }
-
-        List<String> createdFiles = changeSet.getCreatedFiles();
-        List<String> updatedFiles = changeSet.getUpdatedFiles();
-        List<String> deletedFiles = changeSet.getDeletedFiles();
-        List<String> newUpdatedFiles = new ArrayList<>(updatedFiles);
-
-        if (CollectionUtils.isNotEmpty(createdFiles)) {
-            for (String path : createdFiles) {
-                if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                }
-                if (xmlFlatteningEnabled && reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                }
-            }
-        }
-
-        if (CollectionUtils.isNotEmpty(updatedFiles)) {
-            for (String path : updatedFiles) {
-                if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                }
-                if (xmlFlatteningEnabled && reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                }
-            }
-        }
-
-        if (CollectionUtils.isNotEmpty(deletedFiles)) {
-            for (String path : deletedFiles) {
-                if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                }
-                if (xmlFlatteningEnabled && reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                }
-            }
-        }
-
-        ChangeSet filteredChangeSet = new ChangeSet(createdFiles, newUpdatedFiles, deletedFiles);
-        filteredChangeSet.setUpdateDetails(changeSet.getUpdateDetails());
-        filteredChangeSet.setUpdateLog(changeSet.getUpdateLog());
-        return filteredChangeSet;
     }
 
     @Override

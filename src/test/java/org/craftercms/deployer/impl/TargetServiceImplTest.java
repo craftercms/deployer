@@ -30,6 +30,7 @@ import java.util.concurrent.ExecutorService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
@@ -50,7 +51,6 @@ import static org.craftercms.deployer.impl.DeploymentConstants.CREATE_TARGET_LIF
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**
@@ -90,7 +90,8 @@ public class TargetServiceImplTest {
             createTaskScheduler(),
             createTaskExecutor(),
             createProcessedCommitsStore(),
-            createTargetLifecycleHooksResolver());
+            createTargetLifecycleHooksResolver(),
+            createCacheTemplate());
     }
 
     @After
@@ -274,6 +275,10 @@ public class TargetServiceImplTest {
         handlebars.prettyPrint(true);
 
         return handlebars;
+    }
+
+    private CacheTemplate createCacheTemplate() {
+        return mock(CacheTemplate.class);
     }
 
 }

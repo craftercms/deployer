@@ -163,6 +163,8 @@
         <property name="localRepoUrl" value="file:${target.localRepoPath}"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlMergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>
+        <property name="enableCache" value="${target.core.cache.enabled}"/>
+        <property name="maxAllowedItemsInCache" value="${target.core.cache.maxItems}"/>
     </bean>
 
     <!-- Remote File Stores -->
@@ -222,15 +224,26 @@
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
     </bean>
 
+    <bean id="inheritedDescriptorsItemProcessor" 
+          class="org.craftercms.core.processors.impl.InheritedDescriptorsItemProcessor">
+        <constructor-arg value="${target.search.indexing.xml.merging.inherits.field}"/>
+        <constructor-arg ref="crafter.mergeStrategyResolverChain"/>
+    </bean>
+
     <bean id="disableAwareIncludeDescriptorsProcessor" class="org.craftercms.commons.spring.ConditionalFactoryBean">
         <property name="flag" value="${target.search.indexing.xml.flattening.enabled}"/>
         <property name="actualBean" ref="includeDescriptorsProcessor"/>
     </bean>
 
+    <util:list id="itemProcessors">
+        <ref bean="disableAwareIncludeDescriptorsProcessor"/>
+        <ref bean="inheritedDescriptorsItemProcessor"/>
+    </util:list>
+
     <bean id="abstractXmlFileBatchIndexer" abstract="true">
         <property name="includePathPatterns"
                   value="#{environment.getProperty('target.search.indexing.xml.includePatterns', T(java.util.List))}"/>
-        <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
+        <property name="itemProcessors" ref="itemProcessors"/>
     </bean>
 
     <bean id="xmlFileBatchIndexer" class="org.craftercms.search.batch.impl.XmlFileBatchIndexer"
@@ -261,7 +274,7 @@
         <property name="referenceXPaths"
                   value="#{environment.getProperty('target.search.indexing.binary.referenceXPaths', T(java.util.List))}"/>
         <property name="remoteFileResolver" ref="remoteFileResolver"/>
-        <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
+        <property name="itemProcessors" ref="itemProcessors"/>
         <property name="maxFileSize" value="${target.search.indexing.binary.maxFileSize}"/>
     </bean>
 

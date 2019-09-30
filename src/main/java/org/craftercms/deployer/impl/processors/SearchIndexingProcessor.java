@@ -37,13 +37,16 @@ public class SearchIndexingProcessor extends AbstractSearchIndexingProcessor {
     protected static final String SEARCH_RESULTS_NUM_FOUND_PROPERTY = "numFound";
     protected static final String SEARCH_RESULTS_DOCUMENTS_PROPERTY = "documents";
 
+    protected static final String DEFAULT_ITEMS_THAT_INHERIT_FROM_DESCRIPTOR_QUERY_FORMAT = "inheritsFrom_smv:\"%s\"";
     protected static final String DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_FORMAT = "includedDescriptors:\"%s\"";
 
+    protected String itemsThatInheritFromDescriptorQueryFormat;
     protected String itemsThatIncludeComponentQueryFormat;
 
     protected SearchService searchService;
 
     public SearchIndexingProcessor() {
+        this.itemsThatInheritFromDescriptorQueryFormat = DEFAULT_ITEMS_THAT_INHERIT_FROM_DESCRIPTOR_QUERY_FORMAT;
         this.itemsThatIncludeComponentQueryFormat = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_FORMAT;
     }
 
@@ -65,10 +68,24 @@ public class SearchIndexingProcessor extends AbstractSearchIndexingProcessor {
         this.itemsThatIncludeComponentQueryFormat = itemsThatIncludeComponentQueryFormat;
     }
 
-
     @Override
     protected void doCommit(final String indexId) {
         searchService.commit(indexId);
+    }
+
+    @Override
+    protected List<String> getItemsThatInheritDescriptor(final String indexId, final String descriptorPath) {
+        return searchField(indexId, descriptorPath, createItemsThatInheritFromDescriptorQuery(descriptorPath));
+    }
+
+    protected Query createItemsThatInheritFromDescriptorQuery(String descriptorPath) {
+        String queryStatement = String.format(itemsThatInheritFromDescriptorQueryFormat, descriptorPath);
+        SolrQuery query = new SolrQuery();
+
+        query.setQuery(queryStatement);
+        query.setFieldsToReturn(LOCAL_ID_FIELD);
+
+        return query;
     }
 
     protected Query createItemsThatIncludeComponentQuery(String componentId) {
@@ -81,9 +98,12 @@ public class SearchIndexingProcessor extends AbstractSearchIndexingProcessor {
         return query;
     }
 
-    @SuppressWarnings("unchecked")
     protected List<String> getItemsThatIncludeComponent(String indexId, String componentPath) {
-        Query query = createItemsThatIncludeComponentQuery(componentPath);
+        return searchField(indexId, componentPath, createItemsThatIncludeComponentQuery(componentPath));
+    }
+
+    @SuppressWarnings("unchecked")
+    protected List<String> searchField(String indexId, String componentPath, Query query) {
         List<String> items = new ArrayList<>();
         int start = 0;
         int rows = itemsThatIncludeComponentQueryRows;

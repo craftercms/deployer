@@ -38,7 +38,7 @@ Resources:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'OAI for CloudFront of S3 Path ${S3Bucket}/${CloudFrontDistributionOriginPath}'
+        Comment: !Sub 'OAI for CloudFront of S3 Path ${S3Bucket}${CloudFrontDistributionOriginPath}'
   S3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:

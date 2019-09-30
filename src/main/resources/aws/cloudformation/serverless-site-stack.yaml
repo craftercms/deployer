@@ -38,7 +38,7 @@ Resources:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: OAI for Serverless Site CloudFront
+        Comment: !Sub 'OAI for CloudFront of S3 Path ${S3Bucket}${CloudFrontDistributionOriginPath}'
   S3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -60,7 +60,7 @@ Resources:
           - Sid: ''
             Effect: Allow
             Principal:
-              AWS: !Sub 'arn:aws:iam::cloudfront:user/CloudFront Origin Access Identity ${CloudFrontOriginAccessIdentity}'
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
             Action: 's3:GetObject'
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
   CloudFrontDistribution:

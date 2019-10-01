@@ -31,7 +31,6 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -100,7 +99,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ExecutorService taskExecutor;
     protected ProcessedCommitsStore processedCommitsStore;
     protected TargetLifecycleHooksResolver targetLifecycleHooksResolver;
-    protected CacheTemplate cacheTemplate;
     protected Set<Target> currentTargets;
 
     public TargetServiceImpl(
@@ -116,8 +114,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired TaskScheduler taskScheduler,
         @Autowired ExecutorService taskExecutor,
         @Autowired ProcessedCommitsStore processedCommitsStore,
-        @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
-        @Autowired CacheTemplate cacheTemplate) {
+        @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver) {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
@@ -131,7 +128,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.taskExecutor = taskExecutor;
         this.processedCommitsStore = processedCommitsStore;
         this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
-        this.cacheTemplate = cacheTemplate;
         this.currentTargets = new CopyOnWriteArraySet<>();
     }
 
@@ -349,7 +345,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
             Target target = new TargetImpl(ZonedDateTime.now(), env, siteName, localRepoPath, configFile, config,
                                            context, taskExecutor, taskScheduler, targetLifecycleHooksResolver,
-                                           deploymentPipelineFactory, crafterSearchEnabled, cacheTemplate);
+                                           deploymentPipelineFactory, crafterSearchEnabled);
 
             if (create) {
                 executeCreateHooks(target);

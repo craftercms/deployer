@@ -94,8 +94,7 @@ public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProce
 
         AmazonCloudFront client = buildClient();
 
-        List<String> changedFiles = ListUtils.union(filteredChangeSet.getCreatedFiles(),
-                                                    filteredChangeSet.getUpdatedFiles());
+        List<String> changedFiles = filteredChangeSet.getUpdatedFiles();
 
         if (CollectionUtils.isNotEmpty(changedFiles)) {
             changedFiles = changedFiles.stream()

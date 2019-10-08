@@ -21,6 +21,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.search.batch.BatchIndexer;
 import org.craftercms.search.batch.UpdateSet;
 import org.craftercms.search.batch.UpdateStatus;
@@ -72,6 +73,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
     protected static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
 
+    protected CacheTemplate cacheTemplate;
     protected ObjectFactory<Context> contextFactory;
     protected ContentStoreService contentStoreService;
     protected List<BatchIndexer> batchIndexers;
@@ -90,6 +92,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         this.descriptorPathPattern = DEFAULT_DESCRIPTOR_PATH_PATTERN;
         this.componentPathPattern = DEFAULT_COMPONENT_PATH_PATTERN;
         this.itemsThatIncludeComponentQueryRows = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS;
+    }
+
+    public void setCacheTemplate(final CacheTemplate cacheTemplate) {
+        this.cacheTemplate = cacheTemplate;
     }
 
     /**
@@ -261,6 +267,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         execution.setStatusDetails(updateStatus);
 
         Context context = contextFactory.getObject();
+
+        logger.debug("Clearing cache for context {}", context);
+        cacheTemplate.getCacheService().clearScope(context);
+
         try {
             for (BatchIndexer indexer : batchIndexers) {
                 indexer.updateIndex(indexId, siteName, contentStoreService, context, updateSet,

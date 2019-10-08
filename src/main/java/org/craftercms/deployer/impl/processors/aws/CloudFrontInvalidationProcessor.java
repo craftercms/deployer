@@ -25,7 +25,6 @@ import java.util.stream.Collectors;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.collections.ListUtils;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.http.client.utils.URLEncodedUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
@@ -94,8 +93,8 @@ public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProce
 
         AmazonCloudFront client = buildClient();
 
-        List<String> changedFiles = ListUtils.union(filteredChangeSet.getCreatedFiles(),
-                                                    filteredChangeSet.getUpdatedFiles());
+        List<String> changedFiles =
+            ListUtils.union(filteredChangeSet.getUpdatedFiles(), filteredChangeSet.getDeletedFiles());
 
         if (CollectionUtils.isNotEmpty(changedFiles)) {
             changedFiles = changedFiles.stream()

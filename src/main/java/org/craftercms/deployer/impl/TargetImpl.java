@@ -21,7 +21,6 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
@@ -29,7 +28,6 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.utils.GitUtils;
-import org.craftercms.deployer.utils.core.SingletonContextFactory;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -71,7 +69,6 @@ public class TargetImpl implements Target {
     protected TargetLifecycleHooksResolver targetLifecycleHooksResolver;
     protected DeploymentPipelineFactory deploymentPipelineFactory;
     protected boolean crafterSearchEnabled;
-    protected CacheTemplate cacheTemplate;
 
     protected volatile Status status;
     protected DeploymentPipeline deploymentPipeline;
@@ -88,8 +85,7 @@ public class TargetImpl implements Target {
                       File configurationFile, HierarchicalConfiguration<ImmutableNode> configuration,
                       ConfigurableApplicationContext applicationContext, ExecutorService executor,
                       TaskScheduler scheduler, TargetLifecycleHooksResolver targetLifecycleHooksResolver,
-                      DeploymentPipelineFactory deploymentPipelineFactory, boolean crafterSearchEnabled,
-                      CacheTemplate cacheTemplate) {
+                      DeploymentPipelineFactory deploymentPipelineFactory, boolean crafterSearchEnabled) {
         this.loadDate = loadDate;
         this.env = env;
         this.siteName = siteName;
@@ -102,7 +98,6 @@ public class TargetImpl implements Target {
         this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
         this.deploymentPipelineFactory = deploymentPipelineFactory;
         this.crafterSearchEnabled = crafterSearchEnabled;
-        this.cacheTemplate = cacheTemplate;
         this.status = Status.CREATED;
         this.pendingDeployments = new ConcurrentLinkedQueue<>();
         this.deploymentLock = new ReentrantLock();
@@ -399,9 +394,6 @@ public class TargetImpl implements Target {
                         logger.info("============================================================");
 
                         try {
-                            SingletonContextFactory factory = applicationContext.getBean(SingletonContextFactory.class);
-                            cacheTemplate.getCacheService().clearScope(factory.getObject());
-
                             deploymentPipeline.execute(currentDeployment);
                         } finally {
                             double durationInSecs = currentDeployment.getDuration() / 1000.0;

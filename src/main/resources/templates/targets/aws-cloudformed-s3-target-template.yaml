@@ -6,8 +6,8 @@ aws:
     namespace: {{aws.cloudformation.namespace}}
     accessKey: {{#if aws.cloudformation.access_key}}{{aws.cloudformation.access_key}}{{else}}${aws.accessKey}{{/if}}
     secretKey: {{#if aws.cloudformation.secret_key}}{{aws.cloudformation.secret_key}}{{else}}${aws.secretKey}{{/if}}
-    stackName: ${aws.cloudformation.namespace}-{{site_name}}-stack
-    s3BucketName: ${aws.cloudformation.namespace}-{{site_name}}-content
+    stackName: ${aws.cloudformation.namespace}-site-{{site_name}}
+    s3BucketName: ${aws.cloudformation.namespace}-site-{{site_name}}
     s3Url: s3://${aws.cloudformation.s3BucketName}
 target:
   env: {{env}}

@@ -43,7 +43,7 @@ target:
       {{#if aws.distribution.url}}
       - processorName: findAndReplaceProcessor
         includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
-        textPattern: /static-assets(/([^&quot;&lt;]+)
+        textPattern: "/static-assets/([^<\"'\\)]+)"
         replacement: {{aws.distribution.url}}$1
       {{/if}}
       - processorName: elasticsearchIndexingProcessor

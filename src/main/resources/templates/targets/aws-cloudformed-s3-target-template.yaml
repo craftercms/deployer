@@ -82,7 +82,7 @@ target:
       - processorName: gitDiffProcessor
       - processorName: findAndReplaceProcessor
         includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
-        textPattern: /static-assets(/[^&quot;&lt;]+)
+        textPattern: "/static-assets/([^<\"'\\)]+)"
         replacement: http://${aws.cloudformation.cloudfrontDistribution.domainName}$1
       - processorName: elasticsearchIndexingProcessor
       - processorName: s3SyncProcessor

@@ -160,17 +160,15 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
                 detail.setDate(Instant.ofEpochSecond(commit.getCommitTime()));
                 changeDetails.put(commit.getName(), detail);
 
-                if (commit.getParentCount() > 0) {
-                    try (ObjectReader reader = git.getRepository().newObjectReader()) {
-                        RevCommit parent = commit.getParent(0);
-                        List<DiffEntry> diff = doDiff(git, reader, parent, commit);
+                try (ObjectReader reader = git.getRepository().newObjectReader()) {
+                    RevCommit parent = commit.getParentCount() > 0? commit.getParent(0) : null;
+                    List<DiffEntry> diff = doDiff(git, reader, parent, commit);
 
-                        diff.forEach(entry -> {
-                            if(entry.getChangeType() != DiffEntry.ChangeType.DELETE) {
-                                changeLog.putIfAbsent(entry.getNewPath(), commit.getName());
-                            }
-                        });
-                    }
+                    diff.forEach(entry -> {
+                        if(entry.getChangeType() != DiffEntry.ChangeType.DELETE) {
+                            changeLog.putIfAbsent(entry.getNewPath(), commit.getName());
+                        }
+                    });
                 }
             }
 

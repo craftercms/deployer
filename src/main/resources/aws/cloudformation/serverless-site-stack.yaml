@@ -1,36 +1,49 @@
 AWSTemplateFormatVersion: 2010-09-09
 Description: Default Crafter Serverless Site Stack
 Parameters:
+  SiteName:
+    Type: String
   S3BucketName:
     Type: String
-  CloudFrontDistributionOriginPath:
+  DeliveryLBDomainName:
     Type: String
-  CloudFrontDistributionAllowedMethods:
+  CloudFrontCertificateArn:
+    Type: String
+  LBOriginCacheBehaviorAllowedMethods:
+    Type: CommaDelimitedList
+    Default: 'GET,HEAD,OPTIONS,PUT,POST,PATCH,DELETE'
+  LBOriginKeepaliveTimeout:
+    Type: Number
+    Default: 5
+  LBOriginReadTimeout:
+    Type: Number
+    Default: 60
+  S3OriginCacheBehaviorAllowedMethods:
     Type: CommaDelimitedList
     Default: 'HEAD,GET'
-  CloudFrontDistributionCachedMethods:
+  S3OriginCacheBehaviorCachedMethods:
     Type: CommaDelimitedList
     Default: 'HEAD,GET'
-  CloudFrontDistributionForwardedHeaderValues:
+  S3OriginCacheBehaviorForwardedHeaderValues:
     Type: CommaDelimitedList
     Default: 'Access-Control-Request-Headers,Access-Control-Request-Method,Origin'
-  CloudFrontDistributionPriceClass:
+  CloudFrontPriceClass:
     Type: String
     Default: PriceClass_100
     AllowedValues:
       - PriceClass_100
       - PriceClass_200
       - PriceClass_All
-  S3BucketCorsAllowedHeaders:
+  S3CorsAllowedHeaders:
     Type: CommaDelimitedList
     Default: '*'
-  S3BucketCorsAllowedMethods:
+  S3CorsAllowedMethods:
     Type: CommaDelimitedList
     Default: 'HEAD,GET'
-  S3BucketCorsAllowedOrigins:
+  S3CorsAllowedOrigins:
     Type: CommaDelimitedList
     Default: '*'
-  S3BucketCorsMaxAge:
+  S3CorsMaxAge:
     Type: String
     Default: 3000
 Resources:
@@ -38,7 +51,7 @@ Resources:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
     Properties:
       CloudFrontOriginAccessIdentityConfig:
-        Comment: !Sub 'OAI for CloudFront of S3 Path ${S3Bucket}${CloudFrontDistributionOriginPath}'
+        Comment: !Sub 'OAI for CloudFront of site ${SiteName}'
   S3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
@@ -46,10 +59,10 @@ Resources:
       AccessControl: Private
       CorsConfiguration:
         CorsRules:
-          - AllowedHeaders: !Ref S3BucketCorsAllowedHeaders
-            AllowedMethods: !Ref S3BucketCorsAllowedMethods
-            AllowedOrigins: !Ref S3BucketCorsAllowedOrigins
-            MaxAge: !Ref S3BucketCorsMaxAge
+          - AllowedHeaders: !Ref S3CorsAllowedHeaders
+            AllowedMethods: !Ref S3CorsAllowedMethods
+            AllowedOrigins: !Ref S3CorsAllowedOrigins
+            MaxAge: !Ref S3CorsMaxAge
   S3BucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
     Properties:
@@ -67,23 +80,46 @@ Resources:
     Type: 'AWS::CloudFront::Distribution'
     Properties:
       DistributionConfig:
+        Comment: !Sub 'CloudFront Distribution for site ${SiteName}'
         Enabled: true
-        PriceClass: !Ref CloudFrontDistributionPriceClass
+        PriceClass: !Ref CloudFrontPriceClass
         DefaultCacheBehavior:
-          TargetOriginId: !Sub 'S3-${S3Bucket}'
-          ViewerProtocolPolicy: allow-all
+          TargetOriginId: !Sub 'LB-${LBDomainName}'
+          ViewerProtocolPolicy: redirect-to-https
           MinTTL: 0
-          AllowedMethods: !Ref CloudFrontDistributionAllowedMethods
-          CachedMethods: !Ref CloudFrontDistributionCachedMethods
+          AllowedMethods: !Ref LBOriginCacheBehaviorAllowedMethods
           ForwardedValues:
-            QueryString: false
-            Headers: !Ref CloudFrontDistributionForwardedHeaderValues
+            QueryString: true
+            Headers: ['*']
             Cookies:
-              Forward: none
+              Forward: all
+        CacheBehaviors:
+          - PathPattern: '/static-assets/*'
+            TargetOriginId: !Sub 'S3-${S3Bucket}'
+            ViewerProtocolPolicy: redirect-to-https
+            MinTTL: 0
+            AllowedMethods: !Ref S3OriginCacheBehaviorAllowedMethods
+            CachedMethods: !Ref S3OriginCacheBehaviorCachedMethods
+            ForwardedValues:
+              QueryString: false
+              Headers: !Ref S3OriginCacheBehaviorForwardedHeaderValues
+              Cookies:
+                Forward: none
         Origins:
+          - DomainName: !Ref DeliveryLBDomainName
+            Id: !Sub 'LB-${LBDomainName}'
+            OriginPath: !Sub '/${SiteName}'
+            CustomOriginConfig:
+              OriginKeepaliveTimeout: !Ref LBOriginKeepaliveTimeout
+              OriginReadTimeout: !Ref LBOriginReadTimeout
+              OriginProtocolPolicy: http-only
+              OriginSSLProtocols: ['TLSv1', 'TLSv1.1', 'TLSv1.2']
+            OriginCustomHeaders:
+              - HeaderName: X-Crafter-Site
+                HeaderValue: !Ref SiteName
           - DomainName: !Sub '${S3Bucket}.s3.amazonaws.com'
             Id: !Sub 'S3-${S3Bucket}'
-            OriginPath: !Ref CloudFrontDistributionOriginPath
+            OriginPath: !Sub '/${SiteName}'
             S3OriginConfig:
               OriginAccessIdentity: !Sub 'origin-access-identity/cloudfront/${CloudFrontOriginAccessIdentity}'
         Restrictions:
@@ -91,7 +127,8 @@ Resources:
             RestrictionType: none
             Locations: []
         ViewerCertificate:
-          CloudFrontDefaultCertificate: 'true'
+          AcmCertificateArn: !Ref CloudFrontCertificateArn
+          SslSupportMethod: sni-only
           MinimumProtocolVersion: TLSv1
 Outputs:
   CloudFrontDistributionId:

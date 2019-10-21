@@ -84,7 +84,7 @@ Resources:
         Enabled: true
         PriceClass: !Ref CloudFrontPriceClass
         DefaultCacheBehavior:
-          TargetOriginId: !Sub 'LB-${LBDomainName}'
+          TargetOriginId: !Sub 'LB-${DeliveryLBDomainName}'
           ViewerProtocolPolicy: redirect-to-https
           MinTTL: 0
           AllowedMethods: !Ref LBOriginCacheBehaviorAllowedMethods
@@ -107,7 +107,7 @@ Resources:
                 Forward: none
         Origins:
           - DomainName: !Ref DeliveryLBDomainName
-            Id: !Sub 'LB-${LBDomainName}'
+            Id: !Sub 'LB-${DeliveryLBDomainName}'
             OriginPath: !Sub '/${SiteName}'
             CustomOriginConfig:
               OriginKeepaliveTimeout: !Ref LBOriginKeepaliveTimeout

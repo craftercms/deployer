@@ -108,7 +108,6 @@ Resources:
         Origins:
           - DomainName: !Ref DeliveryLBDomainName
             Id: !Sub 'LB-${DeliveryLBDomainName}'
-            OriginPath: !Sub '/${SiteName}'
             CustomOriginConfig:
               OriginKeepaliveTimeout: !Ref LBOriginKeepaliveTimeout
               OriginReadTimeout: !Ref LBOriginReadTimeout
@@ -129,7 +128,7 @@ Resources:
         ViewerCertificate:
           AcmCertificateArn: !Ref CloudFrontCertificateArn
           SslSupportMethod: sni-only
-          MinimumProtocolVersion: TLSv1
+          MinimumProtocolVersion: TLSv1.1_2016
 Outputs:
   CloudFrontDistributionId:
     Value: !Ref CloudFrontDistribution

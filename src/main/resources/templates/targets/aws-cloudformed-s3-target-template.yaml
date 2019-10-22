@@ -11,7 +11,7 @@ aws:
     s3Url: s3://${aws.cloudformation.s3BucketName}
     deliveryLBDomainName: {{aws.cloudformation.deliveryLBDomainName}}
     cloudfrontCertificateArn: {{#if aws.cloudformation.cloudfrontCertificateArn}}{{aws.cloudformation.cloudfrontCertificateArn}}{{else}}''{{/if}}
-    alternateDomainNames: {{#if aws.cloudformation.alternateDomainNames}}{{aws.cloudformation.alternateDomainNames}}{{else}}''{{/if}}
+    alternateCloudFrontDomainNames: {{#if aws.cloudformation.alternateCloudFrontDomainNames}}{{aws.cloudformation.alternateCloudFrontDomainNames}}{{else}}''{{/if}}
 target:
   env: {{env}}
   siteName: {{site_name}}
@@ -38,7 +38,7 @@ target:
           S3BucketName: ${aws.cloudformation.s3BucketName}
           DeliveryLBDomainName: ${aws.cloudformation.deliveryLBDomainName}
           CloudFrontCertificateArn: ${aws.cloudformation.cloudfrontCertificateArn}
-          AlternateDomainNames: ${aws.cloudformation.alternateDomainNames}
+          AlternateCloudFrontDomainNames: ${aws.cloudformation.alternateCloudFrontDomainNames}
     init:
       - hookName: waitTillCloudFormationStackUsableLifecycleHook
         region: ${aws.region}

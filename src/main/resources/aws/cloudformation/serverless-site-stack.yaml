@@ -10,7 +10,7 @@ Parameters:
   CloudFrontCertificateArn:
     Type: String
     Default: ''
-  AlternateDomainNames:
+  AlternateCloudFrontDomainNames:
     Type: CommaDelimitedList
     Default: ''
   LBOriginCacheBehaviorAllowedMethods:
@@ -53,8 +53,8 @@ Parameters:
 Conditions:
   CloudFrontCertificateArnSpecified:
     !Not [!Equals [!Ref CloudFrontCertificateArn, '']]
-  AlternateDomainNamesSpecified:
-    !Not [!Equals [!Join [',', !Ref AlternateDomainNames], '']]
+  AlternateCloudFrontDomainNamesSpecified:
+    !Not [!Equals [!Join [',', !Ref AlternateCloudFrontDomainNames], '']]
 Resources:
   CloudFrontOriginAccessIdentity:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
@@ -92,7 +92,7 @@ Resources:
         Comment: !Sub 'CloudFront Distribution for site ${SiteName}'
         Enabled: true
         PriceClass: !Ref CloudFrontPriceClass
-        Aliases: !If [AlternateDomainNamesSpecified, !Ref AlternateDomainNames, !Ref 'AWS::NoValue']
+        Aliases: !If [AlternateCloudFrontDomainNamesSpecified, !Ref AlternateCloudFrontDomainNames, !Ref 'AWS::NoValue']
         DefaultCacheBehavior:
           TargetOriginId: !Sub 'LB-${DeliveryLBDomainName}'
           ViewerProtocolPolicy: redirect-to-https

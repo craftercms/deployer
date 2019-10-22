@@ -9,6 +9,9 @@ aws:
     stackName: ${aws.cloudformation.namespace}-site-{{site_name}}
     s3BucketName: ${aws.cloudformation.namespace}-site-{{site_name}}
     s3Url: s3://${aws.cloudformation.s3BucketName}
+    deliveryLBDomainName: {{aws.cloudformation.deliveryLBDomainName}}
+    cloudfrontCertificateArn: {{#if aws.cloudformation.cloudfrontCertificateArn}}{{aws.cloudformation.cloudfrontCertificateArn}}{{else}}''{{/if}}
+    alternateCloudFrontDomainNames: {{#if aws.cloudformation.alternateCloudFrontDomainNames}}{{aws.cloudformation.alternateCloudFrontDomainNames}}{{else}}''{{/if}}
 target:
   env: {{env}}
   siteName: {{site_name}}
@@ -31,8 +34,11 @@ target:
         stackName: ${aws.cloudformation.stackName}
         templateFilename: serverless-site-stack.yaml
         templateParams:
+          SiteName: ${target.siteName}
           S3BucketName: ${aws.cloudformation.s3BucketName}
-          CloudFrontDistributionOriginPath: /${target.siteName}/static-assets
+          DeliveryLBDomainName: ${aws.cloudformation.deliveryLBDomainName}
+          CloudFrontCertificateArn: ${aws.cloudformation.cloudfrontCertificateArn}
+          AlternateCloudFrontDomainNames: ${aws.cloudformation.alternateCloudFrontDomainNames}
     init:
       - hookName: waitTillCloudFormationStackUsableLifecycleHook
         region: ${aws.region}
@@ -80,10 +86,6 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-      - processorName: findAndReplaceProcessor
-        includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
-        textPattern: "([>\"'\\(])/?static-assets(/[^<\"'\\)]+)"
-        replacement: $1https://${aws.cloudformation.cloudfrontDistribution.domainName}$2
       - processorName: elasticsearchIndexingProcessor
       - processorName: s3SyncProcessor
         region: ${aws.region}

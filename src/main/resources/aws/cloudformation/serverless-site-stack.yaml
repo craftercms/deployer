@@ -9,6 +9,10 @@ Parameters:
     Type: String
   CloudFrontCertificateArn:
     Type: String
+    Default: ''
+  AlternateDomainNames:
+    Type: CommaDelimitedList
+    Default: ''
   LBOriginCacheBehaviorAllowedMethods:
     Type: CommaDelimitedList
     Default: 'GET,HEAD,OPTIONS,PUT,POST,PATCH,DELETE'
@@ -46,6 +50,11 @@ Parameters:
   S3CorsMaxAge:
     Type: String
     Default: 3000
+Conditions:
+  CloudFrontCertificateArnSpecified:
+    !Not [!Equals [!Ref CloudFrontCertificateArn, '']]
+  AlternateDomainNamesSpecified:
+    !Not [!Equals [!Join [',', !Ref AlternateDomainNames], '']]
 Resources:
   CloudFrontOriginAccessIdentity:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
@@ -83,6 +92,7 @@ Resources:
         Comment: !Sub 'CloudFront Distribution for site ${SiteName}'
         Enabled: true
         PriceClass: !Ref CloudFrontPriceClass
+        Aliases: !If [AlternateDomainNamesSpecified, !Ref AlternateDomainNames, !Ref 'AWS::NoValue']
         DefaultCacheBehavior:
           TargetOriginId: !Sub 'LB-${DeliveryLBDomainName}'
           ViewerProtocolPolicy: redirect-to-https
@@ -126,8 +136,9 @@ Resources:
             RestrictionType: none
             Locations: []
         ViewerCertificate:
-          AcmCertificateArn: !Ref CloudFrontCertificateArn
-          SslSupportMethod: sni-only
+          CloudFrontDefaultCertificate: !If [CloudFrontCertificateArnSpecified, !Ref 'AWS::NoValue', true]
+          AcmCertificateArn: !If [CloudFrontCertificateArnSpecified, !Ref CloudFrontCertificateArn, !Ref 'AWS::NoValue']
+          SslSupportMethod: !If [CloudFrontCertificateArnSpecified, 'sni-only', !Ref 'AWS::NoValue']
           MinimumProtocolVersion: TLSv1.1_2016
 Outputs:
   CloudFrontDistributionId:

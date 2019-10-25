@@ -166,13 +166,17 @@ public abstract class GitUtils {
      * @param authConfigurator the {@link GitAuthenticationConfigurator} class used to configure the authentication
      *                         with the remote
      *                         repository
+     * @param force            sets the force preference for the push
      * @return the result of the push
      * @throws GitAPIException if a Git related error occurs
      */
     public static Iterable<PushResult> push(Git git, String remote, String branch,
-                                            GitAuthenticationConfigurator authConfigurator) throws GitAPIException {
+                                            GitAuthenticationConfigurator authConfigurator,
+                                            boolean force) throws GitAPIException {
         PushCommand push = git.push();
         push.setRemote(remote);
+        push.setForce(force);
+
         if (StringUtils.isNotEmpty(branch)) {
             push.setRefSpecs(new RefSpec(Constants.HEAD + ":" + Constants.R_HEADS + branch));
         }

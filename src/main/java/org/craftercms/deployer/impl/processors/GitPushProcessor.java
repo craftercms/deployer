@@ -22,6 +22,8 @@ import java.util.Collection;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.configuration2.Configuration;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -35,6 +37,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import static org.craftercms.deployer.api.Deployment.Status;
+import static org.craftercms.deployer.utils.ConfigUtils.getBooleanProperty;
 
 /**
  * Processor that pushes a localRepo to a remote Git repository. A processor instance can be configured with the
@@ -52,6 +55,7 @@ import static org.craftercms.deployer.api.Deployment.Status;
  *     key pair authentication.</li>
  *     <li><strong>remoteRepo.ssh.privateKey.passphrase:</strong> The SSH private key passphrase, used only with
  *     SSH withRSA key pair authentication.</li>
+ *     <li><strong>force:</strong> sets the force preference for the push.</li>
  * </ul>
  *
  * @author avasquez
@@ -59,6 +63,19 @@ import static org.craftercms.deployer.api.Deployment.Status;
 public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(GitPushProcessor.class);
+
+    protected static final String FORCE_CONFIG_KEY = "force";
+
+    // Config properties (populated on init)
+
+    protected boolean force;
+
+    @Override
+    protected void doInit(Configuration config) throws ConfigurationException {
+        super.doInit(config);
+
+        force = getBooleanProperty(config, FORCE_CONFIG_KEY, false);
+    }
 
     @Override
     protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
@@ -76,10 +93,10 @@ public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
     protected void doPush(ProcessorExecution execution) throws DeployerException {
         try (Git git = openLocalRepository()) {
-            logger.info("Executing git push for repository {}...", localRepoFolder);
+            logger.info("Executing git push for repository {} (force = {})...", localRepoFolder, force);
 
             Iterable<PushResult> pushResults = GitUtils.push(git, remoteRepoUrl, remoteRepoBranch,
-                                                             authenticationConfigurator);
+                                                             authenticationConfigurator, force);
             List<String> detailsList = new ArrayList<>();
 
             boolean success = checkPushResults(pushResults, detailsList);
@@ -91,7 +108,7 @@ public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
                     execution.endExecution(Status.FAILURE);
                 }
             } else {
-                execution.setStatusDetails("Not push result returned after pull operation");
+                execution.setStatusDetails("No result returned after push operation");
             }
         } catch (GitAPIException e) {
             throw new DeployerException("Execution of git push failed", e);

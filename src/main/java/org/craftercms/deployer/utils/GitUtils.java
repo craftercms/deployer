@@ -162,7 +162,8 @@ public abstract class GitUtils {
      *
      * @param git              the Git instance used to handle the repository
      * @param remote           remote name or URL
-     * @param branch           the remote branch being pushed to
+     * @param pushAll          if the push should push all local branches
+     * @param remoteBranch     the remote remoteBranch being pushed to
      * @param authConfigurator the {@link GitAuthenticationConfigurator} class used to configure the authentication
      *                         with the remote
      *                         repository
@@ -170,15 +171,17 @@ public abstract class GitUtils {
      * @return the result of the push
      * @throws GitAPIException if a Git related error occurs
      */
-    public static Iterable<PushResult> push(Git git, String remote, String branch,
+    public static Iterable<PushResult> push(Git git, String remote, boolean pushAll, String remoteBranch,
                                             GitAuthenticationConfigurator authConfigurator,
                                             boolean force) throws GitAPIException {
         PushCommand push = git.push();
         push.setRemote(remote);
         push.setForce(force);
 
-        if (StringUtils.isNotEmpty(branch)) {
-            push.setRefSpecs(new RefSpec(Constants.HEAD + ":" + Constants.R_HEADS + branch));
+        if (pushAll) {
+            push.setPushAll();
+        } else if (StringUtils.isNotEmpty(remoteBranch)) {
+            push.setRefSpecs(new RefSpec(Constants.HEAD + ":" + Constants.R_HEADS + remoteBranch));
         }
 
         if (authConfigurator != null) {

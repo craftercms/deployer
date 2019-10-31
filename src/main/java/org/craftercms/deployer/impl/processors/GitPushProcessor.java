@@ -56,6 +56,7 @@ import static org.craftercms.deployer.utils.ConfigUtils.getBooleanProperty;
  *     <li><strong>remoteRepo.ssh.privateKey.passphrase:</strong> The SSH private key passphrase, used only with
  *     SSH withRSA key pair authentication.</li>
  *     <li><strong>force:</strong> sets the force preference for the push.</li>
+ *     <li><strong>pushAll:</strong> if all local branches should be pushed to the remote.</li>
  * </ul>
  *
  * @author avasquez
@@ -65,16 +66,19 @@ public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
     private static final Logger logger = LoggerFactory.getLogger(GitPushProcessor.class);
 
     protected static final String FORCE_CONFIG_KEY = "force";
+    protected static final String PUSH_ALL_CONFIG_KEY = "pushAll";
 
     // Config properties (populated on init)
 
     protected boolean force;
+    protected boolean pushAll;
 
     @Override
     protected void doInit(Configuration config) throws ConfigurationException {
         super.doInit(config);
 
         force = getBooleanProperty(config, FORCE_CONFIG_KEY, false);
+        pushAll = getBooleanProperty(config, PUSH_ALL_CONFIG_KEY, false);
     }
 
     @Override
@@ -95,7 +99,7 @@ public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
         try (Git git = openLocalRepository()) {
             logger.info("Executing git push for repository {} (force = {})...", localRepoFolder, force);
 
-            Iterable<PushResult> pushResults = GitUtils.push(git, remoteRepoUrl, remoteRepoBranch,
+            Iterable<PushResult> pushResults = GitUtils.push(git, remoteRepoUrl, pushAll, remoteRepoBranch,
                                                              authenticationConfigurator, force);
             List<String> detailsList = new ArrayList<>();
 

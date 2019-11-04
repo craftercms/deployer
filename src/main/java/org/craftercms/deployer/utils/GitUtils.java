@@ -171,8 +171,8 @@ public abstract class GitUtils {
      * @return the result of the push
      * @throws GitAPIException if a Git related error occurs
      */
-    public static Iterable<PushResult> push(Git git, String remote, boolean pushAll, String remoteBranch,
-                                            GitAuthenticationConfigurator authConfigurator,
+    public static Iterable<PushResult> push(Git git, String remote, boolean pushAll, String localBranch,
+                                            String remoteBranch, GitAuthenticationConfigurator authConfigurator,
                                             boolean force) throws GitAPIException {
         PushCommand push = git.push();
         push.setRemote(remote);
@@ -181,7 +181,7 @@ public abstract class GitUtils {
         if (pushAll) {
             push.setPushAll();
         } else if (StringUtils.isNotEmpty(remoteBranch)) {
-            push.setRefSpecs(new RefSpec(Constants.HEAD + ":" + Constants.R_HEADS + remoteBranch));
+            push.setRefSpecs(new RefSpec(localBranch + ":" + Constants.R_HEADS + remoteBranch));
         }
 
         if (authConfigurator != null) {

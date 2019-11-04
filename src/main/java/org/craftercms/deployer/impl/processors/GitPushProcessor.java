@@ -31,11 +31,13 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RemoteRefUpdate;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 import static org.craftercms.deployer.api.Deployment.Status;
 import static org.craftercms.deployer.utils.ConfigUtils.getBooleanProperty;
 
@@ -67,11 +69,13 @@ public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
     protected static final String FORCE_CONFIG_KEY = "force";
     protected static final String PUSH_ALL_CONFIG_KEY = "pushAll";
+    protected static final String LOCAL_BRANCH_CONFIG_KEY = "localRepoBranch";
 
     // Config properties (populated on init)
 
     protected boolean force;
     protected boolean pushAll;
+    protected String localBranch;
 
     @Override
     protected void doInit(Configuration config) throws ConfigurationException {
@@ -79,6 +83,7 @@ public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
         force = getBooleanProperty(config, FORCE_CONFIG_KEY, false);
         pushAll = getBooleanProperty(config, PUSH_ALL_CONFIG_KEY, false);
+        localBranch = getStringProperty(config, LOCAL_BRANCH_CONFIG_KEY, Constants.HEAD);
     }
 
     @Override
@@ -99,7 +104,7 @@ public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
         try (Git git = openLocalRepository()) {
             logger.info("Executing git push for repository {} (force = {})...", localRepoFolder, force);
 
-            Iterable<PushResult> pushResults = GitUtils.push(git, remoteRepoUrl, pushAll, remoteRepoBranch,
+            Iterable<PushResult> pushResults = GitUtils.push(git, remoteRepoUrl, pushAll, localBranch, remoteRepoBranch,
                                                              authenticationConfigurator, force);
             List<String> detailsList = new ArrayList<>();
 

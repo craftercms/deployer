@@ -23,6 +23,7 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.CompositeTemplateLoader;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 import freemarker.template.TemplateException;
+import org.craftercms.commons.file.stores.S3ClientPoolingFactory;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
@@ -93,6 +94,11 @@ public class DeployerApplication implements WebMvcConfigurer  {
 
 	public static void main(String[] args) {
 		SpringApplication.run(DeployerApplication.class, args);
+	}
+
+	@Bean
+	public S3ClientPoolingFactory s3ClientPoolingFactory() {
+		return new S3ClientPoolingFactory();
 	}
 
 	@Bean

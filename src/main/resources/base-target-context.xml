@@ -88,6 +88,7 @@
 
     <bean id="abstractSearchIndexingProcessor" class="org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor"
           parent="deploymentProcessor" abstract="true">
+        <property name="cacheTemplate" ref="crafter.cacheTemplate"/>
         <property name="contextFactory" ref="contextFactory"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlFlatteningEnabled" value="${target.search.indexing.xml.flattening.enabled}"/>
@@ -147,6 +148,15 @@
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
     </bean>
 
+    <bean id="webDavProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
+        <property name="profilesUrl" value="${target.config.profiles.webdav.path}"/>
+        <property name="profileMapper">
+            <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMappper"/>
+        </property>
+        <property name="contextFactory" ref="contextFactory"/>
+        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+    </bean>
+
     <!-- Core -->
 
     <bean id="contextFactory" class="org.craftercms.deployer.utils.core.SingletonContextFactory">
@@ -154,6 +164,8 @@
         <property name="localRepoUrl" value="file:${target.localRepoPath}"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlMergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>
+        <property name="enableCache" value="${target.core.cache.enabled}"/>
+        <property name="maxAllowedItemsInCache" value="${target.core.cache.maxItems}"/>
     </bean>
 
     <!-- Remote File Stores -->
@@ -171,6 +183,10 @@
 
     <bean id="boxFileStore" class="org.craftercms.commons.file.stores.impl.box.BoxFileStore">
         <property name="profileLoader" ref="boxProfileLoader"/>
+    </bean>
+
+    <bean id="webDavFileStore" class="org.craftercms.commons.file.stores.impl.webdav.WebDavFileStore">
+        <property name="profileLoader" ref="webDavProfileLoader"/>
     </bean>
 
     <bean id="urlBasedFileStore" class="org.craftercms.commons.file.stores.impl.UrlBasedFileStore"/>
@@ -192,6 +208,7 @@
                 <entry key="s3" value-ref="s3FileStore"/>
                 <entry key="box" value-ref="boxFileStore"/>
                 <entry key="url" value-ref="urlBasedFileStore"/>
+                <entry key="webdav" value-ref="webDavFileStore"/>
             </map>
         </property>
     </bean>
@@ -208,15 +225,26 @@
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
     </bean>
 
+    <bean id="inheritedDescriptorsItemProcessor" 
+          class="org.craftercms.core.processors.impl.InheritedDescriptorsItemProcessor">
+        <constructor-arg value="${target.search.indexing.xml.merging.inherits.field}"/>
+        <constructor-arg ref="crafter.mergeStrategyResolverChain"/>
+    </bean>
+
     <bean id="disableAwareIncludeDescriptorsProcessor" class="org.craftercms.commons.spring.ConditionalFactoryBean">
         <property name="flag" value="${target.search.indexing.xml.flattening.enabled}"/>
         <property name="actualBean" ref="includeDescriptorsProcessor"/>
     </bean>
 
+    <util:list id="itemProcessors">
+        <ref bean="disableAwareIncludeDescriptorsProcessor"/>
+        <ref bean="inheritedDescriptorsItemProcessor"/>
+    </util:list>
+
     <bean id="abstractXmlFileBatchIndexer" abstract="true">
         <property name="includePathPatterns"
                   value="#{environment.getProperty('target.search.indexing.xml.includePatterns', T(java.util.List))}"/>
-        <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
+        <property name="itemProcessors" ref="itemProcessors"/>
     </bean>
 
     <bean id="xmlFileBatchIndexer" class="org.craftercms.search.batch.impl.XmlFileBatchIndexer"
@@ -247,7 +275,7 @@
         <property name="referenceXPaths"
                   value="#{environment.getProperty('target.search.indexing.binary.referenceXPaths', T(java.util.List))}"/>
         <property name="remoteFileResolver" ref="remoteFileResolver"/>
-        <property name="itemProcessor" ref="disableAwareIncludeDescriptorsProcessor"/>
+        <property name="itemProcessors" ref="itemProcessors"/>
         <property name="maxFileSize" value="${target.search.indexing.binary.maxFileSize}"/>
     </bean>
 

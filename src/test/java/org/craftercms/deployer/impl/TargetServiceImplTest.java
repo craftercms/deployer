@@ -50,7 +50,6 @@ import static org.craftercms.deployer.impl.DeploymentConstants.CREATE_TARGET_LIF
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotEquals;
 import static org.junit.Assert.assertNotNull;
-import static org.mockito.Matchers.eq;
 import static org.mockito.Mockito.*;
 
 /**

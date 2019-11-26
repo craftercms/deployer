@@ -40,12 +40,6 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-      {{#if aws.distribution.url}}
-      - processorName: findAndReplaceProcessor
-        includeFiles: ['^/site/.*$', '^/templates/.*$', '^/static-assets/.*(js|css|html)$']
-        textPattern: /static-assets(/([^&quot;&lt;]+)
-        replacement: {{aws.distribution.url}}$1
-      {{/if}}
       - processorName: elasticsearchIndexingProcessor
       - processorName: s3SyncProcessor
         region: ${aws.region}
@@ -54,7 +48,7 @@ target:
         url: {{aws.s3.url}}
       - processorName: delayProcessor
         {{#if delay}}seconds: {{delay}}{{/if}}
-      {{#if aws.distribution.url}}
+      {{#if aws.distribution.ids}}
       - processorName: cloudfrontInvalidationProcessor
         includeFiles: ['^/static-assets/.*$']
         region: ${aws.region}

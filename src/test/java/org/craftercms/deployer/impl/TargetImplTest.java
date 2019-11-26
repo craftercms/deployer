@@ -51,8 +51,8 @@ public class TargetImplTest {
     public void setUp() throws Exception {
         count = 0;
         target = new TargetImpl(ZonedDateTime.now(), TEST_ENV, TEST_SITE_NAME, null, null, createConfig(), null,
-                                Executors.newSingleThreadExecutor(), null, createTargetLifecycleHooksResolver(),
-                                createDeploymentPipelineFactory(), false);
+            Executors.newSingleThreadExecutor(), null, createTargetLifecycleHooksResolver(),
+            createDeploymentPipelineFactory(), false);
     }
 
     @Test

@@ -18,6 +18,7 @@
 package org.craftercms.deployer.impl.rest;
 
 import org.craftercms.commons.monitoring.rest.MonitoringRestControllerBase;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -34,4 +35,11 @@ public class MonitorController extends MonitoringRestControllerBase {
      */
     public static final String BASE_URL = "/api/1";
 
+    @Value("${crafter.deployer.monitoring.authorizationToken}")
+    private String configuredToken;
+
+    @Override
+    protected String getConfiguredToken() {
+        return configuredToken;
+    }
 }

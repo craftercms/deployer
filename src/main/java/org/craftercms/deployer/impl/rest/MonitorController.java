@@ -35,7 +35,7 @@ public class MonitorController extends MonitoringRestControllerBase {
      */
     public static final String BASE_URL = "/api/1";
 
-    @Value("${crafter.deployer.monitoring.authorizationToken}")
+    @Value("${deployer.main.monitoring.authorizationToken}")
     private String configuredToken;
 
     @Override

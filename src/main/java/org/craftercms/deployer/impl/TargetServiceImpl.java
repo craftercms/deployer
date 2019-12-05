@@ -48,6 +48,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.Resource;
@@ -72,6 +73,7 @@ import static org.craftercms.deployer.utils.ConfigUtils.*;
  * @author avasquez
  */
 @Component("targetService")
+@DependsOn("crafter.cacheStoreAdapter")
 public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent> {
 
     private static final Logger logger = LoggerFactory.getLogger(TargetServiceImpl.class);

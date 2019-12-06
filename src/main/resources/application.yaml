@@ -95,7 +95,7 @@ deployer:
     taskScheduler:
       # Thread pool size of the task scheduler
       poolSize: 10
-    monitoring:
-      # Deployer monitoring authorization token
+    management:
+      # Deployer management authorization token
       # Please update this per installation and provide this token to the status monitors.
-      authorizationToken: defaultMonitoringToken
+      authorizationToken: defaultManagementToken

@@ -99,3 +99,6 @@ deployer:
       # Deployer management authorization token
       # Please update this per installation and provide this token to the status monitors.
       authorizationToken: defaultManagementToken
+      # Engine management authorization token
+      # Please update this per installation and provide this token to the status monitors.
+      engineAuthorizationToken: defaultManagementToken

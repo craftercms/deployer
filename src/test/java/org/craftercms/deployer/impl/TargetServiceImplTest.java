@@ -30,6 +30,8 @@ import java.util.concurrent.ExecutorService;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
+import org.craftercms.commons.crypto.impl.NoOpTextEncryptor;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
@@ -89,7 +91,8 @@ public class TargetServiceImplTest {
             createTaskScheduler(),
             createTaskExecutor(),
             createProcessedCommitsStore(),
-            createTargetLifecycleHooksResolver());
+            createTargetLifecycleHooksResolver(),
+            createConfigurationReader());
     }
 
     @After
@@ -262,6 +265,10 @@ public class TargetServiceImplTest {
         when(resolver.getHooks(any(), any(), eq(CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY))).thenReturn(createHooks);
 
         return resolver;
+    }
+
+    private EncryptionAwareConfigurationReader createConfigurationReader() {
+        return new EncryptionAwareConfigurationReader(new NoOpTextEncryptor());
     }
 
     private Handlebars createHandlebars() {

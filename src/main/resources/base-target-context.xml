@@ -133,7 +133,9 @@
     <bean id="s3ProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
         <property name="profilesUrl" value="${target.config.profiles.aws.path}"/>
         <property name="profileMapper">
-            <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper"/>
+            <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper">
+                <constructor-arg ref="configurationReader"/>
+            </bean>
         </property>
         <property name="contextFactory" ref="contextFactory"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
@@ -142,7 +144,9 @@
     <bean id="boxProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
         <property name="profilesUrl" value="${target.config.profiles.box.path}"/>
         <property name="profileMapper">
-            <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper"/>
+            <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper">
+                <constructor-arg ref="configurationReader"/>
+            </bean>
         </property>
         <property name="contextFactory" ref="contextFactory"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
@@ -151,7 +155,9 @@
     <bean id="webDavProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
         <property name="profilesUrl" value="${target.config.profiles.webdav.path}"/>
         <property name="profileMapper">
-            <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMappper"/>
+            <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMapper">
+                <constructor-arg ref="configurationReader"/>
+            </bean>
         </property>
         <property name="contextFactory" ref="contextFactory"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>

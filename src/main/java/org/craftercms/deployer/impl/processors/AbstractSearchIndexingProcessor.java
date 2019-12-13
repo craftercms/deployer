@@ -43,8 +43,8 @@ import java.util.function.BiFunction;
 import java.util.regex.Pattern;
 
 import static org.apache.commons.collections4.ListUtils.emptyIfNull;
-import static org.craftercms.deployer.utils.ConfigUtils.getBooleanProperty;
-import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
+import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
  * Processor that indexes the files on the change set, using one or several {@link BatchIndexer}. After the files have

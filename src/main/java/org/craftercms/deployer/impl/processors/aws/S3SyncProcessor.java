@@ -47,7 +47,7 @@ import com.amazonaws.services.s3.transfer.MultipleFileUpload;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 
-import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that syncs files to an AWS S3 Bucket

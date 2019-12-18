@@ -36,7 +36,7 @@ import java.util.List;
 
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
-import static org.craftercms.deployer.utils.ConfigUtils.getStringArrayProperty;
+import static org.craftercms.commons.config.ConfigUtils.getStringArrayProperty;
 
 /**
  * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s. Inclusion/exclusion of files is handled

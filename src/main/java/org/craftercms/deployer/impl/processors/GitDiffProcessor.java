@@ -35,7 +35,7 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
-import org.craftercms.deployer.utils.ConfigUtils;
+import org.craftercms.commons.config.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LogCommand;

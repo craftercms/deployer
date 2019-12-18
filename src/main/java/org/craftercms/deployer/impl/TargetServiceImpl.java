@@ -28,6 +28,7 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
@@ -65,7 +66,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 
 import static org.craftercms.deployer.impl.DeploymentConstants.*;
-import static org.craftercms.deployer.utils.ConfigUtils.*;
+import static org.craftercms.commons.config.ConfigUtils.*;
 
 /**
  * Default implementation of {@link TargetService}.
@@ -101,6 +102,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ExecutorService taskExecutor;
     protected ProcessedCommitsStore processedCommitsStore;
     protected TargetLifecycleHooksResolver targetLifecycleHooksResolver;
+    protected EncryptionAwareConfigurationReader configurationReader;
     protected Set<Target> currentTargets;
 
     public TargetServiceImpl(
@@ -116,7 +118,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired TaskScheduler taskScheduler,
         @Autowired ExecutorService taskExecutor,
         @Autowired ProcessedCommitsStore processedCommitsStore,
-        @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver) {
+        @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
+        @Autowired EncryptionAwareConfigurationReader configurationReader) {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
@@ -130,6 +133,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.taskExecutor = taskExecutor;
         this.processedCommitsStore = processedCommitsStore;
         this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
+        this.configurationReader = configurationReader;
         this.currentTargets = new CopyOnWriteArraySet<>();
     }
 
@@ -370,22 +374,25 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
         logger.debug("Loading target YAML config at {}", configFilename);
 
-        HierarchicalConfiguration config = readYamlConfiguration(configFile);
+        HierarchicalConfiguration config = configurationReader.readYamlConfiguration(configFile);
 
         if (baseTargetYamlConfigResource.exists() || baseTargetYamlConfigOverrideResource.exists()) {
             CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
 
             combinedConfig.addConfiguration(config);
+            combinedConfig.setPrefixLookups(config.getInterpolator().getLookups());
 
             if (baseTargetYamlConfigOverrideResource.exists()) {
                 logger.debug("Loading base target YAML config override at {}", baseTargetYamlConfigOverrideResource);
 
-                combinedConfig.addConfiguration(readYamlConfiguration(baseTargetYamlConfigOverrideResource));
+                combinedConfig.addConfiguration(
+                    configurationReader.readYamlConfiguration(baseTargetYamlConfigOverrideResource));
             }
             if (baseTargetYamlConfigResource.exists()) {
                 logger.debug("Loading base target YAML config at {}", baseTargetYamlConfigResource);
 
-                combinedConfig.addConfiguration(readYamlConfiguration(baseTargetYamlConfigResource));
+                combinedConfig.addConfiguration(
+                    configurationReader.readYamlConfiguration(baseTargetYamlConfigResource));
             }
 
             return combinedConfig;

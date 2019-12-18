@@ -23,6 +23,10 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.CompositeTemplateLoader;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 import freemarker.template.TemplateException;
+import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
@@ -156,6 +160,18 @@ public class DeployerApplication implements WebMvcConfigurer  {
 		handlebars.registerHelperMissing(MissingValueHelper.INSTANCE);
 
 		return handlebars;
+	}
+
+	@Bean
+	public TextEncryptor textEncryptor(@Value("${deployer.main.security.encryption.key}") String key,
+                                       @Value("${deployer.main.security.encryption.salt}") String salt)
+		throws CryptoException {
+		return new PbkAesTextEncryptor(key, salt);
+	}
+
+	@Bean
+	public EncryptionAwareConfigurationReader configurationReader(@Autowired TextEncryptor textEncryptor) {
+		return new EncryptionAwareConfigurationReader(textEncryptor);
 	}
 
 	@Override

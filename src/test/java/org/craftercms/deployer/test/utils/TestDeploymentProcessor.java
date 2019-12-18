@@ -26,7 +26,7 @@ import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
  * Utility processor that just logs that it's running.

@@ -102,3 +102,9 @@ deployer:
       # Engine management authorization token
       # Please update this per installation and provide this token to the status monitors.
       engineAuthorizationToken: defaultManagementToken
+    security:
+      encryption:
+        # The key used for encryption of configuration properties
+        key: default_encryption_key
+        # The salt used for encryption of configuration properties
+        salt: default_encryption_salt

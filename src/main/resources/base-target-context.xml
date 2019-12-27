@@ -347,7 +347,9 @@
 
     <!-- Elasticsearch -->
     <bean id="elasticsearch" class="org.craftercms.search.elasticsearch.spring.ElasticsearchClientFactory">
-        <property name="serverUrls" value="${target.search.elasticsearch.urls}"/>
+        <constructor-arg value="${target.search.elasticsearch.urls}"/>
+        <property name="username" value="${target.search.elasticsearch.username}"/>
+        <property name="password" value="${target.search.elasticsearch.password}"/>
     </bean>
 
     <bean id="tika" class="org.apache.tika.Tika"/>

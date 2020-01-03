@@ -23,6 +23,7 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.CompositeTemplateLoader;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 import freemarker.template.TemplateException;
+import org.craftercms.commons.aws.S3ClientCachingFactory;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
@@ -87,9 +88,6 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	private String deploymentPoolName;
 	@Value("${deployer.main.deployments.pool.prefix}")
 	private String deploymentPoolPrefix;
-
-	@Autowired
-	private TargetService targetService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(DeployerApplication.class, args);
@@ -156,6 +154,11 @@ public class DeployerApplication implements WebMvcConfigurer  {
 		handlebars.registerHelperMissing(MissingValueHelper.INSTANCE);
 
 		return handlebars;
+	}
+
+	@Bean
+	public S3ClientCachingFactory s3ClientFactory() {
+		return new S3ClientCachingFactory();
 	}
 
 	@Override

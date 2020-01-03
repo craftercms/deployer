@@ -157,7 +157,7 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	}
 
 	@Bean
-    public S3ClientCachingFactory s3ClientFactory() {
+	public S3ClientCachingFactory s3ClientFactory() {
 		return new S3ClientCachingFactory();
 	}
 

@@ -356,7 +356,7 @@
           class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchAdminServiceFactory">
         <constructor-arg ref="elasticsearchConfig"/>
         <constructor-arg value="${target.search.elasticsearch.settings.authoring}"/>
-        <constructor-arg value="${${target.search.elasticsearch.settings.preview}}"/>
+        <constructor-arg value="${target.search.elasticsearch.settings.preview}"/>
     </bean>
 
     <bean id="tokenizedElementParser"

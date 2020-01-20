@@ -346,19 +346,17 @@
           class="org.craftercms.deployer.impl.processors.DelayProcessor"/>
 
     <!-- Elasticsearch -->
-    <bean id="elasticsearch" class="org.craftercms.search.elasticsearch.spring.ElasticsearchClientFactory">
-        <constructor-arg value="${target.search.elasticsearch.urls}"/>
-        <property name="username" value="${target.search.elasticsearch.username}"/>
-        <property name="password" value="${target.search.elasticsearch.password}"/>
+    <bean id="elasticsearchConfig" class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchConfig">
+        <constructor-arg ref="targetConfig"/>
     </bean>
 
     <bean id="tika" class="org.apache.tika.Tika"/>
 
     <bean id="elasticsearchAdminService"
-          class="org.craftercms.search.elasticsearch.impl.ElasticsearchAdminServiceImpl">
-        <property name="elasticsearchClient" ref="elasticsearch"/>
-        <property name="authoringIndexSettings" value="${target.search.elasticsearch.settings.authoring}"/>
-        <property name="previewIndexSettings" value="${${target.search.elasticsearch.settings.preview}}"/>
+          class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchAdminServiceFactory">
+        <constructor-arg ref="elasticsearchConfig"/>
+        <constructor-arg value="${target.search.elasticsearch.settings.authoring}"/>
+        <constructor-arg value="${target.search.elasticsearch.settings.preview}"/>
     </bean>
 
     <bean id="tokenizedElementParser"
@@ -431,10 +429,10 @@
         <property name="tika" ref="tika"/>
     </bean>
 
-    <bean id="elasticsearchService" class="org.craftercms.search.elasticsearch.impl.ElasticsearchServiceImpl">
-        <property name="client" ref="elasticsearch"/>
-        <property name="documentBuilder" ref="elasticsearchDocumentBuilder"/>
-        <property name="documentParser" ref="tikaDocumentParser"/>
+    <bean id="elasticsearchService" class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchServiceFactory">
+        <constructor-arg ref="elasticsearchConfig"/>
+        <constructor-arg ref="elasticsearchDocumentBuilder"/>
+        <constructor-arg ref="tikaDocumentParser"/>
     </bean>
 
     <bean id="elasticsearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"

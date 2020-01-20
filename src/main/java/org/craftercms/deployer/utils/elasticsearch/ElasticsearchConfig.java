@@ -54,9 +54,17 @@ public class ElasticsearchConfig {
     public final List<ElasticsearchClusterConfig> writeClusters;
 
     public ElasticsearchConfig(HierarchicalConfiguration<?> config) {
-        globalCluster = new ElasticsearchClusterConfig(config.configurationAt(CONFIG_KEY_GLOBAL_CLUSTER));
-        readCluster = new ElasticsearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
-            globalCluster.username, globalCluster.password);
+        if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_GLOBAL_CLUSTER))) {
+            globalCluster = new ElasticsearchClusterConfig(config.configurationAt(CONFIG_KEY_GLOBAL_CLUSTER));
+        } else {
+            globalCluster = new ElasticsearchClusterConfig();
+        }
+        if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_READ_CLUSTER))) {
+            readCluster = new ElasticsearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
+                globalCluster.username, globalCluster.password);
+        } else {
+            readCluster = new ElasticsearchClusterConfig();
+        }
         writeClusters = config.configurationsAt(CONFIG_KEY_WRITE_CLUSTERS)
             .stream()
             .map(cluster -> new ElasticsearchClusterConfig(cluster, globalCluster.username, globalCluster.password))

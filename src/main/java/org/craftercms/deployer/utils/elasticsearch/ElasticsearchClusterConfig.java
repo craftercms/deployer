@@ -17,6 +17,7 @@
 
 package org.craftercms.deployer.utils.elasticsearch;
 
+import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
@@ -58,6 +59,12 @@ public class ElasticsearchClusterConfig {
      * The password to connect to the cluster
      */
     public final String password;
+
+    public ElasticsearchClusterConfig() {
+        urls = Collections.emptyList();
+        username = null;
+        password = null;
+    }
 
     public ElasticsearchClusterConfig(HierarchicalConfiguration<?> config) {
         urls = config.getList(String.class, CONFIG_KEY_URLS);

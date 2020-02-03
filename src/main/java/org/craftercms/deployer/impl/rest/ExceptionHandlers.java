@@ -16,6 +16,7 @@
  */
 package org.craftercms.deployer.impl.rest;
 
+import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.rest.BaseRestExceptionHandlers;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.validation.rest.ValidationAwareRestExceptionHandlers;
@@ -67,6 +68,13 @@ public class ExceptionHandlers extends ValidationAwareRestExceptionHandlers {
                                                                  ex.getEnv(), ex.getSiteName());
 
         return handleExceptionInternal(ex, "Target already exists", headers, HttpStatus.CONFLICT, request);
+    }
+
+    @ExceptionHandler(InvalidManagementTokenException.class)
+    public ResponseEntity<Object> handleInvalidManagementTokenException(InvalidManagementTokenException ex,
+                                                                        WebRequest request) {
+        return handleExceptionInternal(ex, "Invalid management token", new HttpHeaders(), HttpStatus.UNAUTHORIZED,
+            request);
     }
 
 }

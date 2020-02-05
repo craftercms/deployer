@@ -17,11 +17,10 @@
 
 package org.craftercms.deployer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.io.CompositeTemplateLoader;
-import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+
 import freemarker.template.TemplateException;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.crypto.CryptoException;
@@ -49,10 +48,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.io.CompositeTemplateLoader;
+import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 
 import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCATION;
 

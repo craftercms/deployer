@@ -30,6 +30,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
+import org.craftercms.commons.upgrade.UpgradeManager;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
 import org.craftercms.deployer.api.Target;
@@ -42,6 +43,8 @@ import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -57,8 +60,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.*;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -75,7 +76,8 @@ import static org.craftercms.commons.config.ConfigUtils.*;
  */
 @Component("targetService")
 @DependsOn("crafter.cacheStoreAdapter")
-public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent> {
+public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent>,
+                                            InitializingBean, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(TargetServiceImpl.class);
 
@@ -103,6 +105,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ProcessedCommitsStore processedCommitsStore;
     protected TargetLifecycleHooksResolver targetLifecycleHooksResolver;
     protected EncryptionAwareConfigurationReader configurationReader;
+    protected UpgradeManager upgradeManager;
     protected Set<Target> currentTargets;
 
     public TargetServiceImpl(
@@ -119,7 +122,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired ExecutorService taskExecutor,
         @Autowired ProcessedCommitsStore processedCommitsStore,
         @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
-        @Autowired EncryptionAwareConfigurationReader configurationReader) {
+        @Autowired EncryptionAwareConfigurationReader configurationReader,
+        @Autowired UpgradeManager upgradeManager) {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
@@ -134,11 +138,11 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.processedCommitsStore = processedCommitsStore;
         this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
         this.configurationReader = configurationReader;
+        this.upgradeManager = upgradeManager;
         this.currentTargets = new CopyOnWriteArraySet<>();
     }
 
-    @PostConstruct
-    public void init() throws DeployerException {
+    public void afterPropertiesSet() throws DeployerException {
         if (!targetConfigFolder.exists()) {
             logger.info("Target config folder " + targetConfigFolder + " doesn't exist. Creating it");
 
@@ -163,7 +167,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
     }
 
-    @PreDestroy
+    @Override
     public void destroy() {
         logger.info("Closing all targets...");
 
@@ -338,6 +342,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     @SuppressWarnings("unchecked")
     protected Target loadTarget(File configFile, File contextFile, boolean create) throws TargetServiceException {
         try {
+            upgradeManager.upgrade(configFile.getAbsolutePath());
+
             HierarchicalConfiguration config = loadConfiguration(configFile);
             String env = getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
             String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);

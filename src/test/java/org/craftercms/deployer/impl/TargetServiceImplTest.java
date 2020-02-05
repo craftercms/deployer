@@ -32,6 +32,7 @@ import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.crypto.impl.NoOpTextEncryptor;
+import org.craftercms.commons.upgrade.UpgradeManager;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
@@ -92,7 +93,8 @@ public class TargetServiceImplTest {
             createTaskExecutor(),
             createProcessedCommitsStore(),
             createTargetLifecycleHooksResolver(),
-            createConfigurationReader());
+            createConfigurationReader(),
+            createUpgradeManager());
     }
 
     @After
@@ -269,6 +271,10 @@ public class TargetServiceImplTest {
 
     private EncryptionAwareConfigurationReader createConfigurationReader() {
         return new EncryptionAwareConfigurationReader(new NoOpTextEncryptor());
+    }
+
+    private UpgradeManager createUpgradeManager() {
+        return mock(UpgradeManager.class);
     }
 
     private Handlebars createHandlebars() {

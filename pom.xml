@@ -114,6 +114,11 @@
 			<artifactId>crafter-search-solr-api</artifactId>
 			<version>${project.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-upgrade-manager</artifactId>
+			<version>${project.version}</version>
+		</dependency>
 
 		<!-- Commmons -->
 		<dependency>

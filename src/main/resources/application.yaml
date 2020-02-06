@@ -108,3 +108,9 @@ deployer:
         key: default_encryption_key
         # The salt used for encryption of configuration properties
         salt: default_encryption_salt
+    upgrade:
+      configuration: 'classpath:upgrade/pipelines.yaml'
+      pipelines:
+        target:
+          name: target
+          defaultVersion: 1.0

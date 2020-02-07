@@ -23,5 +23,5 @@ pipelines:
           processor: httpMethodCallProcessor
           replace:
             - property: url
-              pattern: '^(.*crafterSite=\w+)$'
+              pattern: '^((?!.*&token=).*)$'
               expression: '$1&token=\${target.engineManagementToken}'

@@ -95,3 +95,22 @@ deployer:
     taskScheduler:
       # Thread pool size of the task scheduler
       poolSize: 10
+    management:
+      # Deployer management authorization token
+      # Please update this per installation and provide this token to the status monitors.
+      authorizationToken: defaultManagementToken
+      # Engine management authorization token
+      # Please update this per installation and provide this token to the status monitors.
+      engineAuthorizationToken: defaultManagementToken
+    security:
+      encryption:
+        # The key used for encryption of configuration properties
+        key: default_encryption_key
+        # The salt used for encryption of configuration properties
+        salt: default_encryption_salt
+    upgrade:
+      configuration: 'classpath:upgrade/pipelines.yaml'
+      pipelines:
+        target:
+          name: target
+          defaultVersion: 1.0

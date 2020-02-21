@@ -9,6 +9,7 @@ target:
   defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
   # The default Engine URL
   engineUrl: http://localhost:8080
+  engineManagementToken: ${deployer.main.management.engineAuthorizationToken}
   deployment:
     scheduling:
       # If scheduling of target deployments is enabled

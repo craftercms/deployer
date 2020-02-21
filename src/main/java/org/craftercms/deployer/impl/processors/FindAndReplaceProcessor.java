@@ -33,7 +33,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
-import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} to replace a pattern on the

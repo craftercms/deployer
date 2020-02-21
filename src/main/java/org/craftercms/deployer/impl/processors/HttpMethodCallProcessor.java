@@ -34,7 +34,7 @@ import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
 
-import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
  * Processor that does an HTTP method call. A processor instance can be configured with the following YAML properties:

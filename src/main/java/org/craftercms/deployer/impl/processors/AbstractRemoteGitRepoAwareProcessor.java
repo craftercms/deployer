@@ -35,8 +35,8 @@ import org.springframework.beans.factory.annotation.Required;
 import java.io.File;
 import java.io.IOException;
 
-import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringProperty;
-import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
  * Base class for processors that work against a remote repo. It basically provides the code that is used to

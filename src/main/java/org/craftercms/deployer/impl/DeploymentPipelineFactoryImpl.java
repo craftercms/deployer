@@ -33,7 +33,7 @@ import java.util.List;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
-import static org.craftercms.deployer.utils.ConfigUtils.getRequiredConfigurationsAt;
+import static org.craftercms.commons.config.ConfigUtils.getRequiredConfigurationsAt;
 
 /**
  * Default implementation of {@link DeploymentPipeline}.

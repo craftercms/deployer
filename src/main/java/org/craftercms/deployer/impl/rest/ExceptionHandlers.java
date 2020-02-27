@@ -16,11 +16,14 @@
  */
 package org.craftercms.deployer.impl.rest;
 
+import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.rest.BaseRestExceptionHandlers;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.validation.rest.ValidationAwareRestExceptionHandlers;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.springframework.core.Ordered;
+import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,6 +36,7 @@ import org.springframework.web.context.request.WebRequest;
  *
  * @author avasquez
  */
+@Order(Ordered.HIGHEST_PRECEDENCE)
 @ControllerAdvice
 public class ExceptionHandlers extends ValidationAwareRestExceptionHandlers {
 
@@ -64,6 +68,13 @@ public class ExceptionHandlers extends ValidationAwareRestExceptionHandlers {
                                                                  ex.getEnv(), ex.getSiteName());
 
         return handleExceptionInternal(ex, "Target already exists", headers, HttpStatus.CONFLICT, request);
+    }
+
+    @ExceptionHandler(InvalidManagementTokenException.class)
+    public ResponseEntity<Object> handleInvalidManagementTokenException(InvalidManagementTokenException ex,
+                                                                        WebRequest request) {
+        return handleExceptionInternal(ex, "Invalid management token", new HttpHeaders(), HttpStatus.UNAUTHORIZED,
+            request);
     }
 
 }

@@ -17,12 +17,15 @@
 
 package org.craftercms.deployer;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.io.CompositeTemplateLoader;
-import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
+import java.io.File;
+import java.io.IOException;
+import java.util.concurrent.ExecutorService;
+
 import freemarker.template.TemplateException;
+import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
+import org.craftercms.commons.crypto.CryptoException;
+import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.commons.aws.S3ClientCachingFactory;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
@@ -46,10 +49,11 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-
-import java.io.File;
-import java.io.IOException;
-import java.util.concurrent.ExecutorService;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.io.CompositeTemplateLoader;
+import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 
 import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCATION;
 
@@ -88,6 +92,9 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	private String deploymentPoolName;
 	@Value("${deployer.main.deployments.pool.prefix}")
 	private String deploymentPoolPrefix;
+
+	@Autowired
+	private TargetService targetService;
 
 	public static void main(String[] args) {
 		SpringApplication.run(DeployerApplication.class, args);
@@ -154,6 +161,18 @@ public class DeployerApplication implements WebMvcConfigurer  {
 		handlebars.registerHelperMissing(MissingValueHelper.INSTANCE);
 
 		return handlebars;
+	}
+
+	@Bean
+	public TextEncryptor textEncryptor(@Value("${deployer.main.security.encryption.key}") String key,
+                                       @Value("${deployer.main.security.encryption.salt}") String salt)
+		throws CryptoException {
+		return new PbkAesTextEncryptor(key, salt);
+	}
+
+	@Bean
+	public EncryptionAwareConfigurationReader configurationReader(@Autowired TextEncryptor textEncryptor) {
+		return new EncryptionAwareConfigurationReader(textEncryptor);
 	}
 
 	@Bean

@@ -28,7 +28,9 @@ import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.io.filefilter.AbstractFileFilter;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
+import org.craftercms.commons.upgrade.UpgradeManager;
 import org.craftercms.commons.validation.ValidationException;
 import org.craftercms.commons.validation.ValidationResult;
 import org.craftercms.deployer.api.Target;
@@ -41,6 +43,8 @@ import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.InitializingBean;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -48,6 +52,7 @@ import org.springframework.boot.context.event.ApplicationReadyEvent;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationListener;
 import org.springframework.context.ConfigurableApplicationContext;
+import org.springframework.context.annotation.DependsOn;
 import org.springframework.context.support.GenericApplicationContext;
 import org.springframework.core.env.MutablePropertySources;
 import org.springframework.core.io.Resource;
@@ -55,8 +60,6 @@ import org.springframework.scheduling.TaskScheduler;
 import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
-import javax.annotation.PostConstruct;
-import javax.annotation.PreDestroy;
 import java.io.*;
 import java.time.ZonedDateTime;
 import java.util.*;
@@ -64,7 +67,7 @@ import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
 
 import static org.craftercms.deployer.impl.DeploymentConstants.*;
-import static org.craftercms.deployer.utils.ConfigUtils.*;
+import static org.craftercms.commons.config.ConfigUtils.*;
 
 /**
  * Default implementation of {@link TargetService}.
@@ -72,7 +75,9 @@ import static org.craftercms.deployer.utils.ConfigUtils.*;
  * @author avasquez
  */
 @Component("targetService")
-public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent> {
+@DependsOn("crafter.cacheStoreAdapter")
+public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent>,
+                                            InitializingBean, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(TargetServiceImpl.class);
 
@@ -99,6 +104,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ExecutorService taskExecutor;
     protected ProcessedCommitsStore processedCommitsStore;
     protected TargetLifecycleHooksResolver targetLifecycleHooksResolver;
+    protected EncryptionAwareConfigurationReader configurationReader;
+    protected UpgradeManager upgradeManager;
     protected Set<Target> currentTargets;
 
     public TargetServiceImpl(
@@ -114,7 +121,9 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired TaskScheduler taskScheduler,
         @Autowired ExecutorService taskExecutor,
         @Autowired ProcessedCommitsStore processedCommitsStore,
-        @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver) {
+        @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
+        @Autowired EncryptionAwareConfigurationReader configurationReader,
+        @Autowired UpgradeManager upgradeManager) {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
@@ -128,11 +137,12 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.taskExecutor = taskExecutor;
         this.processedCommitsStore = processedCommitsStore;
         this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
+        this.configurationReader = configurationReader;
+        this.upgradeManager = upgradeManager;
         this.currentTargets = new CopyOnWriteArraySet<>();
     }
 
-    @PostConstruct
-    public void init() throws DeployerException {
+    public void afterPropertiesSet() throws DeployerException {
         if (!targetConfigFolder.exists()) {
             logger.info("Target config folder " + targetConfigFolder + " doesn't exist. Creating it");
 
@@ -157,7 +167,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
     }
 
-    @PreDestroy
+    @Override
     public void destroy() {
         logger.info("Closing all targets...");
 
@@ -332,6 +342,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     @SuppressWarnings("unchecked")
     protected Target loadTarget(File configFile, File contextFile, boolean create) throws TargetServiceException {
         try {
+            upgradeManager.upgrade(configFile.getAbsolutePath());
+
             HierarchicalConfiguration config = loadConfiguration(configFile);
             String env = getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
             String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
@@ -368,22 +380,25 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
         logger.debug("Loading target YAML config at {}", configFilename);
 
-        HierarchicalConfiguration config = readYamlConfiguration(configFile);
+        HierarchicalConfiguration config = configurationReader.readYamlConfiguration(configFile);
 
         if (baseTargetYamlConfigResource.exists() || baseTargetYamlConfigOverrideResource.exists()) {
             CombinedConfiguration combinedConfig = new CombinedConfiguration(new OverrideCombiner());
 
             combinedConfig.addConfiguration(config);
+            combinedConfig.setPrefixLookups(config.getInterpolator().getLookups());
 
             if (baseTargetYamlConfigOverrideResource.exists()) {
                 logger.debug("Loading base target YAML config override at {}", baseTargetYamlConfigOverrideResource);
 
-                combinedConfig.addConfiguration(readYamlConfiguration(baseTargetYamlConfigOverrideResource));
+                combinedConfig.addConfiguration(
+                    configurationReader.readYamlConfiguration(baseTargetYamlConfigOverrideResource));
             }
             if (baseTargetYamlConfigResource.exists()) {
                 logger.debug("Loading base target YAML config at {}", baseTargetYamlConfigResource);
 
-                combinedConfig.addConfiguration(readYamlConfiguration(baseTargetYamlConfigResource));
+                combinedConfig.addConfiguration(
+                    configurationReader.readYamlConfiguration(baseTargetYamlConfigResource));
             }
 
             return combinedConfig;

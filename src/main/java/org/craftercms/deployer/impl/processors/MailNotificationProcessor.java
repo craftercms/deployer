@@ -37,7 +37,7 @@ import java.net.UnknownHostException;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
-import static org.craftercms.deployer.utils.ConfigUtils.*;
+import static org.craftercms.commons.config.ConfigUtils.*;
 
 /**
  * Post processor that sends an email notification with the result of a deployment, whenever a deployment fails or files where processed.

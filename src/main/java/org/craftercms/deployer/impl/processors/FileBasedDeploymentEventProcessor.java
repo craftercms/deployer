@@ -36,8 +36,8 @@ import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Properties;
 
-import static org.craftercms.deployer.utils.ConfigUtils.getRequiredStringProperty;
-import static org.craftercms.deployer.utils.ConfigUtils.getStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
  * Triggers a deployment event that consumers of the repository (Crafter Engines) can subscribe to by reading a file

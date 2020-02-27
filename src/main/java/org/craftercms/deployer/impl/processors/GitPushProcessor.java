@@ -39,7 +39,7 @@ import org.slf4j.LoggerFactory;
 
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 import static org.craftercms.deployer.api.Deployment.Status;
-import static org.craftercms.deployer.utils.ConfigUtils.getBooleanProperty;
+import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 
 /**
  * Processor that pushes a localRepo to a remote Git repository. A processor instance can be configured with the

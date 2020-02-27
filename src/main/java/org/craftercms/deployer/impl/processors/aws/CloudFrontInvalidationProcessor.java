@@ -42,7 +42,7 @@ import com.amazonaws.services.cloudfront.model.InvalidationBatch;
 import com.amazonaws.services.cloudfront.model.Paths;
 import org.springframework.web.util.UriUtils;
 
-import static org.craftercms.deployer.utils.ConfigUtils.*;
+import static org.craftercms.commons.config.ConfigUtils.*;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that invalidates the changed

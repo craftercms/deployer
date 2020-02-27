@@ -26,6 +26,7 @@ import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
+import org.craftercms.commons.aws.S3ClientCachingFactory;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
@@ -172,6 +173,11 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	@Bean
 	public EncryptionAwareConfigurationReader configurationReader(@Autowired TextEncryptor textEncryptor) {
 		return new EncryptionAwareConfigurationReader(textEncryptor);
+	}
+
+	@Bean
+	public S3ClientCachingFactory s3ClientFactory() {
+		return new S3ClientCachingFactory();
 	}
 
 	@Override

@@ -185,6 +185,7 @@
 
     <bean id="s3FileStore" class="org.craftercms.commons.file.stores.impl.s3.S3FileStore">
         <property name="profileLoader" ref="s3ProfileLoader"/>
+        <property name="clientFactory" ref="s3ClientFactory"/>
     </bean>
 
     <bean id="boxFileStore" class="org.craftercms.commons.file.stores.impl.box.BoxFileStore">

@@ -82,6 +82,7 @@
 
     <bean id="gitDiffProcessor" class="org.craftercms.deployer.impl.processors.GitDiffProcessor" parent="deploymentProcessor">
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
+        <property name="blobFileExtension" value="${deployer.main.targets.config.blob.file.extension}"/>
         <property name="processedCommitsStore" ref="processedCommitsStore"/>
     </bean>
 
@@ -131,11 +132,7 @@
 
     <bean id="s3ProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
         <property name="profilesUrl" value="${target.config.profiles.aws.path}"/>
-        <property name="profileMapper">
-            <bean class="org.craftercms.commons.config.profiles.aws.S3ProfileMapper">
-                <constructor-arg ref="configurationReader"/>
-            </bean>
-        </property>
+        <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
         <property name="contextFactory" ref="contextFactory"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
     </bean>
@@ -144,7 +141,7 @@
         <property name="profilesUrl" value="${target.config.profiles.box.path}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper">
-                <constructor-arg ref="configurationReader"/>
+                <constructor-arg ref="crafter.configurationReader"/>
             </bean>
         </property>
         <property name="contextFactory" ref="contextFactory"/>
@@ -155,7 +152,7 @@
         <property name="profilesUrl" value="${target.config.profiles.webdav.path}"/>
         <property name="profileMapper">
             <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMapper">
-                <constructor-arg ref="configurationReader"/>
+                <constructor-arg ref="crafter.configurationReader"/>
             </bean>
         </property>
         <property name="contextFactory" ref="contextFactory"/>
@@ -184,7 +181,7 @@
 
     <bean id="s3FileStore" class="org.craftercms.commons.file.stores.impl.s3.S3FileStore">
         <property name="profileLoader" ref="s3ProfileLoader"/>
-        <property name="clientFactory" ref="s3ClientFactory"/>
+        <property name="clientFactory" ref="crafter.s3ClientFactory"/>
     </bean>
 
     <bean id="boxFileStore" class="org.craftercms.commons.file.stores.impl.box.BoxFileStore">

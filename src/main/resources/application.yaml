@@ -61,6 +61,10 @@ deployer:
             location: classpath:aws/cloudformation/
             # The override location of the base folder where AWS CloudFormation template files can be found (should end in /)
             overrideLocation: file:${deployer.main.config.folderPath}/aws/cloudformation/
+        blob:
+          file:
+            # Extension used for the blob files in the repository
+            extension: '.blob'
       scan:
         scheduling:
           # If scheduled scanning of new/updated targets should be enabled

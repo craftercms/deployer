@@ -25,10 +25,11 @@ import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
-import org.craftercms.commons.aws.S3ClientCachingFactory;
+import org.craftercms.commons.file.blob.EnvironmentResolver;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
+import org.craftercms.deployer.utils.core.TargetAwareEnvironmentResolver;
 import org.craftercms.deployer.utils.handlebars.ListHelper;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -162,22 +163,22 @@ public class DeployerApplication implements WebMvcConfigurer  {
 		return handlebars;
 	}
 
-	@Bean
+	@Bean("crafter.textEncryptor")
 	public TextEncryptor textEncryptor(@Value("${deployer.main.security.encryption.key}") String key,
                                        @Value("${deployer.main.security.encryption.salt}") String salt)
 		throws CryptoException {
 		return new PbkAesTextEncryptor(key, salt);
 	}
 
-	@Bean
+	@Bean("crafter.configurationReader")
 	public EncryptionAwareConfigurationReader configurationReader(@Autowired TextEncryptor textEncryptor) {
 		return new EncryptionAwareConfigurationReader(textEncryptor);
 	}
 
-	@Bean
-	public S3ClientCachingFactory s3ClientFactory() {
-		return new S3ClientCachingFactory();
-	}
+	@Bean("crafter.environmentResolver")
+    public EnvironmentResolver environmentResolver() {
+	    return new TargetAwareEnvironmentResolver();
+    }
 
 	@Override
 	public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {

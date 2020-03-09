@@ -54,6 +54,8 @@ public class TargetImpl implements Target {
 
     private static final Logger logger = LoggerFactory.getLogger(TargetImpl.class);
 
+    private static final ThreadLocal<Target> threadLocal = new InheritableThreadLocal<>();
+
     public static final String TARGET_ID_FORMAT = "%s-%s";
 
     protected ZonedDateTime loadDate;
@@ -75,6 +77,18 @@ public class TargetImpl implements Target {
     protected Queue<Deployment> pendingDeployments;
     protected volatile Deployment currentDeployment;
     protected Lock deploymentLock;
+
+    public static void setCurrent(Target target) {
+        threadLocal.set(target);
+    }
+
+    public static Target getCurrent() {
+        return threadLocal.get();
+    }
+
+    public static void clear() {
+        threadLocal.set(null);
+    }
 
     public static String getId(String env, String siteName) {
         return String.format(TARGET_ID_FORMAT, siteName, env);
@@ -386,6 +400,7 @@ public class TargetImpl implements Target {
             try {
                 if (status == Status.INIT_COMPLETED) {
                     currentDeployment = pendingDeployments.poll();
+                    TargetImpl.setCurrent(currentDeployment.getTarget());
 
                     if (currentDeployment != null && currentDeployment.getEnd() == null) {
                         logger.info("============================================================");
@@ -408,6 +423,8 @@ public class TargetImpl implements Target {
                 deploymentLock.unlock();
 
                 currentDeployment = null;
+
+                TargetImpl.clear();
 
                 MDC.remove(TARGET_ID_MDC_KEY);
             }

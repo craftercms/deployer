@@ -15,27 +15,17 @@
  */
 package org.craftercms.deployer.impl.processors;
 
-import java.io.File;
-import java.io.IOException;
-import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.FilenameUtils;
 import org.apache.commons.lang3.BooleanUtils;
+import org.craftercms.commons.config.ConfigUtils;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.search.batch.UpdateDetail;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
-import org.craftercms.commons.config.ConfigUtils;
 import org.craftercms.deployer.utils.GitUtils;
+import org.craftercms.search.batch.UpdateDetail;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LogCommand;
 import org.eclipse.jgit.api.errors.GitAPIException;
@@ -54,6 +44,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
 
+import java.io.File;
+import java.io.IOException;
+import java.time.Instant;
+import java.util.*;
+
+import static org.apache.commons.lang3.StringUtils.prependIfMissing;
+import static org.apache.commons.lang3.StringUtils.removeEnd;
 import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FILES_PARAM_NAME;
 
 /**
@@ -77,6 +74,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
     protected boolean includeGitLog;
 
+    protected String blobFileExtension;
+
     /**
      * Sets the local filesystem folder the contains the deployed repository.
      */
@@ -91,6 +90,10 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     @Required
     public void setProcessedCommitsStore(ProcessedCommitsStore processedCommitsStore) {
         this.processedCommitsStore = processedCommitsStore;
+    }
+
+    public void setBlobFileExtension(String blobFileExtension) {
+        this.blobFileExtension = blobFileExtension;
     }
 
     @Override
@@ -306,13 +309,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     }
 
     protected String asContentStoreUrl(String path) {
-        path = FilenameUtils.separatorsToUnix(path);
-
-        if (!path.startsWith("/")) {
-            path = "/" + path;
-        }
-
-        return path;
+        return removeEnd(prependIfMissing(path, "/"), blobFileExtension);
     }
 
     protected boolean getReprocessAllFilesParam(Deployment deployment) {

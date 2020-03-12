@@ -168,7 +168,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
                     diff.forEach(entry -> {
                         if(entry.getChangeType() != DiffEntry.ChangeType.DELETE) {
-                            changeLog.putIfAbsent(entry.getNewPath(), commit.getName());
+                            changeLog.putIfAbsent(removeEnd(entry.getNewPath(), blobFileExtension), commit.getName());
                         }
                     });
                 }

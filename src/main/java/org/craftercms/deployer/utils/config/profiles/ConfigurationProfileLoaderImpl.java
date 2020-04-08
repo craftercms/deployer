@@ -17,15 +17,9 @@ package org.craftercms.deployer.utils.config.profiles;
 
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.ConfigurationMapper;
+import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.config.profiles.ConfigurationProfile;
 import org.craftercms.commons.config.profiles.ConfigurationProfileLoader;
-import org.craftercms.core.service.Content;
-import org.craftercms.core.service.ContentStoreService;
-import org.craftercms.core.service.Context;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.annotation.Required;
-
-import java.nio.charset.StandardCharsets;
 
 /**
  * Default implementation of {@link ConfigurationProfile}.
@@ -34,37 +28,24 @@ import java.nio.charset.StandardCharsets;
  */
 public class ConfigurationProfileLoaderImpl<T extends ConfigurationProfile> implements ConfigurationProfileLoader<T> {
 
+    private String profilesModule;
     private String profilesUrl;
     private ConfigurationMapper<T> profileMapper;
-    private ObjectFactory<Context> contextFactory;
-    private ContentStoreService contentStoreService;
+    private ConfigurationProvider configurationProvider;
 
-    @Required
-    public void setProfilesUrl(String profilesUrl) {
+    public ConfigurationProfileLoaderImpl(String profilesModule, String profilesUrl,
+                                          ConfigurationMapper<T> profileMapper,
+                                          ConfigurationProvider configurationProvider) {
+        this.profilesModule = profilesModule;
         this.profilesUrl = profilesUrl;
-    }
-
-    @Required
-    public void setProfileMapper(ConfigurationMapper<T> profileMapper) {
         this.profileMapper = profileMapper;
-    }
-
-    @Required
-    public void setContextFactory(ObjectFactory<Context> contextFactory) {
-        this.contextFactory = contextFactory;
-    }
-
-    @Required
-    public void setContentStoreService(ContentStoreService contentStoreService) {
-        this.contentStoreService = contentStoreService;
+        this.configurationProvider = configurationProvider;
     }
 
     @Override
     public T loadProfile(String id) throws ConfigurationException {
         try {
-            Content content = contentStoreService.getContent(contextFactory.getObject(), profilesUrl);
-
-            return profileMapper.readConfig(content.getInputStream(), StandardCharsets.UTF_8.name(), id);
+            return profileMapper.readConfig(configurationProvider, profilesModule, profilesUrl, null, id);
         } catch (Exception e) {
             throw new ConfigurationException("Error while loading profile " +  id + " from configuration at " +
                                              profilesUrl, e);

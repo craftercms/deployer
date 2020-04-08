@@ -25,6 +25,13 @@
         </constructor-arg>
     </bean>
 
+	<bean id="crafter.configurationResolver" class="org.craftercms.commons.config.ConfigurationResolverImpl">
+		<constructor-arg value="test"/>
+		<constructor-arg value="/config/{module}"/>
+		<constructor-arg value="/config/{module}/env/{environment}"/>
+		<constructor-arg ref="crafter.configurationReader"/>
+	</bean>
+
     <import resource="classpath:crafter/core/core-context.xml"/>
 
 </beans>

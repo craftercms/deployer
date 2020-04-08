@@ -30,6 +30,13 @@ deployer:
     config:
       # The base config folder path
       folderPath: ${deployer.main.homePath}/config
+      environment:
+        # The active environment
+        active: default
+        # The path pattern for the default environment
+        basePath: /config/{module}
+        # The path pattern for a specific environment
+        envPath: /config/{module}/env/{environment}
     targets:
       config:
         # The folder path for target configuration files

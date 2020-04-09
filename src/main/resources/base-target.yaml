@@ -190,13 +190,16 @@ target:
     profiles:
       aws:
         # The path for the AWS configuration profile in the local repo
-        path: /config/studio/aws/aws.xml
+        module: studio
+        path: aws/aws.xml
       box:
         # The path for the Box configuration profile in the local repo
-        path: /config/studio/box/box.xml
+        module: studio
+        path: box/box.xml
       webdav:
         # The path for the WebDav configuration profile in the local repo
-        path: /config/studio/webdav/webdav.xml
+        module: studio
+        path: webdav/webdav.xml
   lifecycleHooks:
     # The lifecycle hooks executed during a target create
     create:

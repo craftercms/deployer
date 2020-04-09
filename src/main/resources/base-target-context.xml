@@ -130,33 +130,38 @@
 
     <!-- Configuration Profiles -->
 
+	<bean id="configurationProvider" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProviderImpl">
+		<constructor-arg ref="contextFactory"/>
+		<constructor-arg ref="crafter.contentStoreService"/>
+	</bean>
+
     <bean id="s3ProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
-        <property name="profilesUrl" value="${target.config.profiles.aws.path}"/>
-        <property name="profileMapper" ref="crafter.s3ProfileMapper"/>
-        <property name="contextFactory" ref="contextFactory"/>
-        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+		<constructor-arg value="${target.config.profiles.aws.module}"/>
+		<constructor-arg value="${target.config.profiles.aws.path}"/>
+        <constructor-arg ref="crafter.s3ProfileMapper"/>
+		<constructor-arg ref="configurationProvider"/>
     </bean>
 
     <bean id="boxProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
-        <property name="profilesUrl" value="${target.config.profiles.box.path}"/>
-        <property name="profileMapper">
+		<constructor-arg value="${target.config.profiles.box.module}"/>
+		<constructor-arg value="${target.config.profiles.box.path}"/>
+        <constructor-arg>
             <bean class="org.craftercms.commons.config.profiles.box.BoxProfileMapper">
-                <constructor-arg ref="crafter.configurationReader"/>
+                <constructor-arg ref="crafter.configurationResolver"/>
             </bean>
-        </property>
-        <property name="contextFactory" ref="contextFactory"/>
-        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+        </constructor-arg>
+		<constructor-arg ref="configurationProvider"/>
     </bean>
 
     <bean id="webDavProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
-        <property name="profilesUrl" value="${target.config.profiles.webdav.path}"/>
-        <property name="profileMapper">
+		<constructor-arg value="${target.config.profiles.webdav.module}"/>
+		<constructor-arg value="${target.config.profiles.webdav.path}"/>
+        <constructor-arg>
             <bean class="org.craftercms.commons.config.profiles.webdav.WebDavProfileMapper">
-                <constructor-arg ref="crafter.configurationReader"/>
+                <constructor-arg ref="crafter.configurationResolver"/>
             </bean>
-        </property>
-        <property name="contextFactory" ref="contextFactory"/>
-        <property name="contentStoreService" ref="crafter.contentStoreService"/>
+        </constructor-arg>
+		<constructor-arg ref="configurationProvider"/>
     </bean>
 
     <!-- Core -->

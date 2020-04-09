@@ -21,6 +21,8 @@ import java.io.IOException;
 import java.util.concurrent.ExecutorService;
 
 import freemarker.template.TemplateException;
+import org.craftercms.commons.config.ConfigurationResolver;
+import org.craftercms.commons.config.ConfigurationResolverImpl;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
@@ -178,6 +180,15 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	@Bean("crafter.environmentResolver")
     public EnvironmentResolver environmentResolver() {
 	    return new TargetAwareEnvironmentResolver();
+    }
+
+    @Bean("crafter.configurationResolver")
+    public ConfigurationResolver configurationResolver(
+            @Value("${deployer.main.config.environment.active}") String environment,
+            @Value("${deployer.main.config.environment.basePath}") String basePath,
+            @Value("${deployer.main.config.environment.envPath}") String envPath,
+            @Autowired EncryptionAwareConfigurationReader configurationReader) {
+	    return new ConfigurationResolverImpl(environment, basePath, envPath, configurationReader);
     }
 
 	@Override

@@ -24,7 +24,7 @@ import freemarker.template.TemplateException;
 import org.craftercms.commons.config.ConfigurationResolver;
 import org.craftercms.commons.config.ConfigurationResolverImpl;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
-import org.craftercms.commons.config.TargetResolver;
+import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
@@ -177,8 +177,8 @@ public class DeployerApplication implements WebMvcConfigurer  {
 		return new EncryptionAwareConfigurationReader(textEncryptor);
 	}
 
-	@Bean("crafter.targetResolver")
-    public TargetResolver targetResolver() {
+	@Bean("crafter.publishingTargetResolver")
+    public PublishingTargetResolver publishingTargetResolver() {
 	    return new TargetAwarePublishingTargetResolver();
     }
 

@@ -16,22 +16,22 @@
 package org.craftercms.deployer.utils.core;
 
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.file.blob.EnvironmentResolver;
+import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.impl.TargetImpl;
 
 import static org.craftercms.deployer.api.Target.AUTHORING_ENV;
 
 /**
- * Implementation of {@link EnvironmentResolver} that uses the current {@link Target}
+ * Implementation of {@link PublishingTargetResolver} that uses the current {@link Target}
  *
  * @author joseross
  * @since 3.1.6
  */
-public class TargetAwareEnvironmentResolver implements EnvironmentResolver {
+public class TargetAwarePublishingTargetResolver implements PublishingTargetResolver {
 
     @Override
-    public String getEnvironment() {
+    public String getPublishingTarget() {
         Target target = TargetImpl.getCurrent();
         if (target == null) {
             throw new IllegalStateException("Can't find current target");

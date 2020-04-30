@@ -24,14 +24,14 @@ import freemarker.template.TemplateException;
 import org.craftercms.commons.config.ConfigurationResolver;
 import org.craftercms.commons.config.ConfigurationResolverImpl;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
+import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
-import org.craftercms.commons.file.blob.EnvironmentResolver;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
-import org.craftercms.deployer.utils.core.TargetAwareEnvironmentResolver;
+import org.craftercms.deployer.utils.core.TargetAwarePublishingTargetResolver;
 import org.craftercms.deployer.utils.handlebars.ListHelper;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -177,9 +177,9 @@ public class DeployerApplication implements WebMvcConfigurer  {
 		return new EncryptionAwareConfigurationReader(textEncryptor);
 	}
 
-	@Bean("crafter.environmentResolver")
-    public EnvironmentResolver environmentResolver() {
-	    return new TargetAwareEnvironmentResolver();
+	@Bean("crafter.publishingTargetResolver")
+    public PublishingTargetResolver publishingTargetResolver() {
+	    return new TargetAwarePublishingTargetResolver();
     }
 
     @Bean("crafter.configurationResolver")

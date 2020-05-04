@@ -132,7 +132,14 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     @Override
     public void execute(Deployment deployment) {
         ChangeSet originalChangeSet = deployment.getChangeSet();
-        ChangeSet filteredChangeSet = getFilteredChangeSet(originalChangeSet);
+        ChangeSet filteredChangeSet = null;
+
+        try {
+            filteredChangeSet = getFilteredChangeSet(originalChangeSet);
+        } catch (Exception e) {
+            logger.error("Processor '{}' for target '{}' failed to filter change set", name, targetId, e);
+            deployment.end(Deployment.Status.FAILURE);
+        }
 
         if (!isJumpToActive(deployment) && shouldExecute(deployment, filteredChangeSet)) {
             logger.info("----- < {} @ {} > -----", name, targetId);

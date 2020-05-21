@@ -20,8 +20,6 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.exception.SearchException;
 import org.craftercms.search.service.AdminService;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link TargetLifecycleHook} that deletes an Elasticsearch index or a Crafter Search
@@ -31,10 +29,8 @@ import org.slf4j.LoggerFactory;
  */
 public class DeleteIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateIndexLifecycleHook.class);
-
     @Override
-    public void execute(Target target) throws DeployerException {
+    public void doExecute(Target target) throws DeployerException {
         try {
             if (target.isCrafterSearchEnabled()) {
                 logger.info("Deleting Crafter Search based index for target '{}'", target.getId());

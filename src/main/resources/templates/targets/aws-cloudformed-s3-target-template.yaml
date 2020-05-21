@@ -13,6 +13,8 @@ aws:
     deliveryLBDomainName: {{aws.cloudformation.deliveryLBDomainName}}
     cloudfrontCertificateArn: {{#if aws.cloudformation.cloudfrontCertificateArn}}{{aws.cloudformation.cloudfrontCertificateArn}}{{else}}''{{/if}}
     alternateCloudFrontDomainNames: {{#if aws.cloudformation.alternateCloudFrontDomainNames}}{{aws.cloudformation.alternateCloudFrontDomainNames}}{{else}}''{{/if}}
+    disableCloudformationDelete: false
+    disableS3BucketClear: false
 target:
   env: {{env}}
   siteName: {{site_name}}
@@ -52,11 +54,13 @@ target:
     delete:
       - hookName: deleteIndexLifecycleHook
       - hookName: clearS3BucketLifecycleHook
+        disabled: ${aws.cloudformation.disableS3BucketClear}
         region: ${aws.region}
         accessKey: ${aws.cloudformation.accessKey}
         secretKey: ${aws.cloudformation.secretKey}
         bucketName: ${aws.cloudformation.s3BucketName}
       - hookName: deleteCloudFormationLifecycleHook
+        disabled: ${aws.cloudformation.disableCloudformationDelete}
         region: ${aws.region}
         accessKey: ${aws.cloudformation.accessKey}
         secretKey: ${aws.cloudformation.secretKey}

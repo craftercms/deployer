@@ -97,7 +97,8 @@
 
     <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor"
           parent="abstractSearchIndexingProcessor">
-        <property name="searchService" ref="searchService"/>
+        <constructor-arg ref="searchService"/>
+        <constructor-arg ref="searchAdminService"/>
         <property name="batchIndexers">
             <list>
                 <ref bean="xmlFileBatchIndexer"/>
@@ -489,7 +490,8 @@
 
     <bean id="elasticsearchIndexingProcessor" parent="abstractSearchIndexingProcessor"
           class="org.craftercms.deployer.impl.processors.elasticsearch.ElasticsearchIndexingProcessor">
-        <property name="elasticsearchService" ref="elasticsearchService"/>
+        <constructor-arg ref="elasticsearchService"/>
+        <constructor-arg ref="elasticsearchAdminService"/>
         <property name="batchIndexers">
             <list>
                 <ref bean="elasticsearchXmlFileBatchIndexer"/>

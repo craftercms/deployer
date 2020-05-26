@@ -19,8 +19,6 @@ import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.exception.SearchException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 /**
  * Implementation of {@link TargetLifecycleHook} that creates an Elasticsearch index or a Crafter Search
@@ -30,10 +28,8 @@ import org.slf4j.LoggerFactory;
  */
 public class CreateIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
 
-    private static final Logger logger = LoggerFactory.getLogger(CreateIndexLifecycleHook.class);
-
     @Override
-    public void execute(Target target) throws DeployerException {
+    public void doExecute(Target target) throws DeployerException {
         try {
             if (target.isCrafterSearchEnabled()) {
                 logger.info("Creating Crafter Search based index for target '{}'", target.getId());

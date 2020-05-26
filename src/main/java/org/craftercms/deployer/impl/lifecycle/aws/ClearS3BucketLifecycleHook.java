@@ -24,9 +24,8 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
+import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -39,9 +38,7 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  *
  * @author avasquez
  */
-public class ClearS3BucketLifecycleHook implements TargetLifecycleHook {
-
-    private static final Logger logger = LoggerFactory.getLogger(ClearS3BucketLifecycleHook.class);
+public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
 
     protected static final String CONFIG_KEY_BUCKET_NAME = "bucketName";
 
@@ -51,13 +48,13 @@ public class ClearS3BucketLifecycleHook implements TargetLifecycleHook {
     protected String bucketName;
 
     @Override
-    public void init(Configuration config) throws ConfigurationException {
+    public void doInit(Configuration config) throws ConfigurationException {
         builderConfigurer = new AwsClientBuilderConfigurer(config);
         bucketName = getRequiredStringProperty(config, CONFIG_KEY_BUCKET_NAME);
     }
 
     @Override
-    public void execute(Target target) throws DeployerException {
+    public void doExecute(Target target) throws DeployerException {
         try {
             boolean done = false;
             AmazonS3 s3 = buildClient();

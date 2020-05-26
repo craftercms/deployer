@@ -21,6 +21,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.core.util.cache.CacheTemplate;
+import org.craftercms.deployer.api.Target;
 import org.craftercms.search.batch.BatchIndexer;
 import org.craftercms.search.batch.UpdateSet;
 import org.craftercms.search.batch.UpdateStatus;
@@ -67,6 +68,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected static final String INDEX_ID_CONFIG_KEY = "indexId";
     protected static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
     protected static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
+    protected static final String CREATE_INDEX_IF_MISSING_CONFIG_KEY = "createIndexIfMissing";
 
     protected static final Pattern DEFAULT_DESCRIPTOR_PATH_PATTERN = Pattern.compile("^/site/.+\\.xml$");
     protected static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
@@ -86,6 +88,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
     protected String indexId;
     protected boolean reindexItemsOnComponentUpdates;
+    protected boolean createIndexIfMissing;
 
     public AbstractSearchIndexingProcessor() {
         this.descriptorPathPattern = DEFAULT_DESCRIPTOR_PATH_PATTERN;
@@ -179,6 +182,8 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
         reindexItemsOnComponentUpdates = getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES, true);
 
+        createIndexIfMissing = getBooleanProperty(config, CREATE_INDEX_IF_MISSING_CONFIG_KEY, true);
+
         if (CollectionUtils.isEmpty(batchIndexers)) {
             throw new IllegalStateException("At least one batch indexer should be provided");
         }
@@ -188,6 +193,19 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected void doDestroy() throws DeployerException {
         // Do nothing
     }
+
+    @Override
+    public void execute(Deployment deployment) {
+        if (createIndexIfMissing) {
+            logger.info("Checking if index {} exists", indexId);
+            doCreateIndexIfMissing(deployment.getTarget());
+        }
+
+        // continue as usual
+        super.execute(deployment);
+    }
+
+    protected abstract void doCreateIndexIfMissing(Target target);
 
     /**
      * Override to add pages/components that need to be updated because a component that they include was updated.

@@ -18,6 +18,9 @@ package org.craftercms.deployer.impl.processors.elasticsearch;
 
 import java.util.List;
 
+import org.craftercms.deployer.api.Target;
+import org.craftercms.deployer.impl.TargetImpl;
+import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.search.elasticsearch.ElasticsearchService;
 import org.craftercms.search.elasticsearch.exception.ElasticsearchException;
 import org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor;
@@ -29,7 +32,10 @@ import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 /**
+ * Implementation of {@link AbstractSearchIndexingProcessor} for Elasticsearch
+ *
  * @author joseross
+ * @since 3.1.0
  */
 public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProcessor {
 
@@ -47,9 +53,17 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
 
     protected ElasticsearchService elasticsearchService;
 
-    @Required
-    public void setElasticsearchService(final ElasticsearchService elasticsearchService) {
+    protected ElasticsearchAdminService elasticsearchAdminService;
+
+    public ElasticsearchIndexingProcessor(ElasticsearchService elasticsearchService,
+                                          ElasticsearchAdminService elasticsearchAdminService) {
         this.elasticsearchService = elasticsearchService;
+        this.elasticsearchAdminService = elasticsearchAdminService;
+    }
+
+    @Override
+    protected void doCreateIndexIfMissing(Target target) {
+        elasticsearchAdminService.createIndex(indexId, target.isEnvAuthoring());
     }
 
     @Override

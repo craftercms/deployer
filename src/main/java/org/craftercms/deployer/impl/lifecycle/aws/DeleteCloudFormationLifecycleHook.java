@@ -23,10 +23,9 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
+import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsCloudFormationUtils;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
@@ -35,9 +34,7 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  *
  * @author avasquez
  */
-public class DeleteCloudFormationLifecycleHook implements TargetLifecycleHook {
-
-    private static final Logger logger = LoggerFactory.getLogger(DeleteCloudFormationLifecycleHook.class);
+public class DeleteCloudFormationLifecycleHook extends AbstractLifecycleHook {
 
     protected static final String CONFIG_KEY_STACK_NAME = "stackName";
 
@@ -53,13 +50,13 @@ public class DeleteCloudFormationLifecycleHook implements TargetLifecycleHook {
     protected String stackName;
 
     @Override
-    public void init(Configuration config) throws ConfigurationException {
+    public void doInit(Configuration config) throws ConfigurationException {
         builderConfigurer = new AwsClientBuilderConfigurer(config);
         stackName = getRequiredStringProperty(config, CONFIG_KEY_STACK_NAME);
     }
 
     @Override
-    public void execute(Target target) throws DeployerException {
+    public void doExecute(Target target) throws DeployerException {
         AmazonCloudFormation cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
         Stack stack = AwsCloudFormationUtils.getStack(cloudFormation, stackName);
 

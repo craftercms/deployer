@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.configuration2.tree.OverrideCombiner;
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.FilenameUtils;
@@ -73,6 +74,7 @@ import static org.craftercms.commons.config.ConfigUtils.*;
  *
  * @author avasquez
  */
+@SuppressWarnings("rawtypes")
 @Component("targetService")
 @DependsOn("crafter.cacheStoreAdapter")
 public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent>,
@@ -104,7 +106,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected ProcessedCommitsStore processedCommitsStore;
     protected TargetLifecycleHooksResolver targetLifecycleHooksResolver;
     protected EncryptionAwareConfigurationReader configurationReader;
-    protected UpgradeManager upgradeManager;
+    protected UpgradeManager<Target> upgradeManager;
     protected Set<Target> currentTargets;
 
     public TargetServiceImpl(
@@ -122,7 +124,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         @Autowired ProcessedCommitsStore processedCommitsStore,
         @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
         @Autowired EncryptionAwareConfigurationReader configurationReader,
-        @Autowired UpgradeManager upgradeManager) {
+        @Autowired UpgradeManager<Target> upgradeManager) {
         this.targetConfigFolder = targetConfigFolder;
         this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
         this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
@@ -339,24 +341,32 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     @SuppressWarnings("unchecked")
+    protected TargetImpl buildTarget(File configFile, File contextFile) throws Exception {
+        HierarchicalConfiguration<ImmutableNode> config = loadConfiguration(configFile);
+        String env = getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
+        String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
+        String targetId = TargetImpl.getId(env, siteName);
+        String localRepoPath = getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
+        boolean crafterSearchEnabled = getBooleanProperty(config, TARGET_CRAFTER_SEARCH_CONFIG_KEY, false);
+
+        config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
+
+        ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
+
+        return new TargetImpl(ZonedDateTime.now(), env, siteName, localRepoPath, configFile, config,
+                context, taskExecutor, taskScheduler, targetLifecycleHooksResolver,
+                deploymentPipelineFactory, crafterSearchEnabled);
+    }
+
     protected Target loadTarget(File configFile, File contextFile, boolean create) throws TargetServiceException {
         try {
-            upgradeManager.upgrade(configFile.getAbsolutePath());
+            // Create the target temporarily to run upgrades
+            TargetImpl target = buildTarget(configFile, contextFile);
+            upgradeManager.upgrade(target);
+            target.close();
 
-            HierarchicalConfiguration config = loadConfiguration(configFile);
-            String env = getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
-            String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
-            String targetId = TargetImpl.getId(env, siteName);
-            String localRepoPath = getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
-            boolean crafterSearchEnabled = getBooleanProperty(config, TARGET_CRAFTER_SEARCH_CONFIG_KEY, false);
-
-            config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
-
-            ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
-
-            Target target = new TargetImpl(ZonedDateTime.now(), env, siteName, localRepoPath, configFile, config,
-                                           context, taskExecutor, taskScheduler, targetLifecycleHooksResolver,
-                                           deploymentPipelineFactory, crafterSearchEnabled);
+            // Create again with all upgrades applied
+            target = buildTarget(configFile, contextFile);
 
             if (create) {
                 executeCreateHooks(target);

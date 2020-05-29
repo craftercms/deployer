@@ -125,3 +125,6 @@ deployer:
         target:
           name: target
           defaultVersion: 1.0
+      operations:
+        elasticsearchIndexUpgrade:
+          enabled: true

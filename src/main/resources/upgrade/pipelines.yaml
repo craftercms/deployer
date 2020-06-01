@@ -25,3 +25,7 @@ pipelines:
             - property: url
               pattern: '^((?!.*&token=).*)$'
               expression: '$1&token=\${target.engineManagementToken}'
+    - currentVersion: 1.1
+      nextVersion: 1.2
+      operations:
+        - type: elasticsearchIndexUpgrader

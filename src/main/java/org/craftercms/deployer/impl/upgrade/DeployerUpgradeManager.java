@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.craftercms.commons.upgrade.UpgradePipelineFactory;
 import org.craftercms.commons.upgrade.impl.AbstractUpgradeManager;
+import org.craftercms.deployer.api.Target;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -31,22 +32,23 @@ import org.springframework.stereotype.Component;
  * @since 3.1.5
  */
 @Component
-public class DeployerUpgradeManager extends AbstractUpgradeManager {
+public class DeployerUpgradeManager extends AbstractUpgradeManager<Target> {
 
-    protected UpgradePipelineFactory targetPipelineFactory;
+    protected UpgradePipelineFactory<Target> targetPipelineFactory;
 
     @Autowired
-    public DeployerUpgradeManager(final UpgradePipelineFactory targetPipelineFactory) {
+    public DeployerUpgradeManager(final UpgradePipelineFactory<Target> targetPipelineFactory) {
         this.targetPipelineFactory = targetPipelineFactory;
     }
 
     @Override
-    protected List<Object> doGetTargets() {
+    protected List<Target> doGetTargets() {
+        // Returns an empty list because all targets are upgraded when loaded, no extra steps needed
         return Collections.emptyList();
     }
 
     @Override
-    protected void doUpgrade(final Object target) throws Exception {
+    protected void doUpgrade(final Target target) throws Exception {
         executePipeline(target, targetPipelineFactory);
     }
 

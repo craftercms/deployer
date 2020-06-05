@@ -20,7 +20,6 @@ import java.io.InputStream;
 import java.io.Writer;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
@@ -29,6 +28,7 @@ import java.util.Map;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.upgrade.impl.operations.AbstractUpgradeOperation;
+import org.craftercms.deployer.api.Target;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
 
@@ -41,7 +41,7 @@ import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CO
  * @author joseross
  * @since 3.1.5
  */
-public class ProcessorUpgradeOperation extends AbstractUpgradeOperation {
+public class ProcessorUpgradeOperation extends AbstractUpgradeOperation<Target> {
 
     public static final String CONFIG_KEY_PROCESSOR = "processor";
     public static final String CONFIG_KEY_REPLACE = "replace";
@@ -87,8 +87,8 @@ public class ProcessorUpgradeOperation extends AbstractUpgradeOperation {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void doExecute(final Object target) throws Exception {
-        Path file = Paths.get(target.toString());
+    protected void doExecute(final Target target) throws Exception {
+        Path file = target.getConfigurationFile().toPath();
         Map<String, Object> targetConfig;
         try (InputStream is = Files.newInputStream(file)) {
             targetConfig = yaml.load(is);

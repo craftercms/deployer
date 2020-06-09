@@ -73,6 +73,9 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
         super.doInit(config);
 
         remoteRepoName = getStringProperty(config, REMOTE_REPO_NAME_CONFIG_KEY, Constants.DEFAULT_REMOTE_NAME);
+
+        // use true as default for backward compatibility
+        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
     }
 
     @Override

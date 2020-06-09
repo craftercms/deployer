@@ -96,11 +96,6 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
     }
 
     @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return false;
-    }
-
-    @Override
     protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
         // Run if the deployment is running, even if there are no changes
         return deployment.isRunning();

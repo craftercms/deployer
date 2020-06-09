@@ -127,11 +127,6 @@ public class FileBasedDeploymentEventProcessor extends AbstractMainDeploymentPro
     }
 
     @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return false;
-    }
-
-    @Override
     protected void doDestroy() throws DeployerException {
         // Do nothing
     }

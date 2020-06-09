@@ -141,14 +141,6 @@ public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProce
      * {@inheritDoc}
      */
     @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     protected void doDestroy() throws DeployerException {
         // Do nothing
     }

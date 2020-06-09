@@ -296,6 +296,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
                 if (updateStatus.getAttemptedUpdatesAndDeletes() > 0) {
                     doCommit(indexId);
                 }
+
+                if (updateStatus.getFailedUpdatesAndDeletes() > 0) {
+                    throw new DeployerException("Failed to update or delete some files");
+                }
             }
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);
@@ -305,11 +309,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     }
 
     protected abstract void doCommit(final String indexId);
-
-    @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return false;
-    }
 
     protected boolean isDescriptor(String path) {
         return descriptorPathPattern.matcher(path).matches();

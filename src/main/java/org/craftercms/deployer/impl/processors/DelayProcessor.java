@@ -78,14 +78,6 @@ public class DelayProcessor extends AbstractMainDeploymentProcessor {
      * {@inheritDoc}
      */
     @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return false;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
     protected void doDestroy() throws DeployerException {
         // Do nothing
     }

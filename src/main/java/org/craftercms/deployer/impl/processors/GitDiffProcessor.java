@@ -99,6 +99,9 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     @Override
     protected void doInit(Configuration config) throws ConfigurationException {
         this.includeGitLog = ConfigUtils.getBooleanProperty(config, INCLUDE_GIT_LOG_CONFIG_KEY, false);
+
+        // use true as default for backward compatibility
+        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
     }
 
     @Override
@@ -179,11 +182,6 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         } catch (Exception e) {
             logger.error("Error getting git log for commits {} {}", previousCommitId, latestCommitId, e);
         }
-    }
-
-    @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return true;
     }
 
     protected Git openLocalRepository() throws DeployerException {

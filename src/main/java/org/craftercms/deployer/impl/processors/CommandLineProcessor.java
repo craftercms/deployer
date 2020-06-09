@@ -156,9 +156,4 @@ public class CommandLineProcessor extends AbstractMainDeploymentProcessor {
 
     }
 
-    @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return false;
-    }
-
 }

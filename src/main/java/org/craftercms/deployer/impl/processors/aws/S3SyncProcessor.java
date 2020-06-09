@@ -20,8 +20,6 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import com.amazonaws.services.cloudfront.AmazonCloudFront;
-import com.amazonaws.services.cloudfront.AmazonCloudFrontClientBuilder;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
@@ -94,6 +92,9 @@ public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
     protected void doInit(final Configuration config) throws ConfigurationException {
         builderConfigurer = new AwsClientBuilderConfigurer(config);
         s3Url = new AmazonS3URI(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+
+        // use true as default for backward compatibility
+        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
     }
 
     /**
@@ -198,14 +199,6 @@ public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
         builderConfigurer.configureClientBuilder(builder);
 
         return builder.build();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return true;
     }
 
     /**

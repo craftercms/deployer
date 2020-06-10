@@ -84,6 +84,9 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
     protected void doInit(final Configuration config) throws ConfigurationException {
         textPattern = getRequiredStringProperty(config, CONFIG_KEY_TEXT_PATTERN);
         replacement = getRequiredStringProperty(config, CONFIG_KEY_REPLACEMENT);
+
+        // use true as default for backward compatibility
+        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
     }
 
     /**
@@ -114,14 +117,6 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
         }
 
         return null;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return true;
     }
 
     /**

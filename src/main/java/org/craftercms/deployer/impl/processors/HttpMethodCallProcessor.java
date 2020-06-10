@@ -16,7 +16,6 @@
 package org.craftercms.deployer.impl.processors;
 
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.apache.http.HttpEntity;
 import org.apache.http.client.methods.*;
@@ -101,11 +100,6 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
         }
 
         return null;
-    }
-
-    @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return false;
     }
 
     protected HttpUriRequest createRequest() throws DeployerException {

@@ -15,6 +15,8 @@
  */
 package org.craftercms.deployer.impl.processors;
 
+import org.apache.commons.configuration2.Configuration;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -27,6 +29,17 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
  * @author avasquez
  */
 public abstract class AbstractMainDeploymentProcessor extends AbstractDeploymentProcessor {
+
+    public static final String FAIL_DEPLOYMENT_CONFIG_KEY = "failDeploymentOnFailure";
+
+    protected boolean failDeploymentOnFailure;
+
+    @Override
+    public void init(Configuration config) throws ConfigurationException, DeployerException {
+        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, false);
+
+        super.init(config);
+    }
 
     @Override
     protected ChangeSet doExecute(Deployment deployment, ChangeSet filteredChangeSet,
@@ -62,6 +75,8 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
                                                ChangeSet filteredChangeSet, ChangeSet originalChangeSet)
             throws DeployerException;
 
-    protected abstract boolean failDeploymentOnProcessorFailure();
+    protected boolean failDeploymentOnProcessorFailure() {
+        return failDeploymentOnFailure;
+    }
 
 }

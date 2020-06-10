@@ -67,6 +67,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
     protected static final String INCLUDE_GIT_LOG_CONFIG_KEY = "includeGitLog";
 
+    public static final String UPDATE_COMMIT_CONFIG_KEY = "updateCommitStore";
+
     protected File localRepoFolder;
     protected ProcessedCommitsStore processedCommitsStore;
 
@@ -75,6 +77,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     protected boolean includeGitLog;
 
     protected String blobFileExtension;
+
+    protected boolean updateCommitStore;
 
     /**
      * Sets the local filesystem folder the contains the deployed repository.
@@ -99,6 +103,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     @Override
     protected void doInit(Configuration config) throws ConfigurationException {
         this.includeGitLog = ConfigUtils.getBooleanProperty(config, INCLUDE_GIT_LOG_CONFIG_KEY, false);
+        updateCommitStore = ConfigUtils.getBooleanProperty(config, UPDATE_COMMIT_CONFIG_KEY, true);
 
         // use true as default for backward compatibility
         failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
@@ -120,7 +125,9 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
                                       ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         boolean reprocessAllFiles = getReprocessAllFilesParam(deployment);
         if (reprocessAllFiles) {
-            processedCommitsStore.delete(targetId);
+            if (updateCommitStore) {
+                processedCommitsStore.delete(targetId);
+            }
 
             logger.info("All files from local repo {} will be reprocessed", localRepoFolder);
         }
@@ -140,7 +147,9 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
                 execution.setStatusDetails("No changes detected");
             }
 
-            processedCommitsStore.store(targetId, latestCommitId);
+            if (updateCommitStore) {
+                processedCommitsStore.store(targetId, latestCommitId);
+            }
 
             return changeSet;
         }

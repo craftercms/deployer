@@ -17,19 +17,10 @@
 
 package org.craftercms.deployer.utils.elasticsearch;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.lang3.StringUtils;
-import org.apache.http.HttpHost;
-import org.apache.http.auth.AuthScope;
-import org.apache.http.auth.UsernamePasswordCredentials;
-import org.apache.http.client.CredentialsProvider;
-import org.apache.http.impl.client.BasicCredentialsProvider;
-import org.elasticsearch.client.RestClient;
-import org.elasticsearch.client.RestClientBuilder;
 import org.elasticsearch.client.RestHighLevelClient;
+
+import static org.craftercms.search.elasticsearch.spring.ElasticsearchClientFactory.createClient;
 
 /**
  * Holds the configuration for a single Elasticsearch cluster
@@ -45,10 +36,16 @@ public class ElasticsearchClusterConfig {
 
     public static final String CONFIG_KEY_PASSWORD = "password";
 
+    public static final String CONFIG_KEY_TIMEOUT_CONNECT = "timeout.connect";
+
+    public static final String CONFIG_KEY_TIMEOUT_SOCKET = "timeout.socket";
+
+    public static final String CONFIG_KEY_THREADS = "threads";
+
     /**
      * The list of urls to connect to the cluster
      */
-    public final List<String> urls;
+    public final String[] urls;
 
     /**
      * The username to connect to the cluster
@@ -60,38 +57,45 @@ public class ElasticsearchClusterConfig {
      */
     public final String password;
 
+    public final int connectTimeout;
+
+    public final int socketTimeout;
+
+    public final int threadCount;
+
     public ElasticsearchClusterConfig() {
-        urls = Collections.emptyList();
+        urls = null;
         username = null;
         password = null;
+        connectTimeout = -1;
+        socketTimeout = -1;
+        threadCount = -1;
     }
 
     public ElasticsearchClusterConfig(HierarchicalConfiguration<?> config) {
-        urls = config.getList(String.class, CONFIG_KEY_URLS);
-        username = config.getString(CONFIG_KEY_USERNAME);
-        password = config.getString(CONFIG_KEY_PASSWORD);
+        urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
+        username = config.getString(CONFIG_KEY_USERNAME, null);
+        password = config.getString(CONFIG_KEY_PASSWORD, null);
+        connectTimeout = config.getInt(CONFIG_KEY_TIMEOUT_CONNECT, -1);
+        socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, -1);
+        threadCount = config.getInt(CONFIG_KEY_THREADS, -1);
     }
 
-    public ElasticsearchClusterConfig(HierarchicalConfiguration<?> config, String username, String password) {
-        urls = config.getList(String.class, CONFIG_KEY_URLS);
+    public ElasticsearchClusterConfig(HierarchicalConfiguration<?> config, String username, String password,
+                                      int connectTimeout, int socketTimeout, int threadCount) {
+        urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
         this.username = config.getString(CONFIG_KEY_USERNAME, username);
         this.password = config.getString(CONFIG_KEY_PASSWORD, password);
+        this.connectTimeout = config.getInt(CONFIG_KEY_TIMEOUT_CONNECT, connectTimeout);
+        this.socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, socketTimeout);
+        this.threadCount = config.getInt(CONFIG_KEY_THREADS, threadCount);
     }
 
     /**
      * Returns a client matching the current configuration of the cluster
      */
     public RestHighLevelClient buildClient() {
-        HttpHost[] hosts = urls.stream().map(HttpHost::create).toArray(HttpHost[]::new);
-        RestClientBuilder clientBuilder = RestClient.builder(hosts);
-        if (StringUtils.isNoneEmpty(username, password)) {
-            CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
-            credentialsProvider.setCredentials(AuthScope.ANY,
-                new UsernamePasswordCredentials(username, password));
-            clientBuilder
-                .setHttpClientConfigCallback(builder -> builder.setDefaultCredentialsProvider(credentialsProvider));
-        }
-        return new RestHighLevelClient(clientBuilder);
+        return createClient(urls, username, password, connectTimeout, socketTimeout ,threadCount);
     }
 
 }

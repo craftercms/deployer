@@ -20,6 +20,7 @@ package org.craftercms.deployer.utils.elasticsearch;
 import java.util.List;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.lang3.ArrayUtils;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -61,15 +62,17 @@ public class ElasticsearchConfig {
         }
         if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_READ_CLUSTER))) {
             readCluster = new ElasticsearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
-                globalCluster.username, globalCluster.password);
+                globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
+                    globalCluster.socketTimeout, globalCluster.threadCount);
         } else {
             readCluster = new ElasticsearchClusterConfig();
         }
         writeClusters = config.configurationsAt(CONFIG_KEY_WRITE_CLUSTERS)
             .stream()
-            .map(cluster -> new ElasticsearchClusterConfig(cluster, globalCluster.username, globalCluster.password))
+            .map(cluster -> new ElasticsearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
+                    globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount))
             .collect(toList());
-        if (useSingleCluster() && isEmpty(globalCluster.urls)) {
+        if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
             throw new IllegalStateException("Invalid Elasticsearch configuration");
         }
     }
@@ -78,7 +81,7 @@ public class ElasticsearchConfig {
      * Indicates if a single cluster should be used, only if any of the read or write clusters is missing
      */
     public boolean useSingleCluster() {
-        return isEmpty(readCluster.urls) || isEmpty(writeClusters);
+        return ArrayUtils.isEmpty(readCluster.urls) || isEmpty(writeClusters);
     }
 
 }

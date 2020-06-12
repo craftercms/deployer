@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.processors;
+package org.craftercms.deployer.impl.processors.git;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
@@ -25,6 +25,7 @@ import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
@@ -68,7 +69,7 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
 
     protected static final String GIT_SSH_URL_REGEX = "^(ssh://.+)|([a-zA-Z0-9._-]+@.+)$";
 
-    private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractRemoteGitRepoAwareProcessor.class);
 
     protected File localRepoFolder;
 

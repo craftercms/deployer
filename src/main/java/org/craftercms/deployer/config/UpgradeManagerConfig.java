@@ -24,6 +24,7 @@ import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.impl.upgrade.TargetVersionProvider;
 import org.craftercms.deployer.impl.upgrade.operations.ElasticsearchIndexUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ProcessorUpgradeOperation;
+import org.craftercms.deployer.impl.upgrade.operations.ReplaceProcessorUpgradeOperation;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -70,6 +71,12 @@ public class UpgradeManagerConfig {
         ElasticsearchIndexUpgradeOperation operation = new ElasticsearchIndexUpgradeOperation();
         operation.setEnabled(enabled);
         return operation;
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public ReplaceProcessorUpgradeOperation replaceProcessorUpgrader() {
+        return new ReplaceProcessorUpgradeOperation();
     }
 
 }

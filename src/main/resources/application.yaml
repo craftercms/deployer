@@ -103,6 +103,11 @@ deployer:
         name: deployments
         # Thread pool worker prefix
         prefix: deployment-
+      events:
+        # The folder where all files are stored locally
+        folderPath: ${deploymentEvents.dir}
+        # The pattern used to generate the name of the files
+        filePattern: '%s-deployment-events.properties'
     taskScheduler:
       # Thread pool size of the task scheduler
       poolSize: 10

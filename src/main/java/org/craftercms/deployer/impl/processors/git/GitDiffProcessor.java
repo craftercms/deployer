@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.processors;
+package org.craftercms.deployer.impl.processors.git;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.BooleanUtils;
@@ -24,6 +24,7 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
+import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.craftercms.deployer.utils.GitUtils;
 import org.craftercms.search.batch.UpdateDetail;
 import org.eclipse.jgit.api.Git;
@@ -51,6 +52,7 @@ import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.deployer.impl.DeploymentConstants.LATEST_COMMIT_ID_PARAM_NAME;
 import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FILES_PARAM_NAME;
 
 /**
@@ -67,6 +69,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
     protected static final String INCLUDE_GIT_LOG_CONFIG_KEY = "includeGitLog";
 
+    public static final String UPDATE_COMMIT_CONFIG_KEY = "updateCommitStore";
+
     protected File localRepoFolder;
     protected ProcessedCommitsStore processedCommitsStore;
 
@@ -75,6 +79,8 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     protected boolean includeGitLog;
 
     protected String blobFileExtension;
+
+    protected boolean updateCommitStore;
 
     /**
      * Sets the local filesystem folder the contains the deployed repository.
@@ -99,6 +105,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     @Override
     protected void doInit(Configuration config) throws ConfigurationException {
         this.includeGitLog = ConfigUtils.getBooleanProperty(config, INCLUDE_GIT_LOG_CONFIG_KEY, false);
+        updateCommitStore = ConfigUtils.getBooleanProperty(config, UPDATE_COMMIT_CONFIG_KEY, true);
 
         // use true as default for backward compatibility
         failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
@@ -140,7 +147,12 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
                 execution.setStatusDetails("No changes detected");
             }
 
-            processedCommitsStore.store(targetId, latestCommitId);
+            // Make the new commit id available for other processors
+            deployment.addParam(LATEST_COMMIT_ID_PARAM_NAME, latestCommitId);
+
+            if (updateCommitStore) {
+                processedCommitsStore.store(targetId, latestCommitId);
+            }
 
             return changeSet;
         }

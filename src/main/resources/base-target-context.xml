@@ -72,18 +72,26 @@
         <property name="targetId" value="${target.id}"/>
     </bean>
 
-    <bean id="gitPullProcessor" class="org.craftercms.deployer.impl.processors.GitPullProcessor" parent="deploymentProcessor">
+    <bean id="gitPullProcessor" parent="deploymentProcessor"
+          class="org.craftercms.deployer.impl.processors.git.GitPullProcessor" >
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
     </bean>
 
-    <bean id="gitPushProcessor" class="org.craftercms.deployer.impl.processors.GitPushProcessor" parent="deploymentProcessor">
+    <bean id="gitPushProcessor" parent="deploymentProcessor"
+          class="org.craftercms.deployer.impl.processors.git.GitPushProcessor">
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
     </bean>
 
-    <bean id="gitDiffProcessor" class="org.craftercms.deployer.impl.processors.GitDiffProcessor" parent="deploymentProcessor">
+    <bean id="gitDiffProcessor" parent="deploymentProcessor"
+          class="org.craftercms.deployer.impl.processors.git.GitDiffProcessor">
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
         <property name="blobFileExtension" value="${deployer.main.targets.config.blob.file.extension}"/>
         <property name="processedCommitsStore" ref="processedCommitsStore"/>
+    </bean>
+
+    <bean id="gitUpdateCommitIdProcessor" parent="deploymentProcessor"
+          class="org.craftercms.deployer.impl.processors.git.GitUpdateCommitIdProcessor">
+        <constructor-arg ref="processedCommitsStore"/>
     </bean>
 
     <bean id="abstractSearchIndexingProcessor" class="org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor"

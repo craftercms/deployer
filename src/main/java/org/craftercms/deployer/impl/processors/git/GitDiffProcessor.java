@@ -13,7 +13,7 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-package org.craftercms.deployer.impl.processors;
+package org.craftercms.deployer.impl.processors.git;
 
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.BooleanUtils;
@@ -24,6 +24,7 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
+import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.craftercms.deployer.utils.GitUtils;
 import org.craftercms.search.batch.UpdateDetail;
 import org.eclipse.jgit.api.Git;
@@ -51,6 +52,7 @@ import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.deployer.impl.DeploymentConstants.LATEST_COMMIT_ID_PARAM_NAME;
 import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FILES_PARAM_NAME;
 
 /**
@@ -125,9 +127,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
                                       ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         boolean reprocessAllFiles = getReprocessAllFilesParam(deployment);
         if (reprocessAllFiles) {
-            if (updateCommitStore) {
-                processedCommitsStore.delete(targetId);
-            }
+            processedCommitsStore.delete(targetId);
 
             logger.info("All files from local repo {} will be reprocessed", localRepoFolder);
         }
@@ -146,6 +146,9 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
             } else {
                 execution.setStatusDetails("No changes detected");
             }
+
+            // Make the new commit id available for other processors
+            deployment.addParam(LATEST_COMMIT_ID_PARAM_NAME, latestCommitId);
 
             if (updateCommitStore) {
                 processedCommitsStore.store(targetId, latestCommitId);

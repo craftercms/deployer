@@ -18,6 +18,8 @@ package org.craftercms.deployer;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 
 import freemarker.template.TemplateException;
@@ -29,8 +31,10 @@ import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.deployer.api.TargetService;
+import org.craftercms.deployer.api.events.DeploymentEventsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
+import org.craftercms.deployer.impl.events.FileBasedDeploymentEventsStore;
 import org.craftercms.deployer.utils.core.TargetAwarePublishingTargetResolver;
 import org.craftercms.deployer.utils.handlebars.ListHelper;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
@@ -190,6 +194,13 @@ public class DeployerApplication implements WebMvcConfigurer  {
             @Autowired EncryptionAwareConfigurationReader configurationReader) {
 	    return new ConfigurationResolverImpl(environment, basePath, envPath, configurationReader);
     }
+
+    @Bean
+    public DeploymentEventsStore<Properties, Path> deploymentEventsStore(
+    		@Value("${deployer.main.deployments.events.folderPath}") String folderPath,
+			@Value("${deployer.main.deployments.events.filePattern}") String filePattern) {
+		return new FileBasedDeploymentEventsStore(folderPath, filePattern);
+	}
 
 	@Override
 	public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {

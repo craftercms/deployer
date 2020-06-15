@@ -29,3 +29,13 @@ pipelines:
       nextVersion: 1.2
       operations:
         - type: elasticsearchIndexUpgrader
+    - currentVersion: 1.2
+      nextVersion: 1.3
+      operations:
+        - type: replaceProcessorUpgrader
+          processor: s3SyncProcessor
+          conditions:
+            includeFiles: '\[\^/\?deployment\-events\\.properties\$\]'
+          newProcessor: s3DeploymentEventsProcessor
+          deleteProperties:
+            - includeFiles

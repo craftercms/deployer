@@ -16,85 +16,41 @@
 
 package org.craftercms.deployer.impl.processors.aws;
 
-import java.io.File;
-import java.util.List;
-import java.util.stream.Collectors;
-
-import org.apache.commons.collections4.CollectionUtils;
-import org.apache.commons.collections4.ListUtils;
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.deployer.api.ChangeSet;
-import org.craftercms.deployer.api.Deployment;
-import org.craftercms.deployer.api.ProcessorExecution;
-import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
-import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.model.AmazonS3Exception;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.DeleteObjectsResult;
 import com.amazonaws.services.s3.transfer.MultipleFileUpload;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
+import org.apache.commons.collections4.CollectionUtils;
+import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.lang3.StringUtils;
+import org.craftercms.deployer.api.ChangeSet;
+import org.craftercms.deployer.api.Deployment;
+import org.craftercms.deployer.api.ProcessorExecution;
+import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
-import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
+import java.io.File;
+import java.util.List;
+import java.util.stream.Collectors;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that syncs files to an AWS S3 Bucket
- * Can be configured with the following YAML properties:
- *
- * <ul>
- *     <li><strong>url:</strong> AWS S3 bucket URL to upload files</li>
- * </ul>
  *
  * @author joseross
+ * @since 3.1.0
  */
-public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
-
-    private static final Logger logger = LoggerFactory.getLogger(S3SyncProcessor.class);
-
-    protected static final String CONFIG_KEY_URL = "url";
-
-    protected static final String DELIMITER = "/";
+public class S3SyncProcessor extends AbstractS3Processor {
 
     /**
      * URL for the local git repository
      */
     protected String localRepoUrl;
 
-    // Config properties (populated on init)
-
-    /**
-     * Helper class the configures credentials and other properties for a {@link AmazonS3} client.
-     */
-    protected AwsClientBuilderConfigurer builderConfigurer;
-    /**
-     * AWS S3 bucket URL
-     */
-    protected AmazonS3URI s3Url;
-
-    @Required
-    public void setLocalRepoUrl(final String localRepoUrl) {
+    public S3SyncProcessor(ThreadPoolTaskExecutor threadPoolTaskExecutor, String localRepoUrl) {
+        super(threadPoolTaskExecutor);
         this.localRepoUrl = localRepoUrl;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doInit(final Configuration config) throws ConfigurationException {
-        builderConfigurer = new AwsClientBuilderConfigurer(config);
-        s3Url = new AmazonS3URI(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
-
-        // use true as default for backward compatibility
-        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
     }
 
     /**
@@ -134,7 +90,7 @@ public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
     protected void uploadFiles(AmazonS3 client, List<String> paths) throws DeployerException {
         logger.info("Uploading {} files", paths.size());
 
-        TransferManager transferManager = TransferManagerBuilder.standard().withS3Client(client).build();
+        TransferManager transferManager = buildTransferManager(client);
         List<File> files = paths.stream().map(path -> new File(localRepoUrl, path)).collect(Collectors.toList());
 
         try {
@@ -176,36 +132,4 @@ public class S3SyncProcessor extends AbstractMainDeploymentProcessor {
         }
     }
 
-    /**
-     * Builds the AWS S3 key for the given file
-     * @param file relative path of the file
-     * @return the full S3 key
-     */
-    protected String getS3Key(String file) {
-        String key = siteName + file;
-        if(StringUtils.isNotEmpty(s3Url.getKey())) {
-            return s3Url.getKey() + key;
-        } else {
-            return key;
-        }
-    }
-
-
-    /**
-     * Builds the {@link AmazonS3} client.
-     */
-    protected AmazonS3 buildClient() {
-        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
-        builderConfigurer.configureClientBuilder(builder);
-
-        return builder.build();
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
 }

@@ -20,27 +20,20 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
+import org.craftercms.deployer.api.Target;
+import org.craftercms.deployer.api.events.DeploymentEventsStore;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
-import java.io.IOException;
-import java.io.Reader;
-import java.io.Writer;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.Instant;
 import java.util.Properties;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
-import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
- * Triggers a deployment event that consumers of the repository (Crafter Engines) can subscribe to by reading a file
- * written by this processor.
+ * Triggers a deployment event that consumers of the repository (Crafter Engines) can subscribe to.
  *
  * @author avasquez
  */
@@ -48,15 +41,9 @@ public class FileBasedDeploymentEventProcessor extends AbstractMainDeploymentPro
 
     private static final Logger logger = LoggerFactory.getLogger(FileBasedDeploymentEventProcessor.class);
 
-    protected static final String DEFAULT_DEPLOYMENT_EVENTS_FILE_URL= "deployment-events.properties";
-
-    protected static final String CONFIG_KEY_DEPLOYMENT_EVENTS_FILE_URL = "deploymentEventsFileUrl";
     protected static final String CONFIG_KEY_EVENT_NAME = "eventName";
 
-    /**
-     * URL for the local git repository.
-     */
-    protected String localRepoUrl;
+    protected DeploymentEventsStore<Properties, Path> store;
 
     // Config properties (populated on init)
 
@@ -69,61 +56,29 @@ public class FileBasedDeploymentEventProcessor extends AbstractMainDeploymentPro
      */
     protected String eventName;
 
-    @Required
-    public void setLocalRepoUrl(final String localRepoUrl) {
-        this.localRepoUrl = localRepoUrl;
+    public FileBasedDeploymentEventProcessor(DeploymentEventsStore<Properties, Path> store) {
+        this.store = store;
     }
 
     @Override
     protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
-        deploymentEventsFileUrl = getStringProperty(config, CONFIG_KEY_DEPLOYMENT_EVENTS_FILE_URL,
-                                                    DEFAULT_DEPLOYMENT_EVENTS_FILE_URL);
         eventName = getRequiredStringProperty(config, CONFIG_KEY_EVENT_NAME);
     }
 
     @Override
     protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
                                       ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        Path deploymentEventsPath = Paths.get(localRepoUrl, deploymentEventsFileUrl);
-        Properties deploymentEvents = loadDeploymentEvents(deploymentEventsPath);
-        boolean newFile = deploymentEvents.isEmpty();
+        Target target = deployment.getTarget();
+        Properties deploymentEvents = store.loadDeploymentEvents(target);
         String now = Instant.now().toString();
 
         deploymentEvents.setProperty(eventName, now);
 
-        saveDeploymentEvents(deploymentEventsPath, deploymentEvents);
+        store.saveDeploymentEvents(target, deploymentEvents);
 
-        logger.info("Event {}={} saved to {}", eventName, now, deploymentEventsFileUrl);
+        logger.info("Event {}={} saved to {}", eventName, now, store.getSource(target));
 
-        if (newFile) {
-            originalChangeSet.addCreatedFile(deploymentEventsFileUrl);
-        } else {
-            originalChangeSet.addUpdatedFile(deploymentEventsFileUrl);
-        }
-
-        return originalChangeSet;
-    }
-
-    private Properties loadDeploymentEvents(Path deploymentEventsPath) throws DeployerException {
-        Properties deploymentEvents = new Properties();
-
-        if (Files.exists(deploymentEventsPath)) {
-            try (Reader reader = Files.newBufferedReader(deploymentEventsPath, StandardCharsets.UTF_8)) {
-                deploymentEvents.load(reader);
-            } catch (IOException e) {
-                throw new DeployerException("Error reading loading events file @ " + deploymentEventsPath);
-            }
-        }
-
-        return deploymentEvents;
-    }
-
-    private void saveDeploymentEvents(Path deploymentEventsPath, Properties deploymentEvents) throws DeployerException {
-        try (Writer writer = Files.newBufferedWriter(deploymentEventsPath, StandardCharsets.UTF_8)) {
-            deploymentEvents.store(writer, null);
-        } catch (IOException e) {
-            throw new DeployerException("Error saving deployment events file @ " + deploymentEventsPath);
-        }
+        return null;
     }
 
     @Override

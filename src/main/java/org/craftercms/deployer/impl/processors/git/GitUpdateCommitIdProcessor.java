@@ -49,8 +49,10 @@ public class GitUpdateCommitIdProcessor extends AbstractMainDeploymentProcessor 
     protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution, ChangeSet filteredChangeSet,
                                       ChangeSet originalChangeSet) throws DeployerException {
         ObjectId commitId = (ObjectId) deployment.getParam(LATEST_COMMIT_ID_PARAM_NAME);
-        logger.info("Updating processed commit to {}", commitId);
-        processedCommitsStore.store(targetId, commitId);
+        if (commitId != null) {
+            logger.info("Updating processed commit to {}", commitId.name());
+            processedCommitsStore.store(targetId, commitId);
+        }
         return null;
     }
 

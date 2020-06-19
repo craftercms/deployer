@@ -19,6 +19,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.springframework.beans.factory.annotation.Required;
 
 import java.io.IOException;
@@ -26,6 +27,12 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
+/**
+ * Implementation of {@link TargetLifecycleHook} that deletes the local Git clone of a remote repo.
+ *
+ * @author avasquez
+ * @since 3.1.8
+ */
 public class DeleteLocalRepoFolderLifecycleHook extends AbstractLifecycleHook {
 
     protected Path localRepoFolder;

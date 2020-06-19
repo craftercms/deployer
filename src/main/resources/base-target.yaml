@@ -227,5 +227,3 @@ aws:
     size: 10
     # The max size of the thread pool
     max: 15
-    # The max queue size of the thread pool
-    queue: 10

@@ -59,6 +59,11 @@
     <bean id="clearS3BucketLifecycleHook"
           class="org.craftercms.deployer.impl.lifecycle.aws.ClearS3BucketLifecycleHook"/>
 
+    <bean id="deleteLocalRepoFolderLifecycleHook"
+          class="org.craftercms.deployer.impl.lifecycle.DeleteLocalRepoFolderLifecycleHook">
+        <property name="localRepoFolder" value="${target.localRepoPath}"/>
+    </bean>
+
     <!-- Deployment Processors -->
 
     <!--

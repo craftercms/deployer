@@ -70,6 +70,9 @@ target:
         accessKey: ${aws.cloudformation.accessKey}
         secretKey: ${aws.cloudformation.secretKey}
         stackName: ${aws.cloudformation.stackName}
+      {{#if repo_url}}
+      - hookName: deleteLocalRepoFolderLifecycleHook
+      {{/if}}
   deployment:
     {{#if disable_deploy_cron}}
     scheduling:
@@ -77,6 +80,7 @@ target:
     {{/if}}
     pipeline:
       # -------------------- START OF MAIN PIPELINE --------------------
+      {{#if repo_url}}
       - processorName: gitPullProcessor
         remoteRepo:
           url: {{repo_url}}
@@ -95,6 +99,7 @@ target:
               passphrase: {{ssh_private_key_passphrase}}
               {{/if}}
           {{/if}}
+      {{/if}}
       - processorName: gitDiffProcessor
       - processorName: elasticsearchIndexingProcessor
       - processorName: s3SyncProcessor

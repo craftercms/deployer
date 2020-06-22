@@ -20,6 +20,11 @@ target:
       urls:
         - {{elastic_search_url}}
   {{/if}}
+  {{#if repo_url}}
+  lifecycleHooks:
+    delete:
+      - hookName: deleteLocalRepoFolderLifecycleHook
+  {{/if}}
   deployment:
     {{#if disable_deploy_cron}}
     scheduling:
@@ -27,6 +32,7 @@ target:
     {{/if}}
     pipeline:
       # -------------------- START OF MAIN PIPELINE --------------------
+      {{#if repo_url}}
       - processorName: gitPullProcessor
         remoteRepo:
           url: {{repo_url}}
@@ -45,6 +51,7 @@ target:
               passphrase: {{ssh_private_key_passphrase}}
               {{/if}}
           {{/if}}
+      {{/if}}
       - processorName: gitDiffProcessor
       - processorName: elasticsearchIndexingProcessor
       - processorName: s3SyncProcessor

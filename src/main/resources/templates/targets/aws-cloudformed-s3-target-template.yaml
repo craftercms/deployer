@@ -19,7 +19,6 @@ aws:
   threads:
     {{#if aws.threads.size}}size: {{aws.threads.size}}{{/if}}
     {{#if aws.threads.max}}max: {{aws.threads.max}}{{/if}}
-    {{#if aws.threads.queue}}queue: {{aws.threads.queue}}{{/if}}
   {{/if}}
 target:
   env: {{env}}

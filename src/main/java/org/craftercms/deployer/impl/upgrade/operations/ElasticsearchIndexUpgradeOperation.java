@@ -46,6 +46,7 @@ public class ElasticsearchIndexUpgradeOperation extends AbstractUpgradeOperation
         String indexIdFormat = getRequiredStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY);
         String aliasName = String.format(indexIdFormat, siteName);
 
+        adminService.waitUntilReady();
         adminService.recreateIndex(aliasName, target.isEnvAuthoring());
     }
 

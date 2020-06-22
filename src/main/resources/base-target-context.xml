@@ -343,7 +343,6 @@
           class="org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor">
         <property name="corePoolSize" value="${aws.threads.size}"/>
         <property name="maxPoolSize" value="${aws.threads.max}"/>
-        <property name="queueCapacity" value="${aws.threads.queue}"/>
     </bean>
 
     <bean id="s3SyncProcessor" class="org.craftercms.deployer.impl.processors.aws.S3SyncProcessor"

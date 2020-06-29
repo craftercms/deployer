@@ -374,6 +374,12 @@
     <bean id="delayProcessor" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.DelayProcessor"/>
 
+    <!-- Locale -->
+    <bean id="descriptorLocaleExtractor" class="org.craftercms.search.locale.impl.DescriptorLocaleExtractor">
+        <constructor-arg ref="crafter.contentStoreService"/>
+        <constructor-arg value="${target.search.elasticsearch.locale.xpath}"/>
+    </bean>
+
     <!-- Elasticsearch -->
     <bean id="elasticsearchConfig" class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchConfig">
         <constructor-arg ref="targetConfig"/>
@@ -384,8 +390,9 @@
     <bean id="elasticsearchAdminService"
           class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchAdminServiceFactory">
         <constructor-arg ref="elasticsearchConfig"/>
-        <constructor-arg value="${target.search.elasticsearch.settings.authoring}"/>
-        <constructor-arg value="${target.search.elasticsearch.settings.preview}"/>
+        <constructor-arg value="${target.search.elasticsearch.mappings.authoring}"/>
+        <constructor-arg value="${target.search.elasticsearch.mappings.preview}"/>
+        <constructor-arg value="${target.search.elasticsearch.authoring.pattern}"/>
     </bean>
 
     <bean id="tokenizedElementParser"
@@ -466,7 +473,9 @@
 
     <bean id="elasticsearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
           class="org.craftercms.search.elasticsearch.batch.ElasticsearchXmlFileBatchIndexer">
-        <property name="elasticsearchService" ref="elasticsearchService"/>
+        <constructor-arg ref="elasticsearchAdminService"/>
+        <constructor-arg ref="descriptorLocaleExtractor"/>
+        <constructor-arg ref="elasticsearchService"/>
     </bean>
 
     <bean id="elasticsearchBinaryFileBatchIndexer" parent="abstractBinaryFileBatchIndexer"
@@ -529,7 +538,8 @@
 
     <bean id="authoringElasticsearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
           class="org.craftercms.search.elasticsearch.batch.ElasticsearchXmlFileBatchIndexer">
-        <property name="elasticsearchService" ref="elasticsearchService"/>
+        <constructor-arg ref="elasticsearchAdminService"/>
+        <constructor-arg ref="elasticsearchService"/>
         <property name="metadataExtractors" ref="authoringMetadataExtractors"/>
     </bean>
 

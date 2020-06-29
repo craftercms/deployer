@@ -241,11 +241,6 @@ public class TargetImpl implements Target {
         return deployments;
     }
 
-    @Override
-    public boolean isEnvAuthoring() {
-        return AUTHORING_ENV.equalsIgnoreCase(env);
-    }
-
     /**
      * {@inheritDoc}
      */

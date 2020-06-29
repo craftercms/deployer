@@ -135,12 +135,6 @@ public interface Target {
     Collection<Deployment> getAllDeployments();
 
     /**
-     * Indicates if the target is for authoring environment.
-     */
-    @JsonIgnore
-    boolean isEnvAuthoring();
-
-    /**
      * Performs a cleanup of the local repository.
      */
     void cleanRepo();

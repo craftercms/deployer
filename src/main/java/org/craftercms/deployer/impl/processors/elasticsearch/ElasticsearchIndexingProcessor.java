@@ -19,13 +19,11 @@ package org.craftercms.deployer.impl.processors.elasticsearch;
 import java.util.List;
 
 import org.craftercms.deployer.api.Target;
-import org.craftercms.deployer.impl.TargetImpl;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.search.elasticsearch.ElasticsearchService;
 import org.craftercms.search.elasticsearch.exception.ElasticsearchException;
 import org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor;
 import org.craftercms.search.exception.SearchException;
-import org.springframework.beans.factory.annotation.Required;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
@@ -63,7 +61,7 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
 
     @Override
     protected void doCreateIndexIfMissing(Target target) {
-        elasticsearchAdminService.createIndex(indexId, target.isEnvAuthoring());
+        elasticsearchAdminService.createIndex(indexId);
     }
 
     @Override

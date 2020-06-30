@@ -17,8 +17,11 @@
 
 package org.craftercms.deployer.utils.elasticsearch;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
 
@@ -35,9 +38,11 @@ public class ElasticsearchConfig {
 
     public static final String CONFIG_KEY_GLOBAL_CLUSTER = "target.search.elasticsearch";
 
-    public static final String CONFIG_KEY_READ_CLUSTER = "target.search.elasticsearch.readCluster";
+    public static final String CONFIG_KEY_READ_CLUSTER = CONFIG_KEY_GLOBAL_CLUSTER + ".readCluster";
 
-    public static final String CONFIG_KEY_WRITE_CLUSTERS = "target.search.elasticsearch.writeClusters";
+    public static final String CONFIG_KEY_WRITE_CLUSTERS = CONFIG_KEY_GLOBAL_CLUSTER + ".writeClusters";
+
+    public static final String CONFIG_KEY_LOCALE_MAPPING = CONFIG_KEY_GLOBAL_CLUSTER + ".locale.mapping";
 
     /**
      * The global cluster, used for connecting to a single cluster for read & write operations
@@ -53,6 +58,11 @@ public class ElasticsearchConfig {
      * The write clusters, used for connecting to multiple clusters
      */
     public final List<ElasticsearchClusterConfig> writeClusters;
+
+    /**
+     * Mapping of locale codes to Elasticsearch language analyzers
+     */
+    public final Map<String, String> localeMapping = new HashMap<>();
 
     public ElasticsearchConfig(HierarchicalConfiguration<?> config) {
         if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_GLOBAL_CLUSTER))) {
@@ -75,6 +85,9 @@ public class ElasticsearchConfig {
         if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
             throw new IllegalStateException("Invalid Elasticsearch configuration");
         }
+
+        Configuration mapping = config.configurationAt(CONFIG_KEY_LOCALE_MAPPING);
+        mapping.getKeys().forEachRemaining(key -> localeMapping.put(key, mapping.getString(key)));
     }
 
     /**
@@ -82,6 +95,10 @@ public class ElasticsearchConfig {
      */
     public boolean useSingleCluster() {
         return ArrayUtils.isEmpty(readCluster.urls) || isEmpty(writeClusters);
+    }
+
+    public Map<String, String> getLocaleMapping() {
+        return localeMapping;
     }
 
 }

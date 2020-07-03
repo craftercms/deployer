@@ -349,6 +349,7 @@
           parent="deploymentProcessor">
         <constructor-arg ref="s3ExecutorService"/>
         <constructor-arg value="${target.localRepoPath}"/>
+        <constructor-arg value="${deployer.main.targets.config.blob.file.extension}"/>
     </bean>
 
     <bean id="cloudfrontInvalidationProcessor" parent="deploymentProcessor"

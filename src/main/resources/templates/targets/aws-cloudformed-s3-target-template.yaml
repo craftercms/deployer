@@ -103,6 +103,7 @@ target:
       - processorName: gitDiffProcessor
       - processorName: elasticsearchIndexingProcessor
       - processorName: s3SyncProcessor
+        ignoreBlobs: {{#if ignore_blobs}}{{ignore_blobs}}{{else}}false{{/if}}
         region: ${aws.region}
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}

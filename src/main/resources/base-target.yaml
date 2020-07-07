@@ -41,10 +41,10 @@ target:
         xpath: '*/localeCode'
         # Mapping of locale codes to Elasticsearch language analyzers
         mapping:
-          en_us: english
-          es_cr: spanish
-          fr_fr: french
-          de_de: german
+          en_.*: english
+          es_.*: spanish
+          fr_.*: french
+          de_.*: german
       # List of URLs for Elasticsearch
       urls:
         - http://localhost:9201

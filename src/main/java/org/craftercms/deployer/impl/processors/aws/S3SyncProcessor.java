@@ -24,7 +24,9 @@ import com.amazonaws.services.s3.transfer.MultipleFileUpload;
 import com.amazonaws.services.s3.transfer.TransferManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
+import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -35,6 +37,9 @@ import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.lang3.StringUtils.endsWith;
+import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
+
 /**
  * Implementation of {@link org.craftercms.deployer.api.DeploymentProcessor} that syncs files to an AWS S3 Bucket
  *
@@ -43,14 +48,39 @@ import java.util.stream.Collectors;
  */
 public class S3SyncProcessor extends AbstractS3Processor {
 
+    public static final String CONFIG_KEY_IGNORE_BLOBS = "ignoreBlobs";
+
     /**
      * URL for the local git repository
      */
     protected String localRepoUrl;
 
-    public S3SyncProcessor(ThreadPoolTaskExecutor threadPoolTaskExecutor, String localRepoUrl) {
+    /**
+     * The extension used for blob files in the repository
+     */
+    protected String blobExtension;
+
+    /**
+     * Indicates if blob files should not be uploaded to S3
+     */
+    protected boolean ignoreBlobs;
+
+    public S3SyncProcessor(ThreadPoolTaskExecutor threadPoolTaskExecutor, String localRepoUrl, String blobExtension) {
         super(threadPoolTaskExecutor);
         this.localRepoUrl = localRepoUrl;
+        this.blobExtension = blobExtension;
+    }
+
+    @Override
+    protected void doInit(Configuration config) throws ConfigurationException {
+        super.doInit(config);
+
+        ignoreBlobs = getBooleanProperty(config, CONFIG_KEY_IGNORE_BLOBS, true);
+    }
+
+    @Override
+    protected boolean shouldIncludeFile(String file) {
+        return super.shouldIncludeFile(file) && !(ignoreBlobs && endsWith(file, blobExtension));
     }
 
     /**

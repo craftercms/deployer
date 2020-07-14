@@ -75,7 +75,7 @@ public class S3SyncProcessor extends AbstractS3Processor {
     protected void doInit(Configuration config) throws ConfigurationException {
         super.doInit(config);
 
-        ignoreBlobs = getBooleanProperty(config, CONFIG_KEY_IGNORE_BLOBS, false);
+        ignoreBlobs = getBooleanProperty(config, CONFIG_KEY_IGNORE_BLOBS, true);
     }
 
     @Override

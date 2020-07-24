@@ -24,8 +24,7 @@ import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.ObjectFactory;
 import org.springframework.beans.factory.annotation.Required;
-
-import javax.annotation.PreDestroy;
+import org.springframework.beans.factory.DisposableBean;
 
 /**
  * Factory for a singleton Core {@link Context}. The context is created on the first {@link #getObject()} call, and
@@ -37,7 +36,7 @@ import javax.annotation.PreDestroy;
  *
  * @author avasquez
  */
-public class SingletonContextFactory implements ObjectFactory<Context> {
+public class SingletonContextFactory implements ObjectFactory<Context>, DisposableBean {
 
     private static final Logger logger = LoggerFactory.getLogger(SingletonContextFactory.class);
 
@@ -95,7 +94,6 @@ public class SingletonContextFactory implements ObjectFactory<Context> {
         return context;
     }
 
-    @PreDestroy
     public void destroy() {
         if (context != null) {
             try {

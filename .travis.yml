@@ -1,6 +1,6 @@
 language: java
 jdk:
-- openjdk8
+- openjdk11
 branches:
   except:
   - travis
@@ -15,7 +15,6 @@ env:
   global:
     - secure: "1BXfDA3ccK7AS7hi6UpWa+OQVCgzmL7eIsqM2rCAL3To39EF8Uewo8ph0O8XuMF4BWyGoft/5lLLWb2isctv+cIYfGbHfmyPJx254phTTt2YLl8uyqM/vnzWyy5v+S/6CDRw0ULkspfm4/By2ktFR7tA90RS2xECP7rywVwkokVxH6aHOR1Yo9d0NQ9R4UoZiwgHHgVZRO/Z821QVoaXaAR2bvvlpXa++edRLgWGorjy0KGy3Cv6cmPuAx3Gyw7Y1gl6vyIip5OCjliPryjgw9IYt8PhPsw2wYfU9gIz7LLz1kZO8JgzfU3VdnL8eZrmqF5cURKh3ULN7BiZwNMjyH1ofscR9QWsyG26hcruE9+fGzPLYoFczQTWaw4AIMw0ykAyeeiWJMLiVnXlQsay+B5eBOAUCPtMRWFmbFXF81nqGP3Kl88fLjApatM1zrSjgT+P/d0meWCOS/DhNkA/DhEbTyParKbfIJsFPnHIkXn7t+Kq9NtJDagW7T4BXFDPbKKTgnJXDZdKHexHNuTzRDEwqc/GKlHnE6jEch+hFzgyvMpC0fMNxB5qXNtjtHAlw53AqbZLkFVBIpr0i1PFO+OpBq/DunOdGjS3EocQdiO4yoJUK8Mvc+6ybx9yBInJHbrUDE0IVDuaqRzaZMY9lXrEiAp0i8ifTD7lsPG/tuw="
     - secure: "hbzyXQlNNibSpGXgWHaG+wmF1tAPhF65j9RvJqzzJG8hToRB3ruxlsTVlJYo5oTc9oIrQgUNEVv089NAWfSixLijdPCRKBE9Hx0cpnF09pmlJlZm9bikNou3CLIo8S78W1XkmeYWrUF2sfqI1ULkwJFMd1HgARUEzHTKwuMOb1nn3NMZ1aJuRWMrDEqZ/2qyhPpgmc6w13urgziwtOsHQcn4NLHxKqEnlv0nRXXGS2v+1v9sUojWXbx4/qqjq8D6PgMkIcmhYFrsXZjIWUBKPycOjFT6vjHUcQPN2gbOpgt5dZYmPENP9tl9LL4M7EIQM9K6HeGSKGwFoIVrC1g28pN2tUxcVjIpHFCBnjZdTSoUAFOfTh+1oR2xaxUBN2nrTFuc8zuimE7xBQVlQ662xEwkWWMjA+j0HErfn/T8LX11guWmzFsp3CCj11iWC5++NJNzrdC7Jgn31Uq2FJYkOpL8XEhDHDHHGNGiQzhNqOenjQdgyaYusB709ZEimjPcdQ+cOSu41/Z1Gq48rNGTzfvXM9PGz+rjcSRzmgGgjK7qM/QTtTHlVUoJ4fwLGplYPPH0n4exuDEizuEUpnQmYRRwoqoIvxWqCM9sBQdeQscTI5++kmHMzXVOb4lBiwO3DHLYk5uCeWTtSBh4kh/b6mREFpkV0/qejhvZ0Juea1I="
-before_install: git clone -b travis `git config --get remote.origin.url` target/travis
 script:
-  - 'if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then bash -c  "mvn deploy --settings target/travis/settings.xml";  fi'
+  - 'if [[ "$TRAVIS_PULL_REQUEST" == "false" ]]; then bash -c  "mvn deploy --settings .travis-settings.xml";  fi'
   - 'if [[ "$TRAVIS_PULL_REQUEST" != "false" ]]; then bash -c "mvn clean install" ;fi'

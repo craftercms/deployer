@@ -121,9 +121,9 @@ deployer:
     security:
       encryption:
         # The key used for encryption of configuration properties
-        key: default_encryption_key
+        key: zEtRii1jWUuUUB0W
         # The salt used for encryption of configuration properties
-        salt: default_encryption_salt
+        salt: DgGN9xhq3GOn6zxg
     upgrade:
       configuration: 'classpath:upgrade/pipelines.yaml'
       pipelines:

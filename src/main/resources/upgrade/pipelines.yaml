@@ -43,3 +43,10 @@ pipelines:
       nextVersion: 1.4
       operations:
         - type: encryptionUpgrader
+    - currentVersion: 1.4
+      nextVersion: 1.5
+      operations:
+        - type: addLifecycleHookUpgrader
+          processor: gitPullProcessor
+          hookType: delete
+          hookName: deleteLocalRepoFolderLifecycleHook

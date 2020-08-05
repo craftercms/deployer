@@ -41,6 +41,7 @@ public abstract class AbstractTargetUpgradeOperation extends AbstractUpgradeOper
 
     public static final String CONFIG_KEY_PROCESSOR = "processor";
     public static final String CONFIG_KEY_REPLACE = "replace";
+    public static final String CONFIG_KEY_REMOVE = "remove";
     public static final String CONFIG_KEY_PROPERTY = "property";
     public static final String CONFIG_KEY_PATTERN = "pattern";
     public static final String CONFIG_KEY_EXPRESSION = "expression";

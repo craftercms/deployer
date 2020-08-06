@@ -50,3 +50,11 @@ pipelines:
           processor: gitPullProcessor
           hookType: delete
           hookName: deleteLocalRepoFolderLifecycleHook
+    - currentVersion: 1.5
+      nextVersion: 1.6
+      operations:
+        - type: processorUpgrader
+          processor: fileBasedDeploymentEventProcessor
+          remove:
+            - property: excludeFiles
+              pattern: '\[\^/static\-assets/\.\*\$]'

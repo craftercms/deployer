@@ -48,6 +48,9 @@ public abstract class AbstractTargetUpgradeOperation extends AbstractUpgradeOper
     public static final String CONFIG_KEY_TARGET = "target";
     public static final String CONFIG_KEY_DEPLOYMENT = "deployment";
     public static final String CONFIG_KEY_PIPELINE = "pipeline";
+    public static final String CONFIG_KEY_PROCESSOR_NAME = "processorName";
+    public static final String CONFIG_KEY_LIFECYCLE_HOOKS = "lifecycleHooks";
+    public static final String CONFIG_KEY_HOOK_NAME = "hookName";
 
     /**
      * The name of the processor to update

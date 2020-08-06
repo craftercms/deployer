@@ -1,4 +1,4 @@
-version: '1.4'
+version: '1.5'
 aws:
   region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
   accessKey: {{#if aws.access_key}}{{aws.access_key}}{{else}}''{{/if}}

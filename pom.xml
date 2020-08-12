@@ -33,54 +33,10 @@
 	</scm>
 
 	<parent>
-		<groupId>org.springframework.boot</groupId>
-		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.3.1.RELEASE</version>
-		<relativePath/> <!-- lookup parent from repository -->
+		<groupId>org.craftercms</groupId>
+		<artifactId>craftercms-spring-boot</artifactId>
+		<version>3.2.0-SNAPSHOT</version><!-- craftercms version flag -->
 	</parent>
-
-	<properties>
-		<!-- Version Numbers -->
-		<commons.configuration.version>2.7</commons.configuration.version>
-		<commons.csv.version>1.8</commons.csv.version>
-		<jgit.version>5.8.1.202007141445-r</jgit.version>
-		<javax.mail.version>1.4.7</javax.mail.version>
-		<handlebars.version>4.2.0</handlebars.version>
-		<sardine.version>5.10</sardine.version>
-		<xerces.version>2.12.0</xerces.version>
-		<java.version>11</java.version>
-		<!-- Override property setup by Spring Boot Parent -->
-		<jackson.version>2.11.1</jackson.version>
-		<jackson.databind.version>2.11.1</jackson.databind.version>
-		<aws.version>1.11.820</aws.version>
-		<box.sdk.version>2.48.0</box.sdk.version>
-		<elasticsearch.version>7.2.1</elasticsearch.version>
-		<tomcat.version>9.0.37</tomcat.version>
-
-		<!-- build -->
-		<maven.javadoc.version>3.2.0</maven.javadoc.version>
-		<maven.source.version>3.2.1</maven.source.version>
-        <maven.jar.version>3.2.0</maven.jar.version>
-        <buildnumber.maven.version>1.4</buildnumber.maven.version>
-        <maven.deploy.version>3.0.0-M1</maven.deploy.version>
-        <maven.gpg.version>1.6</maven.gpg.version>
-
-		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-	</properties>
-
-	<repositories>
-		<repository>
-			<id>sonatype-snapshots</id>
-			<name>Sonatype Snapshots</name>
-			<url>https://oss.sonatype.org/content/repositories/snapshots/</url>
-			<releases>
-				<enabled>true</enabled>
-				<updatePolicy>always</updatePolicy>
-				<checksumPolicy>warn</checksumPolicy>
-			</releases>
-		</repository>
-	</repositories>
 
 	<dependencies>
 		<!-- Crafter -->
@@ -229,19 +185,6 @@
 
 	</dependencies>
 
-	<dependencyManagement>
-		<dependencies>
-			<!-- AWS SDK -->
-			<dependency>
-				<groupId>com.amazonaws</groupId>
-				<artifactId>aws-java-sdk-bom</artifactId>
-				<version>${aws.version}</version>
-				<type>pom</type>
-				<scope>import</scope>
-			</dependency>
-		</dependencies>
-	</dependencyManagement>
-
 	<build>
 		<finalName>crafter-deployer</finalName>
 		<plugins>
@@ -343,51 +286,4 @@
 
 		</plugins>
 	</build>
-
-	<profiles>
-		<profile>
-			<id>release-sign-artifacts</id>
-			<activation>
-				<property>
-					<name>performRelease</name>
-					<value>true</value>
-				</property>
-			</activation>
-			<build>
-				<plugins>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-deploy-plugin</artifactId>
-						<version>${maven.deploy.version}</version>
-					</plugin>
-					<plugin>
-						<groupId>org.apache.maven.plugins</groupId>
-						<artifactId>maven-gpg-plugin</artifactId>
-						<version>${maven.gpg.version}</version>
-						<executions>
-							<execution>
-								<id>sign-artifacts</id>
-								<phase>verify</phase>
-								<goals>
-									<goal>sign</goal>
-								</goals>
-							</execution>
-						</executions>
-					</plugin>
-				</plugins>
-			</build>
-		</profile>
-	</profiles>
-
-
-	<distributionManagement>
-		<snapshotRepository>
-			<id>sonatype-nexus-snapshots</id>
-			<url>https://oss.sonatype.org/content/repositories/snapshots</url>
-		</snapshotRepository>
-		<repository>
-			<id>sonatype-nexus-staging</id>
-			<url>https://oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-		</repository>
-	</distributionManagement>
 </project>

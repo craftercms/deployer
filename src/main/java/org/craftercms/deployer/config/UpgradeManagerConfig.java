@@ -16,13 +16,16 @@
 
 package org.craftercms.deployer.config;
 
+import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.upgrade.UpgradeOperation;
 import org.craftercms.commons.upgrade.UpgradePipelineFactory;
 import org.craftercms.commons.upgrade.VersionProvider;
 import org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineFactoryImpl;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.impl.upgrade.TargetVersionProvider;
+import org.craftercms.deployer.impl.upgrade.operations.AddLifecycleHookUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ElasticsearchIndexUpgradeOperation;
+import org.craftercms.deployer.impl.upgrade.operations.EncryptionUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ProcessorUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ReplaceProcessorUpgradeOperation;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -77,6 +80,18 @@ public class UpgradeManagerConfig {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public ReplaceProcessorUpgradeOperation replaceProcessorUpgrader() {
         return new ReplaceProcessorUpgradeOperation();
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public EncryptionUpgradeOperation encryptionUpgrader(@Autowired TextEncryptor textEncryptor) {
+        return new EncryptionUpgradeOperation(textEncryptor);
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public AddLifecycleHookUpgradeOperation addLifecycleHookUpgrader() {
+        return new AddLifecycleHookUpgradeOperation();
     }
 
 }

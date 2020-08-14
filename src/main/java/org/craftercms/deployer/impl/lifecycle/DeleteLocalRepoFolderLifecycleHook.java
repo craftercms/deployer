@@ -16,6 +16,7 @@
 package org.craftercms.deployer.impl.lifecycle;
 
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -50,11 +51,13 @@ public class DeleteLocalRepoFolderLifecycleHook extends AbstractLifecycleHook {
     @Override
     protected void doExecute(Target target) throws DeployerException {
         try {
-            if (Files.deleteIfExists(localRepoFolder)) {
+            if (Files.exists(localRepoFolder)) {
+                FileUtils.forceDelete(localRepoFolder.toFile());
+
                 logger.info("Local repo folder {} deleted", localRepoFolder);
             }
         } catch (IOException e) {
-            throw new DeployerException("Unable to delete local repo folder " + localRepoFolder);
+            throw new DeployerException("Unable to delete local repo folder " + localRepoFolder, e);
         }
     }
 

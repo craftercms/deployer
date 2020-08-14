@@ -1,8 +1,11 @@
-version: '1.3'
+version: '1.6'
 target:
   env: {{env}}
   siteName: {{site_name}}
   crafterSearchEnabled: {{#if use_crafter_search}}{{use_crafter_search}}{{else}}false{{/if}}
+  lifecycleHooks:
+    delete:
+      - hookName: deleteLocalRepoFolderLifecycleHook
   deployment:
     {{#if disable_deploy_cron}}
     scheduling:

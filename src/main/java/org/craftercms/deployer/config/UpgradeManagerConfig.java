@@ -23,6 +23,7 @@ import org.craftercms.commons.upgrade.VersionProvider;
 import org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineFactoryImpl;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.impl.upgrade.TargetVersionProvider;
+import org.craftercms.deployer.impl.upgrade.operations.AddLifecycleHookUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ElasticsearchIndexUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.EncryptionUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ProcessorUpgradeOperation;
@@ -85,6 +86,12 @@ public class UpgradeManagerConfig {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public EncryptionUpgradeOperation encryptionUpgrader(@Autowired TextEncryptor textEncryptor) {
         return new EncryptionUpgradeOperation(textEncryptor);
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public AddLifecycleHookUpgradeOperation addLifecycleHookUpgrader() {
+        return new AddLifecycleHookUpgradeOperation();
     }
 
 }

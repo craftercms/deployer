@@ -1,4 +1,4 @@
-version: '1.4'
+version: '1.6'
 aws:
   region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
   accessKey: {{#if aws.access_key}}{{aws.access_key}}{{else}}''{{/if}}
@@ -73,7 +73,6 @@ target:
         excludeFiles: ['^/config/studio/content-types/.*$']
         eventName: 'events.deployment.rebuildContext'
       - processorName: fileBasedDeploymentEventProcessor
-        excludeFiles: ['^/static-assets/.*$']
         eventName: 'events.deployment.clearCache'
       - processorName: fileBasedDeploymentEventProcessor
         includeFiles: ['^/config/studio/content-types/.*$']

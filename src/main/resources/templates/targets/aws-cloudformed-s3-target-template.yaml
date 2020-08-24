@@ -1,4 +1,4 @@
-version: '1.6'
+version: '1.7'
 aws:
   region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
   accessKey: {{#if aws.default_access_key}}{{aws.default_access_key}}{{else}}''{{/if}}
@@ -98,6 +98,7 @@ target:
           {{/if}}
       - processorName: gitDiffProcessor
       - processorName: elasticsearchIndexingProcessor
+        excludeFiles: ['^/sources/.*$']
       - processorName: s3SyncProcessor
         ignoreBlobs: {{#if ignore_blobs}}{{ignore_blobs}}{{else}}true{{/if}}
         region: ${aws.region}

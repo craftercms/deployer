@@ -242,6 +242,7 @@
         <property name="includeElementXPathQuery" value="${target.search.indexing.xml.flattening.includeElementXPathQuery}"/>
         <property name="removeIncludeElement" value="${target.search.indexing.xml.flattening.removeIncludeTags}"/>
         <property name="disabledIncludeNodeXPathQuery" value="${target.search.indexing.xml.flattening.disabledIncludeNodeXPathQuery}"/>
+        <property name="localeCodeXPathQuery" value="${target.search.indexing.xml.locale.xpath}"/>
         <property name="pagesPathPattern" value="${target.search.indexing.xml.flattening.pagesPathPattern}"/>
         <property name="includedItemsProcessor" ref="includeDescriptorsProcessor"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
@@ -378,7 +379,7 @@
     <!-- Locale -->
     <bean id="descriptorLocaleExtractor" class="org.craftercms.search.locale.impl.DescriptorLocaleExtractor">
         <constructor-arg ref="crafter.contentStoreService"/>
-        <constructor-arg value="${target.search.elasticsearch.locale.xpath}"/>
+        <constructor-arg value="${target.search.indexing.xml.locale.xpath}"/>
     </bean>
 
     <!-- Elasticsearch -->

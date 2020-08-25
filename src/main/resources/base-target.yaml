@@ -37,8 +37,6 @@ target:
         # Regex used to determine if an index is for authoring
         pattern: '.+-authoring'
       locale:
-        # The XPath to extract the locale from the descriptor
-        xpath: '*/localeCode'
         # Mapping of locale codes to Elasticsearch language analyzers
         mapping:
           en.*: english
@@ -74,6 +72,9 @@ target:
         # The regex patterns of the XML files that should be included for indexing
         includePatterns:
           - ^/?site/.+\.xml$
+        locale:
+          # The XPath to extract the locale from the descriptor
+          xpath: '*/localeCode'
       # Configurations for fields during indexing
       field:
         name:

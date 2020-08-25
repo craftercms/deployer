@@ -15,7 +15,6 @@
  */
 package org.craftercms.deployer.impl.upgrade.operations;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.Target;
 
 import java.util.Map;
@@ -42,7 +41,7 @@ public abstract class ProcessorPresentUpgradeOperation extends AbstractTargetUpg
 
     private boolean processorExists(Map<String, Object> targetConfig) {
         return getPipeline(targetConfig).stream().anyMatch(processor ->
-                StringUtils.equals(processor.get(CONFIG_KEY_PROCESSOR_NAME).toString(), processorName));
+                processor.get(CONFIG_KEY_PROCESSOR_NAME).toString().matches(processorName));
     }
 
     protected abstract void doExecuteInternal(Target target, Map<String, Object> targetConfig) throws Exception;

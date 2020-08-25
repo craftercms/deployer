@@ -43,6 +43,8 @@ public class ProcessorUpgradeOperation extends AbstractTargetUpgradeOperation {
 
     protected List<Map<String, String>> removals;
 
+    protected List<Map<String, Object>> additions;
+
     @Override
     protected void doInit(final HierarchicalConfiguration<?> config) throws ConfigurationException {
         removals = new LinkedList<>();
@@ -60,38 +62,65 @@ public class ProcessorUpgradeOperation extends AbstractTargetUpgradeOperation {
             map.put(CONFIG_KEY_EXPRESSION, getRequiredStringProperty(replacementConfig, CONFIG_KEY_EXPRESSION));
             replacements.add(map);
         }
+        additions = new LinkedList<>();
+        for (HierarchicalConfiguration<?> additionConfig : config.configurationsAt(CONFIG_KEY_ADD)) {
+            var map = new HashMap<String, Object>();
+            map.put(CONFIG_KEY_PROPERTY, getRequiredStringProperty(additionConfig, CONFIG_KEY_PROPERTY));
+            if (additionConfig.containsKey(CONFIG_KEY_VALUE)) {
+                map.put(CONFIG_KEY_VALUE, getRequiredStringProperty(additionConfig, CONFIG_KEY_VALUE));
+            } else if (additionConfig.containsKey(CONFIG_KEY_VALUES)) {
+                map.put(CONFIG_KEY_VALUES, additionConfig.getList(CONFIG_KEY_VALUES));
+            }
+            additions.add(map);
+        }
     }
 
     @Override
+    @SuppressWarnings("unchecked")
     protected void doExecute(final Target target, final Map<String, Object> targetConfig) {
-        List<Map<String, Object>> pipelineObj = getPipeline(targetConfig);
-        pipelineObj.stream()
-            .filter(processor -> processorName.equals(processor.get(PROCESSOR_NAME_CONFIG_KEY))).forEach(processor -> {
-            logger.debug("Running removals for processor '{}' in target '{}'", processorName, target);
-            removals.forEach(config -> {
-                String property = config.get(CONFIG_KEY_PROPERTY);
-                if (processor.containsKey(property)) {
-                    String pattern = config.get(CONFIG_KEY_PATTERN);
-                    String propertyValue = processor.get(property).toString();
-                    if (propertyValue.matches(pattern)) {
-                        logger.trace("Removing property '{}' for processor '{}' in target '{}'", property, processorName,
-                                target);
-                        processor.remove(property);
+        getPipeline(targetConfig).stream()
+            .filter(processor -> processor.get(PROCESSOR_NAME_CONFIG_KEY).toString().matches(processorName))
+            .forEach(processor -> {
+                var name = processor.get(PROCESSOR_NAME_CONFIG_KEY).toString();
+                logger.debug("Running removals for processor '{}' in target '{}'", name, target);
+                removals.forEach(config -> {
+                    String property = config.get(CONFIG_KEY_PROPERTY);
+                    if (processor.containsKey(property)) {
+                        String pattern = config.get(CONFIG_KEY_PATTERN);
+                        String propertyValue = processor.get(property).toString();
+                        if (propertyValue.matches(pattern)) {
+                            logger.trace("Removing property '{}' for processor '{}' in target '{}'", property, name,
+                                    target);
+                            processor.remove(property);
+                        }
                     }
-                }
+                });
+                logger.debug("Running replacements for processor '{}' in target '{}'", name, target);
+                replacements.forEach(config -> {
+                    String property = config.get(CONFIG_KEY_PROPERTY);
+                    if (processor.containsKey(property)) {
+                        String pattern = config.get(CONFIG_KEY_PATTERN);
+                        String expression = config.get(CONFIG_KEY_EXPRESSION);
+                        logger.trace("Replacing property '{}' for processor '{}' in target '{}'", property, name,
+                                target);
+                        processor.put(property, processor.get(property).toString().replaceAll(pattern, expression));
+                    }
+                });
+                logger.debug("Running additions for processor '{}' in target '{}'", name, target);
+                additions.forEach(config -> {
+                    var property = (String) config.get(CONFIG_KEY_PROPERTY);
+                    if (config.containsKey(CONFIG_KEY_VALUE)) {
+                        processor.put(property, config.get(CONFIG_KEY_VALUE));
+                    } else {
+                        if (processor.containsKey(property)) {
+                            List<Object> list = (List<Object>) processor.get(property);
+                            list.addAll((List<Object>) config.get(CONFIG_KEY_VALUES));
+                        } else {
+                            processor.put(property, config.get(CONFIG_KEY_VALUES));
+                        }
+                    }
+                });
             });
-            logger.debug("Running replacements for processor '{}' in target '{}'", processorName, target);
-            replacements.forEach(config -> {
-                String property = config.get(CONFIG_KEY_PROPERTY);
-                if (processor.containsKey(property)) {
-                    String pattern = config.get(CONFIG_KEY_PATTERN);
-                    String expression = config.get(CONFIG_KEY_EXPRESSION);
-                    logger.trace("Replacing property '{}' for processor '{}' in target '{}'", property, processorName,
-                            target);
-                    processor.put(property, processor.get(property).toString().replaceAll(pattern, expression));
-                }
-            });
-        });
     }
 
 }

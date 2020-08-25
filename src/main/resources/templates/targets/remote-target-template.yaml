@@ -1,4 +1,4 @@
-version: '1.6'
+version: '1.7'
 target:
   env: {{env}}
   siteName: {{site_name}}
@@ -32,6 +32,7 @@ target:
           {{/if}}
       - processorName: gitDiffProcessor
       - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticsearchIndexingProcessor{{/if}}
+        excludeFiles: ['^/sources/.*$']
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
         excludeFiles: ["^/?config/studio/content-types.*$"]

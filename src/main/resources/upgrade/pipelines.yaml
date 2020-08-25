@@ -58,3 +58,12 @@ pipelines:
           remove:
             - property: excludeFiles
               pattern: '\[\^/static\-assets/\.\*\$]'
+    - currentVersion: 1.6
+      nextVersion: 1.7
+      operations:
+        - type: processorUpgrader
+          processor: '.+IndexingProcessor'
+          add:
+            - property: excludeFiles
+              values:
+                - '^/sources/.*$'

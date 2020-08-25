@@ -1,4 +1,4 @@
-version: '1.6'
+version: '1.7'
 target:
   env: {{env}}
   siteName: {{site_name}}
@@ -12,5 +12,6 @@ target:
       - processorName: gitDiffProcessor
         includeGitLog: true
       - processorName: authoringElasticsearchIndexingProcessor
+        excludeFiles: ['^/sources/.*$']
         reindexItemsOnComponentUpdates: false
       - processorName: fileOutputProcessor

@@ -45,6 +45,9 @@ public abstract class AbstractTargetUpgradeOperation extends AbstractUpgradeOper
     public static final String CONFIG_KEY_PROPERTY = "property";
     public static final String CONFIG_KEY_PATTERN = "pattern";
     public static final String CONFIG_KEY_EXPRESSION = "expression";
+    public static final String CONFIG_KEY_ADD = "add";
+    public static final String CONFIG_KEY_VALUE = "value";
+    public static final String CONFIG_KEY_VALUES = "values";
 
     public static final String CONFIG_KEY_TARGET = "target";
     public static final String CONFIG_KEY_DEPLOYMENT = "deployment";

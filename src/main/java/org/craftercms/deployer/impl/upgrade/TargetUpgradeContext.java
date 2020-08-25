@@ -13,23 +13,21 @@
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
-
 package org.craftercms.deployer.impl.upgrade;
 
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
-import org.craftercms.commons.upgrade.impl.providers.YamlFileVersionProvider;
 import org.craftercms.deployer.api.Target;
 
-import java.nio.file.Path;
-
 /**
- * Extension of {@link YamlFileVersionProvider} to support {@link Target} objects
+ * Implementation of {@link UpgradeContext} for {@link Target}s
+ *
+ * @author joseross
+ * @since 3.2.0
  */
-public class TargetVersionProvider extends YamlFileVersionProvider<Target> {
+public class TargetUpgradeContext extends UpgradeContext<Target> {
 
-    @Override
-    protected Path getFile(UpgradeContext<Target> context) {
-        return context.getTarget().getConfigurationFile().toPath();
+    public TargetUpgradeContext(Target target) {
+        super(target);
     }
 
 }

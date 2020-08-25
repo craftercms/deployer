@@ -17,6 +17,7 @@ package org.craftercms.deployer.impl.upgrade.operations;
 
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.operations.AbstractUpgradeOperation;
 import org.craftercms.deployer.api.Target;
 
@@ -48,8 +49,8 @@ public class EncryptionUpgradeOperation extends AbstractUpgradeOperation<Target>
     }
 
     @Override
-    protected void doExecute(Target target) throws Exception {
-        File file = target.getConfigurationFile();
+    protected void doExecute(UpgradeContext<Target> context) throws Exception {
+        File file = context.getTarget().getConfigurationFile();
 
         String content;
         try (Reader reader = new FileReader(file)) {

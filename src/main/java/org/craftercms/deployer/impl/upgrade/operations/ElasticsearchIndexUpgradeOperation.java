@@ -17,6 +17,7 @@
 package org.craftercms.deployer.impl.upgrade.operations;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.operations.AbstractUpgradeOperation;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
@@ -34,7 +35,8 @@ public class ElasticsearchIndexUpgradeOperation extends AbstractUpgradeOperation
     protected static final String INDEX_ID_FORMAT_CONFIG_KEY = "target.search.indexIdFormat";
 
     @Override
-    protected void doExecute(Target target) throws Exception {
+    protected void doExecute(UpgradeContext<Target> context) throws Exception {
+        var target = context.getTarget();
         if (target.isCrafterSearchEnabled()) {
             logger.info("Target {} does not use Elasticsearch so will be skipped", target.getId());
             return;

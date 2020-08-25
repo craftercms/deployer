@@ -21,6 +21,7 @@ import java.util.List;
 
 import org.craftercms.commons.upgrade.UpgradePipelineFactory;
 import org.craftercms.commons.upgrade.impl.AbstractUpgradeManager;
+import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.deployer.api.Target;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
@@ -48,8 +49,13 @@ public class DeployerUpgradeManager extends AbstractUpgradeManager<Target> {
     }
 
     @Override
-    protected void doUpgrade(final Target target) throws Exception {
-        executePipeline(target, targetPipelineFactory);
+    protected void doUpgrade(final UpgradeContext<Target> context) throws Exception {
+        executePipeline(context, targetPipelineFactory);
+    }
+
+    @Override
+    protected UpgradeContext<Target> createUpgradeContext(Target target) {
+        return new TargetUpgradeContext(target);
     }
 
 }

@@ -17,6 +17,7 @@ package org.craftercms.deployer.impl.upgrade.operations;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.operations.AbstractUpgradeOperation;
 import org.craftercms.deployer.api.Target;
 import org.yaml.snakeyaml.DumperOptions;
@@ -86,7 +87,8 @@ public abstract class AbstractTargetUpgradeOperation extends AbstractUpgradeOper
     }
 
     @Override
-    protected void doExecute(Target target) throws Exception {
+    protected void doExecute(UpgradeContext<Target> context) throws Exception {
+        var target = context.getTarget();
         Path file = target.getConfigurationFile().toPath();
         Map<String, Object> targetConfig;
 

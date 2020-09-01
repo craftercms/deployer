@@ -58,3 +58,8 @@ pipelines:
           remove:
             - property: excludeFiles
               pattern: '\[\^/static\-assets/\.\*\$]'
+    - currentVersion: 1.6
+      nextVersion: 1.7
+      operations:
+        # Update the index mapping (disable date detection) & settings (new values for limits)
+        - type: elasticsearchIndexUpgrader

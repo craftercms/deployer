@@ -25,6 +25,8 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
 
+import javax.ws.rs.HEAD;
+
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
@@ -43,6 +45,12 @@ public class ElasticsearchConfig {
     public static final String CONFIG_KEY_WRITE_CLUSTERS = CONFIG_KEY_GLOBAL_CLUSTER + ".writeClusters";
 
     public static final String CONFIG_KEY_LOCALE_MAPPING = CONFIG_KEY_GLOBAL_CLUSTER + ".locale.mapping";
+
+    public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.elasticsearch.indexSettings";
+
+    public static final String CONFIG_KEY_KEY = "key";
+
+    public static final String CONFIG_KEY_VALUE = "value";
 
     /**
      * The global cluster, used for connecting to a single cluster for read & write operations
@@ -63,6 +71,8 @@ public class ElasticsearchConfig {
      * Mapping of locale codes to Elasticsearch language analyzers
      */
     public final Map<String, String> localeMapping = new HashMap<>();
+
+    public final Map<String, String> indexSettings;
 
     public ElasticsearchConfig(HierarchicalConfiguration<?> config) {
         if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_GLOBAL_CLUSTER))) {
@@ -88,6 +98,10 @@ public class ElasticsearchConfig {
 
         Configuration mapping = config.configurationAt(CONFIG_KEY_LOCALE_MAPPING);
         mapping.getKeys().forEachRemaining(key -> localeMapping.put(key, mapping.getString(key)));
+
+        indexSettings = new HashMap<>();
+        config.configurationsAt(CONFIG_KEY_INDEX_SETTINGS).forEach(settingConfig ->
+                indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
     }
 
     /**

@@ -61,6 +61,11 @@ pipelines:
     - currentVersion: 1.6
       nextVersion: 1.7
       operations:
+        # Update the index mapping (disable date detection) & settings (new values for limits)
+        - type: elasticsearchIndexUpgrader
+    - currentVersion: 1.7
+      nextVersion: 2.0
+      operations:
         - type: processorUpgrader
           processor: '.+IndexingProcessor'
           add:

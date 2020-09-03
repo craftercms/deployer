@@ -33,21 +33,21 @@ import org.springframework.core.io.Resource;
 public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFactory<ElasticsearchAdminService> {
 
     /**
-     * Index settings file for authoring indices
+     * Index mapping file for authoring indices
      */
-    protected Resource authoringIndexSettings;
+    protected Resource authoringMapping;
 
     /**
-     * Index settings file for preview indices
+     * Index mapping file for preview indices
      */
-    protected Resource previewIndexSettings;
+    protected Resource previewMapping;
 
     public ElasticsearchAdminServiceFactory(final ElasticsearchConfig config,
-                                            final Resource authoringIndexSettings,
-                                            final Resource previewIndexSettings) {
+                                            final Resource authoringMapping,
+                                            final Resource previewMapping) {
         super(config);
-        this.authoringIndexSettings = authoringIndexSettings;
-        this.previewIndexSettings = previewIndexSettings;
+        this.authoringMapping = authoringMapping;
+        this.previewMapping = previewMapping;
     }
 
     @Override
@@ -57,14 +57,14 @@ public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFacto
 
     @Override
     protected ElasticsearchAdminService doCreateSingleInstance(final RestHighLevelClient client) {
-        return new ElasticsearchAdminServiceImpl(authoringIndexSettings, previewIndexSettings, client);
+        return new ElasticsearchAdminServiceImpl(authoringMapping, previewMapping, client, config.indexSettings);
     }
 
     @Override
     protected ElasticsearchAdminService doCreateMultiInstance(final RestHighLevelClient readClient,
                                                               final RestHighLevelClient[] writeClients) {
-        return new MultiElasticsearchAdminServiceImpl(authoringIndexSettings, previewIndexSettings,
-                                                      readClient, writeClients);
+        return new MultiElasticsearchAdminServiceImpl(authoringMapping, previewMapping,
+                                                      readClient, config.indexSettings, writeClients);
     }
 
 }

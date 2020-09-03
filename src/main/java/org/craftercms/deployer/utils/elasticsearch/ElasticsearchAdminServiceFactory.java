@@ -33,12 +33,12 @@ import org.springframework.core.io.Resource;
 public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFactory<ElasticsearchAdminService> {
 
     /**
-     * Index settings file for authoring indices
+     * Index mapping file for authoring indices
      */
     protected Resource authoringMapping;
 
     /**
-     * Index settings file for preview indices
+     * Index mapping file for preview indices
      */
     protected Resource previewMapping;
 
@@ -60,7 +60,8 @@ public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFacto
     @Override
     protected ElasticsearchAdminService doCreateSingleInstance(final RestHighLevelClient client) {
         return new ElasticsearchAdminServiceImpl(
-                authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(), client);
+                authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(),
+                config.indexSettings, client);
     }
 
     @Override
@@ -68,7 +69,7 @@ public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFacto
                                                               final RestHighLevelClient[] writeClients) {
         return new MultiElasticsearchAdminServiceImpl(
                 authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(), readClient,
-                writeClients);
+                config.indexSettings, writeClients);
     }
 
 }

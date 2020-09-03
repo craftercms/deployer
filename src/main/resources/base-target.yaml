@@ -46,6 +46,11 @@ target:
       # List of URLs for Elasticsearch
       urls:
         - http://localhost:9201
+      indexSettings:
+        - key: "index.mapping.total_fields.limit"
+          value : 3000
+        - key: "index.mapping.depth.limit"
+          value: 40
     # Indicates if Solr should be used instead of Elasticsearch
     useSolr: false
     # The base URL of the Crafter Search server

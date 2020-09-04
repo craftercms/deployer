@@ -28,14 +28,19 @@ target:
       # Limit of words to be parsed from binary files
       limit: 10000
     elasticsearch:
-      settings:
+      mapping:
         # JSON file containing the settings for authoring indexes
-        authoring: 'classpath:crafter/elasticsearch/authoring-index-settings.json'
+        authoring: 'classpath:crafter/elasticsearch/authoring-mapping.json'
         # JSON file containing the settings for preview indexes
-        preview: 'classpath:crafter/elasticsearch/default-index-settings.json'
+        preview: 'classpath:crafter/elasticsearch/default-mapping.json'
       # List of URLs for Elasticsearch
       urls:
         - http://localhost:9201
+      indexSettings:
+        - key: "index.mapping.total_fields.limit"
+          value : 3000
+        - key: "index.mapping.depth.limit"
+          value: 40
     # Indicates if Solr should be used instead of Elasticsearch
     useSolr: false
     # The base URL of the Crafter Search server

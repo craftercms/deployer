@@ -23,6 +23,8 @@ import org.craftercms.deployer.api.Target;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
+import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY;
 
 /**
  * Implementation of {@link org.craftercms.commons.upgrade.UpgradeOperation} that recreates an index Elasticsearch
@@ -33,17 +35,24 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
 public class ElasticsearchIndexUpgradeOperation extends AbstractUpgradeOperation<Target> {
 
     protected static final String INDEX_ID_FORMAT_CONFIG_KEY = "target.search.indexIdFormat";
+    protected static final String PROCESSOR_NAME = "elasticsearchIndexingProcessor";
+
+    protected boolean containsProcessor(HierarchicalConfiguration<?> config) {
+        return config.configurationsAt(TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY).stream()
+                .anyMatch(processor -> processor.getString(PROCESSOR_NAME_CONFIG_KEY).equals(PROCESSOR_NAME));
+    }
 
     @Override
     protected void doExecute(UpgradeContext<Target> context) throws Exception {
         var target = context.getTarget();
-        if (target.isCrafterSearchEnabled()) {
+        var config = target.getConfiguration();
+        if (target.isCrafterSearchEnabled() || !containsProcessor(config)) {
             logger.info("Target {} does not use Elasticsearch so will be skipped", target.getId());
             return;
         }
+
         ElasticsearchAdminService adminService = (ElasticsearchAdminService)
                 target.getApplicationContext().getBean("elasticsearchAdminService");
-        HierarchicalConfiguration<?> config = target.getConfiguration();
         String siteName = target.getSiteName();
         String indexIdFormat = getRequiredStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY);
         String aliasName = String.format(indexIdFormat, siteName);

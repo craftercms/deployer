@@ -16,59 +16,14 @@
 
 pipelines:
   target:
-    - currentVersion: 1.0
-      nextVersion: 1.1
-      operations:
-        - type: processorUpgrader
-          processor: httpMethodCallProcessor
-          replace:
-            - property: url
-              pattern: '^((?!.*&token=).*)$'
-              expression: '$1&token=\${target.engineManagementToken}'
-    - currentVersion: 1.1
-      nextVersion: 1.2
-      operations:
-        - type: elasticsearchIndexUpgrader
-    - currentVersion: 1.2
-      nextVersion: 1.3
-      operations:
-        - type: replaceProcessorUpgrader
-          processor: s3SyncProcessor
-          conditions:
-            includeFiles: '\[\^/\?deployment\-events\\.properties\$\]'
-          newProcessor: s3DeploymentEventsProcessor
-          deleteProperties:
-            - includeFiles
-    - currentVersion: 1.3
-      nextVersion: 1.4
-      operations:
-        - type: encryptionUpgrader
-    - currentVersion: 1.4
-      nextVersion: 1.5
-      operations:
-        - type: addLifecycleHookUpgrader
-          processor: gitPullProcessor
-          hookType: delete
-          hookName: deleteLocalRepoFolderLifecycleHook
-    - currentVersion: 1.5
-      nextVersion: 1.6
-      operations:
-        - type: processorUpgrader
-          processor: fileBasedDeploymentEventProcessor
-          remove:
-            - property: excludeFiles
-              pattern: '\[\^/static\-assets/\.\*\$]'
-    - currentVersion: 1.6
-      nextVersion: 1.7
-      operations:
-        # Update the index mapping (disable date detection) & settings (new values for limits)
-        - type: elasticsearchIndexUpgrader
-    - currentVersion: 1.7
-      nextVersion: 2.0
-      operations:
-        - type: processorUpgrader
-          processor: '.+IndexingProcessor'
-          add:
-            - property: excludeFiles
-              values:
-                - '^/sources/.*$'
+    requires: '>=1.7'
+    versions:
+      - currentVersion: 1.7
+        nextVersion: 2.0
+        operations:
+          - type: processorUpgrader
+            processor: '.+IndexingProcessor'
+            add:
+              - property: excludeFiles
+                values:
+                  - '^/sources/.*$'

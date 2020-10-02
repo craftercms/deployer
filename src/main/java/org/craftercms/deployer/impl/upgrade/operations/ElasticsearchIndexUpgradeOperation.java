@@ -34,11 +34,11 @@ import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_DEPLOYMENT
 public class ElasticsearchIndexUpgradeOperation extends AbstractUpgradeOperation<Target> {
 
     protected static final String INDEX_ID_FORMAT_CONFIG_KEY = "target.search.indexIdFormat";
-    protected static final String PROCESSOR_NAME = "elasticsearchIndexingProcessor";
+    protected static final String PROCESSOR_NAME_PATTERN = "(authoringE|e)lasticsearchIndexingProcessor";
 
     protected boolean containsProcessor(HierarchicalConfiguration<?> config) {
         return config.configurationsAt(TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY).stream()
-                .anyMatch(processor -> processor.getString(PROCESSOR_NAME_CONFIG_KEY).equals(PROCESSOR_NAME));
+                .anyMatch(processor -> processor.getString(PROCESSOR_NAME_CONFIG_KEY).matches(PROCESSOR_NAME_PATTERN));
     }
 
     @Override

@@ -17,7 +17,9 @@
 
 package org.craftercms.deployer.utils.elasticsearch;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
@@ -39,6 +41,12 @@ public class ElasticsearchConfig {
 
     public static final String CONFIG_KEY_WRITE_CLUSTERS = "target.search.elasticsearch.writeClusters";
 
+    public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.elasticsearch.indexSettings";
+
+    public static final String CONFIG_KEY_KEY = "key";
+
+    public static final String CONFIG_KEY_VALUE = "value";
+
     /**
      * The global cluster, used for connecting to a single cluster for read & write operations
      */
@@ -53,6 +61,8 @@ public class ElasticsearchConfig {
      * The write clusters, used for connecting to multiple clusters
      */
     public final List<ElasticsearchClusterConfig> writeClusters;
+
+    public final Map<String, String> indexSettings;
 
     public ElasticsearchConfig(HierarchicalConfiguration<?> config) {
         if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_GLOBAL_CLUSTER))) {
@@ -75,6 +85,10 @@ public class ElasticsearchConfig {
         if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
             throw new IllegalStateException("Invalid Elasticsearch configuration");
         }
+
+        indexSettings = new HashMap<>();
+        config.configurationsAt(CONFIG_KEY_INDEX_SETTINGS).forEach(settingConfig ->
+                indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
     }
 
     /**

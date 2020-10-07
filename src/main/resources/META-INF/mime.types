@@ -1312,6 +1312,7 @@ image/cgm					cgm
 # image/fits
 image/g3fax					g3
 image/gif					gif
+image/heic        heic
 image/ief					ief
 # image/jp2
 image/jpeg					jpeg jpg jpe
@@ -1434,7 +1435,7 @@ text/csv					csv
 # text/enriched
 # text/example
 # text/fwdred
-text/html					html htm
+text/html					html htm tmpl
 text/javascript             js
 text/n3						n3
 # text/parityfec
@@ -1487,6 +1488,7 @@ text/x-c					c cc cxx cpp h hh dic
 text/x-freemarker           ftl
 text/x-fortran					f for f77 f90
 text/x-groovy               groovy
+text/x-handlebars-template        hbs
 text/x-java-source				java
 text/x-opml					opml
 text/x-pascal					p pas

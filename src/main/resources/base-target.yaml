@@ -169,6 +169,8 @@ target:
             - video/*
             - text/x-freemarker
             - text/x-groovy
+            - text/javascript
+            - text/css
           # Look into all XML descriptors to index all binary files referenced
           metadataPathPatterns:
             - ^/(?!config).+\.xml$

@@ -95,7 +95,7 @@ application/ipfix				ipfix
 application/java-archive			jar
 application/java-serialized-object		ser
 application/java-vm				class
-application/javascript				js
+application/javascript				js tsx
 application/json				json
 application/jsonml+json				jsonml
 # application/kpml-request+xml
@@ -1066,6 +1066,7 @@ application/x-hdf				hdf
 application/x-install-instructions		install
 application/x-iso9660-image			iso
 application/x-java-jnlp-file			jnlp
+application/x-javascript+xml		jsx
 application/x-latex				latex
 application/x-lzh-compressed			lzh lha
 application/x-mie				mie
@@ -1437,6 +1438,7 @@ text/csv					csv
 # text/fwdred
 text/html					html htm tmpl
 text/javascript             js
+text/less         less
 text/n3						n3
 # text/parityfec
 text/plain					txt text conf def list log in
@@ -1492,6 +1494,8 @@ text/x-handlebars-template        hbs
 text/x-java-source				java
 text/x-opml					opml
 text/x-pascal					p pas
+text/x-sass 				sass
+text/x-scss 				scss
 text/x-nfo					nfo
 text/x-setext					etx
 text/x-sfv					sfv

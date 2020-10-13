@@ -400,6 +400,8 @@
     <bean id="tokenizedElementParser"
           class="org.craftercms.search.commons.service.impl.TokenizedElementParser"/>
 
+    <bean id="itemListElementParser" class="org.craftercms.search.elasticsearch.impl.ItemListElementParser"/>
+
     <bean id="htmlStrippingConverter"
           class="org.craftercms.search.commons.service.impl.HtmlStrippingConverter"/>
 
@@ -431,6 +433,7 @@
     <bean id="elementParserService" class="org.craftercms.search.commons.service.impl.ElementParserServiceImpl">
         <property name="parsers">
             <list>
+                <ref bean="itemListElementParser"/>
                 <ref bean="tokenizedElementParser"/>
                 <ref bean="elementParser"/>
             </list>

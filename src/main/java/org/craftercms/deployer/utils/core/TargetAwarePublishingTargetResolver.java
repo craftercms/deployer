@@ -15,12 +15,12 @@
  */
 package org.craftercms.deployer.utils.core;
 
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.impl.TargetImpl;
 
 import static org.craftercms.deployer.api.Target.AUTHORING_ENV;
+import static org.craftercms.deployer.api.Target.DEFAULT_ENV;
 
 /**
  * Implementation of {@link PublishingTargetResolver} that uses the current {@link Target}
@@ -36,7 +36,14 @@ public class TargetAwarePublishingTargetResolver implements PublishingTargetReso
         if (target == null) {
             throw new IllegalStateException("Can't find current target");
         }
-        return StringUtils.equals(target.getEnv(), AUTHORING_ENV)? PREVIEW : target.getEnv();
+        switch (target.getEnv()) {
+            case AUTHORING_ENV:
+                return PREVIEW;
+            case DEFAULT_ENV:
+                return LIVE;
+            default:
+                return target.getEnv();
+        }
     }
 
 }

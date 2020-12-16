@@ -183,6 +183,19 @@
 			<version>${xerces.version}</version>
 		</dependency>
 
+		<dependency>
+			<groupId>org.codehaus.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>${groovy.version}</version>
+			<type>pom</type>
+		</dependency>
+
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>script-security</artifactId>
+			<version>${script.security.version}</version>
+		</dependency>
+
 	</dependencies>
 
 	<build>

@@ -133,3 +133,11 @@ deployer:
       operations:
         elasticsearchIndexUpgrade:
           enabled: true
+    scripting:
+      # List of relative paths to load scripts, separated by commas
+      classpath: 'processors/scripts'
+      sandbox:
+        # Indicates if the sandbox should be enabled for all targets
+        enabled: true
+        # The location of the blacklist to use for all targets
+        blacklist: 'classpath:groovy/blacklist'

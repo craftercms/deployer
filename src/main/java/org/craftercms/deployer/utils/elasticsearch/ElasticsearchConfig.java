@@ -73,14 +73,15 @@ public class ElasticsearchConfig {
         if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_READ_CLUSTER))) {
             readCluster = new ElasticsearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
                 globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
-                    globalCluster.socketTimeout, globalCluster.threadCount);
+                    globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive);
         } else {
             readCluster = new ElasticsearchClusterConfig();
         }
         writeClusters = config.configurationsAt(CONFIG_KEY_WRITE_CLUSTERS)
             .stream()
             .map(cluster -> new ElasticsearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
-                    globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount))
+                    globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount,
+                    globalCluster.keepAlive))
             .collect(toList());
         if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
             throw new IllegalStateException("Invalid Elasticsearch configuration");

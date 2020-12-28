@@ -84,7 +84,7 @@
     </bean>
 
     <bean id="scriptEngine" class="org.craftercms.deployer.utils.scripting.ScriptEngineFactory" lazy-init="true">
-        <constructor-arg value="processors/scripts/"/>
+        <constructor-arg value="${deployer.main.scripting.classpath}"/>
         <constructor-arg value="${deployer.main.scripting.sandbox.enabled}"/>
     </bean>
 

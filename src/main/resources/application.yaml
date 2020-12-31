@@ -72,6 +72,9 @@ deployer:
           file:
             # Extension used for the blob files in the repository
             extension: '.blob'
+          staging:
+            # Pattern used to detect targets for staging
+            pattern: '^(.+)-staging$'
       scan:
         scheduling:
           # If scheduled scanning of new/updated targets should be enabled

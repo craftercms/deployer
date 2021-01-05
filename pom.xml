@@ -49,7 +49,7 @@
 		<handlebars.version>4.0.6</handlebars.version>
 		<sardine.version>5.9</sardine.version>
 		<xerces.version>2.12.0</xerces.version>
-		<script.security.version>1.72.7</script.security.version>
+		<script.security.version>1.72.8</script.security.version>
 		<java.version>1.8</java.version>
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.10.5</jackson.version>

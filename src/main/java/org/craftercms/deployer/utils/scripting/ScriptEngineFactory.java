@@ -18,6 +18,7 @@ package org.craftercms.deployer.utils.scripting;
 import groovy.lang.GroovyClassLoader;
 import groovy.util.GroovyScriptEngine;
 import org.codehaus.groovy.control.CompilerConfiguration;
+import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.RejectASTTransformsCustomizer;
 import org.kohsuke.groovy.sandbox.SandboxTransformer;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
@@ -53,7 +54,7 @@ public class ScriptEngineFactory extends AbstractFactoryBean<GroovyScriptEngine>
     protected GroovyScriptEngine createInstance() throws Exception {
         CompilerConfiguration compilerConfig = new CompilerConfiguration();
         if (sandboxEnabled) {
-            compilerConfig.addCompilationCustomizers(new SandboxTransformer());
+            compilerConfig.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
         }
         return new GroovyScriptEngine(urls, new GroovyClassLoader(getClass().getClassLoader(), compilerConfig));
     }

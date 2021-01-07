@@ -59,6 +59,8 @@
 		<elasticsearch.version>6.6.1</elasticsearch.version>
 		<tomcat.version>9.0.35</tomcat.version>
 		<groovy.version>2.4.19</groovy.version>
+		<httpclient.version>4.5.13</httpclient.version>
+
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -214,6 +216,11 @@
 			<groupId>com.github.lookfirst</groupId>
 			<artifactId>sardine</artifactId>
 			<version>${sardine.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.httpcomponents</groupId>
+			<artifactId>httpclient</artifactId>
 		</dependency>
 
 		<dependency>

@@ -35,7 +35,6 @@ import java.util.Map;
 public interface Target {
 
     String AUTHORING_ENV = "authoring";
-    String DEFAULT_ENV = "default";
 
     enum Status {
         CREATED,

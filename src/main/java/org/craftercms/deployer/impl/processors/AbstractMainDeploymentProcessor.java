@@ -34,6 +34,9 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
 
     protected boolean failDeploymentOnFailure;
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     public void init(Configuration config) throws ConfigurationException, DeployerException {
         failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, false);
@@ -41,6 +44,9 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
         super.init(config);
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected ChangeSet doExecute(Deployment deployment, ChangeSet filteredChangeSet,
                                   ChangeSet originalChangeSet) throws Exception {
@@ -65,16 +71,33 @@ public abstract class AbstractMainDeploymentProcessor extends AbstractDeployment
         }
     }
 
+    /**
+     * {@inheritDoc}
+     */
     @Override
     protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
         // Run if the deployment is running and change set is not empty
         return deployment.isRunning() && (alwaysRun || (filteredChangeSet != null && !filteredChangeSet.isEmpty()));
     }
 
+    /**
+     * Performs the actual work of processing the files in the {@link ChangeSet}, it is also possible to return a new
+     * {@link ChangeSet} to be used for the following processors in the pipeline
+     *
+     * @param deployment the current deployment
+     * @param execution the current execution
+     * @param filteredChangeSet the filtered change set (as returned by {@link #getFilteredChangeSet(ChangeSet)})
+     * @param originalChangeSet the original change set (as returned by the previous processors in the pipeline)
+     * @return a new {@link ChangeSet} or null
+     * @throws DeployerException if there is any error processing the {@link ChangeSet}
+     */
     protected abstract ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
                                                ChangeSet filteredChangeSet, ChangeSet originalChangeSet)
             throws DeployerException;
 
+    /**
+     * Indicates if the deployment should be marked as failed if this processor throws an error
+     */
     protected boolean failDeploymentOnProcessorFailure() {
         return failDeploymentOnFailure;
     }

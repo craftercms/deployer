@@ -77,6 +77,23 @@
         <property name="targetId" value="${target.id}"/>
     </bean>
 
+    <bean id="scriptProcessor" parent="deploymentProcessor" lazy-init="true"
+          class="org.craftercms.deployer.impl.processors.ScriptProcessor">
+        <constructor-arg ref="scriptEngine"/>
+        <constructor-arg ref="sandboxInterceptor"/>
+    </bean>
+
+    <bean id="scriptEngine" class="org.craftercms.deployer.utils.scripting.ScriptEngineFactory" lazy-init="true">
+        <constructor-arg value="${deployer.main.scripting.classpath}"/>
+        <constructor-arg value="${deployer.main.scripting.sandbox.enabled}"/>
+    </bean>
+
+    <bean id="sandboxInterceptor" lazy-init="true"
+          class="org.craftercms.deployer.utils.scripting.SandboxInterceptorFactory">
+        <constructor-arg value="${deployer.main.scripting.sandbox.enabled}"/>
+        <constructor-arg value="${deployer.main.scripting.sandbox.blacklist}"/>
+    </bean>
+
     <bean id="gitPullProcessor" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.git.GitPullProcessor" >
         <property name="localRepoFolder" value="${target.localRepoPath}"/>

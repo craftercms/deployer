@@ -72,6 +72,9 @@ deployer:
           file:
             # Extension used for the blob files in the repository
             extension: '.blob'
+          staging:
+            # Pattern used to detect targets for staging
+            pattern: '^(.+)-staging$'
       scan:
         scheduling:
           # If scheduled scanning of new/updated targets should be enabled
@@ -133,3 +136,11 @@ deployer:
       operations:
         elasticsearchIndexUpgrade:
           enabled: true
+    scripting:
+      # List of relative paths to load scripts, separated by commas
+      classpath: 'processors/scripts'
+      sandbox:
+        # Indicates if the sandbox should be enabled for all targets
+        enabled: true
+        # The location of the blacklist to use for all targets
+        blacklist: 'classpath:groovy/blacklist'

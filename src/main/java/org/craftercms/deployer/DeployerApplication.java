@@ -182,8 +182,9 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	}
 
 	@Bean("crafter.publishingTargetResolver")
-    public PublishingTargetResolver publishingTargetResolver() {
-	    return new TargetAwarePublishingTargetResolver();
+    public PublishingTargetResolver publishingTargetResolver(
+			@Value("${deployer.main.targets.config.blob.staging.pattern}") String stagingNamePattern) {
+	    return new TargetAwarePublishingTargetResolver(stagingNamePattern);
     }
 
     @Bean("crafter.configurationResolver")

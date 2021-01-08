@@ -42,6 +42,8 @@ public class ElasticsearchClusterConfig {
 
     public static final String CONFIG_KEY_THREADS = "threads";
 
+    public static final String CONFIG_KEY_KEEP_ALIVE = "keepAlive";
+
     /**
      * The list of urls to connect to the cluster
      */
@@ -63,6 +65,8 @@ public class ElasticsearchClusterConfig {
 
     public final int threadCount;
 
+    public final boolean keepAlive;
+
     public ElasticsearchClusterConfig() {
         urls = null;
         username = null;
@@ -70,6 +74,7 @@ public class ElasticsearchClusterConfig {
         connectTimeout = -1;
         socketTimeout = -1;
         threadCount = -1;
+        keepAlive = false;
     }
 
     public ElasticsearchClusterConfig(HierarchicalConfiguration<?> config) {
@@ -79,23 +84,25 @@ public class ElasticsearchClusterConfig {
         connectTimeout = config.getInt(CONFIG_KEY_TIMEOUT_CONNECT, -1);
         socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, -1);
         threadCount = config.getInt(CONFIG_KEY_THREADS, -1);
+        keepAlive = config.getBoolean(CONFIG_KEY_KEEP_ALIVE, false);
     }
 
     public ElasticsearchClusterConfig(HierarchicalConfiguration<?> config, String username, String password,
-                                      int connectTimeout, int socketTimeout, int threadCount) {
+                                      int connectTimeout, int socketTimeout, int threadCount, boolean keepAlive) {
         urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
         this.username = config.getString(CONFIG_KEY_USERNAME, username);
         this.password = config.getString(CONFIG_KEY_PASSWORD, password);
         this.connectTimeout = config.getInt(CONFIG_KEY_TIMEOUT_CONNECT, connectTimeout);
         this.socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, socketTimeout);
         this.threadCount = config.getInt(CONFIG_KEY_THREADS, threadCount);
+        this.keepAlive = config.getBoolean(CONFIG_KEY_KEEP_ALIVE, keepAlive);
     }
 
     /**
      * Returns a client matching the current configuration of the cluster
      */
     public RestHighLevelClient buildClient() {
-        return createClient(urls, username, password, connectTimeout, socketTimeout ,threadCount);
+        return createClient(urls, username, password, connectTimeout, socketTimeout ,threadCount, keepAlive);
     }
 
 }

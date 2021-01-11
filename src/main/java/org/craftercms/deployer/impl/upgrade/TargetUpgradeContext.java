@@ -22,7 +22,7 @@ import org.craftercms.deployer.api.Target;
  * Implementation of {@link UpgradeContext} for {@link Target}s
  *
  * @author joseross
- * @since 3.2.0
+ * @since 4.0.0
  */
 public class TargetUpgradeContext extends UpgradeContext<Target> {
 

@@ -217,12 +217,41 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
         deployment.addParam(JUMPING_TO_PARAM_NAME, jumpTo);
     }
 
+    /**
+     * Indicates if the processor should be executed for the given {@link Deployment} and {@link ChangeSet}
+     *
+     * @param deployment the {@link Deployment} to check
+     * @param filteredChangeSet the {@link ChangeSet} to check
+     * @return true if the processor should be executed
+     */
     protected abstract boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet);
 
+    /**
+     * Allows extending classes perform any custom initialization
+     *
+     * @param config the bean's configuration
+     *
+     * @throws ConfigurationException if there's configuration related exception
+     * @throws DeployerException if there's a general exception on init
+     */
     protected abstract void doInit(Configuration config) throws ConfigurationException, DeployerException;
 
+    /**
+     * Allows extending classes perform any custom cleanup
+     *
+     * @throws DeployerException if an error occurs
+     */
     protected abstract void doDestroy() throws DeployerException;
 
+    /**
+     * Triggers the execution of the processor for the given {@link Deployment} and {@link ChangeSet}
+     *
+     * @param deployment the current deployment
+     * @param filteredChangeSet the filtered change set (as returned by {@link #getFilteredChangeSet(ChangeSet)})
+     * @param originalChangeSet the original change set (as returned by the previous processors in the pipeline)
+     * @return a new {@link ChangeSet} or null
+     * @throws Exception if there is any error processing the {@link ChangeSet}
+     */
     protected abstract ChangeSet doExecute(Deployment deployment, ChangeSet filteredChangeSet,
                                            ChangeSet originalChangeSet) throws Exception;
 

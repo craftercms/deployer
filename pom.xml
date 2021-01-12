@@ -20,7 +20,6 @@
 	<modelVersion>4.0.0</modelVersion>
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>3.2.0-SNAPSHOT</version><!-- craftercms version flag -->
 	<packaging>jar</packaging>
 
 	<name>Crafter Deployer</name>
@@ -35,7 +34,7 @@
 	<parent>
 		<groupId>org.craftercms</groupId>
 		<artifactId>craftercms-spring-boot</artifactId>
-		<version>3.2.0-SNAPSHOT</version><!-- craftercms version flag -->
+		<version>4.0.0-SNAPSHOT</version><!-- craftercms version flag -->
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 

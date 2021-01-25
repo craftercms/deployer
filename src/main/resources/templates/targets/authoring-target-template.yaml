@@ -1,4 +1,4 @@
-version: '2.0'
+version: '2.1'
 target:
   env: {{env}}
   siteName: {{site_name}}
@@ -14,4 +14,8 @@ target:
       - processorName: authoringElasticsearchIndexingProcessor
         excludeFiles: ['^/sources/.*$']
         reindexItemsOnComponentUpdates: false
+      - processorName: httpMethodCallProcessor
+        includeFiles: [ "^/?config/studio/plugins/classes/.*$" ]
+        method: GET
+        url: ${target.studioUrl}/api/2/plugin/script/reload.json?siteId=${target.siteName}&token=${target.studioManagementToken}
       - processorName: fileOutputProcessor

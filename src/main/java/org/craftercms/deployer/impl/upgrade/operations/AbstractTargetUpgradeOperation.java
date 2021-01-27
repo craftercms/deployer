@@ -18,10 +18,12 @@ package org.craftercms.deployer.impl.upgrade.operations;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
+import org.craftercms.commons.config.DisableClassLoadingConstructor;
 import org.craftercms.commons.upgrade.impl.operations.AbstractUpgradeOperation;
 import org.craftercms.deployer.api.Target;
 import org.yaml.snakeyaml.DumperOptions;
 import org.yaml.snakeyaml.Yaml;
+import org.yaml.snakeyaml.representer.Representer;
 
 import java.io.InputStream;
 import java.io.Writer;
@@ -68,7 +70,7 @@ public abstract class AbstractTargetUpgradeOperation extends AbstractUpgradeOper
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
-        yaml = new Yaml(options);
+        yaml = new Yaml(new DisableClassLoadingConstructor(), new Representer(), options);
     }
 
     @Override

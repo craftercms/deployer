@@ -24,7 +24,7 @@ import java.util.Map;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
- *
+ * Base class for upgrade operations that are executed only if the environment of the target matches the configuration.
  *
  * @author joseross
  * @since 4.0
@@ -33,6 +33,9 @@ public abstract class ConditionalEnvUpgradeOperation extends AbstractTargetUpgra
 
     public static final String CONFIG_KEY_ENV_PATTERN = "envPattern";
 
+    /**
+     * The pattern to match the environment
+     */
     protected String envPattern;
 
     @Override

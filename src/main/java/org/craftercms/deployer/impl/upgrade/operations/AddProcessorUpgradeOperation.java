@@ -25,13 +25,21 @@ import java.util.Map;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
+ * Operation to add a new processor to the pipeline of the target
+ *
  * @author joseross
- * @since
+ * @since 4.0
  */
 public class AddProcessorUpgradeOperation  extends ConditionalEnvUpgradeOperation {
 
+    /**
+     * The name of the processor to search to insert the new one
+     */
     protected String beforeProcessor;
 
+    /**
+     * The additional properties for the new processor
+     */
     protected Map<String, Object> processorConfiguration;
 
     @Override

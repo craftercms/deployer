@@ -10,6 +10,8 @@ target:
   # The default Engine URL
   engineUrl: http://localhost:8080
   engineManagementToken: ${deployer.main.management.engineAuthorizationToken}
+  studioUrl: http://localhost:8080/studio
+  studioManagementToken: ${deployer.main.management.studioAuthorizationToken}
   deployment:
     scheduling:
       # If scheduling of target deployments is enabled

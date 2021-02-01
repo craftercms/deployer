@@ -89,7 +89,7 @@
     </bean>
 
     <bean id="sandboxInterceptor" lazy-init="true"
-          class="org.craftercms.deployer.utils.scripting.SandboxInterceptorFactory">
+          class="org.craftercms.commons.spring.groovy.SandboxInterceptorFactory">
         <constructor-arg value="${deployer.main.scripting.sandbox.enabled}"/>
         <constructor-arg value="${deployer.main.scripting.sandbox.blacklist}"/>
     </bean>

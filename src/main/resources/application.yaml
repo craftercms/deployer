@@ -121,6 +121,7 @@ deployer:
       # Engine management authorization token
       # Please update this per installation and provide this token to the status monitors.
       engineAuthorizationToken: defaultManagementToken
+      studioAuthorizationToken: defaultManagementToken
     security:
       encryption:
         # The key used for encryption of configuration properties

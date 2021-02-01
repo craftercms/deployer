@@ -24,6 +24,7 @@ import org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineFactor
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.impl.upgrade.TargetVersionProvider;
 import org.craftercms.deployer.impl.upgrade.operations.AddLifecycleHookUpgradeOperation;
+import org.craftercms.deployer.impl.upgrade.operations.AddProcessorUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ElasticsearchIndexUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.EncryptionUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ProcessorUpgradeOperation;
@@ -46,6 +47,7 @@ import org.springframework.core.io.Resource;
 public class UpgradeManagerConfig {
 
     @Bean
+    @SuppressWarnings("rawtypes")
     public VersionProvider versionProvider(@Value("${deployer.main.upgrade.pipelines.target.defaultVersion}")
                                                    String defaultVersion) {
         TargetVersionProvider versionProvider = new TargetVersionProvider();
@@ -54,6 +56,7 @@ public class UpgradeManagerConfig {
     }
 
     @Bean
+    @SuppressWarnings("unchecked,rawtypes")
     public UpgradePipelineFactory<Target> upgradePipelineFactory(
             @Autowired VersionProvider versionProvider,
             @Value("${deployer.main.upgrade.configuration}") Resource configurationFile,
@@ -92,6 +95,12 @@ public class UpgradeManagerConfig {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public AddLifecycleHookUpgradeOperation addLifecycleHookUpgrader() {
         return new AddLifecycleHookUpgradeOperation();
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public AddProcessorUpgradeOperation addProcessorUpgrader() {
+        return new AddProcessorUpgradeOperation();
     }
 
 }

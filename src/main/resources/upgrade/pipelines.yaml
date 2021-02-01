@@ -27,3 +27,17 @@ pipelines:
               - property: excludeFiles
                 values:
                   - '^/sources/.*$'
+      - currentVersion: 2.0
+        nextVersion: 2.1
+        operations:
+          - type: addProcessorUpgrader
+            envPattern: authoring
+            processor: httpMethodCallProcessor
+            properties:
+              - property: includeFiles
+                values: [ "^/?config/studio/plugins/classes/.*$" ]
+              - property: method
+                value: GET
+              - property: url
+                value: ${target.studioUrl}/api/2/plugin/script/reload.json?siteId=${target.siteName}&token=${target.studioManagementToken}
+            beforeProcessor: fileOutputProcessor

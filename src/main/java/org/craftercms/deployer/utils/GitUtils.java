@@ -39,7 +39,7 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
  *
  * @author avasquez
  */
-public abstract class GitUtils {
+public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils {
 
     public static final String GIT_FOLDER_NAME = ".git";
 
@@ -225,8 +225,8 @@ public abstract class GitUtils {
         if (StringUtils.isNotEmpty(currentUrl)) {
             if (!currentUrl.equals(remoteUrl)) {
                 RemoteSetUrlCommand remoteSetUrl = git.remoteSetUrl();
-                remoteSetUrl.setName(remoteName);
-                remoteSetUrl.setUri(new URIish(remoteUrl));
+                remoteSetUrl.setRemoteName(remoteName);
+                remoteSetUrl.setRemoteUri(new URIish(remoteUrl));
                 remoteSetUrl.call();
             }
         } else {

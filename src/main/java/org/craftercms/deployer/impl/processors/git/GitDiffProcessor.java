@@ -25,6 +25,7 @@ import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
+import org.craftercms.deployer.impl.processors.SearchIndexingProcessor;
 import org.craftercms.deployer.utils.GitUtils;
 import org.craftercms.search.batch.UpdateDetail;
 import org.eclipse.jgit.api.Git;
@@ -34,13 +35,7 @@ import org.eclipse.jgit.diff.DiffEntry;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.lib.ObjectId;
 import org.eclipse.jgit.lib.ObjectReader;
-import org.eclipse.jgit.lib.Repository;
 import org.eclipse.jgit.revwalk.RevCommit;
-import org.eclipse.jgit.revwalk.RevTree;
-import org.eclipse.jgit.revwalk.RevWalk;
-import org.eclipse.jgit.treewalk.AbstractTreeIterator;
-import org.eclipse.jgit.treewalk.CanonicalTreeParser;
-import org.eclipse.jgit.treewalk.EmptyTreeIterator;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Required;
@@ -48,7 +43,11 @@ import org.springframework.beans.factory.annotation.Required;
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
@@ -179,7 +178,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
                 try (ObjectReader reader = git.getRepository().newObjectReader()) {
                     RevCommit parent = commit.getParentCount() > 0? commit.getParent(0) : null;
-                    List<DiffEntry> diff = doDiff(git, reader, parent, commit);
+                    List<DiffEntry> diff = GitUtils.doDiff(git, reader, parent, commit);
 
                     diff.forEach(entry -> {
                         if(entry.getChangeType() != DiffEntry.ChangeType.DELETE) {
@@ -223,45 +222,15 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
             logger.info("Calculating change set from commits: {} -> {}", fromCommitIdStr, toCommitIdStr);
 
             try (ObjectReader reader = git.getRepository().newObjectReader()) {
-                return processDiffEntries(doDiff(git, reader, fromCommitId, toCommitId));
+                return processDiffEntries(GitUtils.doDiff(git, reader, fromCommitId, toCommitId));
             } catch (IOException | GitAPIException e) {
                 throw new DeployerException("Failed to calculate change set from commits: " + fromCommitIdStr +
                                             " -> " + toCommitIdStr, e);
             }
         } else {
-            logger.info("Commits are the same. No change set will be calculated", fromCommitIdStr, toCommitIdStr);
+            logger.info("Commits are the same. No change set will be calculated");
 
             return null;
-        }
-    }
-
-    protected List<DiffEntry> doDiff(Git git, ObjectReader reader, ObjectId fromCommitId,
-                                     ObjectId toCommitId) throws IOException, GitAPIException {
-        AbstractTreeIterator fromTreeIter = getTreeIteratorForCommit(git, reader, fromCommitId);
-        AbstractTreeIterator toTreeIter = getTreeIteratorForCommit(git, reader, toCommitId);
-
-        return git.diff().setOldTree(fromTreeIter).setNewTree(toTreeIter).call();
-    }
-
-    protected AbstractTreeIterator getTreeIteratorForCommit(Git git, ObjectReader reader,
-                                                            ObjectId commitId) throws IOException {
-        if (commitId != null) {
-            RevTree tree = getTreeForCommit(git.getRepository(), commitId);
-            CanonicalTreeParser treeParser = new CanonicalTreeParser();
-
-            treeParser.reset(reader, tree.getId());
-
-            return treeParser;
-        } else {
-            return new EmptyTreeIterator();
-        }
-    }
-
-    protected RevTree getTreeForCommit(Repository repo, ObjectId commitId) throws IOException  {
-        try (RevWalk revWalk = new RevWalk(repo)) {
-            RevCommit commit = revWalk.parseCommit(commitId);
-
-            return commit.getTree();
         }
     }
 

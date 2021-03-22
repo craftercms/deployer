@@ -30,6 +30,7 @@ import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import java.util.List;
 import java.util.stream.Collectors;
 
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
@@ -56,11 +57,11 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
     @Override
     public void doExecute(Target target) throws DeployerException {
         try {
-            boolean done = false;
             AmazonS3 s3 = buildClient();
 
             if (s3.doesBucketExistV2(bucketName)) {
                 ObjectListing listing = s3.listObjects(bucketName);
+                boolean done = isEmpty(listing.getObjectSummaries());
 
                 logger.info("Clearing S3 bucket '{}'...", bucketName);
 

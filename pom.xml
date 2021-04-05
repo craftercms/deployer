@@ -191,6 +191,18 @@
 		</dependency>
 
 		<dependency>
+			<groupId>org.apache.ivy</groupId>
+			<artifactId>ivy</artifactId>
+			<version>${apache.ivy}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.codehaus.groovy</groupId>
+					<artifactId>groovy-all</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>script-security</artifactId>
 			<version>${script.security.version}</version>

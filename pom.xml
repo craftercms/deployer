@@ -59,6 +59,7 @@
 		<elasticsearch.version>6.6.1</elasticsearch.version>
 		<tomcat.version>9.0.35</tomcat.version>
 		<groovy.version>2.4.19</groovy.version>
+		<apache.ivy>2.4.0</apache.ivy>
 		<httpclient.version>4.5.13</httpclient.version>
 
 
@@ -233,6 +234,18 @@
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
 			<version>${groovy.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.ivy</groupId>
+			<artifactId>ivy</artifactId>
+			<version>${apache.ivy}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.codehaus.groovy</groupId>
+					<artifactId>groovy-all</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

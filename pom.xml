@@ -36,7 +36,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.10.RELEASE</version>
+		<version>2.3.10.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -54,7 +54,7 @@
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.10.5</jackson.version>
 		<jackson.databind.version>2.10.5.1</jackson.databind.version>
-		<aws.version>1.11.994</aws.version>
+		<aws.version>1.11.1000</aws.version>
 		<box.sdk.version>2.28.1</box.sdk.version>
 		<elasticsearch.version>6.6.1</elasticsearch.version>
 		<tomcat.version>9.0.35</tomcat.version>

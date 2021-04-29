@@ -5,6 +5,12 @@ Parameters:
     Type: String
   S3BucketName:
     Type: String
+  S3BucketRegion:
+    Type: String
+    Default: 'us-east-1'
+  BlobsS3BucketName:
+    Type: String
+    Default: ''
   DeliveryLBDomainName:
     Type: String
   CloudFrontCertificateArn:
@@ -16,12 +22,39 @@ Parameters:
   LBOriginCacheBehaviorAllowedMethods:
     Type: CommaDelimitedList
     Default: 'GET,HEAD,OPTIONS,PUT,POST,PATCH,DELETE'
+  LBOriginCacheBehaviorCachedMethods:
+    Type: CommaDelimitedList
+    Default: 'HEAD,GET,OPTIONS'
   LBOriginKeepaliveTimeout:
     Type: Number
     Default: 5
   LBOriginReadTimeout:
     Type: Number
     Default: 60
+  LBOriginMinTTL:
+    Type: Number
+    Default: 60
+  LBOriginMaxTTL:
+    Type: Number
+    Default: 3600
+  LBOriginDefaultTTL:
+    Type: Number
+    Default: 120
+  LBOriginCacheBehaviorForwardedHeaderValues:
+    Type: CommaDelimitedList
+    Default: 'Host,CloudFront-Forwarded-Proto,CloudFront-Is-Desktop-Viewer,CloudFront-Is-Mobile-Viewer,CloudFront-Is-SmartTV-Viewer,CloudFront-Is-Tablet-Viewer'
+  LBOriginCacheBehaviorForwardCookiesMode:
+    Type: String
+    Default: 'none'
+  LBOriginCacheBehaviorForwardedCookieValues:
+    Type: CommaDelimitedList
+    Default: ''
+  LBOriginCacheBehaviorShouldForwardQueryString:
+    Type: String
+    Default: 'true'
+  LBOriginCacheBehaviorForwardedQueryStringKeys:
+    Type: CommaDelimitedList
+    Default: ''
   S3OriginCacheBehaviorAllowedMethods:
     Type: CommaDelimitedList
     Default: 'HEAD,GET'
@@ -50,28 +83,51 @@ Parameters:
   S3CorsMaxAge:
     Type: String
     Default: 3000
+  EnableCompressionForS3:
+    Type: String
+    Default: true
+  EnableCompressionForLB:
+    Type: String
+    Default: true
+
 Conditions:
+  LBOriginCacheBehaviorForwardedHeaderValuesSpecified:
+    !Not [!Equals [!Join [',', !Ref LBOriginCacheBehaviorForwardedHeaderValues], '']]
+  LBOriginCacheBehaviorForwardedCookieValuesSpecified:
+    !Not [!Equals [!Join [',', !Ref LBOriginCacheBehaviorForwardedCookieValues], '']]
+  LBOriginCacheBehaviorForwardedQueryStringKeysSpecified:
+    !Not [!Equals [!Join [',', !Ref LBOriginCacheBehaviorForwardedQueryStringKeys], '']]
   CloudFrontCertificateArnSpecified:
     !Not [!Equals [!Ref CloudFrontCertificateArn, '']]
   AlternateCloudFrontDomainNamesSpecified:
     !Not [!Equals [!Join [',', !Ref AlternateCloudFrontDomainNames], '']]
+  CreateBlobsS3Bucket:
+    !Not [!Equals [!Ref BlobsS3BucketName, '']]
+
 Resources:
   CloudFrontOriginAccessIdentity:
     Type: 'AWS::CloudFront::CloudFrontOriginAccessIdentity'
     Properties:
       CloudFrontOriginAccessIdentityConfig:
         Comment: !Sub 'OAI for CloudFront of site ${SiteName}'
+
   S3Bucket:
     Type: 'AWS::S3::Bucket'
     Properties:
       BucketName: !Ref S3BucketName
       AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
       CorsConfiguration:
         CorsRules:
           - AllowedHeaders: !Ref S3CorsAllowedHeaders
             AllowedMethods: !Ref S3CorsAllowedMethods
             AllowedOrigins: !Ref S3CorsAllowedOrigins
             MaxAge: !Ref S3CorsMaxAge
+
   S3BucketPolicy:
     Type: 'AWS::S3::BucketPolicy'
     Properties:
@@ -85,6 +141,25 @@ Resources:
               CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
             Action: 's3:GetObject'
             Resource: !Sub 'arn:aws:s3:::${S3Bucket}/*'
+          - Sid: ''
+            Effect: Allow
+            Principal:
+              CanonicalUser: !GetAtt CloudFrontOriginAccessIdentity.S3CanonicalUserId
+            Action: 's3:ListBucket'
+            Resource: !Sub 'arn:aws:s3:::${S3Bucket}'
+
+  BlobsS3Bucket:
+    Type: 'AWS::S3::Bucket'
+    Condition: CreateBlobsS3Bucket
+    Properties:
+      BucketName: !Ref BlobsS3BucketName
+      AccessControl: Private
+      PublicAccessBlockConfiguration:
+        BlockPublicAcls: true
+        IgnorePublicAcls: true
+        BlockPublicPolicy: true
+        RestrictPublicBuckets: true
+
   CloudFrontDistribution:
     Type: 'AWS::CloudFront::Distribution'
     Properties:
@@ -96,18 +171,25 @@ Resources:
         DefaultCacheBehavior:
           TargetOriginId: !Sub 'LB-${DeliveryLBDomainName}'
           ViewerProtocolPolicy: redirect-to-https
-          MinTTL: 0
+          MinTTL: !Ref LBOriginMinTTL
+          MaxTTL: !Ref LBOriginMaxTTL
+          Compress: !Ref EnableCompressionForLB
+          DefaultTTL: !Ref LBOriginDefaultTTL
           AllowedMethods: !Ref LBOriginCacheBehaviorAllowedMethods
+          CachedMethods: !Ref LBOriginCacheBehaviorCachedMethods
           ForwardedValues:
-            QueryString: true
-            Headers: ['*']
+            QueryString: !Ref LBOriginCacheBehaviorShouldForwardQueryString
+            QueryStringCacheKeys: !If [LBOriginCacheBehaviorForwardedQueryStringKeysSpecified, !Ref LBOriginCacheBehaviorForwardedQueryStringKeys, !Ref 'AWS::NoValue']
+            Headers: !If [LBOriginCacheBehaviorForwardedHeaderValuesSpecified, !Ref LBOriginCacheBehaviorForwardedHeaderValues, !Ref 'AWS::NoValue']
             Cookies:
-              Forward: all
+              Forward: !Ref LBOriginCacheBehaviorForwardCookiesMode
+              WhitelistedNames: !If [LBOriginCacheBehaviorForwardedCookieValuesSpecified, !Ref LBOriginCacheBehaviorForwardedCookieValues, !Ref 'AWS::NoValue']
         CacheBehaviors:
           - PathPattern: '/static-assets/*'
             TargetOriginId: !Sub 'S3-${S3Bucket}'
             ViewerProtocolPolicy: redirect-to-https
             MinTTL: 0
+            Compress: !Ref EnableCompressionForS3
             AllowedMethods: !Ref S3OriginCacheBehaviorAllowedMethods
             CachedMethods: !Ref S3OriginCacheBehaviorCachedMethods
             ForwardedValues:
@@ -126,7 +208,7 @@ Resources:
             OriginCustomHeaders:
               - HeaderName: X-Crafter-Site
                 HeaderValue: !Ref SiteName
-          - DomainName: !Sub '${S3Bucket}.s3.amazonaws.com'
+          - DomainName: !Sub '${S3Bucket}.s3.${S3BucketRegion}.amazonaws.com'
             Id: !Sub 'S3-${S3Bucket}'
             OriginPath: !Sub '/${SiteName}'
             S3OriginConfig:
@@ -140,6 +222,7 @@ Resources:
           AcmCertificateArn: !If [CloudFrontCertificateArnSpecified, !Ref CloudFrontCertificateArn, !Ref 'AWS::NoValue']
           SslSupportMethod: !If [CloudFrontCertificateArnSpecified, 'sni-only', !Ref 'AWS::NoValue']
           MinimumProtocolVersion: TLSv1.1_2016
+
 Outputs:
   CloudFrontDistributionId:
     Value: !Ref CloudFrontDistribution

@@ -57,9 +57,9 @@ public class ScriptProcessor extends AbstractMainDeploymentProcessor implements 
 
     protected ApplicationContext applicationContext;
 
-    protected GroovyScriptEngine scriptEngine;
+    protected final GroovyScriptEngine scriptEngine;
 
-    protected SandboxInterceptor sandboxInterceptor;
+    protected final SandboxInterceptor sandboxInterceptor;
 
     // Config properties (populated on init)
 
@@ -78,12 +78,12 @@ public class ScriptProcessor extends AbstractMainDeploymentProcessor implements 
     }
 
     @Override
-    protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
+    protected void doInit(Configuration config) throws ConfigurationException {
         scriptPath = getRequiredStringProperty(config, CONFIG_KEY_SCRIPT_PATH);
     }
 
     @Override
-    protected void doDestroy() throws DeployerException {
+    protected void doDestroy() {
         // do nothing
     }
 
@@ -112,7 +112,7 @@ public class ScriptProcessor extends AbstractMainDeploymentProcessor implements 
             }
 
             return (ChangeSet) result;
-        } catch (Exception e) {
+        } catch (Throwable e) {
             throw new DeployerException("Error executing script " + scriptPath, e);
         } finally {
             if (sandboxInterceptor != null) {

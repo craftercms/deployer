@@ -21,7 +21,7 @@
 
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>3.1.13-SNAPSHOT</version><!-- craftercms version flag -->
+	<version>3.1.14-SNAPSHOT</version><!-- craftercms version flag -->
 	<packaging>jar</packaging>
 
 	<name>Crafter Deployer</name>
@@ -45,7 +45,7 @@
 		<commons.configuration.version>2.7</commons.configuration.version>
 		<commons.csv.version>1.5</commons.csv.version>
 		<jgit.version>5.4.0.201906121030-r</jgit.version>
-		<javax.mail.version>1.4.7</javax.mail.version>
+		<javax.mail.version>1.6.2</javax.mail.version>
 		<handlebars.version>4.0.6</handlebars.version>
 		<sardine.version>5.9</sardine.version>
 		<xerces.version>2.12.0</xerces.version>
@@ -54,13 +54,13 @@
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.10.5</jackson.version>
 		<jackson.databind.version>2.10.5.1</jackson.databind.version>
-		<aws.version>1.11.435</aws.version>
+		<aws.version>1.11.1000</aws.version>
 		<box.sdk.version>2.28.1</box.sdk.version>
 		<elasticsearch.version>7.2.1</elasticsearch.version>
-		<tomcat.version>9.0.35</tomcat.version>
+		<tomcat.version>9.0.45</tomcat.version>
 		<groovy.version>2.4.19</groovy.version>
+		<apache.ivy>2.4.0</apache.ivy>
 		<httpclient.version>4.5.13</httpclient.version>
-
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -173,8 +173,8 @@
 
 		<!-- Mail -->
 		<dependency>
-			<groupId>javax.mail</groupId>
-			<artifactId>mail</artifactId>
+                        <groupId>com.sun.mail</groupId>
+                        <artifactId>javax.mail</artifactId>
 			<version>${javax.mail.version}</version>
 		</dependency>
 
@@ -194,6 +194,10 @@
 		<dependency>
 			<groupId>com.amazonaws</groupId>
 			<artifactId>aws-java-sdk-s3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.amazonaws</groupId>
+			<artifactId>aws-java-sdk-sts</artifactId>
 		</dependency>
 		<dependency>
 			<groupId>com.amazonaws</groupId>
@@ -233,6 +237,18 @@
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
 			<version>${groovy.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>org.apache.ivy</groupId>
+			<artifactId>ivy</artifactId>
+			<version>${apache.ivy}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.codehaus.groovy</groupId>
+					<artifactId>groovy-all</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

@@ -18,8 +18,12 @@ package org.craftercms.deployer.utils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.git.auth.GitAuthenticationConfigurator;
 import org.eclipse.jgit.api.*;
@@ -42,6 +46,7 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
 public abstract class GitUtils {
 
     public static final String GIT_FOLDER_NAME = ".git";
+    public static final String GIT_LOCK_NAME = "index.lock";
 
     public static final String CORE_CONFIG_SECTION = "core";
     public static final String BIG_FILE_THRESHOLD_CONFIG_PARAM = "bigFileThreshold";
@@ -225,8 +230,8 @@ public abstract class GitUtils {
         if (StringUtils.isNotEmpty(currentUrl)) {
             if (!currentUrl.equals(remoteUrl)) {
                 RemoteSetUrlCommand remoteSetUrl = git.remoteSetUrl();
-                remoteSetUrl.setName(remoteName);
-                remoteSetUrl.setUri(new URIish(remoteUrl));
+                remoteSetUrl.setRemoteName(remoteName);
+                remoteSetUrl.setRemoteUri(new URIish(remoteUrl));
                 remoteSetUrl.call();
             }
         } else {
@@ -234,6 +239,15 @@ public abstract class GitUtils {
             remoteAdd.setName(remoteName);
             remoteAdd.setUri(new URIish(remoteUrl));
             remoteAdd.call();
+        }
+    }
+
+    public static void unlock(String repoPath) throws IOException {
+        Path lockFile = Paths.get(repoPath, GIT_FOLDER_NAME, GIT_LOCK_NAME);
+        try {
+            Files.deleteIfExists(lockFile);
+        } catch (IOException e) {
+            FileUtils.forceDelete(lockFile.toFile());
         }
     }
 

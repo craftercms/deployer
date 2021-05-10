@@ -34,6 +34,8 @@ import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.HEAD;
@@ -44,6 +46,8 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
  * @author avasquez
  */
 public abstract class GitUtils {
+
+    private static final Logger logger = LoggerFactory.getLogger(GitUtils.class);
 
     public static final String GIT_FOLDER_NAME = ".git";
     public static final String GIT_LOCK_NAME = "index.lock";
@@ -247,6 +251,7 @@ public abstract class GitUtils {
         try {
             Files.deleteIfExists(lockFile);
         } catch (IOException e) {
+            logger.debug("Error deleting lock file {}, forcing delete", lockFile, e);
             FileUtils.forceDelete(lockFile.toFile());
         }
     }

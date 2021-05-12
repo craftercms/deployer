@@ -333,6 +333,20 @@ public class TargetImpl implements Target {
         MDC.remove(TARGET_ID_MDC_KEY);
     }
 
+    @Override
+    public void unlock() {
+        MDC.put(TARGET_ID_MDC_KEY, getId());
+
+        try {
+            logger.info("Unlocking repo for target {}", getId());
+            GitUtils.unlock(localRepoPath);
+        } catch (Exception e) {
+            logger.warn("Error unlocking repo for target {}", getId());
+        }
+
+        MDC.remove(TARGET_ID_MDC_KEY);
+    }
+
     protected List<TargetLifecycleHook> getInitHooks() throws DeployerException, ConfigurationException {
         return targetLifecycleHooksResolver.getHooks(configuration, applicationContext,
                                                      INIT_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);

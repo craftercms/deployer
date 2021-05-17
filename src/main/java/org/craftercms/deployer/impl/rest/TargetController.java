@@ -17,6 +17,7 @@ package org.craftercms.deployer.impl.rest;
 
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
 import org.craftercms.commons.validation.ErrorCodes;
@@ -32,6 +33,7 @@ import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.utils.BooleanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -72,6 +74,8 @@ public class TargetController {
                                                                  "{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String GET_ALL_DEPLOYMENTS_URL         = "/deployments/get-all/{" + ENV_PATH_VAR_NAME + "}/" +
                                                                  "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String UNLOCK_TARGET_URL               = "/unlock/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                                 "{" + SITE_NAME_PATH_VAR_NAME + "}";
 
     public static final String REPLACE_PARAM_NAME = "replace";
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
@@ -80,6 +84,9 @@ public class TargetController {
 
     protected TargetService targetService;
     protected DeploymentService deploymentService;
+
+    @Value("${deployer.main.management.authorizationToken}")
+    protected String managementToken;
 
     @Autowired
     public TargetController(TargetService targetService, DeploymentService deploymentService) {
@@ -96,7 +103,7 @@ public class TargetController {
      *
      * @return the response entity 201 CREATED status
      *
-     * @throws DeployerException   if an error ocurred during target creation
+     * @throws DeployerException   if an error occurred during target creation
      * @throws ValidationException if a required parameter is missing
      */
     @RequestMapping(value = CREATE_TARGET_URL, method = RequestMethod.POST)
@@ -137,7 +144,7 @@ public class TargetController {
      *
      * @return the response entity with all the properties of the targets and 200 OK status
      *
-     * @throws DeployerException if an error ocurred
+     * @throws DeployerException if an error occurred
      */
     @RequestMapping(value = GET_ALL_TARGETS_URL, method = RequestMethod.GET)
     public ResponseEntity<List<Target>> getAllTargets() throws DeployerException {
@@ -377,6 +384,19 @@ public class TargetController {
 
     protected HttpHeaders createResponseHeaders(String locationUrlTemplate, Object... variables) {
         return RestServiceUtils.setLocationHeader(new HttpHeaders(), locationUrlTemplate, variables);
+    }
+
+    @ResponseStatus(HttpStatus.OK)
+    @PostMapping(UNLOCK_TARGET_URL)
+    public void unlockTarget(@PathVariable(ENV_PATH_VAR_NAME) String env,
+                             @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
+                             @RequestParam String token)
+            throws TargetNotFoundException, TargetServiceException, InvalidManagementTokenException {
+        if (StringUtils.isEmpty(token) && !StringUtils.equals(token, managementToken)) {
+            throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
+        }
+        Target target = targetService.getTarget(env, siteName);
+        target.unlock();
     }
 
 }

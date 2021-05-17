@@ -149,4 +149,9 @@ public interface Target {
      */
     void delete();
 
+    /**
+     * Deletes the git lock file is present in the local repository.
+     */
+    void unlock();
+
 }

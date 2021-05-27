@@ -45,6 +45,10 @@ target:
     useSolr: false
     # The base URL of the Crafter Search server
     serverUrl: http://localhost:8080/crafter-search
+    # The access token for the Crafter Search server
+    accessToken:
+      parameter: token
+      value: defaultAccessToken
     indexing:
       xml:
         flattening:

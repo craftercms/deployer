@@ -143,5 +143,10 @@ deployer:
       sandbox:
         # Indicates if the sandbox should be enabled for all targets
         enabled: true
-        # The location of the blacklist to use for all targets
-        blacklist: 'classpath:groovy/blacklist'
+        blacklist:
+          # Indicates if the blacklist should be enabled for all targets
+          # (this will have no effect if the sandbox is disabled)
+          enabled: true
+          # The location of the blacklist to use for all targets
+          # (this will have no effect if the sandbox is disabled)
+          path: 'classpath:groovy/blacklist'

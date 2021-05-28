@@ -90,8 +90,9 @@
 
     <bean id="sandboxInterceptor" lazy-init="true"
           class="org.craftercms.deployer.utils.scripting.SandboxInterceptorFactory">
-        <constructor-arg value="${deployer.main.scripting.sandbox.enabled}"/>
-        <constructor-arg value="${deployer.main.scripting.sandbox.blacklist}"/>
+        <constructor-arg name="sandboxEnabled" value="${deployer.main.scripting.sandbox.enabled}"/>
+        <constructor-arg name="blacklistEnabled" value="${deployer.main.scripting.sandbox.blacklist.enabled}"/>
+        <constructor-arg name="blacklist" value="${deployer.main.scripting.sandbox.blacklist.path}"/>
     </bean>
 
     <bean id="gitPullProcessor" parent="deploymentProcessor"

@@ -20,7 +20,6 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
-import org.craftercms.search.service.AdminService;
 import org.springframework.beans.factory.annotation.Required;
 
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
@@ -36,7 +35,6 @@ public abstract class AbstractIndexAwareLifecycleHook extends AbstractLifecycleH
 
     protected String siteName;
     protected String indexIdFormat;
-    protected AdminService crafterSearchAdminService;
     protected ElasticsearchAdminService elasticsearchAdminService;
 
     // Config properties (populated on init)
@@ -51,11 +49,6 @@ public abstract class AbstractIndexAwareLifecycleHook extends AbstractLifecycleH
     @Required
     public void setIndexIdFormat(String indexIdFormat) {
         this.indexIdFormat = indexIdFormat;
-    }
-
-    @Required
-    public void setCrafterSearchAdminService(AdminService crafterSearchAdminService) {
-        this.crafterSearchAdminService = crafterSearchAdminService;
     }
 
     @Required

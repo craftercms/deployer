@@ -18,7 +18,7 @@ package org.craftercms.deployer.impl.lifecycle;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
-import org.craftercms.search.exception.SearchException;
+import org.craftercms.search.commons.exception.SearchException;
 
 /**
  * Implementation of {@link TargetLifecycleHook} that creates an Elasticsearch index or a Crafter Search
@@ -33,8 +33,7 @@ public class CreateIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
         try {
             if (target.isCrafterSearchEnabled()) {
                 logger.info("Creating Crafter Search based index for target '{}'", target.getId());
-
-                crafterSearchAdminService.createIndex(indexId);
+                //TODO: Prevent this from happening
             } else {
                 logger.info("Creating Elasticsearch index for target '{}'", target.getId());
 

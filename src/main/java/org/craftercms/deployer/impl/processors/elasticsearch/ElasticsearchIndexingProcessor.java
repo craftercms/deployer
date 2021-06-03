@@ -23,7 +23,7 @@ import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.search.elasticsearch.ElasticsearchService;
 import org.craftercms.search.elasticsearch.exception.ElasticsearchException;
 import org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor;
-import org.craftercms.search.exception.SearchException;
+import org.craftercms.search.commons.exception.SearchException;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;

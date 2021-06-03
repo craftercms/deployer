@@ -18,8 +18,7 @@ package org.craftercms.deployer.impl.lifecycle;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
-import org.craftercms.search.exception.SearchException;
-import org.craftercms.search.service.AdminService;
+import org.craftercms.search.commons.exception.SearchException;
 
 /**
  * Implementation of {@link TargetLifecycleHook} that deletes an Elasticsearch index or a Crafter Search
@@ -34,8 +33,7 @@ public class DeleteIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
         try {
             if (target.isCrafterSearchEnabled()) {
                 logger.info("Deleting Crafter Search based index for target '{}'", target.getId());
-
-                crafterSearchAdminService.deleteIndex(indexId, AdminService.IndexDeleteMode.ALL_DATA);
+                //TODO: Prevent this from happening
             } else {
                 logger.info("Deleting Elasticsearch index for target '{}'", target.getId());
 

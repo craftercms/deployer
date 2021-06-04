@@ -31,14 +31,12 @@
     <bean id="createIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.CreateIndexLifecycleHook">
         <property name="siteName" value="${target.siteName}"/>
         <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
-        <property name="crafterSearchAdminService" ref="searchAdminService"/>
         <property name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
     </bean>
 
     <bean id="deleteIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.DeleteIndexLifecycleHook">
         <property name="siteName" value="${target.siteName}"/>
         <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
-        <property name="crafterSearchAdminService" ref="searchAdminService"/>
         <property name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
     </bean>
 
@@ -124,19 +122,6 @@
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlFlatteningEnabled" value="${target.search.indexing.xml.flattening.enabled}"/>
         <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
-    </bean>
-
-    <bean id="searchIndexingProcessor" class="org.craftercms.deployer.impl.processors.SearchIndexingProcessor"
-          parent="abstractSearchIndexingProcessor">
-        <constructor-arg ref="searchService"/>
-        <constructor-arg ref="searchAdminService"/>
-        <property name="batchIndexers">
-            <list>
-                <ref bean="xmlFileBatchIndexer"/>
-                <ref bean="binaryFileBatchIndexer"/>
-                <ref bean="binaryFileWithMetadataBatchIndexer"/>
-            </list>
-        </property>
     </bean>
 
     <bean id="httpMethodCallProcessor" class="org.craftercms.deployer.impl.processors.HttpMethodCallProcessor"
@@ -288,20 +273,10 @@
         <property name="itemProcessors" ref="itemProcessors"/>
     </bean>
 
-    <bean id="xmlFileBatchIndexer" class="org.craftercms.search.batch.impl.XmlFileBatchIndexer"
-          parent="abstractXmlFileBatchIndexer">
-        <property name="searchService" ref="searchService"/>
-    </bean>
-
     <bean id="abstractBinaryFileBatchIndexer" abstract="true">
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
         <property name="maxFileSize" value="${target.search.indexing.binary.maxFileSize}"/>
-    </bean>
-
-    <bean id="binaryFileBatchIndexer" class="org.craftercms.search.batch.impl.BinaryFileBatchIndexer"
-          parent="abstractBinaryFileBatchIndexer">
-        <property name="searchService" ref="searchService"/>
     </bean>
 
     <bean id="abstractBinaryFileWithMetadataBatchIndexer" abstract="true">
@@ -318,20 +293,6 @@
         <property name="remoteFileResolver" ref="remoteFileResolver"/>
         <property name="itemProcessors" ref="itemProcessors"/>
         <property name="maxFileSize" value="${target.search.indexing.binary.maxFileSize}"/>
-    </bean>
-
-    <bean id="binaryFileWithMetadataBatchIndexer" parent="abstractBinaryFileWithMetadataBatchIndexer"
-          class="org.craftercms.search.batch.impl.BinaryFileWithMetadataBatchIndexer">
-        <property name="searchService" ref="searchService"/>
-    </bean>
-
-    <bean id="searchService" class="org.craftercms.search.service.impl.v2.SolrRestClientSearchService">
-        <property name="serverUrl" value="${target.search.serverUrl}"/>
-    </bean>
-
-    <bean id="searchAdminService" class="org.craftercms.search.service.impl.v2.RestClientAdminService">
-        <property name="serverUrl" value="${target.search.serverUrl}"/>
-        <property name="restTemplate" ref="restTemplate"/>
     </bean>
 
     <!-- Mail -->
@@ -581,7 +542,7 @@
         <property name="metadataExtractors" ref="authoringMetadataExtractors"/>
     </bean>
 
-    <bean id="contentTypeMetadataExtractor" class="org.craftercms.search.metadata.impl.ContentTypeMetadadataExtractor">
+    <bean id="contentTypeMetadataExtractor" class="org.craftercms.search.metadata.impl.ContentTypeMetadataExtractor">
         <property name="fieldXpath" value="${target.search.indexing.binary.authoring.contentType.xpath}"/>
         <property name="includePatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>

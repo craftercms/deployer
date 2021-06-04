@@ -37,7 +37,6 @@ import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.search.service.AdminService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -71,7 +70,6 @@ public class TargetServiceImplTest {
 
         DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
         factory.registerSingleton("elasticsearchAdminService", mock(ElasticsearchAdminService.class));
-        factory.registerSingleton("adminService", mock(AdminService.class));
 
         GenericApplicationContext context = new GenericApplicationContext(factory);
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
@@ -272,7 +270,8 @@ public class TargetServiceImplTest {
         return new EncryptionAwareConfigurationReader(new NoOpTextEncryptor());
     }
 
-    private UpgradeManager createUpgradeManager() {
+    @SuppressWarnings("unchecked")
+    private UpgradeManager<Target> createUpgradeManager() {
         return mock(UpgradeManager.class);
     }
 

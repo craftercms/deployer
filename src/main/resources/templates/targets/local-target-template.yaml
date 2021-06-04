@@ -13,7 +13,7 @@ target:
     {{/if}}
     pipeline:
       - processorName: gitDiffProcessor
-      - processorName: {{#if use_crafter_search}}searchIndexingProcessor{{else}}elasticsearchIndexingProcessor{{/if}}
+      - processorName: elasticsearchIndexingProcessor
         excludeFiles: ['^/sources/.*$']
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]

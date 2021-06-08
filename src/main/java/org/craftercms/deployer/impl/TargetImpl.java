@@ -142,11 +142,6 @@ public class TargetImpl implements Target {
     }
 
     @Override
-    public boolean isCrafterSearchEnabled() {
-        return crafterSearchEnabled;
-    }
-
-    @Override
     public File getConfigurationFile() {
         return configurationFile;
     }

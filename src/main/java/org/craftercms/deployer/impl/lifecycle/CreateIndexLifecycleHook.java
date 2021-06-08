@@ -31,14 +31,9 @@ public class CreateIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
     @Override
     public void doExecute(Target target) throws DeployerException {
         try {
-            if (target.isCrafterSearchEnabled()) {
-                logger.info("Creating Crafter Search based index for target '{}'", target.getId());
-                //TODO: Prevent this from happening
-            } else {
-                logger.info("Creating Elasticsearch index for target '{}'", target.getId());
+            logger.info("Creating Elasticsearch index for target '{}'", target.getId());
 
-                elasticsearchAdminService.createIndex(indexId);
-            }
+            elasticsearchAdminService.createIndex(indexId);
         } catch (SearchException e) {
             throw new DeployerException("Error creating index for target '" + target.getId() + "'", e);
         }

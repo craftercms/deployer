@@ -31,14 +31,9 @@ public class DeleteIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
     @Override
     public void doExecute(Target target) throws DeployerException {
         try {
-            if (target.isCrafterSearchEnabled()) {
-                logger.info("Deleting Crafter Search based index for target '{}'", target.getId());
-                //TODO: Prevent this from happening
-            } else {
-                logger.info("Deleting Elasticsearch index for target '{}'", target.getId());
+            logger.info("Deleting Elasticsearch index for target '{}'", target.getId());
 
-                elasticsearchAdminService.deleteIndexes(indexId);
-            }
+            elasticsearchAdminService.deleteIndexes(indexId);
         } catch (SearchException e) {
             throw new DeployerException("Error creating index for target " + target.getId(), e);
         }

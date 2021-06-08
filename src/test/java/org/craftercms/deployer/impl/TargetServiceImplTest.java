@@ -205,7 +205,7 @@ public class TargetServiceImplTest {
         String randomParam = RandomStringUtils.randomAlphanumeric(8);
         Map<String, Object> params = Collections.singletonMap("random_param", randomParam);
 
-        Target target = targetService.createTarget(env, siteName, true, "test", true, params);
+        Target target = targetService.createTarget(env, siteName, true, "test", params);
 
         assertNotNull(target);
         assertEquals(env, target.getConfiguration().getString(DeploymentConstants.TARGET_ENV_CONFIG_KEY));

@@ -46,10 +46,6 @@ public class ElasticsearchIndexUpgradeOperation extends AbstractUpgradeOperation
     protected void doExecute(UpgradeContext<Target> context) throws Exception {
         var target = context.getTarget();
         var config = target.getConfiguration();
-        if (target.isCrafterSearchEnabled() || !containsProcessor(config)) {
-            logger.info("Target {} does not use Elasticsearch so will be skipped", target.getId());
-            return;
-        }
 
         ElasticsearchAdminService adminService = (ElasticsearchAdminService)
                 target.getApplicationContext().getBean("elasticsearchAdminService");

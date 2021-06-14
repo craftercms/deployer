@@ -17,42 +17,28 @@ package org.craftercms.deployer.impl.upgrade.operations;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.deployer.api.Target;
 
-import java.util.Map;
-
-import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
- * Base class for upgrade operations that are executed only if the environment of the target matches the configuration.
+ * Abstract extension of {@link ConditionalEnvUpgradeOperation} used for all upgrades related to a single processor
  *
  * @author joseross
- * @since 4.0
+ * @since 4.0.0
  */
-public abstract class ConditionalEnvUpgradeOperation extends AbstractTargetUpgradeOperation {
-
-    public static final String CONFIG_KEY_ENV_PATTERN = "envPattern";
+public abstract class AbstractProcessorUpgradeOperation extends ConditionalEnvUpgradeOperation {
 
     /**
-     * The pattern to match the environment
+     * The name of the processor to update
      */
-    protected String envPattern;
+    protected String processorName;
 
     @Override
     public void init(String currentVersion, String nextVersion, HierarchicalConfiguration config)
             throws ConfigurationException {
-        envPattern = getStringProperty(config, CONFIG_KEY_ENV_PATTERN, ".*");
+        processorName = getRequiredStringProperty(config, CONFIG_KEY_PROCESSOR);
 
         super.init(currentVersion, nextVersion, config);
     }
-
-    @Override
-    protected void doExecute(Target target, Map<String, Object> targetConfig) throws Exception {
-        if (target.getEnv().matches(envPattern)) {
-            doExecuteInternal(target, targetConfig);
-        }
-    }
-
-    protected abstract void doExecuteInternal(Target target, Map<String, Object> targetConfig);
 
 }

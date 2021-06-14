@@ -41,3 +41,13 @@ pipelines:
               - property: url
                 value: ${target.studioUrl}/api/2/plugin/script/reload.json?siteId=${target.siteName}&token=${target.studioManagementToken}
             beforeProcessor: fileOutputProcessor
+      - currentVersion: 2.1
+        nextVersion: 2.2
+        operations:
+          - type: replaceProcessorUpgrader
+            envPattern: (preview|default)
+            processor: searchIndexingProcessor
+            newProcessor: elasticsearchIndexingProcessor
+          - type: removePropertyUpgrader
+            envPattern: (preview|default)
+            property: target.crafterSearchEnabled

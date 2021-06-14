@@ -30,7 +30,7 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  * @author joseross
  * @since 4.0
  */
-public class AddProcessorUpgradeOperation  extends ConditionalEnvUpgradeOperation {
+public class AddProcessorUpgradeOperation  extends AbstractProcessorUpgradeOperation {
 
     /**
      * The name of the processor to search to insert the new one

@@ -15,8 +15,6 @@
  */
 package org.craftercms.deployer.impl.upgrade.operations;
 
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.config.DisableClassLoadingConstructor;
 import org.craftercms.commons.upgrade.impl.operations.AbstractUpgradeOperation;
@@ -31,8 +29,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Map;
-
-import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
  * Base class for all {@link org.craftercms.commons.upgrade.UpgradeOperation}s that handle target configurations
@@ -59,11 +55,6 @@ public abstract class AbstractTargetUpgradeOperation extends AbstractUpgradeOper
     public static final String CONFIG_KEY_LIFECYCLE_HOOKS = "lifecycleHooks";
     public static final String CONFIG_KEY_HOOK_NAME = "hookName";
 
-    /**
-     * The name of the processor to update
-     */
-    protected String processorName;
-
     protected Yaml yaml;
 
     public AbstractTargetUpgradeOperation() {
@@ -71,14 +62,6 @@ public abstract class AbstractTargetUpgradeOperation extends AbstractUpgradeOper
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
         yaml = new Yaml(new DisableClassLoadingConstructor(), new Representer(), options);
-    }
-
-    @Override
-    public void init(String currentVersion, String nextVersion, HierarchicalConfiguration config)
-            throws ConfigurationException {
-        processorName = getRequiredStringProperty(config, CONFIG_KEY_PROCESSOR);
-
-        super.init(currentVersion, nextVersion, config);
     }
 
     @SuppressWarnings("unchecked")

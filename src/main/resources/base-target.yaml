@@ -53,10 +53,6 @@ target:
           value : 3000
         - key: "index.mapping.depth.limit"
           value: 40
-    # Indicates if Solr should be used instead of Elasticsearch
-    useSolr: false
-    # The base URL of the Crafter Search server
-    serverUrl: http://localhost:8080/crafter-search
     indexing:
       xml:
         flattening:

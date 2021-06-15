@@ -76,12 +76,6 @@ public interface Target {
     Status getStatus();
 
     /**
-     * Indicates if Crafter Search should be used instead of Elasticsearch.
-     */
-    @JsonProperty("crafter_search_enabled")
-    boolean isCrafterSearchEnabled();
-
-    /**
      * Returns the YAML configuration file of the target.
      */
     @JsonIgnore

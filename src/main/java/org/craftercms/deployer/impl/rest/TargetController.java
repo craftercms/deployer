@@ -392,7 +392,7 @@ public class TargetController {
                              @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
                              @RequestParam String token)
             throws TargetNotFoundException, TargetServiceException, InvalidManagementTokenException {
-        if (StringUtils.isEmpty(token) && !StringUtils.equals(token, managementToken)) {
+        if (StringUtils.isEmpty(token) || !StringUtils.equals(token, managementToken)) {
             throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
         }
         Target target = targetService.getTarget(env, siteName);

@@ -26,7 +26,7 @@ import java.util.Map;
  * @author joseross
  * @since 3.1.9
  */
-public abstract class ProcessorPresentUpgradeOperation extends AbstractTargetUpgradeOperation {
+public abstract class ProcessorPresentUpgradeOperation extends AbstractProcessorUpgradeOperation {
 
     @Override
     protected void doExecute(Target target, Map<String, Object> targetConfig) throws Exception {
@@ -43,7 +43,5 @@ public abstract class ProcessorPresentUpgradeOperation extends AbstractTargetUpg
         return getPipeline(targetConfig).stream().anyMatch(processor ->
                 processor.get(CONFIG_KEY_PROCESSOR_NAME).toString().matches(processorName));
     }
-
-    protected abstract void doExecuteInternal(Target target, Map<String, Object> targetConfig) throws Exception;
 
 }

@@ -17,8 +17,13 @@ package org.craftercms.deployer.impl.upgrade.operations;
 
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.YamlConfiguration;
+import org.craftercms.deployer.api.Target;
 import org.junit.Before;
 import org.junit.Test;
+import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.Resource;
 import org.yaml.snakeyaml.Yaml;
@@ -31,10 +36,12 @@ import java.util.Map;
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
 import static org.craftercms.deployer.impl.upgrade.operations.AbstractTargetUpgradeOperation.*;
 import static org.junit.Assert.assertEquals;
+import static org.mockito.Mockito.when;
 
 /**
  * @author joseross
  */
+@RunWith(MockitoJUnitRunner.class)
 public class ReplaceProcessorUpgradeOperationTest {
 
     private static final String PROCESSOR = "myProcessor";
@@ -43,6 +50,10 @@ public class ReplaceProcessorUpgradeOperationTest {
 
     private Map<String, Object> targetConfig;
 
+    @Mock
+    private Target target;
+
+    @InjectMocks
     private ReplaceProcessorUpgradeOperation processor;
 
     @Before
@@ -59,13 +70,14 @@ public class ReplaceProcessorUpgradeOperationTest {
             targetConfig = yaml.load(is);
         }
 
-        processor = new ReplaceProcessorUpgradeOperation();
+        when(target.getEnv()).thenReturn("preview");
+
         processor.init(null, null, config);
     }
 
     @Test
-    public void test() {
-        processor.doExecute(null, targetConfig);
+    public void test() throws Exception {
+        processor.doExecute(target, targetConfig);
 
         assertEquals("instances that do not match shouldn't be replaced", 2, countProcessor(targetConfig, PROCESSOR));
         assertEquals("one processor should be replaced", 1, countProcessor(targetConfig, NEW_PROCESSOR));

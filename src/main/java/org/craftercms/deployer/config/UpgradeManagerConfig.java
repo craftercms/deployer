@@ -20,7 +20,6 @@ import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.upgrade.UpgradeOperation;
 import org.craftercms.commons.upgrade.UpgradePipelineFactory;
 import org.craftercms.commons.upgrade.VersionProvider;
-import org.craftercms.commons.upgrade.impl.pipeline.DefaultUpgradePipelineFactoryImpl;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.impl.upgrade.TargetVersionProvider;
 import org.craftercms.deployer.impl.upgrade.operations.AddLifecycleHookUpgradeOperation;
@@ -28,7 +27,9 @@ import org.craftercms.deployer.impl.upgrade.operations.AddProcessorUpgradeOperat
 import org.craftercms.deployer.impl.upgrade.operations.ElasticsearchIndexUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.EncryptionUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ProcessorUpgradeOperation;
+import org.craftercms.deployer.impl.upgrade.operations.RemovePropertyUpgradeOperation;
 import org.craftercms.deployer.impl.upgrade.operations.ReplaceProcessorUpgradeOperation;
+import org.craftercms.deployer.impl.upgrade.pipeline.TargetUpgradePipelineFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.beans.factory.config.ConfigurableBeanFactory;
@@ -61,7 +62,7 @@ public class UpgradeManagerConfig {
             @Autowired VersionProvider versionProvider,
             @Value("${deployer.main.upgrade.configuration}") Resource configurationFile,
             @Value("${deployer.main.upgrade.pipelines.target.name}") String pipelineName) {
-        return new DefaultUpgradePipelineFactoryImpl<>(pipelineName, configurationFile, versionProvider);
+        return new TargetUpgradePipelineFactory(pipelineName, configurationFile, versionProvider);
     }
 
     @Bean
@@ -101,6 +102,12 @@ public class UpgradeManagerConfig {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public AddProcessorUpgradeOperation addProcessorUpgrader() {
         return new AddProcessorUpgradeOperation();
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public RemovePropertyUpgradeOperation removePropertyUpgrader() {
+        return new RemovePropertyUpgradeOperation();
     }
 
 }

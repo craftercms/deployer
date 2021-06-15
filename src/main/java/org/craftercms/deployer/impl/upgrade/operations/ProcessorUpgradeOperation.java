@@ -34,7 +34,7 @@ import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CO
  * @author joseross
  * @since 3.1.5
  */
-public class ProcessorUpgradeOperation extends AbstractTargetUpgradeOperation {
+public class ProcessorUpgradeOperation extends AbstractProcessorUpgradeOperation {
 
     /**
      * The properties to replace
@@ -77,7 +77,7 @@ public class ProcessorUpgradeOperation extends AbstractTargetUpgradeOperation {
 
     @Override
     @SuppressWarnings("unchecked")
-    protected void doExecute(final Target target, final Map<String, Object> targetConfig) {
+    protected void doExecuteInternal(final Target target, final Map<String, Object> targetConfig) {
         getPipeline(targetConfig).stream()
             .filter(processor -> processor.get(PROCESSOR_NAME_CONFIG_KEY).toString().matches(processorName))
             .forEach(processor -> {

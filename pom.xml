@@ -54,7 +54,7 @@
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.10.5</jackson.version>
 		<jackson.databind.version>2.10.5.1</jackson.databind.version>
-		<aws.version>1.11.1000</aws.version>
+		<aws.version>1.11.1034</aws.version>
 		<box.sdk.version>2.28.1</box.sdk.version>
 		<elasticsearch.version>6.6.1</elasticsearch.version>
 		<tomcat.version>9.0.45</tomcat.version>

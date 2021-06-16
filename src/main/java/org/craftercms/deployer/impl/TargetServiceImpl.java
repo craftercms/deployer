@@ -346,14 +346,13 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         String env = getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
         String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
         String targetId = TargetImpl.getId(env, siteName);
-        String localRepoPath = getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
         boolean crafterSearchEnabled = getBooleanProperty(config, TARGET_CRAFTER_SEARCH_CONFIG_KEY, false);
 
         config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
 
         ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
 
-        return new TargetImpl(ZonedDateTime.now(), env, siteName, localRepoPath, configFile, config,
+        return new TargetImpl(ZonedDateTime.now(), env, siteName, configFile, config,
                 context, taskExecutor, taskScheduler, targetLifecycleHooksResolver,
                 deploymentPipelineFactory, crafterSearchEnabled);
     }

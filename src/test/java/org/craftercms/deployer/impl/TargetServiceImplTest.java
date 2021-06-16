@@ -68,8 +68,19 @@ public class TargetServiceImplTest {
     public void setUp() throws Exception {
         targetsFolder = createTargetsFolder();
 
+        DeploymentPipelineFactory deploymentPipelineFactory = createDeploymentPipelineFactory();
+        TaskScheduler taskScheduler = createTaskScheduler();
+        ExecutorService taskExecutor = createTaskExecutor();
+        ProcessedCommitsStore processedCommitsStore = createProcessedCommitsStore();
+        TargetLifecycleHooksResolver targetLifecycleHooksResolver = createTargetLifecycleHooksResolver();
+
         DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
         factory.registerSingleton("elasticsearchAdminService", mock(ElasticsearchAdminService.class));
+        factory.registerSingleton("deploymentPipelineFactory", deploymentPipelineFactory);
+        factory.registerSingleton("taskScheduler", taskScheduler);
+        factory.registerSingleton("taskExecutor", taskExecutor);
+        factory.registerSingleton("processedCommitsStore", processedCommitsStore);
+        factory.registerSingleton("targetLifecycleHooksResolver", targetLifecycleHooksResolver);
 
         GenericApplicationContext context = new GenericApplicationContext(factory);
         XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
@@ -85,11 +96,11 @@ public class TargetServiceImplTest {
             "test",
             createHandlebars(),
             context,
-            createDeploymentPipelineFactory(),
-            createTaskScheduler(),
-            createTaskExecutor(),
-            createProcessedCommitsStore(),
-            createTargetLifecycleHooksResolver(),
+            deploymentPipelineFactory,
+            taskScheduler,
+            taskExecutor,
+            processedCommitsStore,
+            targetLifecycleHooksResolver,
             createConfigurationReader(),
             createUpgradeManager());
     }

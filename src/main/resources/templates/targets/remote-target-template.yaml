@@ -2,7 +2,6 @@ version: '2.2'
 target:
   env: {{env}}
   siteName: {{site_name}}
-  crafterSearchEnabled: {{#if use_crafter_search}}{{use_crafter_search}}{{else}}false{{/if}}
   lifecycleHooks:
     delete:
       - hookName: deleteLocalRepoFolderLifecycleHook

@@ -26,6 +26,9 @@
     <context:annotation-config/>
     <context:property-placeholder/>
 
+    <!-- Target -->
+    <bean id="target" class="org.craftercms.deployer.impl.TargetImpl"/>
+
     <!-- Lifecycle hooks -->
 
     <bean id="createIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.CreateIndexLifecycleHook">

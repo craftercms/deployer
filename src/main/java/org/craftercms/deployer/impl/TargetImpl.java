@@ -99,7 +99,7 @@ public class TargetImpl implements Target {
             @Value("${target.env}") String env,
             @Value("${target.siteName}") String siteName,
             @Value("${target.localRepoPath}") String localRepoPath,
-            @Value("${targetConfigFile}") File configurationFile, //TODO: Is it ok to pass via param or remove?
+            @Value("${target.configFile}") File configurationFile,
             @Autowired HierarchicalConfiguration<ImmutableNode> configuration,
             @Autowired ConfigurableApplicationContext applicationContext,
             @Autowired ExecutorService executor,

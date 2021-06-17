@@ -346,7 +346,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         String targetId = TargetImpl.getId(env, siteName);
 
         config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
-        config.setProperty("targetConfigFile", configFile.toString());
+        config.setProperty(TARGET_CONFIG_PATH_KEY, configFile.toString());
 
         ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
 

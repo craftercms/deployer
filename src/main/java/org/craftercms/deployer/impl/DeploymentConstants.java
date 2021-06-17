@@ -28,6 +28,7 @@ public abstract class DeploymentConstants {
     public static final String TARGET_SITE_NAME_CONFIG_KEY = "target.siteName";
     public static final String TARGET_LOCAL_REPO_CONFIG_KEY = "target.localRepoPath";
     public static final String TARGET_ID_CONFIG_KEY = "target.id";
+    public static final String TARGET_CONFIG_PATH_KEY = "target.configFile";
     public static final String TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY = "target.deployment.scheduling.enabled";
     public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
     public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";

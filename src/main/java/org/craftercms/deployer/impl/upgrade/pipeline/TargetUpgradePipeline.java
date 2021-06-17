@@ -46,7 +46,9 @@ public class TargetUpgradePipeline extends DefaultUpgradePipelineImpl<Target> {
     @Override
     public void execute(UpgradeContext<Target> context) throws UpgradeException {
         try {
-            createConfigurationBackup((TargetUpgradeContext) context);
+            if (!isEmpty()) {
+                createConfigurationBackup((TargetUpgradeContext) context);
+            }
         } catch (Exception e) {
             throw new UpgradeException("Error creating configuration backup for target " +
                     context.getTarget().getId());

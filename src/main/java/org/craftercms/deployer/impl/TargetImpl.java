@@ -30,6 +30,8 @@ import org.craftercms.deployer.utils.GitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.ConfigurableApplicationContext;
 import org.springframework.scheduling.TaskScheduler;
 import org.springframework.scheduling.support.CronTrigger;
@@ -58,25 +60,24 @@ public class TargetImpl implements Target {
 
     public static final String TARGET_ID_FORMAT = "%s-%s";
 
-    protected ZonedDateTime loadDate;
-    protected String env;
-    protected String siteName;
-    protected String localRepoPath;
-    protected File configurationFile;
-    protected HierarchicalConfiguration<ImmutableNode> configuration;
-    protected ConfigurableApplicationContext applicationContext;
-    protected ExecutorService executor;
-    protected TaskScheduler scheduler;
-    protected TargetLifecycleHooksResolver targetLifecycleHooksResolver;
-    protected DeploymentPipelineFactory deploymentPipelineFactory;
-    protected boolean crafterSearchEnabled;
+    protected final ZonedDateTime loadDate;
+    protected final String env;
+    protected final String siteName;
+    protected final String localRepoPath;
+    protected final File configurationFile;
+    protected final HierarchicalConfiguration<ImmutableNode> configuration;
+    protected final ConfigurableApplicationContext applicationContext;
+    protected final ExecutorService executor;
+    protected final TaskScheduler scheduler;
+    protected final TargetLifecycleHooksResolver targetLifecycleHooksResolver;
+    protected final DeploymentPipelineFactory deploymentPipelineFactory;
 
     protected volatile Status status;
     protected DeploymentPipeline deploymentPipeline;
     protected ScheduledFuture<?> scheduledDeploymentFuture;
-    protected Queue<Deployment> pendingDeployments;
+    protected final Queue<Deployment> pendingDeployments;
     protected volatile Deployment currentDeployment;
-    protected Lock deploymentLock;
+    protected final Lock deploymentLock;
 
     public static void setCurrent(Target target) {
         threadLocal.set(target);
@@ -94,12 +95,18 @@ public class TargetImpl implements Target {
         return String.format(TARGET_ID_FORMAT, siteName, env);
     }
 
-    public TargetImpl(ZonedDateTime loadDate, String env, String siteName, String localRepoPath,
-                      File configurationFile, HierarchicalConfiguration<ImmutableNode> configuration,
-                      ConfigurableApplicationContext applicationContext, ExecutorService executor,
-                      TaskScheduler scheduler, TargetLifecycleHooksResolver targetLifecycleHooksResolver,
-                      DeploymentPipelineFactory deploymentPipelineFactory, boolean crafterSearchEnabled) {
-        this.loadDate = loadDate;
+    public TargetImpl(
+            @Value("${target.env}") String env,
+            @Value("${target.siteName}") String siteName,
+            @Value("${target.localRepoPath}") String localRepoPath,
+            @Value("${target.configFile}") File configurationFile,
+            @Autowired HierarchicalConfiguration<ImmutableNode> configuration,
+            @Autowired ConfigurableApplicationContext applicationContext,
+            @Autowired ExecutorService executor,
+            @Autowired TaskScheduler scheduler,
+            @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
+            @Autowired DeploymentPipelineFactory deploymentPipelineFactory) {
+        this.loadDate = ZonedDateTime.now();
         this.env = env;
         this.siteName = siteName;
         this.localRepoPath = localRepoPath;
@@ -110,7 +117,6 @@ public class TargetImpl implements Target {
         this.scheduler = scheduler;
         this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
         this.deploymentPipelineFactory = deploymentPipelineFactory;
-        this.crafterSearchEnabled = crafterSearchEnabled;
         this.status = Status.CREATED;
         this.pendingDeployments = new ConcurrentLinkedQueue<>();
         this.deploymentLock = new ReentrantLock();

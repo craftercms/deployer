@@ -61,7 +61,6 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
 import java.io.*;
-import java.time.ZonedDateTime;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
@@ -91,22 +90,22 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public static final String TARGET_SITE_NAME_MODEL_KEY = "site_name";
     public static final String TARGET_ID_MODEL_KEY = "target_id";
 
-    protected File targetConfigFolder;
-    protected Resource baseTargetYamlConfigResource;
-    protected Resource baseTargetYamlConfigOverrideResource;
-    protected Resource baseTargetContextResource;
-    protected Resource baseTargetContextOverrideResource;
-    protected String defaultTargetConfigTemplateName;
-    protected Handlebars targetConfigTemplateEngine;
-    protected ApplicationContext mainApplicationContext;
-    protected DeploymentPipelineFactory deploymentPipelineFactory;
-    protected TaskScheduler taskScheduler;
-    protected ExecutorService taskExecutor;
-    protected ProcessedCommitsStore processedCommitsStore;
-    protected TargetLifecycleHooksResolver targetLifecycleHooksResolver;
-    protected EncryptionAwareConfigurationReader configurationReader;
-    protected UpgradeManager<Target> upgradeManager;
-    protected Set<Target> currentTargets;
+    protected final File targetConfigFolder;
+    protected final Resource baseTargetYamlConfigResource;
+    protected final Resource baseTargetYamlConfigOverrideResource;
+    protected final Resource baseTargetContextResource;
+    protected final Resource baseTargetContextOverrideResource;
+    protected final String defaultTargetConfigTemplateName;
+    protected final Handlebars targetConfigTemplateEngine;
+    protected final ApplicationContext mainApplicationContext;
+    protected final DeploymentPipelineFactory deploymentPipelineFactory;
+    protected final TaskScheduler taskScheduler;
+    protected final ExecutorService taskExecutor;
+    protected final ProcessedCommitsStore processedCommitsStore;
+    protected final TargetLifecycleHooksResolver targetLifecycleHooksResolver;
+    protected final EncryptionAwareConfigurationReader configurationReader;
+    protected final UpgradeManager<Target> upgradeManager;
+    protected final Set<Target> currentTargets;
 
     public TargetServiceImpl(
         @Value("${deployer.main.targets.config.folderPath}") File targetConfigFolder,
@@ -177,12 +176,12 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     @Override
-    public List<Target> getAllTargets() throws TargetServiceException {
+    public List<Target> getAllTargets() {
         return new ArrayList<>(currentTargets);
     }
 
     @Override
-    public boolean targetExists(String env, String siteName) throws TargetServiceException {
+    public boolean targetExists(String env, String siteName) {
         String id = TargetImpl.getId(env, siteName);
 
         return findLoadedTargetById(id) != null;
@@ -345,16 +344,13 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         String env = getRequiredStringProperty(config, TARGET_ENV_CONFIG_KEY);
         String siteName = getRequiredStringProperty(config, TARGET_SITE_NAME_CONFIG_KEY);
         String targetId = TargetImpl.getId(env, siteName);
-        String localRepoPath = getRequiredStringProperty(config, TARGET_LOCAL_REPO_CONFIG_KEY);
-        boolean crafterSearchEnabled = getBooleanProperty(config, TARGET_CRAFTER_SEARCH_CONFIG_KEY, false);
 
         config.setProperty(TARGET_ID_CONFIG_KEY, targetId);
+        config.setProperty(TARGET_CONFIG_PATH_KEY, configFile.toString());
 
         ConfigurableApplicationContext context = loadApplicationContext(config, contextFile);
 
-        return new TargetImpl(ZonedDateTime.now(), env, siteName, localRepoPath, configFile, config,
-                context, taskExecutor, taskScheduler, targetLifecycleHooksResolver,
-                deploymentPipelineFactory, crafterSearchEnabled);
+        return context.getBean(TargetImpl.class);
     }
 
     protected Target loadTarget(File configFile, File contextFile, boolean create) throws TargetServiceException {

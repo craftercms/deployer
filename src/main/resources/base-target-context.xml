@@ -90,8 +90,9 @@
 
     <bean id="sandboxInterceptor" lazy-init="true"
           class="org.craftercms.deployer.utils.scripting.SandboxInterceptorFactory">
-        <constructor-arg value="${deployer.main.scripting.sandbox.enabled}"/>
-        <constructor-arg value="${deployer.main.scripting.sandbox.blacklist}"/>
+        <constructor-arg name="sandboxEnabled" value="${deployer.main.scripting.sandbox.enabled}"/>
+        <constructor-arg name="blacklistEnabled" value="${deployer.main.scripting.sandbox.blacklist.enabled}"/>
+        <constructor-arg name="blacklist" value="${deployer.main.scripting.sandbox.blacklist.path}"/>
     </bean>
 
     <bean id="gitPullProcessor" parent="deploymentProcessor"
@@ -323,11 +324,18 @@
         <property name="searchService" ref="searchService"/>
     </bean>
 
-    <bean id="searchService" class="org.craftercms.search.service.impl.v2.SolrRestClientSearchService">
+    <bean id="abstractAccessTokenAware" abstract="true">
+        <property name="accessTokenParameter" value="${target.search.accessToken.parameter}"/>
+        <property name="accessTokenValue" value="${target.search.accessToken.value}"/>
+    </bean>
+
+    <bean id="searchService" parent="abstractAccessTokenAware"
+          class="org.craftercms.search.service.impl.v2.SolrRestClientSearchService">
         <property name="serverUrl" value="${target.search.serverUrl}"/>
     </bean>
 
-    <bean id="searchAdminService" class="org.craftercms.search.service.impl.v2.RestClientAdminService">
+    <bean id="searchAdminService"  parent="abstractAccessTokenAware"
+          class="org.craftercms.search.service.impl.v2.RestClientAdminService">
         <property name="serverUrl" value="${target.search.serverUrl}"/>
         <property name="restTemplate" ref="restTemplate"/>
     </bean>

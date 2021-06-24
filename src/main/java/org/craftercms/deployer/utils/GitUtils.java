@@ -18,8 +18,12 @@ package org.craftercms.deployer.utils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.Collections;
 
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.git.auth.GitAuthenticationConfigurator;
 import org.eclipse.jgit.api.*;
@@ -30,6 +34,8 @@ import org.eclipse.jgit.merge.MergeStrategy;
 import org.eclipse.jgit.transport.PushResult;
 import org.eclipse.jgit.transport.RefSpec;
 import org.eclipse.jgit.transport.URIish;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import static org.eclipse.jgit.api.ResetCommand.ResetType.HARD;
 import static org.eclipse.jgit.lib.Constants.HEAD;
@@ -41,7 +47,10 @@ import static org.eclipse.jgit.lib.Constants.HEAD;
  */
 public abstract class GitUtils {
 
+    private static final Logger logger = LoggerFactory.getLogger(GitUtils.class);
+
     public static final String GIT_FOLDER_NAME = ".git";
+    public static final String GIT_LOCK_NAME = "index.lock";
 
     public static final String CORE_CONFIG_SECTION = "core";
     public static final String BIG_FILE_THRESHOLD_CONFIG_PARAM = "bigFileThreshold";
@@ -225,8 +234,8 @@ public abstract class GitUtils {
         if (StringUtils.isNotEmpty(currentUrl)) {
             if (!currentUrl.equals(remoteUrl)) {
                 RemoteSetUrlCommand remoteSetUrl = git.remoteSetUrl();
-                remoteSetUrl.setName(remoteName);
-                remoteSetUrl.setUri(new URIish(remoteUrl));
+                remoteSetUrl.setRemoteName(remoteName);
+                remoteSetUrl.setRemoteUri(new URIish(remoteUrl));
                 remoteSetUrl.call();
             }
         } else {
@@ -234,6 +243,16 @@ public abstract class GitUtils {
             remoteAdd.setName(remoteName);
             remoteAdd.setUri(new URIish(remoteUrl));
             remoteAdd.call();
+        }
+    }
+
+    public static void unlock(String repoPath) throws IOException {
+        Path lockFile = Paths.get(repoPath, GIT_FOLDER_NAME, GIT_LOCK_NAME);
+        try {
+            Files.deleteIfExists(lockFile);
+        } catch (IOException e) {
+            logger.debug("Error deleting lock file {}, forcing delete", lockFile, e);
+            FileUtils.forceDelete(lockFile.toFile());
         }
     }
 

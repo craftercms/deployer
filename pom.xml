@@ -21,7 +21,7 @@
 
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>3.1.14-SNAPSHOT</version><!-- craftercms version flag -->
+	<version>3.1.15-SNAPSHOT</version><!-- craftercms version flag -->
 	<packaging>jar</packaging>
 
 	<name>Crafter Deployer</name>
@@ -49,12 +49,12 @@
 		<handlebars.version>4.0.6</handlebars.version>
 		<sardine.version>5.9</sardine.version>
 		<xerces.version>2.12.0</xerces.version>
-		<script.security.version>1.72.8</script.security.version>
+		<script.security.version>1.72.9</script.security.version>
 		<java.version>1.8</java.version>
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.10.5</jackson.version>
 		<jackson.databind.version>2.10.5.1</jackson.databind.version>
-		<aws.version>1.11.1000</aws.version>
+		<aws.version>1.11.1034</aws.version>
 		<box.sdk.version>2.28.1</box.sdk.version>
 		<elasticsearch.version>7.2.1</elasticsearch.version>
 		<tomcat.version>9.0.45</tomcat.version>

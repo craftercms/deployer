@@ -61,7 +61,6 @@ public class TargetImpl implements Target {
     protected ZonedDateTime loadDate;
     protected String env;
     protected String siteName;
-    protected String localRepoPath;
     protected File configurationFile;
     protected HierarchicalConfiguration<ImmutableNode> configuration;
     protected ConfigurableApplicationContext applicationContext;
@@ -94,7 +93,7 @@ public class TargetImpl implements Target {
         return String.format(TARGET_ID_FORMAT, siteName, env);
     }
 
-    public TargetImpl(ZonedDateTime loadDate, String env, String siteName, String localRepoPath,
+    public TargetImpl(ZonedDateTime loadDate, String env, String siteName,
                       File configurationFile, HierarchicalConfiguration<ImmutableNode> configuration,
                       ConfigurableApplicationContext applicationContext, ExecutorService executor,
                       TaskScheduler scheduler, TargetLifecycleHooksResolver targetLifecycleHooksResolver,
@@ -102,7 +101,6 @@ public class TargetImpl implements Target {
         this.loadDate = loadDate;
         this.env = env;
         this.siteName = siteName;
-        this.localRepoPath = localRepoPath;
         this.configurationFile = configurationFile;
         this.configuration = configuration;
         this.applicationContext = applicationContext;
@@ -255,7 +253,7 @@ public class TargetImpl implements Target {
 
         try {
             logger.info("Cleaning up repo for target {}", getId());
-            GitUtils.cleanup(localRepoPath);
+            GitUtils.cleanup(applicationContext.getEnvironment().getProperty(TARGET_LOCAL_REPO_CONFIG_KEY));
         } catch (Exception e) {
             logger.warn("Error cleaning up repo for target {}", getId());
         }
@@ -328,6 +326,20 @@ public class TargetImpl implements Target {
             logger.error("Failed deleting target '" + getId() + "'", e);
         } finally {
             status = Status.DELETED;
+        }
+
+        MDC.remove(TARGET_ID_MDC_KEY);
+    }
+
+    @Override
+    public void unlock() {
+        MDC.put(TARGET_ID_MDC_KEY, getId());
+
+        try {
+            logger.info("Unlocking repo for target {}", getId());
+            GitUtils.unlock(applicationContext.getEnvironment().getProperty(TARGET_LOCAL_REPO_CONFIG_KEY));
+        } catch (Exception e) {
+            logger.warn("Error unlocking repo for target {}", getId());
         }
 
         MDC.remove(TARGET_ID_MDC_KEY);

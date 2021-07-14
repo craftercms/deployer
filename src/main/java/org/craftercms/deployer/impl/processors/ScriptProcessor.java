@@ -29,6 +29,8 @@ import org.slf4j.LoggerFactory;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.ApplicationContextAware;
 
+import java.beans.ConstructorProperties;
+
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
@@ -68,6 +70,7 @@ public class ScriptProcessor extends AbstractMainDeploymentProcessor implements 
      */
     protected String scriptPath;
 
+    @ConstructorProperties({"scriptEngine", "sandboxInterceptor"})
     public ScriptProcessor(GroovyScriptEngine scriptEngine, SandboxInterceptor sandboxInterceptor) {
         this.scriptEngine = scriptEngine;
         this.sandboxInterceptor = sandboxInterceptor;

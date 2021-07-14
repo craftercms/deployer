@@ -27,6 +27,8 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.beans.ConstructorProperties;
+
 import static org.craftercms.deployer.impl.DeploymentConstants.LATEST_COMMIT_ID_PARAM_NAME;
 
 /**
@@ -41,6 +43,7 @@ public class GitUpdateCommitIdProcessor extends AbstractMainDeploymentProcessor 
 
     protected ProcessedCommitsStore processedCommitsStore;
 
+    @ConstructorProperties({"processedCommitsStore"})
     public GitUpdateCommitIdProcessor(ProcessedCommitsStore processedCommitsStore) {
         this.processedCommitsStore = processedCommitsStore;
     }

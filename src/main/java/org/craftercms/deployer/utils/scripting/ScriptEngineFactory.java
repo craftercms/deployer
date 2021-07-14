@@ -22,6 +22,8 @@ import org.jenkinsci.plugins.scriptsecurity.sandbox.groovy.RejectASTTransformsCu
 import org.kohsuke.groovy.sandbox.SandboxTransformer;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Implementation of {@link org.springframework.beans.factory.FactoryBean} for {@link GroovyScriptEngine}
  *
@@ -40,6 +42,7 @@ public class ScriptEngineFactory extends AbstractFactoryBean<GroovyScriptEngine>
      */
     protected boolean sandboxEnabled;
 
+    @ConstructorProperties({"urls", "sandboxEnabled"})
     public ScriptEngineFactory(String[] urls, boolean sandboxEnabled) {
         this.urls = urls;
         this.sandboxEnabled = sandboxEnabled;

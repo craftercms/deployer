@@ -21,6 +21,8 @@ import org.craftercms.commons.config.ConfigurationProvider;
 import org.craftercms.commons.config.profiles.ConfigurationProfile;
 import org.craftercms.commons.config.profiles.ConfigurationProfileLoader;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Default implementation of {@link ConfigurationProfile}.
  *
@@ -33,6 +35,7 @@ public class ConfigurationProfileLoaderImpl<T extends ConfigurationProfile> impl
     private ConfigurationMapper<T> profileMapper;
     private ConfigurationProvider configurationProvider;
 
+    @ConstructorProperties({"profilesModule", "profilesUrl", "profileMapper", "configurationProvider"})
     public ConfigurationProfileLoaderImpl(String profilesModule, String profilesUrl,
                                           ConfigurationMapper<T> profileMapper,
                                           ConfigurationProvider configurationProvider) {

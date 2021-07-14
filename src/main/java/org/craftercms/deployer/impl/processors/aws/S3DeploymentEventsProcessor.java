@@ -25,6 +25,7 @@ import org.craftercms.deployer.api.events.DeploymentEventsStore;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.beans.ConstructorProperties;
 import java.nio.file.Files;
 import java.nio.file.Path;
 
@@ -58,6 +59,7 @@ public class S3DeploymentEventsProcessor extends AbstractS3Processor {
      */
     protected String deploymentEventsFileUrl;
 
+    @ConstructorProperties({"threadPoolTaskExecutor", "store"})
     public S3DeploymentEventsProcessor(ThreadPoolTaskExecutor threadPoolTaskExecutor,
                                        DeploymentEventsStore<?, Path> store) {
         super(threadPoolTaskExecutor);

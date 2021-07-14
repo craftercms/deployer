@@ -33,6 +33,7 @@ import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 
+import java.beans.ConstructorProperties;
 import java.io.File;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -65,6 +66,7 @@ public class S3SyncProcessor extends AbstractS3Processor {
      */
     protected boolean ignoreBlobs;
 
+    @ConstructorProperties({"threadPoolTaskExecutor", "localRepoUrl", "blobExtension"})
     public S3SyncProcessor(ThreadPoolTaskExecutor threadPoolTaskExecutor, String localRepoUrl, String blobExtension) {
         super(threadPoolTaskExecutor);
         this.localRepoUrl = localRepoUrl;

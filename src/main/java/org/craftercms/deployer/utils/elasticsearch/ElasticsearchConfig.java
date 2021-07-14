@@ -17,6 +17,7 @@
 
 package org.craftercms.deployer.utils.elasticsearch;
 
+import java.beans.ConstructorProperties;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -74,6 +75,7 @@ public class ElasticsearchConfig {
 
     public final Map<String, String> indexSettings;
 
+    @ConstructorProperties({"config"})
     public ElasticsearchConfig(HierarchicalConfiguration<?> config) {
         if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_GLOBAL_CLUSTER))) {
             globalCluster = new ElasticsearchClusterConfig(config.configurationAt(CONFIG_KEY_GLOBAL_CLUSTER));

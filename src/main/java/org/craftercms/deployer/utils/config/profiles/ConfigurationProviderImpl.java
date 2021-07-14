@@ -20,6 +20,7 @@ import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Context;
 import org.springframework.beans.factory.ObjectFactory;
 
+import java.beans.ConstructorProperties;
 import java.io.IOException;
 import java.io.InputStream;
 
@@ -35,6 +36,7 @@ public class ConfigurationProviderImpl implements ConfigurationProvider {
 
     protected ContentStoreService contentStoreService;
 
+    @ConstructorProperties({"contextFactory", "contentStoreService"})
     public ConfigurationProviderImpl(ObjectFactory<Context> contextFactory, ContentStoreService contentStoreService) {
         this.contextFactory = contextFactory;
         this.contentStoreService = contentStoreService;

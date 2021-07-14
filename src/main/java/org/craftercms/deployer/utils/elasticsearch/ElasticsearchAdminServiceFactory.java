@@ -24,6 +24,8 @@ import org.craftercms.search.elasticsearch.impl.MultiElasticsearchAdminServiceIm
 import org.elasticsearch.client.RestHighLevelClient;
 import org.springframework.core.io.Resource;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Implementation of {@link AbstractElasticsearchFactory} for {@link ElasticsearchAdminService}
  *
@@ -44,6 +46,7 @@ public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFacto
 
     protected String authoringNamePattern;
 
+    @ConstructorProperties({"config", "authoringMapping", "previewMapping", "authoringNamePattern"})
     public ElasticsearchAdminServiceFactory(ElasticsearchConfig config, Resource authoringMapping,
                                             Resource previewMapping, String authoringNamePattern) {
         super(config);

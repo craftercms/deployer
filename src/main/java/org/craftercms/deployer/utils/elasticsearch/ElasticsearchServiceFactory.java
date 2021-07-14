@@ -24,6 +24,8 @@ import org.craftercms.search.elasticsearch.impl.ElasticsearchServiceImpl;
 import org.craftercms.search.elasticsearch.impl.MultiElasticsearchServiceImpl;
 import org.elasticsearch.client.RestHighLevelClient;
 
+import java.beans.ConstructorProperties;
+
 /**
  * Implementation of {@link AbstractElasticsearchFactory} for {@link ElasticsearchService}
  *
@@ -42,6 +44,7 @@ public class ElasticsearchServiceFactory extends AbstractElasticsearchFactory<El
      */
     protected DocumentParser documentParser;
 
+    @ConstructorProperties({"config", "documentBuilder", "documentParser"})
     public ElasticsearchServiceFactory(final ElasticsearchConfig config,
                                        final ElasticsearchDocumentBuilder documentBuilder,
                                        final DocumentParser documentParser) {

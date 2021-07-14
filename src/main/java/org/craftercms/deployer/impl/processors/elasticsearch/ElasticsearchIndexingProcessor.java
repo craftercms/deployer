@@ -16,6 +16,7 @@
 
 package org.craftercms.deployer.impl.processors.elasticsearch;
 
+import java.beans.ConstructorProperties;
 import java.util.List;
 
 import org.craftercms.deployer.api.Target;
@@ -53,6 +54,7 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
 
     protected ElasticsearchAdminService elasticsearchAdminService;
 
+    @ConstructorProperties({"elasticsearchService", "elasticsearchAdminService"})
     public ElasticsearchIndexingProcessor(ElasticsearchService elasticsearchService,
                                           ElasticsearchAdminService elasticsearchAdminService) {
         this.elasticsearchService = elasticsearchService;

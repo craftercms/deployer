@@ -525,8 +525,8 @@
 
     <bean id="authoringElasticsearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
           class="org.craftercms.search.elasticsearch.batch.ElasticsearchXmlFileBatchIndexer">
-        <constructor-arg name="elasticsearchService" ref="elasticsearchAdminService"/>
-        <constructor-arg name="elasticsearchAdminService" ref="elasticsearchService"/>
+        <constructor-arg name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
+        <constructor-arg name="elasticsearchService" ref="elasticsearchService"/>
         <property name="metadataExtractors" ref="authoringMetadataExtractors"/>
     </bean>
 

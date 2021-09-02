@@ -463,6 +463,7 @@
         <constructor-arg name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
         <constructor-arg name="localeExtractor" ref="descriptorLocaleExtractor"/>
         <constructor-arg name="elasticsearchService" ref="elasticsearchService"/>
+        <constructor-arg name="enableTranslation" value="${target.translation.enable}"/>
     </bean>
 
     <bean id="elasticsearchBinaryFileBatchIndexer" parent="abstractBinaryFileBatchIndexer"
@@ -527,6 +528,7 @@
           class="org.craftercms.search.elasticsearch.batch.ElasticsearchXmlFileBatchIndexer">
         <constructor-arg name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
         <constructor-arg name="elasticsearchService" ref="elasticsearchService"/>
+        <constructor-arg name="enableTranslation" value="${target.translation.enable}"/>
         <property name="metadataExtractors" ref="authoringMetadataExtractors"/>
     </bean>
 

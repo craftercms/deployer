@@ -43,7 +43,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     protected static final String OUTPUT_FILE_PARAM_NAME = "outputFile";
     protected static final String[] HEADERS = {
-            "status", "duration", "start", "end", "created_files", "deleted_files", "updated_files"
+            "mode", "status", "duration", "start", "end", "created_files", "deleted_files", "updated_files"
     };
 
     protected File outputFolder;
@@ -73,6 +73,12 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
+    public boolean supportsMode(Deployment.Mode mode) {
+        // the output file should be always generated
+        return true;
+    }
+
+    @Override
     protected ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
                                       ChangeSet originalChangeSet) throws DeployerException {
         File outputFile = getOutputFile(deployment);
@@ -81,12 +87,13 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
             if(outputFile.exists() && outputFile.length() > 0) {
                 printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
             } else {
-                printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT.withHeader(HEADERS));
+                printer = new CSVPrinter(fileWriter, CSVFormat.Builder.create().setHeader(HEADERS).build());
             }
 
             ChangeSet changeSet = deployment.getChangeSet();
 
             printer.printRecord(
+                    deployment.getMode(),
                     deployment.getStatus(),
                     deployment.getDuration(),
                     deployment.getStart().toInstant(),

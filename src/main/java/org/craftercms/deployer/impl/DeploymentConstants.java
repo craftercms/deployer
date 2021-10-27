@@ -53,6 +53,8 @@ public abstract class DeploymentConstants {
 
     public static final String REPROCESS_ALL_FILES_PARAM_NAME = "reprocess_all_files";
     public static final String LATEST_COMMIT_ID_PARAM_NAME = "latest_commit_id";
+    public static final String DEPLOYMENT_MODE_PARAM_NAME = "deployment_mode";
+    public static final String FROM_COMMIT_ID_PARAM_NAME = "from_commit_id";
 
     // Logging MDC Keys
 

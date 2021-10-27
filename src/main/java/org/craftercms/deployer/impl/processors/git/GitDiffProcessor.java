@@ -51,6 +51,7 @@ import java.util.Objects;
 
 import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
+import static org.craftercms.deployer.impl.DeploymentConstants.FROM_COMMIT_ID_PARAM_NAME;
 import static org.craftercms.deployer.impl.DeploymentConstants.LATEST_COMMIT_ID_PARAM_NAME;
 import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FILES_PARAM_NAME;
 
@@ -116,6 +117,11 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
+    public boolean supportsMode(Deployment.Mode mode) {
+        return mode == Deployment.Mode.PUBLISH || mode == Deployment.Mode.SEARCH_INDEX;
+    }
+
+    @Override
     protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
         // Run if the deployment is running
         return deployment.isRunning();
@@ -124,15 +130,27 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     @Override
     protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
                                       ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+        boolean regularPublish = deployment.getMode() == Deployment.Mode.PUBLISH;
+        ObjectId fromCommitId = getFromCommitIdParam(deployment);
         boolean reprocessAllFiles = getReprocessAllFilesParam(deployment);
-        if (reprocessAllFiles) {
-            processedCommitsStore.delete(targetId);
+
+        if (fromCommitId == null && reprocessAllFiles) {
+            if (regularPublish) {
+                processedCommitsStore.delete(targetId);
+            }
 
             logger.info("All files from local repo {} will be reprocessed", localRepoFolder);
         }
 
         try (Git git = openLocalRepository()) {
-            ObjectId previousCommitId = processedCommitsStore.load(targetId);
+            ObjectId previousCommitId = null;
+            if (fromCommitId == null) {
+                if (!reprocessAllFiles) {
+                    previousCommitId = processedCommitsStore.load(targetId);
+                }
+            } else {
+                previousCommitId = fromCommitId;
+            }
             ObjectId latestCommitId = getLatestCommitId(git);
 
             ChangeSet changeSet = resolveChangeSetFromCommits(git, previousCommitId, latestCommitId);
@@ -149,7 +167,7 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
             // Make the new commit id available for other processors
             deployment.addParam(LATEST_COMMIT_ID_PARAM_NAME, latestCommitId);
 
-            if (updateCommitStore) {
+            if (updateCommitStore && regularPublish) {
                 processedCommitsStore.store(targetId, latestCommitId);
             }
 
@@ -302,6 +320,15 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
         } else {
             return false;
         }
+    }
+
+    protected ObjectId getFromCommitIdParam(Deployment deployment) {
+        ObjectId objectId = null;
+        Object value = deployment.getParam(FROM_COMMIT_ID_PARAM_NAME);
+        if (value != null) {
+            objectId = ObjectId.fromString((String) value);
+        }
+        return objectId;
     }
 
 }

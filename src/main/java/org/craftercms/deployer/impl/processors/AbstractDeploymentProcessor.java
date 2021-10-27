@@ -64,7 +64,6 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     protected String siteName;
     protected String targetId;
     protected String name;
-    protected boolean initialized;
 
     // Config properties (populated on init)
 
@@ -127,6 +126,11 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     @Override
     public void destroy() throws DeployerException {
         doDestroy();
+    }
+
+    @Override
+    public boolean supportsMode(Deployment.Mode mode) {
+        return mode == Deployment.Mode.PUBLISH;
     }
 
     @Override

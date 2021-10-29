@@ -41,6 +41,7 @@ import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
+import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -266,6 +267,14 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
             FileUtils.deleteQuietly(contextFile);
         }
+    }
+
+    @Override
+    public void recreateIndex(String env, String siteName) throws TargetNotFoundException {
+        Target target = getTarget(env, siteName);
+        ApplicationContext appContext = target.getApplicationContext();
+        ElasticsearchAdminService adminService = appContext.getBean(ElasticsearchAdminService.class);
+        adminService.recreateIndex(target.getId());
     }
 
     protected Collection<File> getTargetConfigFiles() throws TargetServiceException {

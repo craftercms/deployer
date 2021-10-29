@@ -76,6 +76,8 @@ public class TargetController {
                                                                  "{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String UNLOCK_TARGET_URL               = "/unlock/{" + ENV_PATH_VAR_NAME + "}/" +
                                                                  "{" + SITE_NAME_PATH_VAR_NAME + "}";
+    public static final String RECREATE_INDEX_URL              = "/recreate/{" + ENV_PATH_VAR_NAME + "}/" +
+                                                                 "{" + SITE_NAME_PATH_VAR_NAME + "}";
 
     public static final String REPLACE_PARAM_NAME = "replace";
     public static final String TEMPLATE_NAME_PARAM_NAME = "template_name";
@@ -326,6 +328,27 @@ public class TargetController {
                                     HttpStatus.OK);
     }
 
+    /**
+     * Recreates the underlying Elasticsearch index for the {@link Target} with the specified environment and site name.
+     *
+     * @param env       the target's environment
+     * @param siteName  the target's site name
+     *
+     * @return the response entity with a 200 OK status
+     *
+     * @throws DeployerException if an error occurred
+     */
+    @RequestMapping(value = RECREATE_INDEX_URL, method = RequestMethod.POST)
+    public ResponseEntity<Result> recreateIndex(@PathVariable(ENV_PATH_VAR_NAME) String env,
+                                                @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
+                                                @RequestParam String token)
+            throws DeployerException, InvalidManagementTokenException {
+        validateToken(token);
+        targetService.recreateIndex(env, siteName);
+
+        return ResponseEntity.status(HttpStatus.ACCEPTED).body(Result.OK);
+    }
+
     protected ResponseEntity<Result> createTarget(Map<String, Object> params, boolean createIfNotExists)
             throws ValidationException, DeployerException {
         String env = "";
@@ -396,11 +419,15 @@ public class TargetController {
                              @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
                              @RequestParam String token)
             throws TargetNotFoundException, TargetServiceException, InvalidManagementTokenException {
+        validateToken(token);
+        Target target = targetService.getTarget(env, siteName);
+        target.unlock();
+    }
+
+    protected void validateToken(String token) throws InvalidManagementTokenException {
         if (StringUtils.isEmpty(token) || !StringUtils.equals(token, managementToken)) {
             throw new InvalidManagementTokenException("Management authorization failed, invalid token.");
         }
-        Target target = targetService.getTarget(env, siteName);
-        target.unlock();
     }
 
 }

@@ -18,7 +18,6 @@ package org.craftercms.deployer.api;
 import java.util.List;
 import java.util.Map;
 
-import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
@@ -102,5 +101,14 @@ public interface TargetService {
      * @throws TargetServiceException if a general error occurs
      */
     Target getTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
+
+    /**
+     * Recreates the underlying Elasticsearch index for a given target
+     * @param env       the target's environment (e.g. dev)
+     * @param siteName  the target's site name (e.g. mysite)
+     *
+     * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
+     */
+    void recreateIndex(String env, String siteName) throws TargetNotFoundException;
 
 }

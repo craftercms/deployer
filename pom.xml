@@ -44,7 +44,7 @@
 		<!-- Version Numbers -->
 		<commons.configuration.version>2.7</commons.configuration.version>
 		<commons.csv.version>1.5</commons.csv.version>
-		<jgit.version>5.4.0.201906121030-r</jgit.version>
+		<jgit.version>5.13.0.202109080827-r</jgit.version>
 		<javax.mail.version>1.6.2</javax.mail.version>
 		<handlebars.version>4.1.2</handlebars.version>
 		<sardine.version>5.9</sardine.version>

@@ -276,7 +276,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         Target target = getTarget(env, siteName);
         ApplicationContext appContext = target.getApplicationContext();
         ElasticsearchAdminService adminService = appContext.getBean(ElasticsearchAdminService.class);
-        adminService.recreateIndex(target.getId());
+        adminService.recreateIndex(target.getId(), target.isEnvAuthoring());
     }
 
     protected Collection<File> getTargetConfigFiles() throws TargetServiceException {

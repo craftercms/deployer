@@ -17,7 +17,6 @@ package org.craftercms.deployer.impl;
 
 import java.util.Collections;
 import java.util.List;
-import java.util.Map;
 
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
@@ -78,7 +77,9 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
     protected void executeProcessors(Deployment deployment) {
         if (CollectionUtils.isNotEmpty(deploymentProcessors)) {
             for (DeploymentProcessor processor : deploymentProcessors) {
-                processor.execute(deployment);
+                if (processor.supportsMode(deployment.getMode())) {
+                    processor.execute(deployment);
+                }
             }
         }
     }

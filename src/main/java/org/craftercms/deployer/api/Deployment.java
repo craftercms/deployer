@@ -28,12 +28,14 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static org.craftercms.deployer.impl.DeploymentConstants.DEPLOYMENT_MODE_PARAM_NAME;
+
 /**
  * Represents a deployment. Contains every important status information of a particular deployment execution.
  *
  * @author avasquez
  */
-@JsonPropertyOrder({ "status", "running", "duration", "start", "end", "created_files",
+@JsonPropertyOrder({ "mode", "status", "running", "duration", "start", "end", "created_files",
     "updated_files", "deleted_files" })
 public class Deployment {
 
@@ -45,6 +47,7 @@ public class Deployment {
     protected List<ProcessorExecution> processorExecutions;
     protected Map<String, Object> params;
     protected Lock lock;
+    protected Mode mode = Mode.PUBLISH;
 
     public Deployment(Target target) {
         this.target = target;
@@ -58,6 +61,9 @@ public class Deployment {
         this.processorExecutions = new ArrayList<>();
         this.params = new ConcurrentHashMap<>(params);
         this.lock = new ReentrantLock();
+        if (params.containsKey(DEPLOYMENT_MODE_PARAM_NAME)) {
+            mode = Mode.valueOf((String) params.get(DEPLOYMENT_MODE_PARAM_NAME));
+        }
     }
 
     /**
@@ -108,6 +114,11 @@ public class Deployment {
     @JsonProperty("status")
     public Status getStatus() {
         return status;
+    }
+
+    @JsonProperty("mode")
+    public Mode getMode() {
+        return mode;
     }
 
     /**
@@ -211,6 +222,10 @@ public class Deployment {
         SUCCESS, FAILURE, INTERRUPTED
     }
 
+    public enum Mode {
+        PUBLISH, SEARCH_INDEX
+    }
+
     @Override
     public String toString() {
         return "Deployment{" +
@@ -220,6 +235,7 @@ public class Deployment {
                ", running=" + isRunning() +
                ", duration=" + getDuration() +
                ", status=" + status +
+               ", mode=" + mode +
                ", changeSet=" + changeSet +
                ", processorExecutions=" + processorExecutions +
                ", params=" + params + '}';

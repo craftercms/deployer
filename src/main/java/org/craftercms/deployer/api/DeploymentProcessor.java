@@ -44,4 +44,11 @@ public interface DeploymentProcessor extends InitializableByConfigBean {
      */
     void execute(Deployment deployment);
 
+    /**
+     * Indicates if the processor should be included in the given deployment mode
+     * @param mode the deployment mode to check
+     * @return true if the processor should be included
+     */
+    boolean supportsMode(Deployment.Mode mode);
+
 }

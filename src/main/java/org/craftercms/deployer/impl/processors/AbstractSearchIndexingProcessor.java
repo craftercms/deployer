@@ -195,6 +195,11 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     }
 
     @Override
+    public boolean supportsMode(Deployment.Mode mode) {
+        return mode == Deployment.Mode.PUBLISH || mode == Deployment.Mode.SEARCH_INDEX;
+    }
+
+    @Override
     public void execute(Deployment deployment) {
         if (createIndexIfMissing) {
             logger.info("Checking if index {} exists", indexId);

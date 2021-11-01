@@ -19,17 +19,16 @@ package org.craftercms.deployer.impl.processors.elasticsearch;
 import java.util.List;
 
 import org.craftercms.deployer.api.Target;
-import org.craftercms.deployer.impl.TargetImpl;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.search.elasticsearch.ElasticsearchService;
 import org.craftercms.search.elasticsearch.exception.ElasticsearchException;
 import org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor;
 import org.craftercms.search.exception.SearchException;
-import org.springframework.beans.factory.annotation.Required;
+import org.elasticsearch.index.query.BoolQueryBuilder;
 
 import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
+import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
 import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
-import static org.elasticsearch.index.query.QueryBuilders.termQuery;
 
 /**
  * Implementation of {@link AbstractSearchIndexingProcessor} for Elasticsearch
@@ -45,11 +44,15 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
 
     private static final String DEFAULT_INCLUDED_DESCRIPTORS_FIELD_NAME = "includedDescriptors";
 
+    private static final String DEFAULT_METADATA_PATH_FIELD_NAME = "metadataPath";
+
     protected String localIdFieldName = DEFAULT_LOCAL_ID_FIELD_NAME;
 
     protected String inheritsFromFieldName = DEFAULT_INHERITS_FROM_FIELD_NAME;
 
     protected String includedDescriptorsFieldName = DEFAULT_INCLUDED_DESCRIPTORS_FIELD_NAME;
+
+    protected String metadataPathFieldName = DEFAULT_METADATA_PATH_FIELD_NAME;
 
     protected ElasticsearchService elasticsearchService;
 
@@ -78,8 +81,10 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
     @Override
     protected List<String> getItemsThatInheritDescriptor(final String indexId, final String descriptorPath) {
         try {
-            return elasticsearchService.searchField(indexId, localIdFieldName, boolQuery().
-                filter(matchQuery(inheritsFromFieldName, descriptorPath)));
+            BoolQueryBuilder query = boolQuery()
+                    .filter(matchQuery(inheritsFromFieldName, descriptorPath))
+                    .mustNot(existsQuery(metadataPathFieldName));
+            return elasticsearchService.searchField(indexId, localIdFieldName, query);
         } catch (ElasticsearchException e) {
             throw new SearchException(indexId,
                 "Error executing search of descriptors inheriting from " + descriptorPath, e);
@@ -89,8 +94,10 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
     @Override
     protected List<String> getItemsThatIncludeComponent(final String indexId, final String componentPath) {
         try {
-            return elasticsearchService.searchField(indexId, localIdFieldName, boolQuery()
-                    .filter(termQuery(includedDescriptorsFieldName, componentPath)));
+            BoolQueryBuilder query = boolQuery()
+                    .filter(matchQuery(includedDescriptorsFieldName, componentPath))
+                    .mustNot(existsQuery(metadataPathFieldName));
+            return elasticsearchService.searchField(indexId, localIdFieldName, query);
         } catch (ElasticsearchException e) {
             throw new SearchException(indexId,
                 "Error executing search of descriptors that include component " + componentPath, e);

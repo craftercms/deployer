@@ -97,16 +97,12 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-      - processorName: elasticsearchIndexingProcessor
-        excludeFiles: ['^/sources/.*$']
       - processorName: s3SyncProcessor
         ignoreBlobs: {{#if ignore_blobs}}{{ignore_blobs}}{{else}}true{{/if}}
         region: ${aws.region}
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
         url: ${aws.cloudformation.s3Url}
-      - processorName: delayProcessor
-        {{#if delay}}seconds: {{delay}}{{/if}}
       - processorName: cloudfrontInvalidationProcessor
         includeFiles: ['^/static-assets/.*$']
         region: ${aws.region}
@@ -128,6 +124,8 @@ target:
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
         url: ${aws.cloudformation.s3Url}
+      - processorName: elasticsearchIndexingProcessor
+        excludeFiles: ['^/sources/.*$']       
       # -------------------- END OF MAIN PIPELINE --------------------
       - processorName: fileOutputProcessor
       {{#if notification_addresses}}

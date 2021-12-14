@@ -16,6 +16,8 @@ spring:
   main:
     # Bean overriding became `false` by default in Spring Boot 2.1.0+
     allow-bean-definition-overriding: true
+    # Circular references became `false` by default in Spring Boot 2.6.0
+    allow-circular-references: true
   freemarker:
     # If Spring should check it's default template location (always false since we handle our own Freemarker templates)
     checkTemplateLocation: false

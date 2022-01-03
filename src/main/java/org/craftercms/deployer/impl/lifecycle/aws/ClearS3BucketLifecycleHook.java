@@ -21,6 +21,7 @@ import com.amazonaws.services.s3.model.DeleteObjectsRequest;
 import com.amazonaws.services.s3.model.ListVersionsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
 import com.amazonaws.services.s3.model.VersionListing;
+import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Target;
@@ -74,18 +75,22 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
                             .map(o -> new DeleteObjectsRequest.KeyVersion(o.getKey()))
                             .collect(Collectors.toList());
 
-                    logger.info("Deleting {} objects", objectsToDelete.size());
+                    if (CollectionUtils.isNotEmpty(objectsToDelete)) {
+                        logger.info("Deleting {} objects", objectsToDelete.size());
 
-                    s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(objectsToDelete));
+                        s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(objectsToDelete));
 
-                    // If the bucket contains many objects, the listObjects() call
-                    // might not return all of the objects in the first listing. Check to
-                    // see whether the listing was truncated. If so, retrieve the next page of objects 
-                    // and delete them.
-                    if (objectList.isTruncated()) {
-                        objectList = s3.listNextBatchOfObjects(objectList);
+                        // If the bucket contains many objects, the listObjects() call
+                        // might not return all of the objects in the first listing. Check to
+                        // see whether the listing was truncated. If so, retrieve the next page of objects
+                        // and delete them.
+                        if (objectList.isTruncated()) {
+                            objectList = s3.listNextBatchOfObjects(objectList);
+                        } else {
+                            break;
+                        }
                     } else {
-                        break;
+                        logger.info("No objects to delete");
                     }
                 }
 
@@ -96,14 +101,18 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
                             .map(v -> new DeleteObjectsRequest.KeyVersion(v.getKey(), v.getVersionId()))
                             .collect(Collectors.toList());
 
-                    logger.info("Deleting {} object versions", versionsToDelete.size());
+                    if (CollectionUtils.isNotEmpty(versionsToDelete)) {
+                        logger.info("Deleting {} object versions", versionsToDelete.size());
 
-                    s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(versionsToDelete));
+                        s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(versionsToDelete));
 
-                    if (versionList.isTruncated()) {
-                        versionList = s3.listNextBatchOfVersions(versionList);
+                        if (versionList.isTruncated()) {
+                            versionList = s3.listNextBatchOfVersions(versionList);
+                        } else {
+                            break;
+                        }
                     } else {
-                        break;
+                        logger.info("No object versions to delete");
                     }
                 }
             }

@@ -18,7 +18,9 @@ package org.craftercms.deployer.impl.lifecycle.aws;
 import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.model.DeleteObjectsRequest;
+import com.amazonaws.services.s3.model.ListVersionsRequest;
 import com.amazonaws.services.s3.model.ObjectListing;
+import com.amazonaws.services.s3.model.VersionListing;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Target;
@@ -30,7 +32,6 @@ import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import java.util.List;
 import java.util.stream.Collectors;
 
-import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
@@ -60,25 +61,49 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
             AmazonS3 s3 = buildClient();
 
             if (s3.doesBucketExistV2(bucketName)) {
-                ObjectListing listing = s3.listObjects(bucketName);
-                boolean done = isEmpty(listing.getObjectSummaries());
+                logger.info("Emptying bucket '{}'...", bucketName);
 
-                logger.info("Clearing S3 bucket '{}'...", bucketName);
+                // Delete all objects from the bucket. This is sufficient
+                // for unversioned buckets. For versioned buckets, when you attempt to delete objects, Amazon S3 inserts
+                // delete markers for all objects, but doesn't delete the object versions.
+                // To delete objects from versioned buckets, delete all of the object versions before deleting
+                // the bucket (see below for an example).
+                ObjectListing objectList = s3.listObjects(bucketName);
+                while (true) {
+                    List<DeleteObjectsRequest.KeyVersion> objectsToDelete = objectList.getObjectSummaries().stream()
+                            .map(o -> new DeleteObjectsRequest.KeyVersion(o.getKey()))
+                            .collect(Collectors.toList());
 
-                while (!done) {
-                    List<DeleteObjectsRequest.KeyVersion> objectsToDelete =
-                            listing.getObjectSummaries().stream()
-                                   .map(object -> new DeleteObjectsRequest.KeyVersion(object.getKey()))
-                                   .collect(Collectors.toList());
-
-                    logger.info("Deleting {} files", objectsToDelete.size());
+                    logger.info("Deleting {} objects", objectsToDelete.size());
 
                     s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(objectsToDelete));
 
-                    if (listing.isTruncated()) {
-                        listing = s3.listNextBatchOfObjects(listing);
+                    // If the bucket contains many objects, the listObjects() call
+                    // might not return all of the objects in the first listing. Check to
+                    // see whether the listing was truncated. If so, retrieve the next page of objects 
+                    // and delete them.
+                    if (objectList.isTruncated()) {
+                        objectList = s3.listNextBatchOfObjects(objectList);
                     } else {
-                        done = true;
+                        break;
+                    }
+                }
+
+                // Delete all object versions (required for versioned buckets).
+                VersionListing versionList = s3.listVersions(new ListVersionsRequest().withBucketName(bucketName));
+                while (true) {
+                    List<DeleteObjectsRequest.KeyVersion> versionsToDelete = versionList.getVersionSummaries().stream()
+                            .map(v -> new DeleteObjectsRequest.KeyVersion(v.getKey(), v.getVersionId()))
+                            .collect(Collectors.toList());
+
+                    logger.info("Deleting {} object versions", versionsToDelete.size());
+
+                    s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(versionsToDelete));
+
+                    if (versionList.isTruncated()) {
+                        versionList = s3.listNextBatchOfVersions(versionList);
+                    } else {
+                        break;
                     }
                 }
             }

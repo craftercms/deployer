@@ -79,18 +79,18 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
                         logger.info("Deleting {} objects", objectsToDelete.size());
 
                         s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(objectsToDelete));
-
-                        // If the bucket contains many objects, the listObjects() call
-                        // might not return all of the objects in the first listing. Check to
-                        // see whether the listing was truncated. If so, retrieve the next page of objects
-                        // and delete them.
-                        if (objectList.isTruncated()) {
-                            objectList = s3.listNextBatchOfObjects(objectList);
-                        } else {
-                            break;
-                        }
                     } else {
                         logger.info("No objects to delete");
+                    }
+
+                    // If the bucket contains many objects, the listObjects() call
+                    // might not return all of the objects in the first listing. Check to
+                    // see whether the listing was truncated. If so, retrieve the next page of objects
+                    // and delete them.
+                    if (objectList.isTruncated()) {
+                        objectList = s3.listNextBatchOfObjects(objectList);
+                    } else {
+                        break;
                     }
                 }
 
@@ -105,14 +105,14 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
                         logger.info("Deleting {} object versions", versionsToDelete.size());
 
                         s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(versionsToDelete));
-
-                        if (versionList.isTruncated()) {
-                            versionList = s3.listNextBatchOfVersions(versionList);
-                        } else {
-                            break;
-                        }
                     } else {
                         logger.info("No object versions to delete");
+                    }
+
+                    if (versionList.isTruncated()) {
+                        versionList = s3.listNextBatchOfVersions(versionList);
+                    } else {
+                        break;
                     }
                 }
             }

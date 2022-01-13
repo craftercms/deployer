@@ -45,7 +45,8 @@ public class TargetAwarePublishingTargetResolver implements PublishingTargetReso
 
         if (target.getSiteName().matches(stagingNamePattern)) {
             return STAGING;
-        } else if (StringUtils.equalsIgnoreCase(target.getEnv(), AUTHORING_ENV)) {
+        } else if (StringUtils.equalsIgnoreCase(target.getEnv(), AUTHORING_ENV) ||
+                   StringUtils.equalsIgnoreCase(target.getEnv(), PREVIEW)) {
             return PREVIEW;
         } else {
             return LIVE;

@@ -28,14 +28,20 @@
 
     <!-- Lifecycle hooks -->
 
-    <bean id="createIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.CreateIndexLifecycleHook">
+    <!--
+        All hooks should be prototypes, so that several instances of them can be used. They will be instanced when the
+        pipeline is created
+    -->
+    <bean id="createIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.CreateIndexLifecycleHook"
+          scope="prototype">
         <property name="siteName" value="${target.siteName}"/>
         <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
         <property name="crafterSearchAdminService" ref="searchAdminService"/>
         <property name="elasticsearchAdminService" ref="elasticsearchAdminService"/>
     </bean>
 
-    <bean id="deleteIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.DeleteIndexLifecycleHook">
+    <bean id="deleteIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.DeleteIndexLifecycleHook"
+          scope="prototype">
         <property name="siteName" value="${target.siteName}"/>
         <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
         <property name="crafterSearchAdminService" ref="searchAdminService"/>
@@ -43,24 +49,25 @@
     </bean>
 
     <bean id="createCloudFormationLifecycleHook"
-          class="org.craftercms.deployer.impl.lifecycle.aws.CreateCloudFormationLifecycleHook">
+          class="org.craftercms.deployer.impl.lifecycle.aws.CreateCloudFormationLifecycleHook" scope="prototype">
         <property name="templatesResource" value="${deployer.main.targets.config.aws.cloudformation.location}"/>
         <property name="templatesOverrideResource" value="${deployer.main.targets.config.aws.cloudformation.overrideLocation}"/>
     </bean>
 
     <bean id="deleteCloudFormationLifecycleHook"
-          class="org.craftercms.deployer.impl.lifecycle.aws.DeleteCloudFormationLifecycleHook"/>
+          class="org.craftercms.deployer.impl.lifecycle.aws.DeleteCloudFormationLifecycleHook" scope="prototype"/>
 
     <bean id="waitTillCloudFormationStackUsableLifecycleHook"
-          class="org.craftercms.deployer.impl.lifecycle.aws.WaitTillCloudFormationStackUsableLifecycleHook">
+          class="org.craftercms.deployer.impl.lifecycle.aws.WaitTillCloudFormationStackUsableLifecycleHook"
+          scope="prototype">
         <property name="targetConfig" ref="targetConfig"/>
     </bean>
 
     <bean id="clearS3BucketLifecycleHook"
-          class="org.craftercms.deployer.impl.lifecycle.aws.ClearS3BucketLifecycleHook"/>
+          class="org.craftercms.deployer.impl.lifecycle.aws.ClearS3BucketLifecycleHook" scope="prototype"/>
 
     <bean id="deleteLocalRepoFolderLifecycleHook"
-          class="org.craftercms.deployer.impl.lifecycle.DeleteLocalRepoFolderLifecycleHook">
+          class="org.craftercms.deployer.impl.lifecycle.DeleteLocalRepoFolderLifecycleHook" scope="prototype">
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
     </bean>
 

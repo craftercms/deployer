@@ -18,7 +18,6 @@
 package org.craftercms.deployer.utils.elasticsearch;
 
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
-import org.craftercms.search.elasticsearch.ElasticsearchService;
 import org.craftercms.search.elasticsearch.impl.ElasticsearchAdminServiceImpl;
 import org.craftercms.search.elasticsearch.impl.MultiElasticsearchAdminServiceImpl;
 import org.elasticsearch.client.RestHighLevelClient;
@@ -52,7 +51,7 @@ public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFacto
 
     @Override
     public Class<?> getObjectType() {
-        return ElasticsearchService.class;
+        return ElasticsearchAdminService.class;
     }
 
     @Override

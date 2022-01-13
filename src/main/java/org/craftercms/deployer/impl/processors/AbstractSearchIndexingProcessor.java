@@ -288,6 +288,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         logger.debug("Clearing cache for context {}", context);
         cacheTemplate.getCacheService().clearScope(context);
 
+        boolean failed = false;
         try {
             for (BatchIndexer indexer : batchIndexers) {
                 indexer.updateIndex(indexId, siteName, contentStoreService, context, updateSet,
@@ -297,12 +298,15 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
                     doCommit(indexId);
                 }
 
-                if (updateStatus.getFailedUpdatesAndDeletes() > 0) {
-                    throw new DeployerException("Failed to update or delete some files");
-                }
+                failed = failed || updateStatus.getFailedUpdatesAndDeletes() > 0;
             }
         } catch (Exception e) {
             throw new DeployerException("Error while performing search indexing", e);
+        }
+
+        if (failed) {
+            throw new DeployerException("Failed to update or delete some files, please check previous log messages " +
+                    "for the causes of the failures");
         }
 
         return null;

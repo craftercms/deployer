@@ -49,8 +49,8 @@ public class ElasticsearchIndexUpgradeOperation extends AbstractUpgradeOperation
             return;
         }
 
-        ElasticsearchAdminService adminService = (ElasticsearchAdminService)
-                target.getApplicationContext().getBean("elasticsearchAdminService");
+        ElasticsearchAdminService adminService =
+                target.getApplicationContext().getBean(ElasticsearchAdminService.class);
         String siteName = target.getSiteName();
         String indexIdFormat = getRequiredStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY);
         String aliasName = String.format(indexIdFormat, siteName);

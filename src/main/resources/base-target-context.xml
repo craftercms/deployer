@@ -372,19 +372,25 @@
     </bean>
 
     <!-- Elasticsearch -->
-    <bean id="elasticsearchConfig" class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchConfig">
+
+    <!-- Deprecated client, in process to be removed -->
+    <bean id="elasticsearchConfig" class="org.craftercms.deployer.utils.elasticsearch.legacy.ElasticsearchConfig">
         <constructor-arg name="config" ref="targetConfig"/>
     </bean>
 
-    <bean id="tika" class="org.apache.tika.Tika"/>
-
     <bean id="elasticsearchAdminService"
-          class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchAdminServiceFactory">
+          class="org.craftercms.deployer.utils.elasticsearch.legacy.ElasticsearchAdminServiceFactory">
         <constructor-arg name="config" ref="elasticsearchConfig"/>
         <constructor-arg name="authoringMapping" value="${target.search.elasticsearch.mappings.authoring}"/>
         <constructor-arg name="previewMapping" value="${target.search.elasticsearch.mappings.preview}"/>
         <constructor-arg name="authoringNamePattern" value="${target.search.elasticsearch.authoring.pattern}"/>
     </bean>
+
+    <bean id="elasticsearchClientConfig" class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchConfig">
+        <constructor-arg name="config" ref="targetConfig"/>
+    </bean>
+
+    <bean id="tika" class="org.apache.tika.Tika"/>
 
     <bean id="tokenizedElementParser"
           class="org.craftercms.search.commons.service.impl.TokenizedElementParser"/>
@@ -460,7 +466,7 @@
     </bean>
 
     <bean id="elasticsearchService" class="org.craftercms.deployer.utils.elasticsearch.ElasticsearchServiceFactory">
-        <constructor-arg name="config" ref="elasticsearchConfig"/>
+        <constructor-arg name="config" ref="elasticsearchClientConfig"/>
         <constructor-arg name="documentBuilder" ref="elasticsearchDocumentBuilder"/>
         <constructor-arg name="documentParser" ref="tikaDocumentParser"/>
     </bean>

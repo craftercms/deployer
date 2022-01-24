@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.deployer.utils.elasticsearch;
+package org.craftercms.deployer.utils.elasticsearch.legacy;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.elasticsearch.client.RestHighLevelClient;
 
-import static org.craftercms.search.elasticsearch.spring.ElasticsearchClientFactory.createClient;
+import static org.craftercms.search.elasticsearch.spring.RestHighLevelClientFactory.createClient;
 
 /**
  * Holds the configuration for a single Elasticsearch cluster
@@ -101,7 +101,7 @@ public class ElasticsearchClusterConfig {
     /**
      * Returns a client matching the current configuration of the cluster
      */
-    public ElasticsearchClient buildClient() {
+    public RestHighLevelClient buildClient() {
         return createClient(urls, username, password, connectTimeout, socketTimeout ,threadCount, keepAlive);
     }
 

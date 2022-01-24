@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.deployer.utils.elasticsearch;
+package org.craftercms.deployer.utils.elasticsearch.legacy;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import org.elasticsearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
@@ -29,7 +29,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
  * @author joseross
  * @since 3.1.5
  */
-public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBean<T>
+public abstract class AbstractElasticsearchFactory<T extends AutoCloseable> extends AbstractFactoryBean<T>
     implements BeanNameAware {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractElasticsearchFactory.class);
@@ -62,10 +62,10 @@ public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBea
         }
 
         logger.debug("Using a multi-cluster configuration for '{}'", name);
-        ElasticsearchClient readClient = config.readCluster.buildClient();
-        ElasticsearchClient[] writeClients = config.writeClusters.stream()
+        RestHighLevelClient readClient = config.readCluster.buildClient();
+        RestHighLevelClient[] writeClients = config.writeClusters.stream()
             .map(ElasticsearchClusterConfig::buildClient)
-            .toArray(ElasticsearchClient[]::new);
+            .toArray(RestHighLevelClient[]::new);
         return doCreateMultiInstance(readClient, writeClients);
     }
 
@@ -74,7 +74,7 @@ public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBea
      * @param client the Elasticsearch client
      * @return the service instance
      */
-    protected abstract T doCreateSingleInstance(ElasticsearchClient client);
+    protected abstract T doCreateSingleInstance(RestHighLevelClient client);
 
     /**
      * Creates a service instance for a multiple cluster
@@ -82,12 +82,12 @@ public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBea
      * @param writeClients the Elasticsearch clients for write-related operations
      * @return the service instance
      */
-    protected abstract T doCreateMultiInstance(ElasticsearchClient readClient, ElasticsearchClient[] writeClients);
+    protected abstract T doCreateMultiInstance(RestHighLevelClient readClient, RestHighLevelClient[] writeClients);
 
     @Override
     protected void destroyInstance(final T instance) throws Exception {
-//        logger.debug("Closing all clients for '{}'", name);
-//        instance.close();
+        logger.debug("Closing all clients for '{}'", name);
+        instance.close();
     }
 
 }

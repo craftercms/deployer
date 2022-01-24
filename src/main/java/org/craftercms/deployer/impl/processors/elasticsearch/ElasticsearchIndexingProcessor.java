@@ -19,17 +19,13 @@ package org.craftercms.deployer.impl.processors.elasticsearch;
 import java.beans.ConstructorProperties;
 import java.util.List;
 
+import co.elastic.clients.elasticsearch._types.query_dsl.Query;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.search.elasticsearch.ElasticsearchService;
 import org.craftercms.search.elasticsearch.exception.ElasticsearchException;
 import org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor;
 import org.craftercms.search.commons.exception.SearchException;
-import org.elasticsearch.index.query.BoolQueryBuilder;
-
-import static org.elasticsearch.index.query.QueryBuilders.boolQuery;
-import static org.elasticsearch.index.query.QueryBuilders.existsQuery;
-import static org.elasticsearch.index.query.QueryBuilders.matchQuery;
 
 /**
  * Implementation of {@link AbstractSearchIndexingProcessor} for Elasticsearch
@@ -83,9 +79,23 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
     @Override
     protected List<String> getItemsThatInheritDescriptor(final String indexId, final String descriptorPath) {
         try {
-            BoolQueryBuilder query = boolQuery()
-                    .filter(matchQuery(inheritsFromFieldName, descriptorPath))
-                    .mustNot(existsQuery(metadataPathFieldName));
+            Query query = Query.of(q -> q
+                .bool(b -> b
+                    .filter(f -> f
+                        .match(m -> m
+                            .field(inheritsFromFieldName)
+                            .query(v -> v
+                                .stringValue(descriptorPath)
+                            )
+                        )
+                    )
+                    .mustNot(n -> n
+                        .exists(e -> e
+                            .field(metadataPathFieldName)
+                        )
+                    )
+                )
+            );
             return elasticsearchService.searchField(indexId, localIdFieldName, query);
         } catch (ElasticsearchException e) {
             throw new SearchException(indexId,
@@ -96,9 +106,23 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
     @Override
     protected List<String> getItemsThatIncludeComponent(final String indexId, final String componentPath) {
         try {
-            BoolQueryBuilder query = boolQuery()
-                    .filter(matchQuery(includedDescriptorsFieldName, componentPath))
-                    .mustNot(existsQuery(metadataPathFieldName));
+            Query query = Query.of(q -> q
+                .bool(b -> b
+                    .filter(f -> f
+                        .match(m -> m
+                            .field(includedDescriptorsFieldName)
+                            .query(v -> v
+                                .stringValue(componentPath)
+                            )
+                        )
+                    )
+                    .mustNot(n -> n
+                        .exists(e -> e
+                            .field(metadataPathFieldName)
+                        )
+                    )
+                )
+            );
             return elasticsearchService.searchField(indexId, localIdFieldName, query);
         } catch (ElasticsearchException e) {
             throw new SearchException(indexId,

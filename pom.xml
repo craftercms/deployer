@@ -63,6 +63,7 @@
 		<httpclient.version>4.5.13</httpclient.version>
 		<log4j2.version>2.17.1</log4j2.version>
 		<bouncycastle.version>1.61</bouncycastle.version>
+		<ehcache.version>2.10.9.2</ehcache.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -265,6 +266,11 @@
 			<version>${script.security.version}</version>
 		</dependency>
 
+        	<dependency>
+                	<groupId>net.sf.ehcache</groupId>
+	                <artifactId>ehcache</artifactId>
+        	        <version>${ehcache.version}</version>
+	        </dependency>
 	</dependencies>
 
 	<dependencyManagement>

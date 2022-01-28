@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -83,11 +83,5 @@ public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBea
      * @return the service instance
      */
     protected abstract T doCreateMultiInstance(ElasticsearchClient readClient, ElasticsearchClient[] writeClients);
-
-    @Override
-    protected void destroyInstance(final T instance) throws Exception {
-//        logger.debug("Closing all clients for '{}'", name);
-//        instance.close();
-    }
 
 }

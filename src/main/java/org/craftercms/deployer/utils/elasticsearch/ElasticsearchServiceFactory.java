@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,17 +17,18 @@
 
 package org.craftercms.deployer.utils.elasticsearch;
 
+import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.craftercms.search.elasticsearch.DocumentParser;
 import org.craftercms.search.elasticsearch.ElasticsearchService;
 import org.craftercms.search.elasticsearch.impl.ElasticsearchDocumentBuilder;
 import org.craftercms.search.elasticsearch.impl.ElasticsearchServiceImpl;
 import org.craftercms.search.elasticsearch.impl.MultiElasticsearchServiceImpl;
-import org.elasticsearch.client.RestHighLevelClient;
 
 import java.beans.ConstructorProperties;
 
 /**
- * Implementation of {@link AbstractElasticsearchFactory} for {@link ElasticsearchService}
+ * Implementation of {@link org.craftercms.deployer.utils.elasticsearch.legacy.AbstractElasticsearchFactory}
+ * for {@link ElasticsearchService}
  *
  * @author joseross
  * @since 3.1.5
@@ -59,13 +60,13 @@ public class ElasticsearchServiceFactory extends AbstractElasticsearchFactory<El
     }
 
     @Override
-    protected ElasticsearchService doCreateSingleInstance(final RestHighLevelClient client) {
+    protected ElasticsearchService doCreateSingleInstance(final ElasticsearchClient client) {
         return new ElasticsearchServiceImpl(documentBuilder, documentParser, client);
     }
 
     @Override
-    protected ElasticsearchService doCreateMultiInstance(final RestHighLevelClient readClient,
-                                                         final RestHighLevelClient[] writeClients) {
+    protected ElasticsearchService doCreateMultiInstance(final ElasticsearchClient readClient,
+                                                         final ElasticsearchClient[] writeClients) {
         return new MultiElasticsearchServiceImpl(documentBuilder, documentParser, readClient, writeClients);
     }
 

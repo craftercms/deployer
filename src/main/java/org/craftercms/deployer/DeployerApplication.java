@@ -30,6 +30,7 @@ import org.craftercms.commons.config.PublishingTargetResolver;
 import org.craftercms.commons.crypto.CryptoException;
 import org.craftercms.commons.crypto.TextEncryptor;
 import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
+import org.craftercms.commons.git.utils.AuthConfiguratorFactory;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.events.DeploymentEventsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
@@ -205,7 +206,13 @@ public class DeployerApplication implements WebMvcConfigurer  {
 
 	@Override
 	public void configureContentNegotiation(ContentNegotiationConfigurer configurer) {
-		configurer.defaultContentType(MediaType.APPLICATION_JSON_UTF8);
+		configurer.defaultContentType(MediaType.APPLICATION_JSON);
+	}
+
+	@Bean
+	public AuthConfiguratorFactory gitAuthenticationConfiguratorFactory(
+			@Value("${deployer.main.security.ssh.config}") File sshConfig) {
+		return new AuthConfiguratorFactory(sshConfig);
 	}
 
 }

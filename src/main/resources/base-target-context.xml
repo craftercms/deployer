@@ -105,12 +105,14 @@
 
     <bean id="gitPullProcessor" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.git.GitPullProcessor" >
-        <property name="localRepoFolder" value="${target.localRepoPath}"/>
+        <constructor-arg name="localRepoFolder" value="${target.localRepoPath}"/>
+        <constructor-arg name="authConfiguratorFactory" ref="gitAuthenticationConfiguratorFactory"/>
     </bean>
 
     <bean id="gitPushProcessor" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.git.GitPushProcessor">
-        <property name="localRepoFolder" value="${target.localRepoPath}"/>
+        <constructor-arg name="localRepoFolder" value="${target.localRepoPath}"/>
+        <constructor-arg name="authConfiguratorFactory" ref="gitAuthenticationConfiguratorFactory"/>
     </bean>
 
     <bean id="gitDiffProcessor" parent="deploymentProcessor"

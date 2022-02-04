@@ -118,6 +118,13 @@
 			<version>${jackson.version}</version>
 		</dependency>
 
+		<!-- JSON-P -->
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>jakarta.json</artifactId>
+			<version>${jakarta.json.version}</version>
+		</dependency>
+
 		<!-- Git -->
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>

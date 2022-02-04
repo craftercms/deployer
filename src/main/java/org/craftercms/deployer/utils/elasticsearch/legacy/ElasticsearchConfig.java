@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.deployer.utils.elasticsearch;
+package org.craftercms.deployer.utils.elasticsearch.legacy;
 
 import java.beans.ConstructorProperties;
 import java.util.HashMap;
@@ -25,8 +25,6 @@ import java.util.Map;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
-
-import javax.ws.rs.HEAD;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;

@@ -21,7 +21,7 @@
 
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>3.1.18-SNAPSHOT</version><!-- craftercms version flag -->
+	<version>3.1.21-SNAPSHOT</version><!-- craftercms version flag -->
 	<packaging>jar</packaging>
 
 	<name>Crafter Deployer</name>
@@ -47,21 +47,23 @@
 		<jgit.version>5.13.0.202109080827-r</jgit.version>
 		<javax.mail.version>1.6.2</javax.mail.version>
 		<handlebars.version>4.1.2</handlebars.version>
-		<sardine.version>5.9</sardine.version>
+		<sardine.version>5.10</sardine.version>
 		<xerces.version>2.12.0</xerces.version>
 		<script.security.version>1.72.9</script.security.version>
 		<java.version>1.8</java.version>
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.10.5</jackson.version>
 		<jackson.databind.version>2.10.5.1</jackson.databind.version>
-		<aws.version>1.11.1034</aws.version>
-		<box.sdk.version>2.28.1</box.sdk.version>
+		<aws.version>1.12.139</aws.version>
+		<box.sdk.version>2.58.0</box.sdk.version>
 		<elasticsearch.version>6.6.1</elasticsearch.version>
 		<tomcat.version>9.0.45</tomcat.version>
 		<groovy.version>2.4.19</groovy.version>
 		<apache.ivy>2.4.0</apache.ivy>
 		<httpclient.version>4.5.13</httpclient.version>
 		<log4j2.version>2.17.1</log4j2.version>
+		<bouncycastle.version>1.61</bouncycastle.version>
+		<ehcache.version>2.10.9.2</ehcache.version>
 
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
@@ -215,6 +217,12 @@
 			<artifactId>box-java-sdk</artifactId>
 			<version>${box.sdk.version}</version>
 		</dependency>
+	
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk15on</artifactId>
+			<version>${bouncycastle.version}</version>
+		</dependency>
 
 		<!-- WebDAV -->
 		<dependency>
@@ -258,6 +266,11 @@
 			<version>${script.security.version}</version>
 		</dependency>
 
+        	<dependency>
+                	<groupId>net.sf.ehcache</groupId>
+	                <artifactId>ehcache</artifactId>
+        	        <version>${ehcache.version}</version>
+	        </dependency>
 	</dependencies>
 
 	<dependencyManagement>

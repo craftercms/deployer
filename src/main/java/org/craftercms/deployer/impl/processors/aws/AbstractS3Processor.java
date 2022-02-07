@@ -50,6 +50,7 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
 public abstract class AbstractS3Processor extends AbstractMainDeploymentProcessor {
 
     protected static final String CONFIG_KEY_URL = "url";
+    protected static final String MACRO_SITENAME = "{siteName}";
 
     protected static final String DELIMITER = "/";
 
@@ -87,17 +88,24 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
     }
 
     /**
+     * Returns the base key from the S3 URL, making sure to replace the {@code {siteName}} macro instances
+     */
+    protected String getS3BaseKey() {
+        String baseKey = s3Url.getKey();
+        if (StringUtils.isNotEmpty(baseKey)) {
+            return baseKey.replace(MACRO_SITENAME, siteName);
+        } else {
+            return StringUtils.EMPTY;
+        }
+    }
+
+    /**
      * Builds the AWS S3 key for the given file
      * @param file relative path of the file
      * @return the full S3 key
      */
     protected String getS3Key(String file) {
-        String key = siteName + prependIfMissing(file, DELIMITER);
-        if(StringUtils.isNotEmpty(s3Url.getKey())) {
-            return s3Url.getKey() + prependIfMissing(key, DELIMITER);
-        } else {
-            return key;
-        }
+        return StringUtils.appendIfMissing(getS3BaseKey(), DELIMITER) + StringUtils.stripStart(file, DELIMITER);
     }
 
     /**

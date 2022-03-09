@@ -51,3 +51,13 @@ pipelines:
           - type: removePropertyUpgrader
             envPattern: (preview|default)
             property: target.crafterSearchEnabled
+      - currentVersion: 2.2
+        nextVersion: 2.3
+        operations:
+          - type: processorUpgrader
+            envPattern: authoring
+            processor: 'httpMethodCallProcessor'
+            replace:
+              - property: includeFiles
+                pattern: studio/plugins/classes
+                expression: studio/scripts/classes

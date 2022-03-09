@@ -1,4 +1,4 @@
-version: '2.2'
+version: '2.3'
 target:
   env: {{env}}
   siteName: {{site_name}}
@@ -15,7 +15,7 @@ target:
         excludeFiles: ['^/sources/.*$']
         reindexItemsOnComponentUpdates: false
       - processorName: httpMethodCallProcessor
-        includeFiles: [ "^/?config/studio/plugins/classes/.*$" ]
+        includeFiles: [ "^/?config/studio/scripts/classes/.*$" ]
         method: GET
         url: ${target.studioUrl}/api/2/plugin/script/reload.json?siteId=${target.siteName}&token=${target.studioManagementToken}
       - processorName: fileOutputProcessor

@@ -1,4 +1,4 @@
-version: '2.2'
+version: '2.3'
 target:
   env: {{env}}
   siteName: {{site_name}}

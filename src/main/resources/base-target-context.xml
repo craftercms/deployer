@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2020 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -105,12 +105,14 @@
 
     <bean id="gitPullProcessor" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.git.GitPullProcessor" >
-        <property name="localRepoFolder" value="${target.localRepoPath}"/>
+        <constructor-arg name="localRepoFolder" value="${target.localRepoPath}"/>
+        <constructor-arg name="authConfiguratorFactory" ref="gitAuthenticationConfiguratorFactory"/>
     </bean>
 
     <bean id="gitPushProcessor" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.git.GitPushProcessor">
-        <property name="localRepoFolder" value="${target.localRepoPath}"/>
+        <constructor-arg name="localRepoFolder" value="${target.localRepoPath}"/>
+        <constructor-arg name="authConfiguratorFactory" ref="gitAuthenticationConfiguratorFactory"/>
     </bean>
 
     <bean id="gitDiffProcessor" parent="deploymentProcessor"
@@ -494,7 +496,7 @@
             <map>
                 <entry key="author" value="#{T(org.apache.tika.metadata.TikaCoreProperties).CREATOR}"/>
                 <entry key="title" value="#{T(org.apache.tika.metadata.TikaCoreProperties).TITLE}"/>
-                <entry key="keywords" value="#{T(org.apache.tika.metadata.TikaCoreProperties).KEYWORDS}"/>
+                <entry key="keywords" value="#{T(org.apache.tika.metadata.Office).KEYWORDS}"/>
                 <entry key="description" value="#{T(org.apache.tika.metadata.TikaCoreProperties).DESCRIPTION}"/>
                 <entry key="contentType" value="#{T(org.apache.tika.metadata.HttpHeaders).CONTENT_TYPE}"/>
                 <entry key="contentLength" value="#{T(org.apache.tika.metadata.HttpHeaders).CONTENT_LENGTH}"/>

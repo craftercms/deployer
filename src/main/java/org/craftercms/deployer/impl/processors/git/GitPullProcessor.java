@@ -15,6 +15,7 @@
  */
 package org.craftercms.deployer.impl.processors.git;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -31,6 +32,8 @@ import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.slf4j.Logger;
@@ -116,6 +119,20 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
             logger.info(details);
 
             execution.setStatusDetails(details);
+        } catch (JGitInternalException e) {
+            Throwable cause = e.getCause();
+            if (cause instanceof CorruptObjectException || cause instanceof EOFException) {
+                logger.warn("The local repository {} is corrupt, trying to fix it", localRepoFolder);
+                try {
+                    GitUtils.deleteGitIndex(localRepoFolder.getAbsolutePath());
+                    logger.info("Corrupt index deleted from local repository {}", localRepoFolder);
+                } catch (IOException ioe) {
+                    throw new DeployerException("Error deleting index for local repo " + localRepoFolder, ioe);
+                }
+            } else {
+                logger.error("Unknown internal git error in local repository {}", localRepoFolder, e);
+                throw e;
+            }
         } catch (GitAPIException | URISyntaxException e) {
             throw new DeployerException("Execution of git pull failed:", e);
         }

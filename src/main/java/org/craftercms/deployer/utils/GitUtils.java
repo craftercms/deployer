@@ -50,7 +50,8 @@ public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils
     private static final Logger logger = LoggerFactory.getLogger(GitUtils.class);
 
     public static final String GIT_FOLDER_NAME = ".git";
-    public static final String GIT_LOCK_NAME = "index.lock";
+    public static final String GIT_INDEX_NAME = "index";
+    public static final String GIT_LOCK_NAME = GIT_INDEX_NAME + ".lock";
 
     public static final String CORE_CONFIG_SECTION = "core";
     public static final String BIG_FILE_THRESHOLD_CONFIG_PARAM = "bigFileThreshold";
@@ -206,7 +207,9 @@ public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils
      * @throws IOException if there is an error opening the repository
      */
     public static void cleanup(String repoPath) throws GitAPIException, IOException {
-        openRepository(new File(repoPath)).gc().call();
+        try (Git git = openRepository(new File(repoPath))) {
+            git.gc().call();
+        }
     }
 
     /**
@@ -247,12 +250,19 @@ public abstract class GitUtils extends org.craftercms.commons.git.utils.GitUtils
     }
 
     public static void unlock(String repoPath) throws IOException {
-        Path lockFile = Paths.get(repoPath, GIT_FOLDER_NAME, GIT_LOCK_NAME);
+        deleteFile(Paths.get(repoPath, GIT_FOLDER_NAME, GIT_LOCK_NAME));
+    }
+
+    public static void deleteGitIndex(String repoPath) throws IOException {
+        deleteFile(Paths.get(repoPath, GIT_FOLDER_NAME, GIT_INDEX_NAME));
+    }
+
+    protected static void deleteFile(Path file) throws IOException {
         try {
-            Files.deleteIfExists(lockFile);
+            Files.deleteIfExists(file);
         } catch (IOException e) {
-            logger.debug("Error deleting lock file {}, forcing delete", lockFile, e);
-            FileUtils.forceDelete(lockFile.toFile());
+            logger.debug("Error deleting file {}, forcing delete", file, e);
+            FileUtils.forceDelete(file.toFile());
         }
     }
 

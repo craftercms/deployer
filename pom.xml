@@ -21,7 +21,7 @@
 
 	<groupId>org.craftercms</groupId>
 	<artifactId>crafter-deployer</artifactId>
-	<version>3.1.22-SNAPSHOT</version><!-- craftercms version flag -->
+	<version>3.1.23-SNAPSHOT</version><!-- craftercms version flag -->
 	<packaging>jar</packaging>
 
 	<name>Crafter Deployer</name>
@@ -36,7 +36,7 @@
 	<parent>
 		<groupId>org.springframework.boot</groupId>
 		<artifactId>spring-boot-starter-parent</artifactId>
-		<version>2.2.10.RELEASE</version>
+		<version>2.2.13.RELEASE</version>
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -53,7 +53,7 @@
 		<java.version>1.8</java.version>
 		<!-- Override property setup by Spring Boot Parent -->
 		<jackson.version>2.13.1</jackson.version>
-		<jackson.databind.version>2.13.1</jackson.databind.version>
+		<jackson.databind.version>2.13.2.2</jackson.databind.version>
 		<aws.version>1.12.139</aws.version>
 		<box.sdk.version>2.58.0</box.sdk.version>
 		<elasticsearch.version>7.2.1</elasticsearch.version>

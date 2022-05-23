@@ -30,6 +30,7 @@ import org.springframework.beans.factory.annotation.Required;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.StringWriter;
 
 /**
  * Post processor that writes the deployment result to an output file for later access, whenever a deployment fails or files where
@@ -68,7 +69,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doDestroy() throws DeployerException {
+    protected void doDestroy() {
         // Do nothing
     }
 
@@ -82,35 +83,41 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     protected ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
                                       ChangeSet originalChangeSet) throws DeployerException {
         File outputFile = getOutputFile(deployment);
+        StringWriter stringWriter = new StringWriter();
         try (FileWriter fileWriter = new FileWriter(outputFile, true)) {
-            CSVPrinter printer;
+            // Use a string printer to keep the current record in memory (in case it is needed for emails)
+            CSVPrinter stringPrinter = new CSVPrinter(stringWriter, CSVFormat.DEFAULT.withHeader(HEADERS));
+            // Use a file printer to append to the full history in the FS
+            CSVPrinter filePrinter;
             if(outputFile.exists() && outputFile.length() > 0) {
-                printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+                filePrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
             } else {
-                printer = new CSVPrinter(fileWriter, CSVFormat.Builder.create().setHeader(HEADERS).build());
+                filePrinter = new CSVPrinter(fileWriter, CSVFormat.Builder.create().setHeader(HEADERS).build());
             }
-
-            ChangeSet changeSet = deployment.getChangeSet();
-
-            printer.printRecord(
-                    deployment.getMode(),
-                    deployment.getStatus(),
-                    deployment.getDuration(),
-                    deployment.getStart().toInstant(),
-                    deployment.getEnd().toInstant(),
-                    ListUtils.emptyIfNull(changeSet.getCreatedFiles()),
-                    ListUtils.emptyIfNull(changeSet.getUpdatedFiles()),
-                    ListUtils.emptyIfNull(changeSet.getDeletedFiles())
-            );
+            appendDeployment(stringPrinter, deployment);
+            appendDeployment(filePrinter, deployment);
         } catch (IOException e) {
             throw new DeployerException("Error while writing deployment output file " + outputFile, e);
         }
 
-        deployment.addParam(OUTPUT_FILE_PARAM_NAME, outputFile);
+        deployment.addParam(OUTPUT_FILE_PARAM_NAME, stringWriter.toString());
 
         logger.info("Successfully wrote deployment output to {}", outputFile);
 
         return null;
+    }
+
+    protected void appendDeployment(CSVPrinter printer, Deployment deployment) throws IOException {
+        ChangeSet changeSet = deployment.getChangeSet();
+        printer.printRecord(
+                deployment.getStatus(),
+                deployment.getDuration(),
+                deployment.getStart().toInstant(),
+                deployment.getEnd().toInstant(),
+                ListUtils.emptyIfNull(changeSet.getCreatedFiles()),
+                ListUtils.emptyIfNull(changeSet.getUpdatedFiles()),
+                ListUtils.emptyIfNull(changeSet.getDeletedFiles())
+        );
     }
 
     protected File getOutputFile(Deployment deployment) {

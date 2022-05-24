@@ -163,6 +163,11 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             List<Target> targets = resolveTargets();
             if (CollectionUtils.isEmpty(targets)) {
                 logger.warn("No config files found under {}", targetConfigFolder.getAbsolutePath());
+            } else {
+                // check if there are any targets that need to be unlocked
+                targets.forEach(target -> {
+                    target.unlock();
+                });
             }
         } catch (DeployerException e) {
             logger.error("Error while loading targets on startup", e);

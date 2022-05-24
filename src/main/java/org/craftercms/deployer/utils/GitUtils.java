@@ -249,6 +249,11 @@ public abstract class GitUtils {
         }
     }
 
+    public static boolean isRepositoryLocked(String repoPath) {
+        Path path = Paths.get(repoPath, GIT_FOLDER_NAME, GIT_LOCK_NAME);
+        return Files.exists(path);
+    }
+
     public static void unlock(String repoPath) throws IOException {
         deleteFile(Paths.get(repoPath, GIT_FOLDER_NAME, GIT_LOCK_NAME));
     }

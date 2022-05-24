@@ -120,12 +120,11 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
             execution.setStatusDetails(details);
         } catch (JGitInternalException e) {
-            Throwable cause = e.getCause();
-            if (cause instanceof CorruptObjectException || cause instanceof EOFException) {
+            if (isRepositoryCorrupted(e)) {
                 logger.warn("The local repository {} is corrupt, trying to fix it", localRepoFolder);
                 try {
                     GitUtils.deleteGitIndex(localRepoFolder.getAbsolutePath());
-                    logger.info("Corrupt index deleted from local repository {}", localRepoFolder);
+                    logger.info(".git/index is corrupt and will be deleted from local repository {}", localRepoFolder);
                 } catch (IOException ioe) {
                     throw new DeployerException("Error deleting index for local repo " + localRepoFolder, ioe);
                 }
@@ -192,6 +191,11 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
             throw new DeployerException(
                 "Failed to clone Git remote repository " + remoteRepoUrl + " into " + localRepoFolder, e);
         }
+    }
+
+    protected boolean isRepositoryCorrupted(Throwable ex) {
+        Throwable cause = ex.getCause();
+        return cause instanceof CorruptObjectException || cause instanceof EOFException;
     }
 
 }

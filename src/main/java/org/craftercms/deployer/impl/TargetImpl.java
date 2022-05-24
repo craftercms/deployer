@@ -336,8 +336,13 @@ public class TargetImpl implements Target {
         MDC.put(TARGET_ID_MDC_KEY, getId());
 
         try {
-            logger.info("Unlocking repo for target {}", getId());
-            GitUtils.unlock(applicationContext.getEnvironment().getProperty(TARGET_LOCAL_REPO_CONFIG_KEY));
+            String localPath = applicationContext.getEnvironment().getProperty(TARGET_LOCAL_REPO_CONFIG_KEY);
+            if (GitUtils.isRepositoryLocked(localPath)) {
+                logger.warn("The local repository {} is locked, trying to unlock it", localPath);
+                GitUtils.unlock(localPath);
+                logger.info(".git/index.lock is deleted from local repository {} for target '{}'", localPath, getId());
+            }
+
         } catch (Exception e) {
             logger.warn("Error unlocking repo for target {}", getId());
         }

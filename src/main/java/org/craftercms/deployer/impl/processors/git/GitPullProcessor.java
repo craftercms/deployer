@@ -124,7 +124,7 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
                 logger.warn("The local repository {} is corrupt, trying to fix it", localRepoFolder);
                 try {
                     GitUtils.deleteGitIndex(localRepoFolder.getAbsolutePath());
-                    logger.info(".git/index is deleted from local repository {}", localRepoFolder);
+                    logger.info(".git/index is corrupt and will be deleted from local repository {}", localRepoFolder);
                 } catch (IOException ioe) {
                     throw new DeployerException("Error deleting index for local repo " + localRepoFolder, ioe);
                 }

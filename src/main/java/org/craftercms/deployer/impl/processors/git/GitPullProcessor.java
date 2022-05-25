@@ -27,7 +27,7 @@ import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.GitUtils;
+import org.craftercms.commons.git.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;

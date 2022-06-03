@@ -335,9 +335,7 @@ public class TargetImpl implements Target {
 
         try {
             if (GitUtils.isRepositoryLocked(localRepoPath)) {
-                logger.warn("The local repository '{}' is locked, trying to unlock it", localRepoPath);
                 GitUtils.unlock(localRepoPath);
-                logger.info(".git/index.lock is deleted from local repository '{}' for target '{}'", localRepoPath, getId());
             }
         } catch (Exception e) {
             logger.warn("Error unlocking repo for target {}", getId());

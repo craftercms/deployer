@@ -33,8 +33,6 @@ import java.io.File;
 import java.io.IOException;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
 
@@ -227,20 +225,11 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
 
         List<File> attachments = new ArrayList<>();
         File tempFileDeployment = null;
-        File tempFileResult = null;
 
         try {
             tempFileDeployment = File.createTempFile("deployment", ".json");
             objectMapper.writeValue(tempFileDeployment, deployment);
             attachments.add(tempFileDeployment);
-
-            String attachment = (String) deployment.getParam(FileOutputProcessor.OUTPUT_FILE_PARAM_NAME);
-            if(attachment != null) {
-                tempFileResult = File.createTempFile("deployment", ".csv");
-                Files.write(tempFileResult.toPath(), attachment.getBytes(StandardCharsets.UTF_8));
-
-                attachments.add(tempFileResult);
-            }
 
         } catch (IOException e) {
             logger.error("Could not write deployment as json", e);
@@ -266,9 +255,6 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
         } finally {
             if(tempFileDeployment != null) {
                 tempFileDeployment.delete();
-            }
-            if(tempFileResult != null) {
-                tempFileResult.delete();
             }
         }
 

@@ -30,7 +30,6 @@ import org.springframework.beans.factory.annotation.Required;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
-import java.io.StringWriter;
 
 /**
  * Post processor that writes the deployment result to an output file for later access, whenever a deployment fails or files where
@@ -42,9 +41,8 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(FileOutputProcessor.class);
 
-    protected static final String OUTPUT_FILE_PARAM_NAME = "outputFile";
     protected static final String[] HEADERS = {
-            "mode", "status", "duration", "start", "end", "created_files", "deleted_files", "updated_files"
+            "mode", "status", "duration", "start", "end", "created_files", "updated_files", "deleted_files"
     };
 
     protected File outputFolder;
@@ -83,10 +81,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     protected ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
                                       ChangeSet originalChangeSet) throws DeployerException {
         File outputFile = getOutputFile(deployment);
-        StringWriter stringWriter = new StringWriter();
         try (FileWriter fileWriter = new FileWriter(outputFile, true)) {
-            // Use a string printer to keep the current record in memory (in case it is needed for emails)
-            CSVPrinter stringPrinter = new CSVPrinter(stringWriter, CSVFormat.DEFAULT.withHeader(HEADERS));
             // Use a file printer to append to the full history in the FS
             CSVPrinter filePrinter;
             if(outputFile.exists() && outputFile.length() > 0) {
@@ -94,13 +89,10 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
             } else {
                 filePrinter = new CSVPrinter(fileWriter, CSVFormat.Builder.create().setHeader(HEADERS).build());
             }
-            appendDeployment(stringPrinter, deployment);
             appendDeployment(filePrinter, deployment);
         } catch (IOException e) {
             throw new DeployerException("Error while writing deployment output file " + outputFile, e);
         }
-
-        deployment.addParam(OUTPUT_FILE_PARAM_NAME, stringWriter.toString());
 
         logger.info("Successfully wrote deployment output to {}", outputFile);
 

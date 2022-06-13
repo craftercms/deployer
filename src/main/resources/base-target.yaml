@@ -179,10 +179,16 @@ target:
         host: localhost
         # The port of the mail server used to send notifications
         port: 25
+        # The username of the mail server used to send notifications
+        username: ''
+        # The password of the mail server used to send notifications
+        password: ''
       # The mail protocol used on notifications
       protocol: smtp
       # The character encoding used on emails
       encoding: UTF-8
+      # The JavaMail properties, empty by default
+      properties: []
       templates:
         # The location (Spring URL) of  the mail templates
         location: classpath:templates/mail

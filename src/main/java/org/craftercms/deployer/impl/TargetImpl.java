@@ -20,13 +20,13 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
-import org.craftercms.deployer.utils.GitUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -336,8 +336,13 @@ public class TargetImpl implements Target {
         MDC.put(TARGET_ID_MDC_KEY, getId());
 
         try {
-            logger.info("Unlocking repo for target {}", getId());
-            GitUtils.unlock(applicationContext.getEnvironment().getProperty(TARGET_LOCAL_REPO_CONFIG_KEY));
+            String localPath = applicationContext.getEnvironment().getProperty(TARGET_LOCAL_REPO_CONFIG_KEY);
+            if (GitUtils.isRepositoryLocked(localPath)) {
+                logger.warn("The local repository {} is locked, trying to unlock it", localPath);
+                GitUtils.unlock(localPath);
+                logger.info(".git/index.lock is deleted from local repository {} for target '{}'", localPath, getId());
+            }
+
         } catch (Exception e) {
             logger.warn("Error unlocking repo for target {}", getId());
         }

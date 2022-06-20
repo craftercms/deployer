@@ -130,6 +130,9 @@ deployer:
         key: zEtRii1jWUuUUB0W
         # The salt used for encryption of configuration properties
         salt: DgGN9xhq3GOn6zxg
+      ssh:
+        # The path of the folder used for the SSH configuration
+        config: ./ssh
     upgrade:
       configuration: 'classpath:upgrade/pipelines.yaml'
       pipelines:

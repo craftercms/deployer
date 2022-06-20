@@ -16,21 +16,17 @@
 package org.craftercms.deployer.impl.processors.git;
 
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.commons.git.auth.BasicUsernamePasswordAuthConfigurator;
 import org.craftercms.commons.git.auth.GitAuthenticationConfigurator;
-import org.craftercms.commons.git.auth.SshRsaKeyPairAuthConfigurator;
-import org.craftercms.commons.git.auth.SshUsernamePasswordAuthConfigurator;
+import org.craftercms.commons.git.utils.AuthConfiguratorFactory;
+import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
-import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.io.File;
 import java.io.IOException;
@@ -67,8 +63,6 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
     protected static final String REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY = "remoteRepo.ssh.privateKey.path";
     protected static final String REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY = "remoteRepo.ssh.privateKey.passphrase";
 
-    protected static final String GIT_SSH_URL_REGEX = "^(ssh://.+)|([a-zA-Z0-9._-]+@.+)$";
-
     private static final Logger logger = LoggerFactory.getLogger(AbstractRemoteGitRepoAwareProcessor.class);
 
     protected File localRepoFolder;
@@ -78,10 +72,12 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
     protected String remoteRepoUrl;
     protected String remoteRepoBranch;
     protected GitAuthenticationConfigurator authenticationConfigurator;
+    protected AuthConfiguratorFactory authConfiguratorFactory;
 
-    @Required
-    public void setLocalRepoFolder(File localRepoFolder) {
+    public AbstractRemoteGitRepoAwareProcessor(File localRepoFolder,
+                                               AuthConfiguratorFactory authConfiguratorFactory) {
         this.localRepoFolder = localRepoFolder;
+        this.authConfiguratorFactory = authConfiguratorFactory;
     }
 
     @Override
@@ -105,39 +101,12 @@ public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDe
     protected GitAuthenticationConfigurator createAuthenticationConfigurator(Configuration config,
                                                                              String repoUrl) throws
                                                                                              ConfigurationException {
-        GitAuthenticationConfigurator authConfigurator = null;
-
-        if (repoUrl.matches(GIT_SSH_URL_REGEX)) {
-            String password = getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
-
-            if (StringUtils.isNotEmpty(password)) {
-                logger.debug("SSH username/password authentication will be used to connect to repo {}", repoUrl);
-
-                authConfigurator = new SshUsernamePasswordAuthConfigurator(password);
-            } else {
-                String privateKeyPath = getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY);
-                String passphrase = getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY);
-
-                logger.debug("SSH RSA key pair authentication will be used to connect to repo {}", repoUrl);
-
-                SshRsaKeyPairAuthConfigurator keyPairAuthConfigurator = new SshRsaKeyPairAuthConfigurator();
-                keyPairAuthConfigurator.setPrivateKeyPath(privateKeyPath);
-                keyPairAuthConfigurator.setPassphrase(passphrase);
-
-                authConfigurator = keyPairAuthConfigurator;
-            }
-        } else {
-            String username = getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY);
-            String password = getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY);
-
-            if (StringUtils.isNotEmpty(username) && StringUtils.isNotEmpty(password)) {
-                logger.debug("Username/password authentication will be used to connect to repo {}", repoUrl);
-
-                authConfigurator = new BasicUsernamePasswordAuthConfigurator(username, password);
-            }
-        }
-
-        return authConfigurator;
+        return authConfiguratorFactory.forUrl(repoUrl)
+                .withUsername(getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY))
+                .withPassword(getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY))
+                .withPrivateKeyPath(getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY))
+                .withPrivateKeyPassphrase(getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY))
+                .build();
     }
 
     protected Git openLocalRepository() throws DeployerException {

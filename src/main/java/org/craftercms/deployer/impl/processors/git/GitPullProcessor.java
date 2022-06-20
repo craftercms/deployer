@@ -15,6 +15,7 @@
  */
 package org.craftercms.deployer.impl.processors.git;
 
+import java.io.EOFException;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
@@ -22,15 +23,18 @@ import java.net.URISyntaxException;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.git.utils.AuthConfiguratorFactory;
+import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
+import org.eclipse.jgit.api.errors.JGitInternalException;
+import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.lib.Constants;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.slf4j.Logger;
@@ -67,6 +71,10 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
     // Config properties (populated on init)
 
     protected String remoteRepoName;
+
+    public GitPullProcessor(File localRepoFolder, AuthConfiguratorFactory authConfiguratorFactory) {
+        super(localRepoFolder, authConfiguratorFactory);
+    }
 
     @Override
     protected void doInit(Configuration config) throws ConfigurationException {
@@ -116,6 +124,19 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
             logger.info(details);
 
             execution.setStatusDetails(details);
+        } catch (JGitInternalException e) {
+            if (isRepositoryCorrupted(e)) {
+                logger.warn("The local repository {} is corrupt, trying to fix it", localRepoFolder);
+                try {
+                    GitUtils.deleteGitIndex(localRepoFolder.getAbsolutePath());
+                    logger.info(".git/index is deleted from local repository '{}'", localRepoFolder);
+                } catch (IOException ioe) {
+                    throw new DeployerException("Error deleting index for local repo " + localRepoFolder, ioe);
+                }
+            } else {
+                logger.error("Unknown internal git error in local repository {}", localRepoFolder, e);
+                throw e;
+            }
         } catch (GitAPIException | URISyntaxException e) {
             throw new DeployerException("Execution of git pull failed:", e);
         }
@@ -175,6 +196,11 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
             throw new DeployerException(
                 "Failed to clone Git remote repository " + remoteRepoUrl + " into " + localRepoFolder, e);
         }
+    }
+
+    protected boolean isRepositoryCorrupted(Throwable ex) {
+        Throwable cause = ex.getCause();
+        return cause instanceof CorruptObjectException || cause instanceof EOFException;
     }
 
 }

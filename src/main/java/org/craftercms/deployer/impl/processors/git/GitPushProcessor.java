@@ -23,11 +23,12 @@ import java.util.List;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.git.utils.AuthConfiguratorFactory;
+import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.utils.GitUtils;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.lib.Constants;
@@ -75,6 +76,10 @@ public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
     protected boolean force;
     protected boolean pushAll;
     protected String localBranch;
+
+    public GitPushProcessor(File localRepoFolder, AuthConfiguratorFactory authConfiguratorFactory) {
+        super(localRepoFolder, authConfiguratorFactory);
+    }
 
     @Override
     protected void doInit(Configuration config) throws ConfigurationException {

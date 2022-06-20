@@ -1,4 +1,4 @@
-version: '2.2'
+version: '2.3'
 aws:
   region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
   accessKey: {{#if aws.default_access_key}}{{aws.default_access_key}}{{else}}''{{/if}}

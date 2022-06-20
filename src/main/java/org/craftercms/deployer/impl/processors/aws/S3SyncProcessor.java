@@ -127,8 +127,7 @@ public class S3SyncProcessor extends AbstractS3Processor {
 
         try {
             MultipleFileUpload upload = transferManager.uploadFileList(
-                    s3Url.getBucket(), StringUtils.prependIfMissing(siteName, s3Url.getKey()),
-                    new File(localRepoUrl), files);
+                    s3Url.getBucket(), getS3BaseKey(), new File(localRepoUrl), files);
             upload.waitForCompletion();
 
             logger.debug("Uploads completed");

@@ -41,9 +41,8 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
     private static final Logger logger = LoggerFactory.getLogger(FileOutputProcessor.class);
 
-    protected static final String OUTPUT_FILE_PARAM_NAME = "outputFile";
     protected static final String[] HEADERS = {
-            "mode", "status", "duration", "start", "end", "created_files", "deleted_files", "updated_files"
+            "mode", "status", "duration", "start", "end", "created_files", "updated_files", "deleted_files"
     };
 
     protected File outputFolder;
@@ -68,7 +67,7 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doDestroy() throws DeployerException {
+    protected void doDestroy() {
         // Do nothing
     }
 
@@ -83,34 +82,34 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
                                       ChangeSet originalChangeSet) throws DeployerException {
         File outputFile = getOutputFile(deployment);
         try (FileWriter fileWriter = new FileWriter(outputFile, true)) {
-            CSVPrinter printer;
+            // Use a file printer to append to the full history in the FS
+            CSVPrinter filePrinter;
             if(outputFile.exists() && outputFile.length() > 0) {
-                printer = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+                filePrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
             } else {
-                printer = new CSVPrinter(fileWriter, CSVFormat.Builder.create().setHeader(HEADERS).build());
+                filePrinter = new CSVPrinter(fileWriter, CSVFormat.Builder.create().setHeader(HEADERS).build());
             }
-
-            ChangeSet changeSet = deployment.getChangeSet();
-
-            printer.printRecord(
-                    deployment.getMode(),
-                    deployment.getStatus(),
-                    deployment.getDuration(),
-                    deployment.getStart().toInstant(),
-                    deployment.getEnd().toInstant(),
-                    ListUtils.emptyIfNull(changeSet.getCreatedFiles()),
-                    ListUtils.emptyIfNull(changeSet.getUpdatedFiles()),
-                    ListUtils.emptyIfNull(changeSet.getDeletedFiles())
-            );
+            appendDeployment(filePrinter, deployment);
         } catch (IOException e) {
             throw new DeployerException("Error while writing deployment output file " + outputFile, e);
         }
 
-        deployment.addParam(OUTPUT_FILE_PARAM_NAME, outputFile);
-
         logger.info("Successfully wrote deployment output to {}", outputFile);
 
         return null;
+    }
+
+    protected void appendDeployment(CSVPrinter printer, Deployment deployment) throws IOException {
+        ChangeSet changeSet = deployment.getChangeSet();
+        printer.printRecord(
+                deployment.getStatus(),
+                deployment.getDuration(),
+                deployment.getStart().toInstant(),
+                deployment.getEnd().toInstant(),
+                ListUtils.emptyIfNull(changeSet.getCreatedFiles()),
+                ListUtils.emptyIfNull(changeSet.getUpdatedFiles()),
+                ListUtils.emptyIfNull(changeSet.getDeletedFiles())
+        );
     }
 
     protected File getOutputFile(Deployment deployment) {

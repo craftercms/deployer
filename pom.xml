@@ -58,7 +58,7 @@
 		<aws.version>1.12.139</aws.version>
 		<box.sdk.version>2.58.0</box.sdk.version>
 		<elasticsearch.version>6.6.1</elasticsearch.version>
-		<tomcat.version>9.0.45</tomcat.version>
+		<tomcat.version>9.0.63</tomcat.version>
 		<groovy.version>2.4.19</groovy.version>
 		<apache.ivy>2.4.0</apache.ivy>
 		<httpclient.version>4.5.13</httpclient.version>

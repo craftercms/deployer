@@ -42,7 +42,7 @@
 
 	<properties>
 		<!-- Version Numbers -->
-		<spring-framework.version>5.2.16.RELEASE</spring-framework.version>
+		<spring-framework.version>5.2.21.RELEASE</spring-framework.version>
 		<commons.configuration.version>2.7</commons.configuration.version>
 		<commons.csv.version>1.5</commons.csv.version>
 		<jgit.version>5.13.0.202109080827-r</jgit.version>

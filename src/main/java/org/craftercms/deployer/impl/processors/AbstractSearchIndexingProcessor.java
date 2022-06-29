@@ -199,18 +199,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         return mode == Deployment.Mode.PUBLISH || mode == Deployment.Mode.SEARCH_INDEX;
     }
 
-    @Override
-    public void execute(Deployment deployment) {
-        if (createIndexIfMissing) {
-            logger.info("Checking if index {} exists", indexId);
-            doCreateIndexIfMissing(deployment.getTarget());
-        }
-
-        // continue as usual
-        super.execute(deployment);
-    }
-
-    protected abstract void doCreateIndexIfMissing(Target target);
+    protected abstract void doCreateIndexIfMissing();
 
     /**
      * Override to add pages/components that need to be updated because a component that they include was updated.
@@ -220,6 +209,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
      */
     @Override
     protected ChangeSet getFilteredChangeSet(ChangeSet changeSet) {
+        if (createIndexIfMissing) {
+            logger.info("Ensuring that index {} exists", indexId);
+            doCreateIndexIfMissing();
+        }
         changeSet = super.getFilteredChangeSet(changeSet);
         if (changeSet != null && !changeSet.isEmpty() && xmlFlatteningEnabled) {
             List<String> createdFiles = changeSet.getCreatedFiles();

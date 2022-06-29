@@ -63,7 +63,7 @@ public class ElasticsearchIndexingProcessor extends AbstractSearchIndexingProces
     }
 
     @Override
-    protected void doCreateIndexIfMissing(Target target) {
+    protected void doCreateIndexIfMissing() {
         elasticsearchAdminService.createIndex(indexId);
     }
 

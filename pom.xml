@@ -42,7 +42,7 @@
 
 	<properties>
 		<!-- Version Numbers -->
-		<spring-framework.version>5.2.16.RELEASE</spring-framework.version>
+		<spring-framework.version>5.2.21.RELEASE</spring-framework.version>
 		<commons.configuration.version>2.7</commons.configuration.version>
 		<commons.csv.version>1.5</commons.csv.version>
 		<jgit.version>5.13.0.202109080827-r</jgit.version>
@@ -57,8 +57,7 @@
 		<jackson.databind.version>2.13.2.2</jackson.databind.version>
 		<aws.version>1.12.139</aws.version>
 		<box.sdk.version>2.58.0</box.sdk.version>
-		<elasticsearch.version>7.2.1</elasticsearch.version>
-		<tomcat.version>9.0.45</tomcat.version>
+		<tomcat.version>9.0.63</tomcat.version>
 		<groovy.version>2.4.19</groovy.version>
 		<apache.ivy>2.4.0</apache.ivy>
 		<httpclient.version>4.5.13</httpclient.version>

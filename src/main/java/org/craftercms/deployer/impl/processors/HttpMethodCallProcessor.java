@@ -31,6 +31,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.URI;
+import java.net.URISyntaxException;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
@@ -65,7 +67,7 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
     }
 
     @Override
-    protected void doDestroy() throws DeployerException {
+    protected void doDestroy() {
         // Do nothing
     }
 
@@ -73,8 +75,18 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
     protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
                                       ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
         HttpUriRequest request = createRequest();
+        URI uri = request.getURI();
+        String safeURI = StringUtils.EMPTY;
+        try {
+            // Try to hide sensitive data from the URL: username/password and query params
+            safeURI = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), null,
+                              uri.getFragment()).toString();
+        } catch (URISyntaxException e) {
+            logger.error("Error parsing URI", e);
+        }
+        String safeRequest = String.join(StringUtils.SPACE, request.getMethod(), safeURI);
 
-        logger.info("Executing request {}...", request);
+        logger.info("Executing request {}...", safeRequest);
 
         try (CloseableHttpResponse response = httpClient.execute(request)) {
             int status = response.getStatusLine().getStatusCode();
@@ -86,17 +98,17 @@ public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
             }
 
             if (status >= 200 && status < 300) {
-                logger.info("Successful response for request {}: status = {}, body = {}", request, status, body);
+                logger.info("Successful response for request {}: status = {}, body = {}", safeRequest, status, body);
 
-                execution.setStatusDetails("Successful response for request " + request + ": status = " + status);
+                execution.setStatusDetails("Successful response for request " + safeRequest + ": status = " + status);
             } else {
-                logger.error("Error response for request {}: status = {}, body = {}", request, status, body);
+                logger.error("Error response for request {}: status = {}, body = {}", safeRequest, status, body);
 
-                execution.setStatusDetails("Error response for request " + request + ": status = " + status);
+                execution.setStatusDetails("Error response for request " + safeRequest + ": status = " + status);
                 execution.endExecution(Deployment.Status.FAILURE);
             }
         } catch (IOException e) {
-            throw new DeployerException("IO error on HTTP request " + request, e);
+            throw new DeployerException("IO error on HTTP request " + safeRequest, e);
         }
 
         return null;

@@ -16,10 +16,10 @@
 package org.craftercms.deployer.api;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.List;
 
 import org.apache.commons.collections4.CollectionUtils;
@@ -30,6 +30,7 @@ import org.craftercms.search.batch.AbstractUpdateDetailProvider;
  *
  * @author avasquez
  */
+@JsonIgnoreProperties({"updateDetails", "updateLog"})
 public class ChangeSet extends AbstractUpdateDetailProvider {
 
     protected List<String> createdFiles;

@@ -312,8 +312,12 @@
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">
         <property name="host" value="${target.notifications.mail.server.host}"/>
         <property name="port" value="${target.notifications.mail.server.port}"/>
+        <property name="username" value="${target.notifications.mail.server.username}"/>
+        <property name="password" value="${target.notifications.mail.server.password}"/>
         <property name="protocol" value="${target.notifications.mail.protocol}"/>
         <property name="defaultEncoding" value="${target.notifications.mail.encoding}"/>
+        <property name="javaMailProperties"
+                  value="#{targetConfig.getProperties('target.notifications.mail.properties')}"/>
     </bean>
 
     <bean id="mailFreemarkerConfig" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">

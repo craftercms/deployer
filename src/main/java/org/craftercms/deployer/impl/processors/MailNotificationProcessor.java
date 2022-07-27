@@ -201,7 +201,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     }
 
     @Override
-    protected void doDestroy() throws DeployerException {
+    protected void doDestroy() {
         // Do nothing
     }
 
@@ -224,19 +224,15 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
         templateModel.put(STATUS_MODEL_KEY, deployment.getStatus());
 
         List<File> attachments = new ArrayList<>();
-        File tempFile = null;
+        File tempFileDeployment = null;
 
         try {
-            tempFile = File.createTempFile("deployment", ".json");
-            objectMapper.writeValue(tempFile, deployment);
-            attachments.add(tempFile);
+            tempFileDeployment = File.createTempFile("deployment", ".json");
+            objectMapper.writeValue(tempFileDeployment, deployment);
+            attachments.add(tempFileDeployment);
+
         } catch (IOException e) {
             logger.error("Could not write deployment as json", e);
-        }
-
-        File attachment = (File) deployment.getParam(FileOutputProcessor.OUTPUT_FILE_PARAM_NAME);
-        if(attachment != null) {
-            attachments.add(attachment);
         }
 
         templateModel.put(OUTPUT_ATTACHED_MODEL_KEY, !attachments.isEmpty());
@@ -257,8 +253,8 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
         } catch (Exception e) {
             throw new DeployerException("Error while sending email with deployment report", e);
         } finally {
-            if(tempFile != null) {
-                tempFile.delete();
+            if(tempFileDeployment != null) {
+                tempFileDeployment.delete();
             }
         }
 

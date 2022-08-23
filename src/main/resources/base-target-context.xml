@@ -521,7 +521,7 @@
             <map>
                 <entry key="author" value="#{T(org.apache.tika.metadata.TikaCoreProperties).CREATOR}"/>
                 <entry key="title" value="#{T(org.apache.tika.metadata.TikaCoreProperties).TITLE}"/>
-                <entry key="keywords" value="#{T(org.apache.tika.metadata.TikaCoreProperties).KEYWORDS}"/>
+                <entry key="keywords" value="#{T(org.apache.tika.metadata.Office).KEYWORDS}"/>
                 <entry key="description" value="#{T(org.apache.tika.metadata.TikaCoreProperties).DESCRIPTION}"/>
                 <entry key="contentType" value="#{T(org.apache.tika.metadata.HttpHeaders).CONTENT_TYPE}"/>
                 <entry key="contentLength" value="#{T(org.apache.tika.metadata.HttpHeaders).CONTENT_LENGTH}"/>

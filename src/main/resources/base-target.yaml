@@ -174,9 +174,12 @@ target:
             - text/css
           # Look into all XML descriptors to index all binary files referenced
           metadataPathPatterns:
-            - ^/(?!config).+\.xml$
+            - ^/?site/documents/.+\.xml$
           binaryPathPatterns:
-            - ^/(?!config).+$
+            - ^/?static-assets/.+$
+            - ^/?remote-assets/.+$
+            - ^/?scripts/.+$
+            - ^/?templates/.+$
           excludePathPatterns:
             - ^/?config/.*$
           # Include all fields marked as remote resources (S3, Box, CMIS)

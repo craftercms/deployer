@@ -180,6 +180,9 @@ target:
             - ^/?remote-assets/.+$
             - ^/?scripts/.+$
             - ^/?templates/.+$
+          # Additional metadata such as contentLength, content-type specific metadata
+          metadataExtractorPathPatterns:
+            - ^/?site/.+$
           excludePathPatterns:
             - ^/?config/.*$
           # Include all fields marked as remote resources (S3, Box, CMIS)

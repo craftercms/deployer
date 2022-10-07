@@ -263,7 +263,7 @@
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
     </bean>
 
-    <bean id="inheritedDescriptorsItemProcessor" 
+    <bean id="inheritedDescriptorsItemProcessor"
           class="org.craftercms.core.processors.impl.InheritedDescriptorsItemProcessor">
         <constructor-arg name="inheritsFromElementName" value="${target.search.indexing.xml.merging.inherits.field}"/>
         <constructor-arg name="mergeStrategyResolver" ref="crafter.mergeStrategyResolverChain"/>
@@ -569,12 +569,12 @@
     <bean id="contentTypeMetadataExtractor" class="org.craftercms.search.metadata.impl.ContentTypeMetadataExtractor">
         <property name="fieldXpath" value="${target.search.indexing.binary.authoring.contentType.xpath}"/>
         <property name="includePatterns"
-                  value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataExtractorPathPatterns', T(java.util.List))}"/>
     </bean>
 
     <bean id="fileSizeMetadataExtractor" class="org.craftercms.search.metadata.impl.FileSizeMetadataExtractor">
         <property name="includePatterns"
-                  value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataExtractorPathPatterns', T(java.util.List))}"/>
     </bean>
 
     <bean id="internalNameMetadataExtractor" class="org.craftercms.search.metadata.impl.InternalNameMetadataExtractor">

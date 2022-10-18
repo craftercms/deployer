@@ -561,6 +561,8 @@
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataPathPatterns', T(java.util.List))}"/>
         <property name="binaryPathPatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.binaryPathPatterns', T(java.util.List))}"/>
+        <property name="binarySearchablePathPatterns"
+                  value="#{environment.getProperty('target.search.indexing.binary.authoring.binarySearchablePathPatterns', T(java.util.List))}"/>
         <property name="referenceXPaths"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.referenceXPaths', T(java.util.List))}"/>
         <property name="metadataExtractors" ref="authoringMetadataExtractors"/>

@@ -172,7 +172,7 @@ target:
             - text/x-groovy
             - text/javascript
             - text/css
-          # Look into all XML descriptors to index all binary files referenced
+          # The regex path patterns for the metadata ("jacket") files of binary/document files
           metadataPathPatterns:
             - ^/?site/documents/.+\.xml$
           binaryPathPatterns:
@@ -180,6 +180,9 @@ target:
             - ^/?remote-assets/.+$
             - ^/?scripts/.+$
             - ^/?templates/.+$
+          # Look into all XML descriptors to index all binary files referenced
+          binarySearchablePathPatterns:
+            - ^/?site/.+\.xml$
           # Additional metadata such as contentLength, content-type specific metadata
           metadataExtractorPathPatterns:
             - ^/?site/.+$

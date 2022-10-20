@@ -566,6 +566,7 @@
         <property name="referenceXPaths"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.referenceXPaths', T(java.util.List))}"/>
         <property name="metadataExtractors" ref="authoringMetadataExtractors"/>
+        <property name="internalNameFieldName" value="${target.search.indexing.field.name.internalName}"/>
     </bean>
 
     <bean id="contentTypeMetadataExtractor" class="org.craftercms.search.metadata.impl.ContentTypeMetadataExtractor">

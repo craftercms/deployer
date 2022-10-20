@@ -101,6 +101,8 @@ target:
             name: crafterPublishedDate
             # The alternate name for the publish date field (indexed as a date)
             alt: crafterPublishedDate_dt
+          # The name for the internal name field
+          internalName: internalName
         type:
           html:
             # The suffix used for fields containing HTML markup (only text will be indexed)

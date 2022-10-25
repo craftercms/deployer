@@ -101,6 +101,8 @@ target:
             name: crafterPublishedDate
             # The alternate name for the publish date field (indexed as a date)
             alt: crafterPublishedDate_dt
+          # The name for the internal name field
+          internalName: internalName
         type:
           html:
             # The suffix used for fields containing HTML markup (only text will be indexed)
@@ -172,11 +174,20 @@ target:
             - text/x-groovy
             - text/javascript
             - text/css
-          # Look into all XML descriptors to index all binary files referenced
+          # The regex path patterns for the metadata ("jacket") files of binary/document files
           metadataPathPatterns:
-            - ^/(?!config).+\.xml$
+            - ^/?site/documents/.+\.xml$
           binaryPathPatterns:
-            - ^/(?!config).+$
+            - ^/?static-assets/.+$
+            - ^/?remote-assets/.+$
+            - ^/?scripts/.+$
+            - ^/?templates/.+$
+          # Look into all XML descriptors to index all binary files referenced
+          binarySearchablePathPatterns:
+            - ^/?site/.+\.xml$
+          # Additional metadata such as contentLength, content-type specific metadata
+          metadataExtractorPathPatterns:
+            - ^/?site/.+$
           excludePathPatterns:
             - ^/?config/.*$
           # Include all fields marked as remote resources (S3, Box, CMIS)

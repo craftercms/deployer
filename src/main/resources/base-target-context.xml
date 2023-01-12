@@ -553,7 +553,7 @@
 
     <bean id="authoringElasticsearchBinaryFileWithMetadataBatchIndexer"
           parent="abstractBinaryFileWithMetadataBatchIndexer"
-          class="org.craftercms.search.elasticsearch.batch.ElasticsearchBinaryFileWithMetadataBatchIndexer">
+          class="org.craftercms.search.elasticsearch.batch.authoring.AuthoringElasticsearchBinaryFileWithMetadataBatchIndexer">
         <property name="elasticsearchService" ref="elasticsearchService"/>
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.supportedMimeTypes', T(java.util.List))}"/>

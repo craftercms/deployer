@@ -34,11 +34,7 @@ public class MonitorController extends MonitoringRestControllerBase {
      */
     public static final String BASE_URL = "/api/1";
 
-    @Value("${deployer.main.management.authorizationToken}")
-    private String configuredToken;
-
-    @Override
-    public String getConfiguredToken() {
-        return configuredToken;
+    public MonitorController(@Value("${deployer.main.management.authorizationToken}") final String configuredToken) {
+        super(configuredToken);
     }
 }

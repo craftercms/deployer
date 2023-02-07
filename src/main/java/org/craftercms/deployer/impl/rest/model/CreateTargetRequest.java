@@ -26,6 +26,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,21 +39,27 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CreateTargetRequest {
     @NotEmpty
+    @Size(max = 50)
     @EsapiValidatedParam(type = SITE_ID)
     private String siteName;
     @NotEmpty
+    @Size(max = 50)
     @ValidateNoTagsParam
     @ValidateSecurePathParam
+    @EsapiValidatedParam(type = SITE_ID, message = "Value is not a valid environment name")
     private String env;
     private boolean replace;
     @NotBlank
+    @Size(max = 50)
     @ValidateNoTagsParam
+    @ValidateSecurePathParam
     private String templateName = "remote";
     @ValidateNoTagsParam
     private String repoUrl;
     @ValidateNoTagsParam
     @ValidateSecurePathParam
     private String repoBranch;
+    @Size(max = 255)
     @EsapiValidatedParam(type = USERNAME)
     private String repoUsername;
     @ValidateNoTagsParam

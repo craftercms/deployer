@@ -33,7 +33,7 @@ public class CreateIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
         try {
             logger.info("Creating Elasticsearch index for target '{}'", target.getId());
 
-            elasticsearchAdminService.createIndex(indexId);
+            openSearchAdminService.createIndex(indexId);
         } catch (SearchException e) {
             throw new DeployerException("Error creating index for target '" + target.getId() + "'", e);
         }

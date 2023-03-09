@@ -26,7 +26,7 @@ import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
-import org.craftercms.deployer.impl.processors.elasticsearch.ElasticsearchIndexingProcessor;
+import org.craftercms.deployer.impl.processors.opensearch.OpenSearchIndexingProcessor;
 import org.craftercms.search.batch.UpdateDetail;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LogCommand;
@@ -59,7 +59,7 @@ import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FIL
  * Processor that, based on a previous processed commit that's stored, does a diff with the current commit of the deployment, to
  * find out the change set. If there is no previous processed commit, then the entire repository becomes the change set. This processor
  * is used basically to create the change set and should be used before other processors that actually process the change set, like
- * {@link ElasticsearchIndexingProcessor}.
+ * {@link OpenSearchIndexingProcessor}.
  *
  * @author avasquez
  */

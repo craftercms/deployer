@@ -11,7 +11,7 @@ target:
     pipeline:
       - processorName: gitDiffProcessor
         includeGitLog: true
-      - processorName: authoringElasticsearchIndexingProcessor
+      - processorName: authoringOpenSearchIndexingProcessor
         excludeFiles: ['^/sources/.*$', '^/\.crafter/.*$']
         reindexItemsOnComponentUpdates: false
       - processorName: httpMethodCallProcessor

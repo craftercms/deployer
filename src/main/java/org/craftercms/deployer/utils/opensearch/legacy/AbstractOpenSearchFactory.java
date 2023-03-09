@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.deployer.utils.elasticsearch.legacy;
+package org.craftercms.deployer.utils.opensearch.legacy;
 
-import org.elasticsearch.client.RestHighLevelClient;
+import org.opensearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
@@ -29,10 +29,10 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
  * @author joseross
  * @since 3.1.5
  */
-public abstract class AbstractElasticsearchFactory<T extends AutoCloseable> extends AbstractFactoryBean<T>
+public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends AbstractFactoryBean<T>
     implements BeanNameAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractElasticsearchFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractOpenSearchFactory.class);
 
     /**
      * The name of the bean
@@ -42,9 +42,9 @@ public abstract class AbstractElasticsearchFactory<T extends AutoCloseable> exte
     /**
      * The Elasticsearch configuration
      */
-    protected ElasticsearchConfig config;
+    protected OpenSearchConfig config;
 
-    public AbstractElasticsearchFactory(final ElasticsearchConfig config) {
+    public AbstractOpenSearchFactory(final OpenSearchConfig config) {
         this.config = config;
     }
 
@@ -64,7 +64,7 @@ public abstract class AbstractElasticsearchFactory<T extends AutoCloseable> exte
         logger.debug("Using a multi-cluster configuration for '{}'", name);
         RestHighLevelClient readClient = config.readCluster.buildClient();
         RestHighLevelClient[] writeClients = config.writeClusters.stream()
-            .map(ElasticsearchClusterConfig::buildClient)
+            .map(OpenSearchClusterConfig::buildClient)
             .toArray(RestHighLevelClient[]::new);
         return doCreateMultiInstance(readClient, writeClients);
     }

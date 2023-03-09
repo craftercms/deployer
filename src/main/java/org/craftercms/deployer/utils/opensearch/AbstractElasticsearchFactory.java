@@ -15,9 +15,9 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.deployer.utils.elasticsearch;
+package org.craftercms.deployer.utils.opensearch;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
+import org.opensearch.client.opensearch.OpenSearchClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
@@ -30,7 +30,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
  * @since 3.1.5
  */
 public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBean<T>
-    implements BeanNameAware {
+        implements BeanNameAware {
 
     private static final Logger logger = LoggerFactory.getLogger(AbstractElasticsearchFactory.class);
 
@@ -42,9 +42,9 @@ public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBea
     /**
      * The Elasticsearch configuration
      */
-    protected ElasticsearchConfig config;
+    protected OpenSearchConfig config;
 
-    public AbstractElasticsearchFactory(final ElasticsearchConfig config) {
+    public AbstractElasticsearchFactory(final OpenSearchConfig config) {
         this.config = config;
     }
 
@@ -62,26 +62,28 @@ public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBea
         }
 
         logger.debug("Using a multi-cluster configuration for '{}'", name);
-        ElasticsearchClient readClient = config.readCluster.buildClient();
-        ElasticsearchClient[] writeClients = config.writeClusters.stream()
-            .map(ElasticsearchClusterConfig::buildClient)
-            .toArray(ElasticsearchClient[]::new);
+        OpenSearchClient readClient = config.readCluster.buildClient();
+        OpenSearchClient[] writeClients = config.writeClusters.stream()
+                .map(OpenSearchClusterConfig::buildClient)
+                .toArray(OpenSearchClient[]::new);
         return doCreateMultiInstance(readClient, writeClients);
     }
 
     /**
      * Creates a service instance for a single cluster
+     *
      * @param client the Elasticsearch client
      * @return the service instance
      */
-    protected abstract T doCreateSingleInstance(ElasticsearchClient client);
+    protected abstract T doCreateSingleInstance(OpenSearchClient client);
 
     /**
      * Creates a service instance for a multiple cluster
-     * @param readClient the Elasticsearch client for read-related operations
+     *
+     * @param readClient   the Elasticsearch client for read-related operations
      * @param writeClients the Elasticsearch clients for write-related operations
      * @return the service instance
      */
-    protected abstract T doCreateMultiInstance(ElasticsearchClient readClient, ElasticsearchClient[] writeClients);
+    protected abstract T doCreateMultiInstance(OpenSearchClient readClient, OpenSearchClient[] writeClients);
 
 }

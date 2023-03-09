@@ -49,7 +49,7 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-      - processorName: elasticsearchIndexingProcessor
+      - processorName: openSearchIndexingProcessor
         excludeFiles: ['^/sources/.*$']
       - processorName: s3SyncProcessor
         region: ${aws.region}

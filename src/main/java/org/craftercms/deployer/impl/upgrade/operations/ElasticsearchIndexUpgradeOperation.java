@@ -20,7 +20,7 @@ import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.upgrade.impl.UpgradeContext;
 import org.craftercms.commons.upgrade.impl.operations.AbstractUpgradeOperation;
 import org.craftercms.deployer.api.Target;
-import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
+import org.craftercms.search.opensearch.OpenSearchAdminService;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
@@ -47,8 +47,8 @@ public class ElasticsearchIndexUpgradeOperation extends AbstractUpgradeOperation
         var target = context.getTarget();
         var config = target.getConfiguration();
 
-        ElasticsearchAdminService adminService =
-                target.getApplicationContext().getBean(ElasticsearchAdminService.class);
+        OpenSearchAdminService adminService =
+                target.getApplicationContext().getBean(OpenSearchAdminService.class);
         String siteName = target.getSiteName();
         String indexIdFormat = getRequiredStringProperty(config, INDEX_ID_FORMAT_CONFIG_KEY);
         String aliasName = String.format(indexIdFormat, siteName);

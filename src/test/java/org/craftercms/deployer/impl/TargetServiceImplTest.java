@@ -17,26 +17,17 @@ package org.craftercms.deployer.impl;
 
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
-
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.util.Collections;
-import java.util.List;
-import java.util.Map;
-import java.util.concurrent.ExecutorService;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.RandomStringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
 import org.craftercms.commons.crypto.impl.NoOpTextEncryptor;
 import org.craftercms.commons.upgrade.UpgradeManager;
-import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
-import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
+import org.craftercms.search.opensearch.OpenSearchAdminService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -47,10 +38,16 @@ import org.springframework.core.io.ClassPathResource;
 import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.scheduling.TaskScheduler;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.concurrent.ExecutorService;
+
 import static org.craftercms.deployer.impl.DeploymentConstants.CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -75,7 +72,7 @@ public class TargetServiceImplTest {
         TargetLifecycleHooksResolver targetLifecycleHooksResolver = createTargetLifecycleHooksResolver();
 
         DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-        factory.registerSingleton("elasticsearchAdminService", mock(ElasticsearchAdminService.class));
+        factory.registerSingleton("elasticsearchAdminService", mock(OpenSearchAdminService.class));
         factory.registerSingleton("deploymentPipelineFactory", deploymentPipelineFactory);
         factory.registerSingleton("taskScheduler", taskScheduler);
         factory.registerSingleton("taskExecutor", taskExecutor);

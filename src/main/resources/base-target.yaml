@@ -35,9 +35,9 @@ target:
     elasticsearch:
       mappings:
         # JSON file containing the settings for authoring indexes
-        authoring: 'classpath:crafter/elasticsearch/authoring-mapping.json'
+        authoring: 'classpath:crafter/opensearch/authoring-mapping.json'
         # JSON file containing the settings for preview indexes
-        preview: 'classpath:crafter/elasticsearch/default-mapping.json'
+        preview: 'classpath:crafter/opensearch/default-mapping.json'
       authoring:
         # Regex used to determine if an index is for authoring
         pattern: '.+-authoring'

@@ -124,7 +124,7 @@ target:
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
         url: ${aws.cloudformation.s3Url}
-      - processorName: elasticsearchIndexingProcessor
+      - processorName: openSearchIndexingProcessor
         excludeFiles: ['^/sources/.*$']       
       # -------------------- END OF MAIN PIPELINE --------------------
       - processorName: fileOutputProcessor

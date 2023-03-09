@@ -15,12 +15,12 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.deployer.utils.elasticsearch;
+package org.craftercms.deployer.utils.opensearch;
 
-import co.elastic.clients.elasticsearch.ElasticsearchClient;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.opensearch.client.opensearch.OpenSearchClient;
 
-import static org.craftercms.search.elasticsearch.spring.ElasticsearchClientFactory.createClient;
+import static org.craftercms.search.opensearch.spring.OpenSearchClientFactory.createClient;
 
 /**
  * Holds the configuration for a single Elasticsearch cluster
@@ -28,7 +28,7 @@ import static org.craftercms.search.elasticsearch.spring.ElasticsearchClientFact
  * @author joseross
  * @since 3.1.5
  */
-public class ElasticsearchClusterConfig {
+public class OpenSearchClusterConfig {
 
     public static final String CONFIG_KEY_URLS = "urls";
 
@@ -67,7 +67,7 @@ public class ElasticsearchClusterConfig {
 
     public final boolean keepAlive;
 
-    public ElasticsearchClusterConfig() {
+    public OpenSearchClusterConfig() {
         urls = null;
         username = null;
         password = null;
@@ -77,7 +77,7 @@ public class ElasticsearchClusterConfig {
         keepAlive = false;
     }
 
-    public ElasticsearchClusterConfig(HierarchicalConfiguration<?> config) {
+    public OpenSearchClusterConfig(HierarchicalConfiguration<?> config) {
         urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
         username = config.getString(CONFIG_KEY_USERNAME, null);
         password = config.getString(CONFIG_KEY_PASSWORD, null);
@@ -87,8 +87,8 @@ public class ElasticsearchClusterConfig {
         keepAlive = config.getBoolean(CONFIG_KEY_KEEP_ALIVE, false);
     }
 
-    public ElasticsearchClusterConfig(HierarchicalConfiguration<?> config, String username, String password,
-                                      int connectTimeout, int socketTimeout, int threadCount, boolean keepAlive) {
+    public OpenSearchClusterConfig(HierarchicalConfiguration<?> config, String username, String password,
+                                   int connectTimeout, int socketTimeout, int threadCount, boolean keepAlive) {
         urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
         this.username = config.getString(CONFIG_KEY_USERNAME, username);
         this.password = config.getString(CONFIG_KEY_PASSWORD, password);
@@ -101,7 +101,7 @@ public class ElasticsearchClusterConfig {
     /**
      * Returns a client matching the current configuration of the cluster
      */
-    public ElasticsearchClient buildClient() {
+    public OpenSearchClient buildClient() {
         return createClient(urls, username, password, connectTimeout, socketTimeout ,threadCount, keepAlive);
     }
 

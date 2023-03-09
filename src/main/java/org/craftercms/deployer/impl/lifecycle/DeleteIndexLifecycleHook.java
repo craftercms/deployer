@@ -33,7 +33,7 @@ public class DeleteIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
         try {
             logger.info("Deleting Elasticsearch index for target '{}'", target.getId());
 
-            elasticsearchAdminService.deleteIndexes(indexId);
+            openSearchAdminService.deleteIndexes(indexId);
         } catch (SearchException e) {
             throw new DeployerException("Error creating index for target " + target.getId(), e);
         }

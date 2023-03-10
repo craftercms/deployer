@@ -461,13 +461,13 @@
 
     <bean id="tikaDocumentParser" class="org.craftercms.search.opensearch.impl.tika.TikaDocumentParser">
         <property name="charLimit" value="${target.search.tika.limit}"/>
-        <property name="metadataExtractors">
+        <constructor-arg name="metadataExtractors">
             <list>
                 <ref bean="coreTikaMetadataExtractor"/>
                 <ref bean="imageTikaMetadataExtractor"/>
                 <ref bean="videoTikaMetadataExtractor"/>
             </list>
-        </property>
+        </constructor-arg>
         <property name="tika" ref="tika"/>
     </bean>
 
@@ -496,7 +496,7 @@
     </bean>
 
     <bean id="coreTikaMetadataExtractor" class="org.craftercms.search.opensearch.impl.tika.TikaMetadataExtractor">
-        <property name="mapping">
+        <constructor-arg name="mapping">
             <map>
                 <entry key="author" value="#{T(org.apache.tika.metadata.TikaCoreProperties).CREATOR}"/>
                 <entry key="title" value="#{T(org.apache.tika.metadata.TikaCoreProperties).TITLE}"/>
@@ -507,27 +507,27 @@
                 <entry key="created" value="#{T(org.apache.tika.metadata.TikaCoreProperties).CREATED}"/>
                 <entry key="modified" value="#{T(org.apache.tika.metadata.TikaCoreProperties).MODIFIED}"/>
             </map>
-        </property>
+        </constructor-arg>
     </bean>
 
     <bean id="imageTikaMetadataExtractor" class="org.craftercms.search.opensearch.impl.tika.TikaMetadataExtractor">
         <property name="supportedMimeTypes" value="image/*,video/*"/>
-        <property name="mapping">
+        <constructor-arg name="mapping">
             <map>
                 <entry key="height" value="#{T(org.apache.tika.metadata.TIFF).IMAGE_LENGTH}"/>
                 <entry key="width" value="#{T(org.apache.tika.metadata.TIFF).IMAGE_WIDTH}"/>
             </map>
-        </property>
+        </constructor-arg>
     </bean>
 
     <bean id="videoTikaMetadataExtractor" class="org.craftercms.search.opensearch.impl.tika.TikaMetadataExtractor">
         <property name="supportedMimeTypes" value="video/*"/>
-        <property name="mapping">
+        <constructor-arg name="mapping">
             <map>
                 <entry key="duration" value="#{T(org.apache.tika.metadata.XMPDM).DURATION}"/>
                 <entry key="frameRate" value="#{T(org.apache.tika.metadata.XMPDM).VIDEO_FRAME_RATE}"/>
             </map>
-        </property>
+        </constructor-arg>
     </bean>
 
     <bean id="openSearchIndexingProcessor" parent="abstractSearchIndexingProcessor"

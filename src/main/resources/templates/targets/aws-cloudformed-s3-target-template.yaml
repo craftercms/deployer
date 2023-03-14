@@ -26,11 +26,11 @@ target:
   {{#if local_repo_path}}
   localRepoPath: {{local_repo_path}}
   {{/if}}
-  {{#if elastic_search_url}}
+  {{#if search_url}}
   search:
-    elasticsearch:
+    openSearch:
       urls:
-        - {{elastic_search_url}}
+        - {{search_url}}
   {{/if}}
   lifecycleHooks:
     create:
@@ -124,7 +124,7 @@ target:
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
         url: ${aws.cloudformation.s3Url}
-      - processorName: openSearchIndexingProcessor
+      - processorName: searchIndexingProcessor
         excludeFiles: ['^/sources/.*$']       
       # -------------------- END OF MAIN PIPELINE --------------------
       - processorName: fileOutputProcessor

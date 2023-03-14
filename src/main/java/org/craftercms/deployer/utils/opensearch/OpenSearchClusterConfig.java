@@ -23,7 +23,7 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import static org.craftercms.search.opensearch.spring.OpenSearchClientFactory.createClient;
 
 /**
- * Holds the configuration for a single Elasticsearch cluster
+ * Holds the configuration for a single OpenSearch cluster
  *
  * @author joseross
  * @since 3.1.5

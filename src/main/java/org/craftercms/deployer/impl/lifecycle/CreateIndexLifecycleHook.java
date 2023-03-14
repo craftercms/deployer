@@ -19,21 +19,28 @@ import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.commons.exception.SearchException;
+import org.craftercms.search.opensearch.OpenSearchAdminService;
+
+import java.beans.ConstructorProperties;
 
 /**
- * Implementation of {@link TargetLifecycleHook} that creates an Elasticsearch index or a Crafter Search
- * based index.
+ * Implementation of {@link TargetLifecycleHook} that creates an OpenSearch index.
  *
  * @author avasquez
  */
 public class CreateIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
 
+    @ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService"})
+    public CreateIndexLifecycleHook(String siteName, String indexIdFormat, OpenSearchAdminService searchAdminService) {
+        super(siteName, indexIdFormat, searchAdminService);
+    }
+
     @Override
     public void doExecute(Target target) throws DeployerException {
         try {
-            logger.info("Creating Elasticsearch index for target '{}'", target.getId());
+            logger.info("Creating OpenSearch index for target '{}'", target.getId());
 
-            openSearchAdminService.createIndex(indexId);
+            searchAdminService.createIndex(indexId);
         } catch (SearchException e) {
             throw new DeployerException("Error creating index for target '" + target.getId() + "'", e);
         }

@@ -24,15 +24,15 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**
- * Base implementation for factories capable of build single or multi-cluster Elasticsearch services
+ * Base implementation for factories capable of build single or multi-cluster OpenSearch services
  *
  * @author joseross
  * @since 3.1.5
  */
-public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBean<T>
+public abstract class AbstractOpenSearchFactory<T> extends AbstractFactoryBean<T>
         implements BeanNameAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractElasticsearchFactory.class);
+    private static final Logger logger = LoggerFactory.getLogger(AbstractOpenSearchFactory.class);
 
     /**
      * The name of the bean
@@ -40,11 +40,11 @@ public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBea
     protected String name;
 
     /**
-     * The Elasticsearch configuration
+     * The OpenSearch configuration
      */
     protected OpenSearchConfig config;
 
-    public AbstractElasticsearchFactory(final OpenSearchConfig config) {
+    public AbstractOpenSearchFactory(final OpenSearchConfig config) {
         this.config = config;
     }
 
@@ -72,7 +72,7 @@ public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBea
     /**
      * Creates a service instance for a single cluster
      *
-     * @param client the Elasticsearch client
+     * @param client the OpenSearch client
      * @return the service instance
      */
     protected abstract T doCreateSingleInstance(OpenSearchClient client);
@@ -80,8 +80,8 @@ public abstract class AbstractElasticsearchFactory<T> extends AbstractFactoryBea
     /**
      * Creates a service instance for a multiple cluster
      *
-     * @param readClient   the Elasticsearch client for read-related operations
-     * @param writeClients the Elasticsearch clients for write-related operations
+     * @param readClient   the OpenSearch client for read-related operations
+     * @param writeClients the OpenSearch clients for write-related operations
      * @return the service instance
      */
     protected abstract T doCreateMultiInstance(OpenSearchClient readClient, OpenSearchClient[] writeClients);

@@ -30,7 +30,7 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-      - processorName: openSearchIndexingProcessor
+      - processorName: searchIndexingProcessor
         excludeFiles: ['^/sources/.*$']
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]

@@ -27,7 +27,6 @@ import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
-import org.craftercms.search.opensearch.OpenSearchAdminService;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
@@ -72,7 +71,6 @@ public class TargetServiceImplTest {
         TargetLifecycleHooksResolver targetLifecycleHooksResolver = createTargetLifecycleHooksResolver();
 
         DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-        factory.registerSingleton("elasticsearchAdminService", mock(OpenSearchAdminService.class));
         factory.registerSingleton("deploymentPipelineFactory", deploymentPipelineFactory);
         factory.registerSingleton("taskScheduler", taskScheduler);
         factory.registerSingleton("taskExecutor", taskExecutor);

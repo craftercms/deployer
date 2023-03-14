@@ -27,7 +27,7 @@ import java.beans.ConstructorProperties;
 import java.util.List;
 
 /**
- * Implementation of {@link AbstractSearchIndexingProcessor} for Elasticsearch
+ * Implementation of {@link AbstractSearchIndexingProcessor} for OpenSearch
  *
  * @author joseross
  * @since 3.1.0
@@ -50,26 +50,26 @@ public class OpenSearchIndexingProcessor extends AbstractSearchIndexingProcessor
 
     protected String metadataPathFieldName = DEFAULT_METADATA_PATH_FIELD_NAME;
 
-    protected OpenSearchService openSearchService;
+    protected OpenSearchService searchService;
 
-    protected OpenSearchAdminService openSearchAdminService;
+    protected OpenSearchAdminService searchAdminService;
 
-    @ConstructorProperties({"openSearchService", "openSearchAdminService"})
-    public OpenSearchIndexingProcessor(OpenSearchService openSearchService,
-                                       OpenSearchAdminService openSearchAdminService) {
-        this.openSearchService = openSearchService;
-        this.openSearchAdminService = openSearchAdminService;
+    @ConstructorProperties({"searchService", "searchAdminService"})
+    public OpenSearchIndexingProcessor(OpenSearchService searchService,
+                                       OpenSearchAdminService searchAdminService) {
+        this.searchService = searchService;
+        this.searchAdminService = searchAdminService;
     }
 
     @Override
     protected void doCreateIndexIfMissing() {
-        openSearchAdminService.createIndex(indexId);
+        searchAdminService.createIndex(indexId);
     }
 
     @Override
     protected void doCommit(final String indexId) {
         try {
-            openSearchService.refresh(indexId);
+            searchService.refresh(indexId);
         } catch (Exception e) {
             throw new SearchException(indexId, "Error committing changes", e);
         }
@@ -95,7 +95,7 @@ public class OpenSearchIndexingProcessor extends AbstractSearchIndexingProcessor
                             )
                     )
             );
-            return openSearchService.searchField(indexId, localIdFieldName, query);
+            return searchService.searchField(indexId, localIdFieldName, query);
         } catch (OpenSearchException e) {
             throw new SearchException(indexId,
                     "Error executing search of descriptors inheriting from " + descriptorPath, e);
@@ -122,7 +122,7 @@ public class OpenSearchIndexingProcessor extends AbstractSearchIndexingProcessor
                             )
                     )
             );
-            return openSearchService.searchField(indexId, localIdFieldName, query);
+            return searchService.searchField(indexId, localIdFieldName, query);
         } catch (OpenSearchException e) {
             throw new SearchException(indexId,
                     "Error executing search of descriptors that include component " + componentPath, e);

@@ -20,7 +20,8 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.opensearch.OpenSearchAdminService;
-import org.springframework.beans.factory.annotation.Required;
+
+import java.beans.ConstructorProperties;
 
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
@@ -33,27 +34,20 @@ public abstract class AbstractIndexAwareLifecycleHook extends AbstractLifecycleH
 
     protected static final String INDEX_ID_CONFIG_KEY = "indexId";
 
-    protected String siteName;
-    protected String indexIdFormat;
-    protected OpenSearchAdminService openSearchAdminService;
+    protected final String siteName;
+    protected final String indexIdFormat;
+    protected final OpenSearchAdminService searchAdminService;
 
     // Config properties (populated on init)
 
     protected String indexId;
 
-    @Required
-    public void setSiteName(String siteName) {
+    @ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService"})
+    public AbstractIndexAwareLifecycleHook(final String siteName, final String indexIdFormat,
+                                           final OpenSearchAdminService searchAdminService) {
         this.siteName = siteName;
-    }
-
-    @Required
-    public void setIndexIdFormat(String indexIdFormat) {
         this.indexIdFormat = indexIdFormat;
-    }
-
-    @Required
-    public void setOpenSearchAdminService(OpenSearchAdminService openSearchAdminService) {
-        this.openSearchAdminService = openSearchAdminService;
+        this.searchAdminService = searchAdminService;
     }
 
     @Override

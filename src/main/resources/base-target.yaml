@@ -32,7 +32,7 @@ target:
     tika:
       # Limit of words to be parsed from binary files
       limit: 10000
-    elasticsearch:
+    openSearch:
       mappings:
         # JSON file containing the settings for authoring indexes
         authoring: 'classpath:crafter/opensearch/authoring-mapping.json'
@@ -42,13 +42,13 @@ target:
         # Regex used to determine if an index is for authoring
         pattern: '.+-authoring'
       locale:
-        # Mapping of locale codes to Elasticsearch language analyzers
+        # Mapping of locale codes to OpenSearch language analyzers
         mapping:
           en.*: english
           es.*: spanish
           fr.*: french
           de.*: german
-      # List of URLs for Elasticsearch
+      # List of URLs for OpenSearch
       urls:
         - http://localhost:9201
       indexSettings:

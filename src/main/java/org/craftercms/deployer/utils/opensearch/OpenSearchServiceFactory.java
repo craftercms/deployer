@@ -17,7 +17,6 @@
 
 package org.craftercms.deployer.utils.opensearch;
 
-import org.craftercms.deployer.utils.opensearch.legacy.AbstractOpenSearchFactory;
 import org.craftercms.search.opensearch.DocumentParser;
 import org.craftercms.search.opensearch.OpenSearchService;
 import org.craftercms.search.opensearch.impl.MultiOpenSearchServiceImpl;
@@ -28,13 +27,13 @@ import org.opensearch.client.opensearch.OpenSearchClient;
 import java.beans.ConstructorProperties;
 
 /**
- * Implementation of {@link AbstractOpenSearchFactory}
+ * Implementation of {@link org.craftercms.deployer.utils.opensearch.legacy.AbstractOpenSearchFactory}
  * for {@link OpenSearchService}
  *
  * @author joseross
  * @since 3.1.5
  */
-public class OpenSearchServiceFactory extends AbstractElasticsearchFactory<OpenSearchService> {
+public class OpenSearchServiceFactory extends AbstractOpenSearchFactory<OpenSearchService> {
 
     /**
      * The document builder

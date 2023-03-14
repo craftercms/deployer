@@ -68,8 +68,6 @@ public class CreateTargetRequest {
     @ValidateNoTagsParam
     private String engineUrl;
     private List<@NotBlank @EsapiValidatedParam(type = EMAIL) String> notificationAddresses;
-    @ValidateStringParam(whitelistedPatterns = "CrafterSearch|Elasticsearch")
-    private String searchEngine = "Elasticsearch";
 
     @JsonUnwrapped
     private final Map<String, Object> extraParams;
@@ -156,14 +154,6 @@ public class CreateTargetRequest {
 
     public void setNotificationAddresses(List<String> notificationAddresses) {
         this.notificationAddresses = notificationAddresses;
-    }
-
-    public String getSearchEngine() {
-        return searchEngine;
-    }
-
-    public void setSearchEngine(String searchEngine) {
-        this.searchEngine = searchEngine;
     }
 
     @JsonAnySetter

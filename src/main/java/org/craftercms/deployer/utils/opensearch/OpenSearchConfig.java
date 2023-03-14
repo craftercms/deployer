@@ -30,14 +30,14 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
- * Holds the configuration for connecting to Elasticsearch, either a single or multiple clusters
+ * Holds the configuration for connecting to OpenSearch, either a single or multiple clusters
  *
  * @author joseross
  * @since 3.1.5
  */
 public class OpenSearchConfig {
 
-    public static final String CONFIG_KEY_GLOBAL_CLUSTER = "target.search.elasticsearch";
+    public static final String CONFIG_KEY_GLOBAL_CLUSTER = "target.search.openSearch";
 
     public static final String CONFIG_KEY_READ_CLUSTER = CONFIG_KEY_GLOBAL_CLUSTER + ".readCluster";
 
@@ -45,7 +45,7 @@ public class OpenSearchConfig {
 
     public static final String CONFIG_KEY_LOCALE_MAPPING = CONFIG_KEY_GLOBAL_CLUSTER + ".locale.mapping";
 
-    public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.elasticsearch.indexSettings";
+    public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.openSearch.indexSettings";
 
     public static final String CONFIG_KEY_KEY = "key";
 
@@ -67,7 +67,7 @@ public class OpenSearchConfig {
     public final List<OpenSearchClusterConfig> writeClusters;
 
     /**
-     * Mapping of locale codes to Elasticsearch language analyzers
+     * Mapping of locale codes to OpenSearch language analyzers
      */
     public final Map<String, String> localeMapping = new HashMap<>();
 
@@ -94,7 +94,7 @@ public class OpenSearchConfig {
                     globalCluster.keepAlive))
             .collect(toList());
         if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
-            throw new IllegalStateException("Invalid Elasticsearch configuration");
+            throw new IllegalStateException("Invalid OpenSearch configuration");
         }
 
         Configuration mapping = config.configurationAt(CONFIG_KEY_LOCALE_MAPPING);

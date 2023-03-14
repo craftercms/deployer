@@ -12,7 +12,7 @@ target:
     {{/if}}
     pipeline:
       - processorName: gitDiffProcessor
-      - processorName: openSearchIndexingProcessor
+      - processorName: searchIndexingProcessor
         excludeFiles: ['^/sources/.*$']
       - processorName: httpMethodCallProcessor
         includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]

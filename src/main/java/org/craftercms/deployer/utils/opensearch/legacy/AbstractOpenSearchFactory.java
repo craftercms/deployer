@@ -24,7 +24,7 @@ import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
 
 /**
- * Base implementation for factories capable of build single or multi-cluster Elasticsearch services
+ * Base implementation for factories capable of build single or multi-cluster OpenSearch services
  *
  * @author joseross
  * @since 3.1.5
@@ -40,7 +40,7 @@ public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends
     protected String name;
 
     /**
-     * The Elasticsearch configuration
+     * The OpenSearch configuration
      */
     protected OpenSearchConfig config;
 
@@ -71,15 +71,15 @@ public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends
 
     /**
      * Creates a service instance for a single cluster
-     * @param client the Elasticsearch client
+     * @param client the OpenSearch client
      * @return the service instance
      */
     protected abstract T doCreateSingleInstance(RestHighLevelClient client);
 
     /**
      * Creates a service instance for a multiple cluster
-     * @param readClient the Elasticsearch client for read-related operations
-     * @param writeClients the Elasticsearch clients for write-related operations
+     * @param readClient the OpenSearch client for read-related operations
+     * @param writeClients the OpenSearch clients for write-related operations
      * @return the service instance
      */
     protected abstract T doCreateMultiInstance(RestHighLevelClient readClient, RestHighLevelClient[] writeClients);

@@ -37,16 +37,16 @@
     -->
     <bean id="createIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.CreateIndexLifecycleHook"
           scope="prototype">
-        <property name="siteName" value="${target.siteName}"/>
-        <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
-        <property name="openSearchAdminService" ref="openSearchAdminService"/>
+        <constructor-arg name="siteName" value="${target.siteName}"/>
+        <constructor-arg name="indexIdFormat" value="${target.search.indexIdFormat}"/>
+        <constructor-arg name="searchAdminService" ref="searchAdminService"/>
     </bean>
 
     <bean id="deleteIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.DeleteIndexLifecycleHook"
           scope="prototype">
-        <property name="siteName" value="${target.siteName}"/>
-        <property name="indexIdFormat" value="${target.search.indexIdFormat}"/>
-        <property name="openSearchAdminService" ref="openSearchAdminService"/>
+        <constructor-arg name="siteName" value="${target.siteName}"/>
+        <constructor-arg name="indexIdFormat" value="${target.search.indexIdFormat}"/>
+        <constructor-arg name="searchAdminService" ref="searchAdminService"/>
     </bean>
 
     <bean id="createCloudFormationLifecycleHook"
@@ -377,22 +377,22 @@
         <constructor-arg name="localeXPath" value="${target.search.indexing.xml.locale.xpath}"/>
     </bean>
 
-    <!-- openSearch -->
+    <!-- OpenSearch -->
 
     <!-- Deprecated client, in process to be removed -->
-    <bean id="openSearchConfig" class="org.craftercms.deployer.utils.opensearch.legacy.OpenSearchConfig">
+    <bean id="searchConfig" class="org.craftercms.deployer.utils.opensearch.legacy.OpenSearchConfig">
         <constructor-arg name="config" ref="targetConfig"/>
     </bean>
 
-    <bean id="openSearchAdminService"
+    <bean id="searchAdminService"
           class="org.craftercms.deployer.utils.opensearch.legacy.OpenSearchAdminServiceFactory">
-        <constructor-arg name="config" ref="openSearchConfig"/>
-        <constructor-arg name="authoringMapping" value="${target.search.elasticsearch.mappings.authoring}"/>
-        <constructor-arg name="previewMapping" value="${target.search.elasticsearch.mappings.preview}"/>
-        <constructor-arg name="authoringNamePattern" value="${target.search.elasticsearch.authoring.pattern}"/>
+        <constructor-arg name="config" ref="searchConfig"/>
+        <constructor-arg name="authoringMapping" value="${target.search.openSearch.mappings.authoring}"/>
+        <constructor-arg name="previewMapping" value="${target.search.openSearch.mappings.preview}"/>
+        <constructor-arg name="authoringNamePattern" value="${target.search.openSearch.authoring.pattern}"/>
     </bean>
 
-    <bean id="openSearchClientConfig" class="org.craftercms.deployer.utils.opensearch.OpenSearchConfig">
+    <bean id="searchClientConfig" class="org.craftercms.deployer.utils.opensearch.OpenSearchConfig">
         <constructor-arg name="config" ref="targetConfig"/>
     </bean>
 
@@ -441,7 +441,7 @@
         </property>
     </bean>
 
-    <bean id="openSearchDocumentBuilder"
+    <bean id="searchDocumentBuilder"
           class="org.craftercms.search.opensearch.impl.OpenSearchDocumentBuilder">
         <property name="idFieldName" value="${target.search.indexing.field.name.id}"/>
         <property name="rootIdFieldName" value="${target.search.indexing.field.name.rootId}"/>
@@ -471,28 +471,28 @@
         <property name="tika" ref="tika"/>
     </bean>
 
-    <bean id="openSearchService" class="org.craftercms.deployer.utils.opensearch.OpenSearchServiceFactory">
-        <constructor-arg name="config" ref="openSearchClientConfig"/>
-        <constructor-arg name="documentBuilder" ref="openSearchDocumentBuilder"/>
+    <bean id="searchService" class="org.craftercms.deployer.utils.opensearch.OpenSearchServiceFactory">
+        <constructor-arg name="config" ref="searchClientConfig"/>
+        <constructor-arg name="documentBuilder" ref="searchDocumentBuilder"/>
         <constructor-arg name="documentParser" ref="tikaDocumentParser"/>
     </bean>
 
-    <bean id="openSearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
+    <bean id="searchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
           class="org.craftercms.search.opensearch.batch.OpenSearchXmlFileBatchIndexer">
-        <constructor-arg name="openSearchAdminService" ref="openSearchAdminService"/>
+        <constructor-arg name="searchAdminService" ref="searchAdminService"/>
         <constructor-arg name="localeExtractor" ref="descriptorLocaleExtractor"/>
-        <constructor-arg name="openSearchService" ref="openSearchService"/>
+        <constructor-arg name="searchService" ref="searchService"/>
         <constructor-arg name="enableTranslation" value="${target.translation.enable}"/>
     </bean>
 
-    <bean id="openSearchBinaryFileBatchIndexer" parent="abstractBinaryFileBatchIndexer"
+    <bean id="searchBinaryFileBatchIndexer" parent="abstractBinaryFileBatchIndexer"
           class="org.craftercms.search.opensearch.batch.OpenSearchBinaryFileBatchIndexer">
-        <constructor-arg name="openSearchService" ref="openSearchService"/>
+        <constructor-arg name="searchService" ref="searchService"/>
     </bean>
 
-    <bean id="openSearchBinaryFileWithMetadataBatchIndexer" parent="abstractBinaryFileWithMetadataBatchIndexer"
+    <bean id="searchBinaryFileWithMetadataBatchIndexer" parent="abstractBinaryFileWithMetadataBatchIndexer"
           class="org.craftercms.search.opensearch.batch.OpenSearchBinaryFileWithMetadataBatchIndexer">
-        <constructor-arg name="openSearchService" ref="openSearchService"/>
+        <constructor-arg name="searchService" ref="searchService"/>
     </bean>
 
     <bean id="coreTikaMetadataExtractor" class="org.craftercms.search.opensearch.impl.tika.TikaMetadataExtractor">
@@ -530,31 +530,31 @@
         </constructor-arg>
     </bean>
 
-    <bean id="openSearchIndexingProcessor" parent="abstractSearchIndexingProcessor"
+    <bean id="searchIndexingProcessor" parent="abstractSearchIndexingProcessor"
           class="org.craftercms.deployer.impl.processors.opensearch.OpenSearchIndexingProcessor">
-        <constructor-arg name="openSearchService" ref="openSearchService"/>
-        <constructor-arg name="openSearchAdminService" ref="openSearchAdminService"/>
+        <constructor-arg name="searchService" ref="searchService"/>
+        <constructor-arg name="searchAdminService" ref="searchAdminService"/>
         <property name="batchIndexers">
             <list>
-                <ref bean="openSearchXmlFileBatchIndexer"/>
-                <ref bean="openSearchBinaryFileBatchIndexer"/>
-                <ref bean="openSearchBinaryFileWithMetadataBatchIndexer"/>
+                <ref bean="searchXmlFileBatchIndexer"/>
+                <ref bean="searchBinaryFileBatchIndexer"/>
+                <ref bean="searchBinaryFileWithMetadataBatchIndexer"/>
             </list>
         </property>
     </bean>
 
-    <bean id="authoringOpenSearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
+    <bean id="authoringSearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
           class="org.craftercms.search.opensearch.batch.OpenSearchXmlFileBatchIndexer">
-        <constructor-arg name="openSearchAdminService" ref="openSearchAdminService"/>
-        <constructor-arg name="openSearchService" ref="openSearchService"/>
+        <constructor-arg name="searchAdminService" ref="searchAdminService"/>
+        <constructor-arg name="searchService" ref="searchService"/>
         <constructor-arg name="enableTranslation" value="${target.translation.enable}"/>
         <property name="metadataExtractors" ref="authoringMetadataExtractors"/>
     </bean>
 
-    <bean id="authoringOpenSearchBinaryFileWithMetadataBatchIndexer"
+    <bean id="authoringSearchBinaryFileWithMetadataBatchIndexer"
           parent="abstractBinaryFileWithMetadataBatchIndexer"
           class="org.craftercms.search.opensearch.batch.authoring.AuthoringOpenSearchBinaryFileWithMetadataBatchIndexer">
-        <constructor-arg name="openSearchService" ref="openSearchService"/>
+        <constructor-arg name="searchService" ref="searchService"/>
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.supportedMimeTypes', T(java.util.List))}"/>
         <property name="metadataPathPatterns"
@@ -586,11 +586,11 @@
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.internalName.includePatterns', T(java.util.List))}"/>
     </bean>
 
-    <bean id="authoringOpenSearchIndexingProcessor" parent="openSearchIndexingProcessor">
+    <bean id="authoringSearchIndexingProcessor" parent="searchIndexingProcessor">
         <property name="batchIndexers">
             <list>
-                <ref bean="authoringOpenSearchXmlFileBatchIndexer"/>
-                <ref bean="authoringOpenSearchBinaryFileWithMetadataBatchIndexer"/>
+                <ref bean="authoringSearchXmlFileBatchIndexer"/>
+                <ref bean="authoringSearchBinaryFileWithMetadataBatchIndexer"/>
             </list>
         </property>
     </bean>

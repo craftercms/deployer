@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;

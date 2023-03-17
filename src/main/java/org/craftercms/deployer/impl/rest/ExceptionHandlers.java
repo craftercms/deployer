@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,7 +18,9 @@ package org.craftercms.deployer.impl.rest;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.rest.BaseRestExceptionHandlers;
 import org.craftercms.commons.rest.RestServiceUtils;
+import org.craftercms.commons.validation.ValidationResult;
 import org.craftercms.commons.validation.rest.ValidationAwareRestExceptionHandlers;
+import org.craftercms.core.controller.rest.ValidationFieldError;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.UnsupportedSearchEngineException;
@@ -27,9 +29,18 @@ import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ControllerAdvice;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.context.request.WebRequest;
+
+import javax.validation.ConstraintViolationException;
+import java.util.List;
+import java.util.stream.Collectors;
+
+import static org.springframework.http.HttpStatus.BAD_REQUEST;
 
 /**
  * Extension of {@link BaseRestExceptionHandlers} that provides exception handlers for specific Crafter Deployer exceptions.
@@ -43,9 +54,8 @@ public class ExceptionHandlers extends ValidationAwareRestExceptionHandlers {
     /**
      * Handles a {@link TargetNotFoundException} by returning a 404 NOT FOUND.
      *
-     * @param ex        the exception
-     * @param request   the current request
-     *
+     * @param ex      the exception
+     * @param request the current request
      * @return the response entity, with the body and status
      */
     @ExceptionHandler(TargetNotFoundException.class)
@@ -56,39 +66,56 @@ public class ExceptionHandlers extends ValidationAwareRestExceptionHandlers {
     /**
      * Handles a {@link TargetAlreadyExistsException} by returning a 409 CONFLICT.
      *
-     * @param ex        the exception
-     * @param request   the current request
-     *
+     * @param ex      the exception
+     * @param request the current request
      * @return the response entity, with the body and status
      */
     @ExceptionHandler(TargetAlreadyExistsException.class)
     public ResponseEntity<Object> handleTargetAlreadyExistsException(TargetAlreadyExistsException ex, WebRequest request) {
         HttpHeaders headers = RestServiceUtils.setLocationHeader(new HttpHeaders(),
-                                                                 TargetController.BASE_URL + TargetController.GET_TARGET_URL,
-                                                                 ex.getEnv(), ex.getSiteName());
+                TargetController.BASE_URL + TargetController.GET_TARGET_URL,
+                ex.getEnv(), ex.getSiteName());
 
         return handleExceptionInternal(ex, "Target already exists", headers, HttpStatus.CONFLICT, request);
+    }
+
+    @ResponseStatus(BAD_REQUEST)
+    @ExceptionHandler(ConstraintViolationException.class)
+    public ResponseEntity<Object> handleConstraintValidationException(ConstraintViolationException e, WebRequest request) {
+        List<ValidationFieldError> result = e.getConstraintViolations().stream()
+                .map(c -> new ValidationFieldError(c.getPropertyPath().toString(), c.getMessage()))
+                .collect(Collectors.toList());
+        return ResponseEntity.badRequest().body(result);
     }
 
     /**
      * Handles a {@link UnsupportedSearchEngineException} by returning a 400 BAD REQUEST.
      *
-     * @param ex        the exception
-     * @param request   the current request
-     *
+     * @param ex      the exception
+     * @param request the current request
      * @return the response entity, with the body and status
      */
     @ExceptionHandler(UnsupportedSearchEngineException.class)
     public ResponseEntity<Object> handleUnsupportedSearchEngineException(UnsupportedSearchEngineException ex,
                                                                          WebRequest request) {
-        return handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), HttpStatus.BAD_REQUEST, request);
+        return handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), BAD_REQUEST, request);
     }
 
     @ExceptionHandler(InvalidManagementTokenException.class)
     public ResponseEntity<Object> handleInvalidManagementTokenException(InvalidManagementTokenException ex,
                                                                         WebRequest request) {
         return handleExceptionInternal(ex, "Invalid management token", new HttpHeaders(), HttpStatus.UNAUTHORIZED,
-            request);
+                request);
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException ex, HttpHeaders headers,
+                                                                  HttpStatus status, WebRequest request) {
+        ValidationResult result = new ValidationResult();
+        for (FieldError fieldError : ex.getBindingResult().getFieldErrors()) {
+            result.addError(fieldError.getField(), fieldError.getDefaultMessage());
+        }
+        return handleExceptionInternal(ex, result, new HttpHeaders(), BAD_REQUEST, request);
     }
 
 }

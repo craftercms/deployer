@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,11 +15,6 @@
  */
 package org.craftercms.deployer.impl;
 
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Map;
-
-import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
@@ -32,6 +27,13 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
+
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Map;
+
+import static java.lang.String.format;
+import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
  * Default implementation of {@link DeploymentService}.
@@ -62,15 +64,16 @@ public class DeploymentServiceImpl implements DeploymentService {
 
         List<Deployment> deployments = new ArrayList<>();
 
-        if (CollectionUtils.isNotEmpty(targets)) {
-            for (Target target : targets) {
-                Deployment deployment;
-                try {
-                    deployment = target.deploy(waitTillDone, params);
-                    deployments.add(deployment);
-                } catch (TargetNotReadyException e) {
-                    logger.error(e.getMessage());
-                }
+        if (isEmpty(targets)) {
+            return deployments;
+        }
+        for (Target target : targets) {
+            Deployment deployment;
+            try {
+                deployment = target.deploy(waitTillDone, params);
+                deployments.add(deployment);
+            } catch (TargetNotReadyException e) {
+                logger.error(e.getMessage());
             }
         }
 
@@ -84,8 +87,7 @@ public class DeploymentServiceImpl implements DeploymentService {
         try {
             return targetService.getTarget(env, siteName).deploy(waitTillDone, params);
         } catch (TargetServiceException | TargetNotReadyException e) {
-            throw new DeploymentServiceException("Error while deploying target '" + TargetImpl.getId(env, siteName) +
-                                                 "'", e);
+            throw new DeploymentServiceException(format("Error while deploying target '%s'", TargetImpl.getId(env, siteName)), e);
         }
     }
 

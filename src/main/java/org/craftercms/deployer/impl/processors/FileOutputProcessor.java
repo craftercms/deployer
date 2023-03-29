@@ -25,8 +25,8 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
+import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
@@ -50,7 +50,6 @@ public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
     /**
      * Sets the output folder where the deployments results will be written to.
      */
-    @Required
     public void setOutputFolder(File outputFolder) {
         this.outputFolder = outputFolder;
     }

@@ -196,7 +196,7 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.apache.groovy</groupId>
+			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
 			<version>${groovy.version}</version>
 			<type>pom</type>

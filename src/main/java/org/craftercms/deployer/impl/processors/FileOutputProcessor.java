@@ -26,7 +26,6 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;

@@ -30,7 +30,6 @@ import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
-import org.craftercms.deployer.api.exceptions.UnsupportedSearchEngineException;
 import org.craftercms.deployer.impl.rest.model.CreateTargetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -84,10 +83,6 @@ public class TargetController {
             "{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String RECREATE_INDEX_URL = "/recreate/{" + ENV_PATH_VAR_NAME + "}/" +
             "{" + SITE_NAME_PATH_VAR_NAME + "}";
-
-    public static final String SEARCH_ENGINE_PARAM_NAME = "search_engine";
-    public static final String SEARCH_ENGINE_PARAM_VALUE = "CrafterSearch";
-    public static final String USE_CRAFTER_SEARCH_PARAM_NAME = "use_crafter_search";
 
     public static final String REPO_URL_PARAM_NAME = "repo_url";
     public static final String REPO_BRANCH_PARAM_NAME = "repo_branch";
@@ -323,7 +318,7 @@ public class TargetController {
     }
 
     /**
-     * Recreates the underlying Elasticsearch index for the {@link Target} with the specified environment and site name.
+     * Recreates the underlying OpenSearch index for the {@link Target} with the specified environment and site name.
      *
      * @param env      the target's environment
      * @param siteName the target's site name
@@ -347,10 +342,8 @@ public class TargetController {
      *
      * @param createRequest the request
      * @return a map containing the necessary properties to invoke the create target
-     * @throws UnsupportedSearchEngineException if the createRequest.extraParams includes
-     *                                          unsupported use_crafter_search parameter
      */
-    private Map<String, Object> getTemplateParams(CreateTargetRequest createRequest) throws UnsupportedSearchEngineException {
+    private Map<String, Object> getTemplateParams(CreateTargetRequest createRequest) {
         Map<String, Object> templateParams = new HashMap<>();
         templateParams.put(REPO_URL_PARAM_NAME, createRequest.getRepoUrl());
         templateParams.put(REPO_BRANCH_PARAM_NAME, createRequest.getRepoBranch());
@@ -358,13 +351,7 @@ public class TargetController {
         templateParams.put(SSH_PRIVATE_KEY_PATH_PARAM_NAME, createRequest.getSshPrivateKeyPath());
         templateParams.put(ENGINE_URL_PARAM_NAME, createRequest.getEngineUrl());
         templateParams.put(NOTIFICATION_ADDRESSESS_PARAM_NAME, createRequest.getNotificationAddresses());
-        templateParams.put(SEARCH_ENGINE_PARAM_NAME, createRequest.getSearchEngine());
-        for (Map.Entry<String, Object> param : createRequest.getExtraParams().entrySet()) {
-            if (USE_CRAFTER_SEARCH_PARAM_NAME.equals(param.getKey())) {
-                throw UnsupportedSearchEngineException.CRAFTER_SEARCH;
-            }
-            templateParams.put(param.getKey(), param.getValue());
-        }
+        templateParams.putAll(createRequest.getExtraParams());
 
         return templateParams;
     }
@@ -376,10 +363,6 @@ public class TargetController {
         final boolean replace = createRequest.isReplace();
         final String templateName = createRequest.getTemplateName();
         Map<String, Object> templateParams = getTemplateParams(createRequest);
-
-        if (SEARCH_ENGINE_PARAM_VALUE.equals(createRequest.getSearchEngine())) {
-            throw UnsupportedSearchEngineException.CRAFTER_SEARCH;
-        }
 
         if (createIfNotExists) {
             if (!targetService.targetExists(env, siteName)) {

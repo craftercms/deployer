@@ -23,7 +23,6 @@ import org.craftercms.commons.validation.rest.ValidationAwareRestExceptionHandle
 import org.craftercms.core.controller.rest.ValidationFieldError;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
-import org.craftercms.deployer.api.exceptions.UnsupportedSearchEngineException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -86,19 +85,6 @@ public class ExceptionHandlers extends ValidationAwareRestExceptionHandlers {
                 .map(c -> new ValidationFieldError(c.getPropertyPath().toString(), c.getMessage()))
                 .collect(Collectors.toList());
         return ResponseEntity.badRequest().body(result);
-    }
-
-    /**
-     * Handles a {@link UnsupportedSearchEngineException} by returning a 400 BAD REQUEST.
-     *
-     * @param ex      the exception
-     * @param request the current request
-     * @return the response entity, with the body and status
-     */
-    @ExceptionHandler(UnsupportedSearchEngineException.class)
-    public ResponseEntity<Object> handleUnsupportedSearchEngineException(UnsupportedSearchEngineException ex,
-                                                                         WebRequest request) {
-        return handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), BAD_REQUEST, request);
     }
 
     @ExceptionHandler(InvalidManagementTokenException.class)

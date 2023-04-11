@@ -25,7 +25,6 @@ import com.amazonaws.services.s3.transfer.TransferManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;

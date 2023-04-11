@@ -15,16 +15,15 @@
  */
 package org.craftercms.deployer.impl;
 
-import java.io.File;
-import java.io.IOException;
-
 import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.eclipse.jgit.lib.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
+
+import java.io.File;
+import java.io.IOException;
 
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSED_COMMIT_FILE_EXTENSION;
 
@@ -40,7 +39,6 @@ public class ProcessedCommitsStoreImpl implements ProcessedCommitsStore {
 
     protected File storeFolder;
 
-    @Required
     public void setStoreFolder(File storeFolder) {
         this.storeFolder = storeFolder;
     }

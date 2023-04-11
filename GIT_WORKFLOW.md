@@ -37,7 +37,7 @@ gitflow.prefix.versiontag=v
 
 ## Workflow
 ### Day-to-Day Development
-Day-to-day development is based on the `develop` branch, and the develop must create a feature/bugfix branch that's based on develop for the feature/bugfix before sending a PR. These features/bugfixes go back to `develop` and are not automatically merged to other branches.
+Day-to-day development is based on the `develop` branch, and the developer must create a feature/bugfix branch that's based on develop for the feature/bugfix before sending a PR. These features/bugfixes go back to `develop` and are not automatically merged to other branches.
 
 #### Working on a new feature
 ```

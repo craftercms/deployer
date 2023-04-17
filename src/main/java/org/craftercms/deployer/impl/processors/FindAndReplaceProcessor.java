@@ -26,7 +26,6 @@ import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -72,7 +71,6 @@ public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
      */
     protected String replacement;
 
-    @Required
     public void setLocalRepoUrl(final String localRepoUrl) {
         this.localRepoUrl = localRepoUrl;
     }

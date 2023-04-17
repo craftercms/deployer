@@ -19,10 +19,8 @@ import com.amazonaws.services.cloudformation.AmazonCloudFormation;
 import com.amazonaws.services.cloudformation.AmazonCloudFormationClientBuilder;
 import com.amazonaws.services.cloudformation.model.DescribeStacksRequest;
 import com.amazonaws.services.cloudformation.model.DescribeStacksResult;
-import com.amazonaws.services.cloudformation.model.ListStacksResult;
 import com.amazonaws.services.cloudformation.model.Stack;
 import org.apache.commons.collections.CollectionUtils;
-import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 
 import java.util.List;

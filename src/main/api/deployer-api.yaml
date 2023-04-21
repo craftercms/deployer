@@ -215,7 +215,7 @@ paths:
             env: dev 
         - name: site_name
           in: path
-          description: The target’s project/site name (e.g. my-editorial).
+          description: The target’s project/site name (e.g. editorial).
           required: true
           schema:
             type: string
@@ -247,7 +247,7 @@ paths:
             env: dev 
         - name: site_name
           in: path
-          description: The target’s project/site name (e.g. my-editorial).
+          description: The target’s project/site name (e.g. editorial).
           required: true
           schema:
             type: string
@@ -329,7 +329,7 @@ paths:
             env: dev 
         - name: site_name
           in: path
-          description: The target’s project/site name (e.g. my-editorial).
+          description: The target’s project/site name (e.g. editorial).
           required: true
           schema:
             type: string
@@ -372,7 +372,7 @@ paths:
             env: dev 
         - name: site_name
           in: path
-          description: The target’s project/site name (e.g. my-editorial).
+          description: The target’s project/site name (e.g. editorial).
           required: true
           schema:
             type: string

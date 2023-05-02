@@ -288,7 +288,6 @@
     <bean id="abstractBinaryFileBatchIndexer" abstract="true">
         <property name="supportedMimeTypes"
                   value="#{environment.getProperty('target.search.indexing.binary.supportedMimeTypes', T(java.util.List))}"/>
-        <property name="maxFileSize" value="${target.search.indexing.binary.maxFileSize}"/>
     </bean>
 
     <bean id="abstractBinaryFileWithMetadataBatchIndexer" abstract="true">
@@ -304,7 +303,6 @@
                   value="#{environment.getProperty('target.search.indexing.binary.referenceXPaths', T(java.util.List))}"/>
         <property name="remoteFileResolver" ref="remoteFileResolver"/>
         <property name="itemProcessors" ref="itemProcessors"/>
-        <property name="maxFileSize" value="${target.search.indexing.binary.maxFileSize}"/>
     </bean>
 
     <!-- Mail -->

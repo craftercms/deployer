@@ -30,8 +30,8 @@ target:
     # The format used for the index id
     indexIdFormat: '%s'
     tika:
-      # Limit of words to be parsed from binary files
-      limit: 10000
+      # Limit of chars to be parsed from binary files
+      limit: 100000
     openSearch:
       mappings:
         # JSON file containing the settings for authoring indexes
@@ -145,8 +145,6 @@ target:
         referenceXPaths:
           - //item/key
           - //item/url
-        # The maximum file size in bytes to index
-        maxFileSize: 104857600
         # Setting specific for authoring indexes
         authoring:
           # Xpath for the internal name field

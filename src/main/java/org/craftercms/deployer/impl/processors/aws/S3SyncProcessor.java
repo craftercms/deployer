@@ -49,6 +49,7 @@ import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 public class S3SyncProcessor extends AbstractS3Processor {
 
     public static final String CONFIG_KEY_IGNORE_BLOBS = "ignoreBlobs";
+    private static final int MAX_DELETE_KEYS_PER_REQUEST = 1000;
 
     /**
      * URL for the local git repository
@@ -151,11 +152,13 @@ public class S3SyncProcessor extends AbstractS3Processor {
                 files.stream().map(this::getS3Key).collect(Collectors.toList());
 
             try {
-                DeleteObjectsRequest request =
-                    new DeleteObjectsRequest(s3Url.getBucket()).withKeys(keys.toArray(new String[] {}));
-                DeleteObjectsResult result = client.deleteObjects(request);
+                for (List<String> subList : ListUtils.partition(keys, MAX_DELETE_KEYS_PER_REQUEST)) {
+                    DeleteObjectsRequest request =
+                            new DeleteObjectsRequest(s3Url.getBucket()).withKeys(subList.toArray(new String[] {}));
+                    DeleteObjectsResult result = client.deleteObjects(request);
 
-                logger.debug("Deleted files: {}", result.getDeletedObjects());
+                    logger.debug("Deleted files: {}", result.getDeletedObjects());
+                }
             } catch (Exception e) {
                 throw new DeployerException("Error deleting files", e);
             }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -50,7 +50,7 @@ import static org.craftercms.deployer.impl.DeploymentConstants.*;
 
 /**
  * Processor that, based on a previous processed commit that's stored, does a diff with the current commit of the deployment, to
- * find out the change set. If there is no previous processed commit, then the entire repository becomes the change set. This processor
+ * find out the change set. If there is no previously processed commit, then the entire repository becomes the change set. This processor
  * is used basically to create the change set and should be used before other processors that actually process the change set, like
  * {@link OpenSearchIndexingProcessor}.
  *

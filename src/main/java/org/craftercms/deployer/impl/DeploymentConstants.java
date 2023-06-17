@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -64,4 +64,7 @@ public abstract class DeploymentConstants {
 
     public static final String PROCESSED_COMMIT_FILE_EXTENSION = "commit";
 
+    public static final String PROCESSOR_RUN_IN_CLUSTER_MODE = "runInClusterMode";
+
+    public static final String PROCESSOR_RUN_IN_CLUSTER_MODE_ALWAYS = "ALWAYS";
 }

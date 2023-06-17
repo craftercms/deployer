@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -18,6 +18,7 @@ package org.craftercms.deployer.api;
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.annotation.JsonPropertyOrder;
+import org.craftercms.deployer.api.cluster.ClusterMode;
 
 import java.time.ZonedDateTime;
 import java.time.temporal.ChronoUnit;
@@ -28,6 +29,7 @@ import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.locks.Lock;
 import java.util.concurrent.locks.ReentrantLock;
 
+import static java.util.Collections.emptyMap;
 import static org.craftercms.deployer.impl.DeploymentConstants.DEPLOYMENT_MODE_PARAM_NAME;
 
 /**
@@ -48,12 +50,10 @@ public class Deployment {
     protected Map<String, Object> params;
     protected Lock lock;
     protected Mode mode = Mode.PUBLISH;
+    protected ClusterMode clusterMode = ClusterMode.UNKNOWN;
 
     public Deployment(Target target) {
-        this.target = target;
-        this.processorExecutions = new ArrayList<>();
-        this.params = new ConcurrentHashMap<>();
-        this.lock = new ReentrantLock();
+        this(target, emptyMap());
     }
 
     public Deployment(Target target, Map<String, Object> params) {
@@ -119,6 +119,14 @@ public class Deployment {
     @JsonProperty("mode")
     public Mode getMode() {
         return mode;
+    }
+
+
+    /**
+     * Returns the current {@link ClusterMode}
+     */
+    public ClusterMode getClusterMode() {
+        return clusterMode;
     }
 
     /**
@@ -216,6 +224,13 @@ public class Deployment {
      */
     public void removeParam(String name) {
         params.remove(name);
+    }
+
+    /**
+     * Sets the current {@link ClusterMode} for this deployment
+     */
+    public void setClusterMode(final ClusterMode clusterMode) {
+        this.clusterMode = clusterMode;
     }
 
     public enum Status {

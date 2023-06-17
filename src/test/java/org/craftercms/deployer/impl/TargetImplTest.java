@@ -24,11 +24,13 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
+import org.craftercms.deployer.api.cluster.ClusterManagementService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
 import org.junit.Before;
 import org.junit.Test;
 
+import static org.craftercms.deployer.api.cluster.ClusterMode.PRIMARY;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
@@ -48,9 +50,9 @@ public class TargetImplTest {
     @Before
     public void setUp() throws Exception {
         count = 0;
-        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, null, null, createConfig(), null,
+        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, null, null, null, null, createConfig(), null,
             Executors.newSingleThreadExecutor(), null, createTargetLifecycleHooksResolver(),
-            createDeploymentPipelineFactory());
+            createDeploymentPipelineFactory(), createClusterManagementService());
     }
 
     @Test
@@ -122,6 +124,13 @@ public class TargetImplTest {
         }).when(pipeline).execute(any(Deployment.class));
 
         return pipeline;
+    }
+
+    private ClusterManagementService createClusterManagementService() {
+        ClusterManagementService service = mock(ClusterManagementService.class);
+        when(service.getClusterMode(any())).thenReturn(PRIMARY);
+
+        return service;
     }
 
 }

@@ -38,5 +38,5 @@
     </bean>
 
     <bean id="testProcessor" class="org.craftercms.deployer.test.utils.TestDeploymentProcessor" parent="deploymentProcessor"/>
-    
+
 </beans>

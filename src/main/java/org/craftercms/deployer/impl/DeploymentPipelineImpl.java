@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,16 +15,19 @@
  */
 package org.craftercms.deployer.impl;
 
-import java.util.Collections;
-import java.util.List;
-
 import org.apache.commons.collections4.CollectionUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
+import org.craftercms.deployer.api.cluster.ClusterMode;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+
+import java.util.Collections;
+import java.util.List;
+
+import static org.craftercms.deployer.api.cluster.ClusterMode.UNKNOWN;
 
 /**
  * Default implementation of {@link DeploymentPipeline}.
@@ -35,10 +38,13 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
-    protected List<DeploymentProcessor> deploymentProcessors;
+    protected final List<DeploymentProcessor> deploymentProcessors;
 
-    public DeploymentPipelineImpl(List<DeploymentProcessor> deploymentProcessors) {
+    protected final boolean clusterOn;
+
+    public DeploymentPipelineImpl(List<DeploymentProcessor> deploymentProcessors, boolean clusterOn) {
         this.deploymentProcessors = deploymentProcessors;
+        this.clusterOn = clusterOn;
     }
 
     @Override
@@ -75,11 +81,18 @@ public class DeploymentPipelineImpl implements DeploymentPipeline {
     }
 
     protected void executeProcessors(Deployment deployment) {
-        if (CollectionUtils.isNotEmpty(deploymentProcessors)) {
-            for (DeploymentProcessor processor : deploymentProcessors) {
-                if (processor.supportsMode(deployment.getMode())) {
-                    processor.execute(deployment);
-                }
+        if (!CollectionUtils.isNotEmpty(deploymentProcessors)) {
+            return;
+        }
+        ClusterMode clusterMode = deployment.getClusterMode();
+        if (clusterOn && UNKNOWN == clusterMode) {
+            logger.info("Cluster mode is unknown, will not run any processors");
+            return;
+        }
+        for (DeploymentProcessor processor : deploymentProcessors) {
+            if (processor.supportsMode(deployment.getMode()) &&
+                    (!clusterOn || processor.supportsClusterMode(clusterMode))) {
+                processor.execute(deployment);
             }
         }
     }

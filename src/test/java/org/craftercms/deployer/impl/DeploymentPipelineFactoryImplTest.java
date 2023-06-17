@@ -16,39 +16,50 @@
 
 package org.craftercms.deployer.impl;
 
-import java.io.FileReader;
-import java.util.List;
-
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.config.YamlConfiguration;
 import org.craftercms.commons.spring.ApacheCommonsConfiguration2PropertySource;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
+import org.craftercms.deployer.api.cluster.ClusterManagementService;
 import org.craftercms.deployer.test.utils.TestDeploymentProcessor;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.mockito.InjectMocks;
+import org.mockito.Mock;
+import org.mockito.junit.MockitoJUnitRunner;
 import org.springframework.context.ApplicationContext;
 import org.springframework.context.support.ClassPathXmlApplicationContext;
 import org.springframework.core.env.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
+import java.io.FileReader;
+import java.util.List;
+
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.TARGET_ID_CONFIG_KEY;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
 
-@RunWith(SpringJUnit4ClassRunner.class)
+@RunWith(MockitoJUnitRunner.class)
 public class DeploymentPipelineFactoryImplTest {
 
+    @InjectMocks
     private DeploymentPipelineFactoryImpl deploymentPipelineFactory;
     private HierarchicalConfiguration config;
     private ApplicationContext applicationContext;
 
+    @Mock
+    private ClusterManagementService clusterManagementService;
+
+//    Test that when clusterOn=false it will fail to getClusterMode()
+//    Test that processors won't run with clusterOn and not primary/always
+
+
     @Before
     public void setUp() throws Exception {
-        deploymentPipelineFactory = new DeploymentPipelineFactoryImpl();
         config = createConfiguration();
         applicationContext = createApplicationContext();
     }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,19 +20,21 @@ import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.DeploymentProcessor;
+import org.craftercms.deployer.api.cluster.ClusterManagementService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.NoSuchBeanDefinitionException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
 import org.springframework.stereotype.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
+import static org.craftercms.commons.config.ConfigUtils.getRequiredConfigurationsAt;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
-import static org.craftercms.commons.config.ConfigUtils.getRequiredConfigurationsAt;
 
 /**
  * Default implementation of {@link DeploymentPipeline}.
@@ -43,6 +45,9 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredConfiguration
 public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory {
 
     private static final Logger logger = LoggerFactory.getLogger(DeploymentPipelineFactoryImpl.class);
+
+    @Autowired
+    private ClusterManagementService clusterManagementService;
 
     @Override
     public DeploymentPipeline getPipeline(HierarchicalConfiguration<ImmutableNode> configuration,
@@ -80,7 +85,7 @@ public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory 
             }
         }
 
-        return new DeploymentPipelineImpl(deploymentProcessors);
+        return new DeploymentPipelineImpl(deploymentProcessors, clusterManagementService.isClusterOn());
     }
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,6 +23,7 @@ import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentProcessor;
+import org.craftercms.deployer.api.cluster.ClusterMode;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.DeploymentConstants;
 import org.slf4j.Logger;
@@ -31,8 +32,10 @@ import org.springframework.beans.factory.BeanNameAware;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 import static org.craftercms.commons.config.ConfigUtils.*;
+import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_RUN_IN_CLUSTER_MODE_ALWAYS;
 
 /**
  * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s. Inclusion/exclusion of files is handled
@@ -61,6 +64,7 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     protected String siteName;
     protected String targetId;
     protected String name;
+    protected String runInClusterMode = ClusterMode.PRIMARY.name();
 
     // Config properties (populated on init)
 
@@ -99,6 +103,9 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
         this.name = name;
     }
 
+    public void setRunInClusterMode(String runInClusterMode) {
+        this.runInClusterMode = runInClusterMode;
+    }
 
     @Override
     public boolean isPostDeployment() {
@@ -113,6 +120,8 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
         excludeFiles = getStringArrayProperty(config, DeploymentConstants.PROCESSOR_EXCLUDE_FILES_CONFIG_KEY);
         alwaysRun = getBooleanProperty(config, DeploymentConstants.PROCESSOR_ALWAYS_RUN_CONFIG_KEY, false);
 
+        runInClusterMode = getStringProperty(config, DeploymentConstants.PROCESSOR_RUN_IN_CLUSTER_MODE, runInClusterMode);
+
         doInit(config);
     }
 
@@ -125,6 +134,12 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     @Override
     public boolean supportsMode(Deployment.Mode mode) {
         return mode == Deployment.Mode.PUBLISH;
+    }
+
+    @Override
+    public boolean supportsClusterMode(ClusterMode mode) {
+        return Objects.equals(runInClusterMode, PROCESSOR_RUN_IN_CLUSTER_MODE_ALWAYS) ||
+                mode.name().equals(runInClusterMode);
     }
 
     @Override

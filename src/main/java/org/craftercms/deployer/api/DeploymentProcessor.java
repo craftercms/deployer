@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,6 +15,7 @@
  */
 package org.craftercms.deployer.api;
 
+import org.craftercms.deployer.api.cluster.ClusterMode;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.utils.beans.InitializableByConfigBean;
 
@@ -50,5 +51,13 @@ public interface DeploymentProcessor extends InitializableByConfigBean {
      * @return true if the processor should be included
      */
     boolean supportsMode(Deployment.Mode mode);
+
+    /**
+     * Indicates if the processor should be executed in the given cluster mode
+     *
+     * @param mode the cluster mode to check
+     * @return true if the processor should be executed, false otherwise
+     */
+    boolean supportsClusterMode(ClusterMode mode);
 
 }

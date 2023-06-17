@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -24,6 +24,7 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
+import org.craftercms.deployer.api.cluster.ClusterManagementService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
@@ -71,6 +72,9 @@ public class TargetImpl implements Target {
     protected final TaskScheduler scheduler;
     protected final TargetLifecycleHooksResolver targetLifecycleHooksResolver;
     protected final DeploymentPipelineFactory deploymentPipelineFactory;
+    private final String studioUrl;
+    private final String studioManagementToken;
+    private final ClusterManagementService clusterManagementService;
 
     protected volatile Status status;
     protected DeploymentPipeline deploymentPipeline;
@@ -100,17 +104,22 @@ public class TargetImpl implements Target {
             @Value("${target.siteName}") String siteName,
             @Value("${target.localRepoPath}") String localRepoPath,
             @Value("${target.configFile}") File configurationFile,
+            @Value("${target.studioUrl}") String studioUrl,
+            @Value("${target.studioManagementToken}") String studioManagementToken,
             @Autowired HierarchicalConfiguration<ImmutableNode> configuration,
             @Autowired ConfigurableApplicationContext applicationContext,
             @Autowired ExecutorService executor,
             @Autowired TaskScheduler scheduler,
             @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
-            @Autowired DeploymentPipelineFactory deploymentPipelineFactory) {
+            @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
+            @Autowired ClusterManagementService clusterManagementService) {
         this.loadDate = ZonedDateTime.now();
         this.env = env;
         this.siteName = siteName;
         this.localRepoPath = localRepoPath;
         this.configurationFile = configurationFile;
+        this.studioUrl = studioUrl;
+        this.studioManagementToken = studioManagementToken;
         this.configuration = configuration;
         this.applicationContext = applicationContext;
         this.executor = executor;
@@ -120,6 +129,7 @@ public class TargetImpl implements Target {
         this.status = Status.CREATED;
         this.pendingDeployments = new ConcurrentLinkedQueue<>();
         this.deploymentLock = new ReentrantLock();
+        this.clusterManagementService = clusterManagementService;
     }
 
     @Override
@@ -150,6 +160,16 @@ public class TargetImpl implements Target {
     @Override
     public File getConfigurationFile() {
         return configurationFile;
+    }
+
+    @Override
+    public String getStudioUrl() {
+        return studioUrl;
+    }
+
+    @Override
+    public String getStudioManagementToken() {
+        return studioManagementToken;
     }
 
     @Override
@@ -419,6 +439,9 @@ public class TargetImpl implements Target {
                         logger.info("============================================================");
 
                         try {
+                            if (clusterManagementService.isClusterOn()) {
+                                currentDeployment.setClusterMode(clusterManagementService.getClusterMode(currentDeployment.getTarget()));
+                            }
                             deploymentPipeline.execute(currentDeployment);
                         } finally {
                             double durationInSecs = currentDeployment.getDuration() / 1000.0;

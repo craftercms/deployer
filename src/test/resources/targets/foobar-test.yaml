@@ -2,6 +2,8 @@ target:
   env: test
   siteName: foobar
   localRepoPath: foobar
+  studioUrl: ""
+  studioManagementToken: "defaultManagementToken"
   search:
     indexIdFormat: '%s'
   deployment:

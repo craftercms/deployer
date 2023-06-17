@@ -29,4 +29,9 @@
     <!-- Target -->
     <bean id="target" class="org.craftercms.deployer.impl.TargetImpl"/>
 
+    <bean id="clusterManagementService" class="org.craftercms.deployer.impl.cluster.ClusterManagementServiceImpl">
+    </bean>
+
+    <bean id="restTemplate" class="org.springframework.web.client.RestTemplate"/>
+
 </beans>

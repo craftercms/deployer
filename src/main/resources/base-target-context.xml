@@ -107,6 +107,7 @@
           class="org.craftercms.deployer.impl.processors.git.GitPullProcessor" >
         <constructor-arg name="localRepoFolder" value="${target.localRepoPath}"/>
         <constructor-arg name="authConfiguratorFactory" ref="gitAuthenticationConfiguratorFactory"/>
+        <property name="runInClusterMode" value="ALWAYS" />
     </bean>
 
     <bean id="gitPushProcessor" parent="deploymentProcessor"
@@ -120,11 +121,13 @@
         <property name="localRepoFolder" value="${target.localRepoPath}"/>
         <property name="blobFileExtension" value="${deployer.main.targets.config.blob.file.extension}"/>
         <property name="processedCommitsStore" ref="processedCommitsStore"/>
+        <property name="runInClusterMode" value="ALWAYS" />
     </bean>
 
     <bean id="gitUpdateCommitIdProcessor" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.git.GitUpdateCommitIdProcessor">
         <constructor-arg name="processedCommitsStore" ref="processedCommitsStore"/>
+        <property name="runInClusterMode" value="ALWAYS" />
     </bean>
 
     <bean id="abstractSearchIndexingProcessor" class="org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor"

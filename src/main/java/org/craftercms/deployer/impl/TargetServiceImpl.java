@@ -41,7 +41,7 @@ import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
-import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
+import org.craftercms.search.opensearch.OpenSearchAdminService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -70,8 +70,8 @@ import java.util.concurrent.ExecutorService;
 import static java.lang.String.format;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.*;
-import static org.craftercms.commons.config.ConfigUtils.*;
 
 /**
  * Default implementation of {@link TargetService}.
@@ -279,7 +279,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     public void recreateIndex(String env, String siteName) throws TargetNotFoundException {
         Target target = getTarget(env, siteName);
         ApplicationContext appContext = target.getApplicationContext();
-        ElasticsearchAdminService adminService = appContext.getBean(ElasticsearchAdminService.class);
+        OpenSearchAdminService adminService = appContext.getBean(OpenSearchAdminService.class);
         adminService.recreateIndex(target.getId());
     }
 

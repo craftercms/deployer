@@ -20,6 +20,7 @@ import org.craftercms.commons.config.DisableClassLoadingConstructor;
 import org.craftercms.commons.upgrade.impl.operations.AbstractUpgradeOperation;
 import org.craftercms.deployer.api.Target;
 import org.yaml.snakeyaml.DumperOptions;
+import org.yaml.snakeyaml.LoaderOptions;
 import org.yaml.snakeyaml.Yaml;
 import org.yaml.snakeyaml.representer.Representer;
 
@@ -61,7 +62,7 @@ public abstract class AbstractTargetUpgradeOperation extends AbstractUpgradeOper
         DumperOptions options = new DumperOptions();
         options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
         options.setPrettyFlow(true);
-        yaml = new Yaml(new DisableClassLoadingConstructor(), new Representer(), options);
+        yaml = new Yaml(new DisableClassLoadingConstructor(new LoaderOptions()), new Representer(options), options);
     }
 
     @SuppressWarnings("unchecked")

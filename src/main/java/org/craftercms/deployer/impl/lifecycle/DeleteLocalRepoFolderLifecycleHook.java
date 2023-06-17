@@ -21,7 +21,6 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -38,7 +37,6 @@ public class DeleteLocalRepoFolderLifecycleHook extends AbstractLifecycleHook {
 
     protected Path localRepoFolder;
 
-    @Required
     public void setLocalRepoFolder(String localRepoFolder) {
         this.localRepoFolder = Paths.get(localRepoFolder);
     }

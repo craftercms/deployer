@@ -22,9 +22,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.BeansException;
 import org.springframework.beans.factory.BeanCreationException;
-import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.beans.factory.DisposableBean;
+import org.springframework.beans.factory.ObjectFactory;
 
 /**
  * Factory for a singleton Core {@link Context}. The context is created on the first {@link #getObject()} call, and
@@ -49,22 +48,18 @@ public class SingletonContextFactory implements ObjectFactory<Context>, Disposab
 
     private Context context;
 
-    @Required
     public void setTargetId(final String targetId) {
         this.targetId = targetId;
     }
 
-    @Required
     public void setLocalRepoUrl(String localRepoUrl) {
         this.localRepoUrl = localRepoUrl;
     }
 
-    @Required
     public void setContentStoreService(ContentStoreService contentStoreService) {
         this.contentStoreService = contentStoreService;
     }
 
-    @Required
     public void setXmlMergingEnabled(boolean xmlMergingEnabled) {
         this.xmlMergingEnabled = xmlMergingEnabled;
     }

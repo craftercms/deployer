@@ -71,3 +71,12 @@ pipelines:
               - property: excludeFiles
                 values:
                   - '^/\.crafter/.*$'
+      - currentVersion: 2.4
+        nextVersion: 2.5
+        operations:
+          - type: replaceProcessorUpgrader
+            processor: elasticsearchIndexingProcessor
+            newProcessor: searchIndexingProcessor
+          - type: replaceProcessorUpgrader
+            processor: authoringElasticsearchIndexingProcessor
+            newProcessor: authoringSearchIndexingProcessor

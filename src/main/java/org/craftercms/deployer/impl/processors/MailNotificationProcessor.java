@@ -27,7 +27,6 @@ import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.io.File;
 import java.io.IOException;
@@ -118,7 +117,6 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     /**
      * Sets the default name of the Freemarker template used for email creation.
      */
-    @Required
     public void setDefaultTemplateName(String defaultTemplateName) {
         this.defaultTemplateName = defaultTemplateName;
     }
@@ -126,7 +124,6 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     /**
      * Sets the default value of the From field in the emails.
      */
-    @Required
     public void setDefaultFrom(String defaultFrom) {
         this.defaultFrom = defaultFrom;
     }
@@ -134,7 +131,6 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     /**
      * Sets the default value of the Subject field in the emails.
      */
-    @Required
     public void setDefaultSubject(String defaultSubject) {
         this.defaultSubject = defaultSubject;
     }
@@ -142,14 +138,12 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     /**
      * Sets whether the emails are HTML by default.
      */
-    @Required
     public void setDefaultHtml(boolean defaultHtml) {
         this.defaultHtml = defaultHtml;
     }
 
     /** Sets the default condition to send emails.
      */
-    @Required
     public void setDefaultStatusCondition(final String defaultStatusCondition) {
         this.defaultStatusCondition = defaultStatusCondition;
     }
@@ -157,7 +151,6 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     /**
      * Sets the default date time pattern to use when specifying a date in the email.
      */
-    @Required
     public void setDefaultDateTimePattern(String defaultDateTimePattern) {
         this.defaultDateTimePattern = defaultDateTimePattern;
     }
@@ -165,7 +158,6 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     /**
      * Sets the {@link EmailFactory} used to generate the emails.
      */
-    @Required
     public void setEmailFactory(EmailFactory emailFactory) {
         this.emailFactory = emailFactory;
     }
@@ -173,7 +165,6 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     /**
      * Sets the {@link ObjectMapper} used to serialize the deployment result.
      */
-    @Required
     public void setObjectMapper(final ObjectMapper objectMapper) {
         this.objectMapper = objectMapper;
     }

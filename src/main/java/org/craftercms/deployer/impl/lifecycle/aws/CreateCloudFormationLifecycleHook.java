@@ -28,7 +28,6 @@ import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsCloudFormationUtils;
-import org.springframework.beans.factory.annotation.Required;
 import org.springframework.core.io.Resource;
 
 import java.io.FileNotFoundException;
@@ -65,12 +64,10 @@ public class CreateCloudFormationLifecycleHook extends AbstractLifecycleHook {
         this.templateParams = new ArrayList<>();
     }
 
-    @Required
     public void setTemplatesResource(Resource templatesResource) {
         this.templatesResource = templatesResource;
     }
 
-    @Required
     public void setTemplatesOverrideResource(Resource templatesOverrideResource) {
         this.templatesOverrideResource = templatesOverrideResource;
     }

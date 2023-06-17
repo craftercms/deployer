@@ -20,20 +20,19 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.search.batch.BatchIndexer;
-import org.craftercms.search.batch.UpdateSet;
-import org.craftercms.search.batch.UpdateStatus;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Context;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.search.batch.BatchIndexer;
+import org.craftercms.search.batch.UpdateSet;
+import org.craftercms.search.batch.UpdateStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -102,7 +101,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     /**
      * Sets the factory for the {@link Context}.
      */
-    @Required
     public void setContextFactory(ObjectFactory<Context> contextFactory) {
         this.contextFactory = contextFactory;
     }
@@ -110,7 +108,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     /**
      * Sets the content store used to retrieve the files to index.
      */
-    @Required
     public void setContentStoreService(ContentStoreService contentStoreService) {
         this.contentStoreService = contentStoreService;
     }
@@ -162,7 +159,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     /**
      * The format used for the index id
      */
-    @Required
     public void setIndexIdFormat(String indexIdFormat) {
         this.indexIdFormat = indexIdFormat;
     }

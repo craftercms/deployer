@@ -33,7 +33,6 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.util.concurrent.ExecutorService;
 
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
-import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**

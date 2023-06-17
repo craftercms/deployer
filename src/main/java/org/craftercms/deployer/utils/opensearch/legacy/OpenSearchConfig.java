@@ -15,7 +15,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.deployer.utils.elasticsearch.legacy;
+package org.craftercms.deployer.utils.opensearch.legacy;
 
 import java.beans.ConstructorProperties;
 import java.util.HashMap;
@@ -30,14 +30,14 @@ import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 
 /**
- * Holds the configuration for connecting to Elasticsearch, either a single or multiple clusters
+ * Holds the configuration for connecting to OpenSearch, either a single or multiple clusters
  *
  * @author joseross
  * @since 3.1.5
  */
-public class ElasticsearchConfig {
+public class OpenSearchConfig {
 
-    public static final String CONFIG_KEY_GLOBAL_CLUSTER = "target.search.elasticsearch";
+    public static final String CONFIG_KEY_GLOBAL_CLUSTER = "target.search.openSearch";
 
     public static final String CONFIG_KEY_READ_CLUSTER = CONFIG_KEY_GLOBAL_CLUSTER + ".readCluster";
 
@@ -45,7 +45,7 @@ public class ElasticsearchConfig {
 
     public static final String CONFIG_KEY_LOCALE_MAPPING = CONFIG_KEY_GLOBAL_CLUSTER + ".locale.mapping";
 
-    public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.elasticsearch.indexSettings";
+    public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.openSearch.indexSettings";
 
     public static final String CONFIG_KEY_KEY = "key";
 
@@ -54,47 +54,47 @@ public class ElasticsearchConfig {
     /**
      * The global cluster, used for connecting to a single cluster for read & write operations
      */
-    public final ElasticsearchClusterConfig globalCluster;
+    public final OpenSearchClusterConfig globalCluster;
 
     /**
      * The read cluster, used for connecting to multiple clusters
      */
-    public final ElasticsearchClusterConfig readCluster;
+    public final OpenSearchClusterConfig readCluster;
 
     /**
      * The write clusters, used for connecting to multiple clusters
      */
-    public final List<ElasticsearchClusterConfig> writeClusters;
+    public final List<OpenSearchClusterConfig> writeClusters;
 
     /**
-     * Mapping of locale codes to Elasticsearch language analyzers
+     * Mapping of locale codes to OpenSearch language analyzers
      */
     public final Map<String, String> localeMapping = new HashMap<>();
 
     public final Map<String, String> indexSettings;
 
     @ConstructorProperties({"config"})
-    public ElasticsearchConfig(HierarchicalConfiguration<?> config) {
+    public OpenSearchConfig(HierarchicalConfiguration<?> config) {
         if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_GLOBAL_CLUSTER))) {
-            globalCluster = new ElasticsearchClusterConfig(config.configurationAt(CONFIG_KEY_GLOBAL_CLUSTER));
+            globalCluster = new OpenSearchClusterConfig(config.configurationAt(CONFIG_KEY_GLOBAL_CLUSTER));
         } else {
-            globalCluster = new ElasticsearchClusterConfig();
+            globalCluster = new OpenSearchClusterConfig();
         }
         if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_READ_CLUSTER))) {
-            readCluster = new ElasticsearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
+            readCluster = new OpenSearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
                 globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
                     globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive);
         } else {
-            readCluster = new ElasticsearchClusterConfig();
+            readCluster = new OpenSearchClusterConfig();
         }
         writeClusters = config.configurationsAt(CONFIG_KEY_WRITE_CLUSTERS)
             .stream()
-            .map(cluster -> new ElasticsearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
+            .map(cluster -> new OpenSearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
                     globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount,
                     globalCluster.keepAlive))
             .collect(toList());
         if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
-            throw new IllegalStateException("Invalid Elasticsearch configuration");
+            throw new IllegalStateException("Invalid OpenSearch configuration");
         }
 
         Configuration mapping = config.configurationAt(CONFIG_KEY_LOCALE_MAPPING);

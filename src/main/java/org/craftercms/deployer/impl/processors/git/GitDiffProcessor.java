@@ -26,7 +26,7 @@ import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
-import org.craftercms.deployer.impl.processors.elasticsearch.ElasticsearchIndexingProcessor;
+import org.craftercms.deployer.impl.processors.opensearch.OpenSearchIndexingProcessor;
 import org.craftercms.search.batch.UpdateDetail;
 import org.eclipse.jgit.api.Git;
 import org.eclipse.jgit.api.LogCommand;
@@ -38,28 +38,21 @@ import org.eclipse.jgit.lib.ObjectReader;
 import org.eclipse.jgit.revwalk.RevCommit;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.io.File;
 import java.io.IOException;
 import java.time.Instant;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 import static org.apache.commons.lang3.StringUtils.prependIfMissing;
 import static org.apache.commons.lang3.StringUtils.removeEnd;
-import static org.craftercms.deployer.impl.DeploymentConstants.FROM_COMMIT_ID_PARAM_NAME;
-import static org.craftercms.deployer.impl.DeploymentConstants.LATEST_COMMIT_ID_PARAM_NAME;
-import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FILES_PARAM_NAME;
+import static org.craftercms.deployer.impl.DeploymentConstants.*;
 
 /**
  * Processor that, based on a previous processed commit that's stored, does a diff with the current commit of the deployment, to
  * find out the change set. If there is no previous processed commit, then the entire repository becomes the change set. This processor
  * is used basically to create the change set and should be used before other processors that actually process the change set, like
- * {@link ElasticsearchIndexingProcessor}.
+ * {@link OpenSearchIndexingProcessor}.
  *
  * @author avasquez
  */
@@ -85,7 +78,6 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     /**
      * Sets the local filesystem folder the contains the deployed repository.
      */
-    @Required
     public void setLocalRepoFolder(File localRepoFolder) {
         this.localRepoFolder = localRepoFolder;
     }
@@ -93,7 +85,6 @@ public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
     /**
      * Sets the store for processed commits.
      */
-    @Required
     public void setProcessedCommitsStore(ProcessedCommitsStore processedCommitsStore) {
         this.processedCommitsStore = processedCommitsStore;
     }

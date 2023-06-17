@@ -22,7 +22,6 @@ import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
@@ -68,8 +67,6 @@ public class CreateTargetRequest {
     @ValidateNoTagsParam
     private String engineUrl;
     private List<@NotBlank @EsapiValidatedParam(type = EMAIL) String> notificationAddresses;
-    @ValidateStringParam(whitelistedPatterns = "CrafterSearch|Elasticsearch")
-    private String searchEngine = "Elasticsearch";
 
     @JsonUnwrapped
     private final Map<String, Object> extraParams;
@@ -156,14 +153,6 @@ public class CreateTargetRequest {
 
     public void setNotificationAddresses(List<String> notificationAddresses) {
         this.notificationAddresses = notificationAddresses;
-    }
-
-    public String getSearchEngine() {
-        return searchEngine;
-    }
-
-    public void setSearchEngine(String searchEngine) {
-        this.searchEngine = searchEngine;
     }
 
     @JsonAnySetter

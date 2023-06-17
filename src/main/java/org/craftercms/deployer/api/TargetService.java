@@ -103,7 +103,7 @@ public interface TargetService {
     Target getTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
 
     /**
-     * Recreates the underlying Elasticsearch index for a given target
+     * Recreates the underlying OpenSearch index for a given target
      * @param env       the target's environment (e.g. dev)
      * @param siteName  the target's site name (e.g. mysite)
      *

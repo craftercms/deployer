@@ -19,23 +19,30 @@ import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.commons.exception.SearchException;
+import org.craftercms.search.opensearch.OpenSearchAdminService;
+
+import java.beans.ConstructorProperties;
 
 /**
- * Implementation of {@link TargetLifecycleHook} that deletes an Elasticsearch index or a Crafter Search
- * based index.
+ * Implementation of {@link TargetLifecycleHook} that deletes an OpenSearch index.
  *
  * @author avasquez
  */
 public class DeleteIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
 
+    @ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService"})
+    public DeleteIndexLifecycleHook(String siteName, String indexIdFormat, OpenSearchAdminService searchAdminService) {
+        super(siteName, indexIdFormat, searchAdminService);
+    }
+
     @Override
     public void doExecute(Target target) throws DeployerException {
         try {
-            logger.info("Deleting Elasticsearch index for target '{}'", target.getId());
+            logger.info("Deleting OpenSearch index for target '{}'", target.getId());
 
-            elasticsearchAdminService.deleteIndexes(indexId);
+            searchAdminService.deleteIndexes(indexId);
         } catch (SearchException e) {
-            throw new DeployerException("Error creating index for target " + target.getId(), e);
+            throw new DeployerException("Error deleting index for target " + target.getId(), e);
         }
     }
 

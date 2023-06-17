@@ -28,7 +28,6 @@ import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsCloudFormationUtils;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -80,7 +79,6 @@ public class WaitTillCloudFormationStackUsableLifecycleHook extends AbstractLife
         this.outputMappings = new HashMap<>();
     }
 
-    @Required
     public void setTargetConfig(Configuration targetConfig) {
         this.targetConfig = targetConfig;
     }

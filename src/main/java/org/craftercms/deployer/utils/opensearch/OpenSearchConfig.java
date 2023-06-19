@@ -52,7 +52,7 @@ public class OpenSearchConfig {
     public static final String CONFIG_KEY_VALUE = "value";
 
     /**
-     * The global cluster, used for connecting to a single cluster for read & write operations
+     * The global cluster, used for connecting to a single cluster for read &amp; write operations
      */
     public final OpenSearchClusterConfig globalCluster;
 

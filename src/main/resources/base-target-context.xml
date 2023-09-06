@@ -270,8 +270,8 @@
     </bean>
 
     <bean id="disableAwareIncludeDescriptorsProcessor" class="org.craftercms.commons.spring.ConditionalFactoryBean">
-        <property name="flag" value="${target.search.indexing.xml.flattening.enabled}"/>
-        <property name="actualBean" ref="includeDescriptorsProcessor"/>
+        <constructor-arg name="flag" value="${target.search.indexing.xml.flattening.enabled}"/>
+        <constructor-arg name="actualBean" ref="includeDescriptorsProcessor"/>
     </bean>
 
     <util:list id="itemProcessors">

@@ -175,6 +175,12 @@
 			<artifactId>aws-java-sdk-cloudformation</artifactId>
 		</dependency>
 
+               <dependency>
+                       <groupId>com.squareup.okio</groupId>
+                       <artifactId>okio</artifactId>
+                       <version>${okio.version}</version>
+               </dependency>
+
 		<!-- Box -->
 		<dependency>
 			<groupId>com.box</groupId>

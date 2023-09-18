@@ -14,7 +14,7 @@ info:
     url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
 externalDocs:
   description: CrafterCMS - Deployer
-  url: 'https://docs.craftercms.org/current/developers/projects/deployer/index.html'
+  url: 'https://docs.craftercms.org/current/reference/modules/deployer/index.html'
 tags:
   - name: target
     description: Target management  operations

@@ -48,6 +48,12 @@
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-validation</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
@@ -58,6 +64,12 @@
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-search-opensearch</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
@@ -175,13 +187,19 @@
 			<artifactId>aws-java-sdk-cloudformation</artifactId>
 		</dependency>
 
-		<!-- Box -->
-		<!-- Override Jose4j dependency from Box -->
+		<!-- overrides -->
 		<dependency>
 			<groupId>org.bitbucket.b_c</groupId>
 			<artifactId>jose4j</artifactId>
 			<version>${jose4j.version}</version>
 		</dependency>
+		<dependency>
+			<groupId>com.squareup.okio</groupId>
+			<artifactId>okio</artifactId>
+			<version>${okio.version}</version>
+		</dependency>
+
+		<!-- Box -->
 		<dependency>
 			<groupId>com.box</groupId>
 			<artifactId>box-java-sdk</artifactId>
@@ -196,12 +214,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>xerces</groupId>
-			<artifactId>xercesImpl</artifactId>
-			<version>${xerces.version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
 			<version>${groovy.version}</version>
@@ -211,13 +223,7 @@
 		<dependency>
 			<groupId>org.apache.ivy</groupId>
 			<artifactId>ivy</artifactId>
-			<version>${apache.ivy}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.codehaus.groovy</groupId>
-					<artifactId>groovy-all</artifactId>
-				</exclusion>
-			</exclusions>
+			<version>${ivy.version}</version>
 		</dependency>
 
 		<dependency>

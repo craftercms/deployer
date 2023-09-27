@@ -395,7 +395,49 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'        
         '500':
-          $ref: '#/components/responses/InternalServerError'                                      
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/target/duplicate:
+    post:
+      tags:
+        - target
+      summary: Duplicate a target
+      operationId: duplicateTarget
+
+      requestBody:
+        description: Create target's request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                env:
+                  type: string
+                  description: "The target’s environment (e.g. dev)."
+                source_site_name:
+                  type: string
+                  description: "The name of the target’s project/site to copy from (e.g. my-editorial)."
+                site_name:
+                  type: string
+                  description: "The name of the target’s project/site to be created (e.g. my-editorial-copy)."
+              required:
+                - source_site_name
+                - site_name
+                - env
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /api/1/monitoring/version:
     get:
@@ -432,7 +474,7 @@ paths:
                       packageBuildDate:
                         type: string
                       osName:
-                        type: Mac OS X
+                        type: string
                       osVersion:
                         type: string
                       osArch:
@@ -636,4 +678,3 @@ components:
               message:
                 type: string
                 example: OK
-    

@@ -21,6 +21,7 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.configuration2.YAMLConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.configuration2.tree.OverrideCombiner;
 import org.apache.commons.io.FileUtils;
@@ -42,6 +43,7 @@ import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.craftercms.search.opensearch.OpenSearchAdminService;
+import org.eclipse.jgit.lib.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -63,6 +65,7 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
 import java.io.*;
+import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
@@ -281,6 +284,79 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         ApplicationContext appContext = target.getApplicationContext();
         OpenSearchAdminService adminService = appContext.getBean(OpenSearchAdminService.class);
         adminService.recreateIndex(target.getId());
+    }
+
+    /**
+     * Duplicates the index from the source site to the target site.
+     *
+     * @param sourceTarget the source site
+     * @param siteName     the target site name
+     */
+    private void duplicateIndex(final Target sourceTarget, final String siteName) {
+        String indexIdFormat = sourceTarget.getConfiguration().getString("target.search.indexIdFormat");
+        ApplicationContext appContext = sourceTarget.getApplicationContext();
+        OpenSearchAdminService adminService = appContext.getBean(OpenSearchAdminService.class);
+        adminService.duplicateIndex(format(indexIdFormat, sourceTarget.getSiteName()), format(indexIdFormat, siteName));
+    }
+
+    @Override
+    public void duplicateTarget(final String env, final String sourceSiteName, final String siteName)
+            throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException {
+        Target sourceTarget = getTarget(env, sourceSiteName);
+        try {
+            // Create new target file from the source target
+            duplicateTargetConfigurations(sourceTarget, siteName);
+            // Create processed-commits file for the new target
+            ObjectId processedCommit = processedCommitsStore.load(sourceTarget.getId());
+            processedCommitsStore.store(TargetImpl.getId(env, siteName), processedCommit);
+            // Duplicate search index
+            duplicateIndex(sourceTarget, siteName);
+        } catch (TargetAlreadyExistsException e) {
+            throw e;
+        } catch (Exception e) {
+            throw new TargetServiceException(format("Failed to duplicate source target '%s' env '%s' into '%s'", sourceSiteName, env, siteName), e);
+        }
+    }
+
+    /**
+     * Creates a new target configuration based on an existing target.
+     * This method will copy the TARGET-context.xml and TARGET.yaml files from the source target
+     * and update the siteName and localRepoPath properties in the new TARGET.yaml file to
+     * reflect the new siteName.
+     *
+     * @param sourceTarget the source target
+     * @param siteName     the new site name
+     * @throws TargetAlreadyExistsException if a target already exists for the new site name
+     * @throws IOException                  if an error occurs while copying the source target configuration
+     * @throws ConfigurationException       if an error occurs while reading the source target configuration
+     */
+    private void duplicateTargetConfigurations(Target sourceTarget, String siteName)
+            throws TargetAlreadyExistsException, IOException, ConfigurationException {
+        String newTargetId = TargetImpl.getId(sourceTarget.getEnv(), siteName);
+        File configFile = new File(targetConfigFolder, newTargetId + "." + YAML_FILE_EXTENSION);
+        if (configFile.exists()) {
+            throw new TargetAlreadyExistsException(newTargetId, sourceTarget.getEnv(), siteName);
+        }
+
+        File sourceContextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT, sourceTarget.getId()));
+        File contextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT, newTargetId));
+        if (sourceContextFile.exists()) {
+                FileUtils.copyFile(sourceContextFile, contextFile);
+        }
+        try {
+            YAMLConfiguration targetConfiguration = new YAMLConfiguration();
+            try (InputStream is = Files.newInputStream(sourceTarget.getConfigurationFile().toPath())) {
+                targetConfiguration.read(is);
+            }
+            targetConfiguration.setProperty(TARGET_SITE_NAME_CONFIG_KEY, siteName);
+            String newRepoPath = targetConfiguration.getString(TARGET_LOCAL_REPO_CONFIG_KEY).replace(sourceTarget.getSiteName(), siteName);
+            targetConfiguration.setProperty(TARGET_LOCAL_REPO_CONFIG_KEY, newRepoPath);
+            try (Writer writer = Files.newBufferedWriter(configFile.toPath())) {
+                targetConfiguration.write(writer);
+            }
+        } catch (org.apache.commons.configuration2.ex.ConfigurationException e) {
+            throw new ConfigurationException(format("Failed to duplicate target configuration file '%s'", sourceTarget.getConfigurationFile()), e);
+        }
     }
 
     protected Collection<File> getTargetConfigFiles() throws TargetServiceException {

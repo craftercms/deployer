@@ -377,8 +377,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             try (Writer writer = Files.newBufferedWriter(configFile.toPath())) {
                 targetConfiguration.write(writer);
             }
-            TargetImpl target = buildTarget(configFile, contextFile);
-            return target;
+            return buildTarget(configFile, contextFile);
         } catch (Exception e) {
             throw new ConfigurationException(format("Failed to duplicate target configuration file '%s'", sourceTarget.getConfigurationFile()), e);
         }

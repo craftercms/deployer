@@ -256,13 +256,15 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
         target.delete();
 
-        try {
-            processedCommitsStore.delete(id);
-        } catch (DeployerException e) {
-            throw new TargetServiceException(format("Error while deleting processed commit from store for target '%s'", id), e);
-        }
+        cleanupTarget(id, target.getConfigurationFile());
+    }
 
-        File configFile = target.getConfigurationFile();
+    private void cleanupTarget(String targetId, File configFile) throws TargetServiceException {
+        try {
+            processedCommitsStore.delete(targetId);
+        } catch (DeployerException e) {
+            throw new TargetServiceException(format("Error while deleting processed commit from store for target '%s'", targetId), e);
+        }
         if (configFile.exists()) {
             logger.info("Deleting target configuration file at '{}'", configFile);
 
@@ -300,20 +302,41 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     }
 
     @Override
-    public void duplicateTarget(final String env, final String sourceSiteName, final String siteName)
+    public synchronized void duplicateTarget(final String env, final String sourceSiteName, final String siteName)
             throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException {
         Target sourceTarget = getTarget(env, sourceSiteName);
+        if (targetExists(env, siteName)) {
+            throw new TargetAlreadyExistsException(siteName, env, siteName);
+        }
+
+        String newTargetId = TargetImpl.getId(env, siteName);
+        Target target = null;
         try {
-            // Create new target file from the source target
-            duplicateTargetConfigurations(sourceTarget, siteName);
             // Create processed-commits file for the new target
             ObjectId processedCommit = processedCommitsStore.load(sourceTarget.getId());
-            processedCommitsStore.store(TargetImpl.getId(env, siteName), processedCommit);
+            processedCommitsStore.store(newTargetId, processedCommit);
+
+            // Create new target file from the source target
+            target = duplicateTargetConfigurations(sourceTarget, siteName);
+
             // Duplicate search index
             duplicateIndex(sourceTarget, siteName);
+
+            currentTargets.add(target);
         } catch (TargetAlreadyExistsException e) {
+            logger.error("Failed to duplicate source target '{}' env '{}' into '{}'", sourceSiteName, env, siteName, e);
             throw e;
         } catch (Exception e) {
+            logger.error("Failed to duplicate source target '{}' env '{}' into '{}'", sourceSiteName, env, siteName, e);
+            try {
+                if (target != null) {
+                    target.delete();
+                }
+                File configFile = new File(targetConfigFolder, newTargetId + "." + YAML_FILE_EXTENSION);
+                cleanupTarget(newTargetId, configFile);
+            } catch (Exception ex) {
+                logger.error("Failed to delete target '{}' env '{}' after failed duplication", sourceSiteName, env, ex);
+            }
             throw new TargetServiceException(format("Failed to duplicate source target '%s' env '%s' into '%s'", sourceSiteName, env, siteName), e);
         }
     }
@@ -330,7 +353,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
      * @throws IOException                  if an error occurs while copying the source target configuration
      * @throws ConfigurationException       if an error occurs while reading the source target configuration
      */
-    private void duplicateTargetConfigurations(Target sourceTarget, String siteName)
+    private Target duplicateTargetConfigurations(Target sourceTarget, String siteName)
             throws TargetAlreadyExistsException, IOException, ConfigurationException {
         String newTargetId = TargetImpl.getId(sourceTarget.getEnv(), siteName);
         File configFile = new File(targetConfigFolder, newTargetId + "." + YAML_FILE_EXTENSION);
@@ -354,7 +377,9 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             try (Writer writer = Files.newBufferedWriter(configFile.toPath())) {
                 targetConfiguration.write(writer);
             }
-        } catch (org.apache.commons.configuration2.ex.ConfigurationException e) {
+            TargetImpl target = buildTarget(configFile, contextFile);
+            return target;
+        } catch (Exception e) {
             throw new ConfigurationException(format("Failed to duplicate target configuration file '%s'", sourceTarget.getConfigurationFile()), e);
         }
     }

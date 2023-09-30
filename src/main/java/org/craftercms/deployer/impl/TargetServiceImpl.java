@@ -322,6 +322,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             // Duplicate search index
             duplicateIndex(sourceTarget, siteName);
 
+            startInit(target);
             currentTargets.add(target);
         } catch (TargetAlreadyExistsException e) {
             logger.error("Failed to duplicate source target '{}' env '{}' into '{}'", sourceSiteName, env, siteName, e);
@@ -377,7 +378,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             try (Writer writer = Files.newBufferedWriter(configFile.toPath())) {
                 targetConfiguration.write(writer);
             }
-            return buildTarget(configFile, contextFile);
+            return loadTarget(configFile, contextFile, true);
         } catch (Exception e) {
             throw new ConfigurationException(format("Failed to duplicate target configuration file '%s'", sourceTarget.getConfigurationFile()), e);
         }

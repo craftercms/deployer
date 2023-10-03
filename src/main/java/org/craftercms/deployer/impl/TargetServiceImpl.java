@@ -294,7 +294,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
      * @param sourceTarget the source site
      * @param siteName     the target site name
      */
-    private void duplicateIndex(final Target sourceTarget, final String siteName) {
+    protected void duplicateIndex(final Target sourceTarget, final String siteName) {
         String indexIdFormat = sourceTarget.getConfiguration().getString("target.search.indexIdFormat");
         ApplicationContext appContext = sourceTarget.getApplicationContext();
         OpenSearchAdminService adminService = appContext.getBean(OpenSearchAdminService.class);
@@ -304,10 +304,10 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     @Override
     public synchronized void duplicateTarget(final String env, final String sourceSiteName, final String siteName)
             throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException {
-        Target sourceTarget = getTarget(env, sourceSiteName);
         if (targetExists(env, siteName)) {
             throw new TargetAlreadyExistsException(siteName, env, siteName);
         }
+        Target sourceTarget = getTarget(env, sourceSiteName);
 
         String newTargetId = TargetImpl.getId(env, siteName);
         Target target = null;
@@ -354,7 +354,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
      * @throws IOException                  if an error occurs while copying the source target configuration
      * @throws ConfigurationException       if an error occurs while reading the source target configuration
      */
-    private Target duplicateTargetConfigurations(Target sourceTarget, String siteName)
+    protected Target duplicateTargetConfigurations(Target sourceTarget, String siteName)
             throws TargetAlreadyExistsException, IOException, ConfigurationException {
         String newTargetId = TargetImpl.getId(sourceTarget.getEnv(), siteName);
         File configFile = new File(targetConfigFolder, newTargetId + "." + YAML_FILE_EXTENSION);

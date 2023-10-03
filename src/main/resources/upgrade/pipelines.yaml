@@ -71,3 +71,29 @@ pipelines:
               - property: excludeFiles
                 values:
                   - '^/\.crafter/.*$'
+      - currentVersion: 2.4
+        nextVersion: 2.5
+        operations:
+          - type: replaceProcessorUpgrader
+            processor: elasticsearchIndexingProcessor
+            newProcessor: searchIndexingProcessor
+          - type: replaceProcessorUpgrader
+            processor: authoringElasticsearchIndexingProcessor
+            newProcessor: authoringSearchIndexingProcessor
+      - currentVersion: 2.5
+        nextVersion: 2.6
+        operations:
+          - type: removeProcessorUpgrader
+            envPattern: preview
+            processor: httpMethodCallProcessor
+            properties:
+              - property: includeFiles
+                values: ["^/?config/.*$", "^/?scripts/.*$"]
+              - property: excludeFiles
+                values: ["^/?config/studio/content-types.*$"]
+              - property: method
+                value: GET
+              - property: url
+                value: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
+              - property: jumpTo
+                value: fileOutputProcessor

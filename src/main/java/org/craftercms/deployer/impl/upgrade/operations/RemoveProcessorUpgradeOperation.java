@@ -20,12 +20,13 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.Target;
 
 import java.util.*;
+import java.util.stream.Collectors;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CONFIG_KEY;
 
 /**
- * Operation to remove a new processor to the pipeline of the target
+ * Operation to remove a processor from the pipeline of the target
  */
 public class RemoveProcessorUpgradeOperation  extends AbstractProcessorUpgradeOperation {
     /**
@@ -52,16 +53,18 @@ public class RemoveProcessorUpgradeOperation  extends AbstractProcessorUpgradeOp
      * @return true if all properties are the same, false otherwise
      */
     protected boolean hasAllProperties(Map<String, Object> processorObj) {
-        if (processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processorName)) {
-            for (String property : processorConfiguration.keySet()) {
-                if (!(processorObj.containsKey(property) &&
-                        processorObj.get(property).toString().equalsIgnoreCase(processorConfiguration.get(property)))) {
-                    return false;
-                }
-            }
-            return true;
+        if (!processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processorName)) {
+            return false;
         }
-        return false;
+
+        for (String property : processorConfiguration.keySet()) {
+            if (!(processorObj.containsKey(property) &&
+                    processorObj.get(property).toString().equalsIgnoreCase(processorConfiguration.get(property)))) {
+                return false;
+            }
+        }
+
+        return true;
     }
 
     @Override
@@ -70,7 +73,7 @@ public class RemoveProcessorUpgradeOperation  extends AbstractProcessorUpgradeOp
         var removeList = pipeline
                 .stream()
                 .filter(processor -> hasAllProperties(processor))
-                .toList();
+                .collect(Collectors.toList());
         pipeline.removeAll(removeList);
     }
 }

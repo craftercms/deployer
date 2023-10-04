@@ -1,0 +1,14 @@
+target:
+  deployment:
+    pipeline:
+      - processorName: myProcessor
+        property: foo
+      - processorName: otherProcessor
+      - processorName: myProcessor
+        includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
+        excludeFiles: ["^/?config/studio/content-types.*$"]
+        method: GET
+        url: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
+        jumpTo: fileOutputProcessor
+      - processorName: myProcessor
+        property: ['test']

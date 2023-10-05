@@ -32,7 +32,7 @@ paths:
       description: "Target creation is based on templates. The deployer comes with two out of the box: remote and local. The remote template creates targets that pull changes from a remote Git repository, making it ideal to create targets for delivery environments. The local template instead generates targets that use a local Git repo and the last processed commit to infer the changes, without executing a pull, so it’s used mostly to create targets for authoring environments. <br><br> If a target already exists and <b><i>replace</i></b> is true, then the new target will replace the existing one. If <b><i>replace</i></b> is false and the target exists, a 409 is returned."
       operationId: createTarget
       requestBody:
-        description: Create target's request body
+        description: Create target request body
         required: true
         content:
           application/json:
@@ -50,10 +50,10 @@ paths:
                   description: "Replace the existing target." 
                 template_name:
                   type: string
-                  description: "The template to use for configuration generation. Out of the box remote and local are provided. If not specified remote will be used."   
+                  description: "The template to use for configuration generation. Out-of-the-box remote and local are provided. If not specified, remote will be used."   
                 disable_deploy_cron:
                   type: boolean
-                  description: "Disables the cron job the runs deployments every certain amount of time."   
+                  description: "Disables the cron job that runs deployments every certain amount of time."   
                 repo_url:
                   type: string
                   description: "Depends on the template. If <i>remote</i> is being used, it specifies the URL of the remote repo to pull from (e.g. ssh://…). If instead the template is <i>local</i>, <i>repo_url</i> is the filesystem path of the local repo (e.g. /opt/..)."   
@@ -74,7 +74,7 @@ paths:
                   description: "Only use with <i>remote</i> template. The passphrase for the private key for the remote Git repo (only if the key is passphrase-protected)."
                 engine_url:
                   type: string
-                  description: "Base URL of Engine, used to make API calls like clear cache and rebuild context. If not specified the default is http://localhost:8080."
+                  description: "Base URL of Engine, used to make API calls like clear cache and rebuild context. If not specified, the default is http://localhost:8080."
                 notification_addresses:
                   type: string
                   description: "The email addresses that should receive deployment notifications."                
@@ -84,7 +84,7 @@ paths:
                 - repo_url
             examples: 
               simpleExample:
-                summary: Simple example of request body
+                summary: Simple example of the request body
                 value:
                   env: preview
                   site_name: my-editorial
@@ -395,7 +395,49 @@ paths:
         '404':
           $ref: '#/components/responses/NotFound'        
         '500':
-          $ref: '#/components/responses/InternalServerError'                                      
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/target/duplicate:
+    post:
+      tags:
+        - target
+      summary: Duplicate a target
+      operationId: duplicateTarget
+
+      requestBody:
+        description: Create target's request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                env:
+                  type: string
+                  description: "The target’s environment (e.g. dev)."
+                source_site_name:
+                  type: string
+                  description: "The name of the target’s project/site to copy from (e.g. my-editorial)."
+                site_name:
+                  type: string
+                  description: "The name of the target’s project/site to be created (e.g. my-editorial-copy)."
+              required:
+                - source_site_name
+                - site_name
+                - env
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
 
   /api/1/monitoring/version:
     get:
@@ -432,7 +474,7 @@ paths:
                       packageBuildDate:
                         type: string
                       osName:
-                        type: Mac OS X
+                        type: string
                       osVersion:
                         type: string
                       osArch:
@@ -636,4 +678,3 @@ components:
               message:
                 type: string
                 example: OK
-    

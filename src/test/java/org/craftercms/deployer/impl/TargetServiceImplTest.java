@@ -36,10 +36,16 @@ import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
+import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
+import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.craftercms.deployer.api.exceptions.TargetServiceException;
+import org.eclipse.jgit.lib.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.Mockito;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
 import org.springframework.context.support.GenericApplicationContext;
@@ -48,9 +54,7 @@ import org.springframework.core.io.DefaultResourceLoader;
 import org.springframework.scheduling.TaskScheduler;
 
 import static org.craftercms.deployer.impl.DeploymentConstants.CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY;
-import static org.junit.Assert.assertEquals;
-import static org.junit.Assert.assertNotEquals;
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
 
 /**
@@ -59,6 +63,13 @@ import static org.mockito.Mockito.*;
  * @author avasquez
  */
 public class TargetServiceImplTest {
+
+
+    private static final String ENVIRONMENT = "the-env";
+    private static final String SOURCE_SITE_NAME = "source-site";
+    private static final String EXISTING_SITE = "existing-site";
+    private static final String NON_EXISTING_SITE = "non-existing-site";
+    private static final String NEW_SITE_NAME = "new-site";
 
     private TargetServiceImpl targetService;
     private File targetsFolder;
@@ -236,6 +247,49 @@ public class TargetServiceImplTest {
         targets = targetService.resolveTargets();
 
         assertEquals(0, targets.size());
+    }
+
+    @Test
+    public void testDuplicateNonExistingTarget() throws TargetServiceException {
+        TargetService targetServiceSpy = Mockito.spy(targetService);
+        doReturn(false).when(targetServiceSpy).targetExists(ENVIRONMENT, NON_EXISTING_SITE);
+        assertThrows(TargetNotFoundException.class,
+                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, NON_EXISTING_SITE, NEW_SITE_NAME));
+    }
+
+    @Test
+    public void testDuplicateAlreadyExistingTarget() throws TargetServiceException {
+        TargetService targetServiceSpy = Mockito.spy(targetService);
+        when(targetServiceSpy.targetExists(ENVIRONMENT, EXISTING_SITE)).thenReturn(true);
+
+        assertThrows(TargetAlreadyExistsException.class,
+                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, EXISTING_SITE));
+    }
+
+    @Test
+    public void testDuplicateTarget() throws DeployerException, ConfigurationException, IOException {
+        ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
+
+        Target mockSourceTarget = mock(Target.class);
+        when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+
+        when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
+
+        Target mockNewTarget = mock(Target.class);
+        when(mockNewTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, NEW_SITE_NAME));
+
+        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+        doNothing().when(targetServiceSpy).duplicateIndex(any(), any());
+        doReturn(mockSourceTarget).when(targetServiceSpy).getTarget(ENVIRONMENT, SOURCE_SITE_NAME);
+        doReturn(mockNewTarget).when(targetServiceSpy).duplicateTargetConfigurations(any(), any());
+
+        when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
+
+        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME);
+
+        verify(targetServiceSpy).duplicateIndex(mockSourceTarget, NEW_SITE_NAME);
+        verify(targetServiceSpy).startInit(mockNewTarget);
+        verify(targetService.processedCommitsStore).store(mockNewTarget.getId(), theProcessedCommit);
     }
 
     private File createTargetsFolder() throws IOException {

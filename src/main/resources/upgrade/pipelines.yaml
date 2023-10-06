@@ -74,15 +74,6 @@ pipelines:
       - currentVersion: 2.4
         nextVersion: 2.5
         operations:
-          - type: replaceProcessorUpgrader
-            processor: elasticsearchIndexingProcessor
-            newProcessor: searchIndexingProcessor
-          - type: replaceProcessorUpgrader
-            processor: authoringElasticsearchIndexingProcessor
-            newProcessor: authoringSearchIndexingProcessor
-      - currentVersion: 2.5
-        nextVersion: 2.6
-        operations:
           - type: removeProcessorUpgrader
             envPattern: preview
             processor: httpMethodCallProcessor

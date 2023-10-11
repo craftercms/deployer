@@ -19,19 +19,18 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.api.exceptions.UnsupportedSearchEngineException;
 import org.craftercms.deployer.impl.rest.model.CreateTargetRequest;
+import org.craftercms.deployer.impl.rest.model.DuplicateTargetRequest;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -64,6 +63,7 @@ public class TargetController {
     public static final String BASE_URL = "/api/1/target";
     public static final String CREATE_TARGET_URL = "/create";
     public static final String CREATE_TARGET_IF_NOT_EXISTS_URL = "/create_if_not_exists";
+    public static final String DUPLICATE_TARGET_URL = "/duplicate";
     public static final String GET_TARGET_URL = "/get/{" + ENV_PATH_VAR_NAME + "}/" +
             "{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String GET_ALL_TARGETS_URL = "/get-all";
@@ -407,6 +407,13 @@ public class TargetController {
         validateToken(token);
         Target target = targetService.getTarget(env, siteName);
         target.unlock();
+    }
+
+    @ResponseStatus(HttpStatus.CREATED)
+    @PostMapping(DUPLICATE_TARGET_URL)
+    public void duplicateTarget(@Valid @RequestBody DuplicateTargetRequest duplicateTargetRequest)
+            throws TargetServiceException, TargetAlreadyExistsException, TargetNotFoundException {
+        targetService.duplicateTarget(duplicateTargetRequest.getEnv(), duplicateTargetRequest.getSourceSiteName(), duplicateTargetRequest.getSiteName());
     }
 
     protected void validateToken(String token) throws InvalidManagementTokenException {

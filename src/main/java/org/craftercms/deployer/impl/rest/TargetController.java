@@ -63,7 +63,8 @@ public class TargetController {
     public static final String BASE_URL = "/api/1/target";
     public static final String CREATE_TARGET_URL = "/create";
     public static final String CREATE_TARGET_IF_NOT_EXISTS_URL = "/create_if_not_exists";
-    public static final String DUPLICATE_TARGET_URL = "/duplicate";
+    public static final String DUPLICATE_TARGET_URL = "/duplicate/{" + ENV_PATH_VAR_NAME + "}/" +
+            "{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String GET_TARGET_URL = "/get/{" + ENV_PATH_VAR_NAME + "}/" +
             "{" + SITE_NAME_PATH_VAR_NAME + "}";
     public static final String GET_ALL_TARGETS_URL = "/get-all";
@@ -411,9 +412,11 @@ public class TargetController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(DUPLICATE_TARGET_URL)
-    public void duplicateTarget(@Valid @RequestBody DuplicateTargetRequest duplicateTargetRequest)
+    public void duplicateTarget(@ValidateSecurePathParam @ValidateNoTagsParam @PathVariable(ENV_PATH_VAR_NAME) String env,
+                                @EsapiValidatedParam(type = SITE_ID) @PathVariable(SITE_NAME_PATH_VAR_NAME) String sourceSiteName,
+                                @RequestBody DuplicateTargetRequest duplicateTargetRequest)
             throws TargetServiceException, TargetAlreadyExistsException, TargetNotFoundException {
-        targetService.duplicateTarget(duplicateTargetRequest.getEnv(), duplicateTargetRequest.getSourceSiteName(), duplicateTargetRequest.getSiteName());
+        targetService.duplicateTarget(env, sourceSiteName, duplicateTargetRequest.getSiteName());
     }
 
     protected void validateToken(String token) throws InvalidManagementTokenException {

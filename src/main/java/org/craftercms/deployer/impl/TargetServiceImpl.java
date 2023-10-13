@@ -41,6 +41,7 @@ import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
+import org.craftercms.deployer.utils.config.yaml.KeyOrderedYAMLConfiguration;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.craftercms.search.opensearch.OpenSearchAdminService;
 import org.eclipse.jgit.lib.ObjectId;
@@ -368,7 +369,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 FileUtils.copyFile(sourceContextFile, contextFile);
         }
         try {
-            YAMLConfiguration targetConfiguration = new YAMLConfiguration();
+            YAMLConfiguration targetConfiguration = new KeyOrderedYAMLConfiguration();
             try (InputStream is = Files.newInputStream(sourceTarget.getConfigurationFile().toPath())) {
                 targetConfiguration.read(is);
             }

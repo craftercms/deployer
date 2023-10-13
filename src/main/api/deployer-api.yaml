@@ -397,34 +397,40 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-  /api/1/target/duplicate:
+  /api/1/target/duplicate/{env}/{source_site_name}:
     post:
       tags:
         - target
       summary: Duplicate a target
       operationId: duplicateTarget
-
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example: dev
+        - name: source_site_name
+          in: path
+          description: The source project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example: editorial
       requestBody:
-        description: Create target's request body
+        description: Duplicate target's request body
         required: true
         content:
           application/json:
             schema:
               type: object
               properties:
-                env:
-                  type: string
-                  description: "The target’s environment (e.g. dev)."
-                source_site_name:
-                  type: string
-                  description: "The name of the target’s project/site to copy from (e.g. my-editorial)."
                 site_name:
                   type: string
                   description: "The name of the target’s project/site to be created (e.g. my-editorial-copy)."
               required:
-                - source_site_name
                 - site_name
-                - env
       responses:
         '201':
           $ref: '#/components/responses/Created'

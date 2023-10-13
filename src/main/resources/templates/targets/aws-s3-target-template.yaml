@@ -55,6 +55,8 @@ target:
         region: ${aws.region}
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
+        endpoint: {{aws.endpoint}}
+        pathStyleAccess: {{aws.path_style_access}}
         url: {{aws.s3.url}}
       - processorName: delayProcessor
         {{#if delay}}seconds: {{delay}}{{/if}}
@@ -82,6 +84,8 @@ target:
         region: ${aws.region}
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
+        endpoint: {{aws.endpoint}}
+        pathStyleAccess: {{aws.path_style_access}}
         url: {{aws.s3.url}}
       # -------------------- END OF MAIN PIPELINE --------------------
       - processorName: fileOutputProcessor

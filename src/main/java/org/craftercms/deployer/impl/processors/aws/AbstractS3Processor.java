@@ -26,6 +26,7 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
+import org.craftercms.deployer.utils.aws.AwsS3ClientBuilderConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -58,7 +59,7 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
     /**
      * Helper class the configures credentials and other properties for a {@link AmazonS3} client.
      */
-    protected AwsClientBuilderConfigurer builderConfigurer;
+    protected AwsClientBuilderConfigurer<AmazonS3ClientBuilder> builderConfigurer;
 
     /**
      * AWS S3 bucket URL
@@ -79,7 +80,7 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
      */
     @Override
     protected void doInit(final Configuration config) throws ConfigurationException {
-        builderConfigurer = new AwsClientBuilderConfigurer(config);
+        builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
         s3Url = new AmazonS3URI(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
 
         // use true as default for backward compatibility

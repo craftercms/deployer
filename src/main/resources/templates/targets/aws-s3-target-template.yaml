@@ -1,4 +1,4 @@
-version: '2.3'
+version: '2.4'
 aws:
   region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
   accessKey: {{#if aws.access_key}}{{aws.access_key}}{{else}}''{{/if}}
@@ -14,11 +14,11 @@ target:
   {{#if local_repo_path}}
   localRepoPath: {{local_repo_path}}
   {{/if}}
-  {{#if elastic_search_url}}
+  {{#if search_url}}
   search:
-    elasticsearch:
+    openSearch:
       urls:
-        - {{elastic_search_url}}
+        - {{search_url}}
   {{/if}}
   lifecycleHooks:
     delete:
@@ -49,12 +49,14 @@ target:
               {{/if}}
           {{/if}}
       - processorName: gitDiffProcessor
-      - processorName: elasticsearchIndexingProcessor
+      - processorName: searchIndexingProcessor
         excludeFiles: ['^/sources/.*$']
       - processorName: s3SyncProcessor
         region: ${aws.region}
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
+        endpoint: {{aws.endpoint}}
+        pathStyleAccess: {{aws.path_style_access}}
         url: {{aws.s3.url}}
       - processorName: delayProcessor
         {{#if delay}}seconds: {{delay}}{{/if}}
@@ -82,6 +84,8 @@ target:
         region: ${aws.region}
         accessKey: ${aws.accessKey}
         secretKey: ${aws.secretKey}
+        endpoint: {{aws.endpoint}}
+        pathStyleAccess: {{aws.path_style_access}}
         url: {{aws.s3.url}}
       # -------------------- END OF MAIN PIPELINE --------------------
       - processorName: fileOutputProcessor

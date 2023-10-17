@@ -33,7 +33,7 @@
 	<parent>
 		<groupId>org.craftercms</groupId>
 		<artifactId>craftercms-spring-boot</artifactId>
-		<version>4.0.1-SNAPSHOT</version><!-- craftercms version flag -->
+		<version>4.1.2-SNAPSHOT</version><!-- craftercms version flag -->
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -48,6 +48,12 @@
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-validation</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
@@ -56,8 +62,14 @@
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
-			<artifactId>crafter-search-elasticsearch</artifactId>
+			<artifactId>crafter-search-opensearch</artifactId>
 			<version>${project.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>xerces</groupId>
+					<artifactId>xercesImpl</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
@@ -109,7 +121,13 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>${jackson.databind.version}</version>
+			<version>${jackson.version}</version>
+		</dependency>
+
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+			<version>${jackson.version}</version>
 		</dependency>
 
 		<dependency>
@@ -134,8 +152,8 @@
 
 		<!-- Mail -->
 		<dependency>
-                        <groupId>com.sun.mail</groupId>
-                        <artifactId>javax.mail</artifactId>
+			<groupId>com.sun.mail</groupId>
+            <artifactId>javax.mail</artifactId>
 			<version>${javax.mail.version}</version>
 		</dependency>
 
@@ -169,6 +187,18 @@
 			<artifactId>aws-java-sdk-cloudformation</artifactId>
 		</dependency>
 
+		<!-- overrides -->
+		<dependency>
+			<groupId>org.bitbucket.b_c</groupId>
+			<artifactId>jose4j</artifactId>
+			<version>${jose4j.version}</version>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okio</groupId>
+			<artifactId>okio</artifactId>
+			<version>${okio.version}</version>
+		</dependency>
+
 		<!-- Box -->
 		<dependency>
 			<groupId>com.box</groupId>
@@ -184,12 +214,6 @@
 		</dependency>
 
 		<dependency>
-			<groupId>xerces</groupId>
-			<artifactId>xercesImpl</artifactId>
-			<version>${xerces.version}</version>
-		</dependency>
-
-		<dependency>
 			<groupId>org.codehaus.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
 			<version>${groovy.version}</version>
@@ -199,13 +223,7 @@
 		<dependency>
 			<groupId>org.apache.ivy</groupId>
 			<artifactId>ivy</artifactId>
-			<version>${apache.ivy}</version>
-			<exclusions>
-				<exclusion>
-					<groupId>org.codehaus.groovy</groupId>
-					<artifactId>groovy-all</artifactId>
-				</exclusion>
-			</exclusions>
+			<version>${ivy.version}</version>
 		</dependency>
 
 		<dependency>

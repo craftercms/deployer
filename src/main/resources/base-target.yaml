@@ -30,25 +30,25 @@ target:
     # The format used for the index id
     indexIdFormat: '%s'
     tika:
-      # Limit of words to be parsed from binary files
-      limit: 10000
-    elasticsearch:
+      # Limit of chars to be parsed from binary files
+      limit: 100000
+    openSearch:
       mappings:
         # JSON file containing the settings for authoring indexes
-        authoring: 'classpath:crafter/elasticsearch/authoring-mapping.json'
+        authoring: 'classpath:crafter/opensearch/authoring-mapping.json'
         # JSON file containing the settings for preview indexes
-        preview: 'classpath:crafter/elasticsearch/default-mapping.json'
+        preview: 'classpath:crafter/opensearch/default-mapping.json'
       authoring:
         # Regex used to determine if an index is for authoring
         pattern: '.+-authoring'
       locale:
-        # Mapping of locale codes to Elasticsearch language analyzers
+        # Mapping of locale codes to OpenSearch language analyzers
         mapping:
           en.*: english
           es.*: spanish
           fr.*: french
           de.*: german
-      # List of URLs for Elasticsearch
+      # List of URLs for OpenSearch
       urls:
         - http://localhost:9201
       indexSettings:
@@ -101,6 +101,8 @@ target:
             name: crafterPublishedDate
             # The alternate name for the publish date field (indexed as a date)
             alt: crafterPublishedDate_dt
+          # The name for the internal name field
+          internalName: internalName
         type:
           html:
             # The suffix used for fields containing HTML markup (only text will be indexed)
@@ -143,8 +145,6 @@ target:
         referenceXPaths:
           - //item/key
           - //item/url
-        # The maximum file size in bytes to index
-        maxFileSize: 104857600
         # Setting specific for authoring indexes
         authoring:
           # Xpath for the internal name field
@@ -172,11 +172,20 @@ target:
             - text/x-groovy
             - text/javascript
             - text/css
-          # Look into all XML descriptors to index all binary files referenced
+          # The regex path patterns for the metadata ("jacket") files of binary/document files
           metadataPathPatterns:
-            - ^/(?!config).+\.xml$
+            - ^/?site/documents/.+\.xml$
           binaryPathPatterns:
-            - ^/(?!config).+$
+            - ^/?static-assets/.+$
+            - ^/?remote-assets/.+$
+            - ^/?scripts/.+$
+            - ^/?templates/.+$
+          # Look into all XML descriptors to index all binary files referenced
+          binarySearchablePathPatterns:
+            - ^/?site/.+\.xml$
+          # Additional metadata such as contentLength, content-type specific metadata
+          metadataExtractorPathPatterns:
+            - ^/?site/.+$
           excludePathPatterns:
             - ^/?config/.*$
           # Include all fields marked as remote resources (S3, Box, CMIS)

@@ -1,4 +1,4 @@
-version: '2.3'
+version: '2.4'
 target:
   env: {{env}}
   siteName: {{site_name}}
@@ -11,8 +11,8 @@ target:
     pipeline:
       - processorName: gitDiffProcessor
         includeGitLog: true
-      - processorName: authoringElasticsearchIndexingProcessor
-        excludeFiles: ['^/sources/.*$']
+      - processorName: authoringSearchIndexingProcessor
+        excludeFiles: ['^/sources/.*$', '^/\.crafter/.*$']
         reindexItemsOnComponentUpdates: false
       - processorName: httpMethodCallProcessor
         includeFiles: [ "^/?config/studio/scripts/classes/.*$" ]

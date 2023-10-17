@@ -16,19 +16,16 @@
 
 package org.craftercms.deployer.config;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.craftercms.commons.crypto.TextEncryptor;
+import org.craftercms.commons.upgrade.UpgradeConfigurationProvider;
 import org.craftercms.commons.upgrade.UpgradeOperation;
 import org.craftercms.commons.upgrade.UpgradePipelineFactory;
 import org.craftercms.commons.upgrade.VersionProvider;
+import org.craftercms.commons.upgrade.impl.configuration.YamlConfigurationProvider;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.impl.upgrade.TargetVersionProvider;
-import org.craftercms.deployer.impl.upgrade.operations.AddLifecycleHookUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.AddProcessorUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.ElasticsearchIndexUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.EncryptionUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.ProcessorUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.RemovePropertyUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.ReplaceProcessorUpgradeOperation;
+import org.craftercms.deployer.impl.upgrade.operations.*;
 import org.craftercms.deployer.impl.upgrade.pipeline.TargetUpgradePipelineFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -60,9 +57,15 @@ public class UpgradeManagerConfig {
     @SuppressWarnings("unchecked,rawtypes")
     public UpgradePipelineFactory<Target> upgradePipelineFactory(
             @Autowired VersionProvider versionProvider,
-            @Value("${deployer.main.upgrade.configuration}") Resource configurationFile,
+            @Autowired UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider,
             @Value("${deployer.main.upgrade.pipelines.target.name}") String pipelineName) {
-        return new TargetUpgradePipelineFactory(pipelineName, configurationFile, versionProvider);
+        return new TargetUpgradePipelineFactory(pipelineName, configurationProvider, versionProvider);
+    }
+
+    @Bean
+    public UpgradeConfigurationProvider<HierarchicalConfiguration> upgradeConfigurationProvider(
+            @Value("${deployer.main.upgrade.configuration}") Resource configurationFile) {
+        return new YamlConfigurationProvider(configurationFile);
     }
 
     @Bean
@@ -108,6 +111,12 @@ public class UpgradeManagerConfig {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public RemovePropertyUpgradeOperation removePropertyUpgrader() {
         return new RemovePropertyUpgradeOperation();
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public RemoveProcessorUpgradeOperation removeProcessorUpgrader() {
+        return new RemoveProcessorUpgradeOperation();
     }
 
 }

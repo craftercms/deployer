@@ -15,23 +15,23 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-package org.craftercms.deployer.utils.elasticsearch.legacy;
+package org.craftercms.deployer.utils.opensearch.legacy;
 
-import org.craftercms.search.elasticsearch.ElasticsearchAdminService;
-import org.craftercms.search.elasticsearch.impl.ElasticsearchAdminServiceImpl;
-import org.craftercms.search.elasticsearch.impl.MultiElasticsearchAdminServiceImpl;
-import org.elasticsearch.client.RestHighLevelClient;
+import org.craftercms.search.opensearch.OpenSearchAdminService;
+import org.craftercms.search.opensearch.impl.MultiOpenSearchAdminServiceImpl;
+import org.craftercms.search.opensearch.impl.OpenSearchAdminServiceImpl;
+import org.opensearch.client.RestHighLevelClient;
 import org.springframework.core.io.Resource;
 
 import java.beans.ConstructorProperties;
 
 /**
- * Implementation of {@link AbstractElasticsearchFactory} for {@link ElasticsearchAdminService}
+ * Implementation of {@link AbstractOpenSearchFactory} for {@link OpenSearchAdminService}
  *
  * @author joseross
  * @since 3.1.5
  */
-public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFactory<ElasticsearchAdminService> {
+public class OpenSearchAdminServiceFactory extends AbstractOpenSearchFactory<OpenSearchAdminService> {
 
     /**
      * Index mapping file for authoring indices
@@ -46,8 +46,8 @@ public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFacto
     protected String authoringNamePattern;
 
     @ConstructorProperties({"config", "authoringMapping", "previewMapping", "authoringNamePattern"})
-    public ElasticsearchAdminServiceFactory(ElasticsearchConfig config, Resource authoringMapping,
-                                            Resource previewMapping, String authoringNamePattern) {
+    public OpenSearchAdminServiceFactory(OpenSearchConfig config, Resource authoringMapping,
+                                         Resource previewMapping, String authoringNamePattern) {
         super(config);
         this.authoringMapping = authoringMapping;
         this.previewMapping = previewMapping;
@@ -56,20 +56,20 @@ public class ElasticsearchAdminServiceFactory extends AbstractElasticsearchFacto
 
     @Override
     public Class<?> getObjectType() {
-        return ElasticsearchAdminService.class;
+        return OpenSearchAdminService.class;
     }
 
     @Override
-    protected ElasticsearchAdminService doCreateSingleInstance(final RestHighLevelClient client) {
-        return new ElasticsearchAdminServiceImpl(
+    protected OpenSearchAdminService doCreateSingleInstance(final RestHighLevelClient client) {
+        return new OpenSearchAdminServiceImpl(
                 authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(),
                 config.indexSettings, client);
     }
 
     @Override
-    protected ElasticsearchAdminService doCreateMultiInstance(final RestHighLevelClient readClient,
-                                                              final RestHighLevelClient[] writeClients) {
-        return new MultiElasticsearchAdminServiceImpl(
+    protected OpenSearchAdminService doCreateMultiInstance(final RestHighLevelClient readClient,
+                                                           final RestHighLevelClient[] writeClients) {
+        return new MultiOpenSearchAdminServiceImpl(
                 authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(), readClient,
                 config.indexSettings, writeClients);
     }

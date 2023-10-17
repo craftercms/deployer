@@ -1,0 +1,686 @@
+openapi: 3.0.0
+servers:
+  - url: 'http://localhost:9191'
+info:
+  description: |-
+    Crafter Deployer API
+  version: '4.0.3.0'
+  title: Crafter Deployer
+  termsOfService: ''
+  contact:
+    email: info@craftercms.org
+  license:
+    name: GPL 3.0
+    url: 'https://www.gnu.org/licenses/gpl-3.0.en.html'
+externalDocs:
+  description: CrafterCMS - Deployer
+  url: 'https://docs.craftercms.org/current/reference/modules/deployer/index.html'
+tags:
+  - name: target
+    description: Target management  operations
+  - name: monitoring
+    description: Monitoring operations
+
+paths:
+
+  /api/1/target/create:
+    post:
+      security: []
+      tags:
+        - target
+      summary: Create a Crafter Deployer target
+      description: "Target creation is based on templates. The deployer comes with two out of the box: remote and local. The remote template creates targets that pull changes from a remote Git repository, making it ideal to create targets for delivery environments. The local template instead generates targets that use a local Git repo and the last processed commit to infer the changes, without executing a pull, so it’s used mostly to create targets for authoring environments. <br><br> If a target already exists and <b><i>replace</i></b> is true, then the new target will replace the existing one. If <b><i>replace</i></b> is false and the target exists, a 409 is returned."
+      operationId: createTarget
+      requestBody:
+        description: Create target request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                env:
+                  type: string
+                  description: "The target’s environment (e.g. dev)."                  
+                site_name:
+                  type: string
+                  description: "The target’s project/site name (e.g. my-editorial)."                    
+                replace:
+                  type: boolean
+                  description: "Replace the existing target." 
+                template_name:
+                  type: string
+                  description: "The template to use for configuration generation. Out-of-the-box remote and local are provided. If not specified, remote will be used."   
+                disable_deploy_cron:
+                  type: boolean
+                  description: "Disables the cron job that runs deployments every certain amount of time."   
+                repo_url:
+                  type: string
+                  description: "Depends on the template. If <i>remote</i> is being used, it specifies the URL of the remote repo to pull from (e.g. ssh://…). If instead the template is <i>local</i>, <i>repo_url</i> is the filesystem path of the local repo (e.g. /opt/..)."   
+                repo_branch:
+                  type: string
+                  description: "Only use with <i>remote</i> template. The branch name of the remote Git repo to pull from. If not specified, the branch will be whatever branch is the current one in the remote repo."
+                repo_username:
+                  type: string
+                  description: "Only use with <i>remote</i> template. The username of the remote Git repo."
+                repo_password:
+                  type: string
+                  description: "Only use with <i>remote</i> template. The username of the remote Git repo."
+                ssh_private_key_path:
+                  type: string
+                  description: "Only use with <i>remote</i> template. The path for the private key used for the remote Git repo."  
+                ssh_private_key_passphrase:
+                  type: string
+                  description: "Only use with <i>remote</i> template. The passphrase for the private key for the remote Git repo (only if the key is passphrase-protected)."
+                engine_url:
+                  type: string
+                  description: "Base URL of Engine, used to make API calls like clear cache and rebuild context. If not specified, the default is http://localhost:8080."
+                notification_addresses:
+                  type: string
+                  description: "The email addresses that should receive deployment notifications."                
+              required: 
+                - env
+                - site_name
+                - repo_url
+            examples: 
+              simpleExample:
+                summary: Simple example of the request body
+                value:
+                  env: preview
+                  site_name: my-editorial
+                  replace: true
+                  disable_deploy_cron: true
+                  template_name: local
+                  repo_url: /opt/crafter/data/repos/sites/my-editorial/sandbox
+                  engine_url: http://localhost:8080
+              withNotificationAddresses:
+                summary: Example of request body with notification addresses
+                value:
+                  env: dev
+                  site_name: my-editorial
+                  replace: false
+                  template_name: remote
+                  repo_url: ssh://crafter@server/opt/crafter/data/repos/sites/my-editorial/published
+                  repo_username: crafter
+                  repo_password: crafter
+                  repo_branch: live
+                  engine_url: http://localhost:8080
+                  notification_addresses: admin1@my-editorial.com", "admin2@my-editorial.com
+      responses:
+        '201':
+          description: CREATED
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  message:
+                    type: string
+                example: 
+                  message: "OK"    
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '409':
+          $ref: '#/components/responses/Conflict'        
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/target/get/{env}/{site_name}:
+    get:
+      security: []
+      tags:
+        - target
+      summary: Get a Crafter Deployer target.      
+      operationId: getTarget
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example: 
+             env: dev 
+        - name: site_name
+          in: path
+          description: The target’s project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example: 
+            site_name: editorial      
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Targets'
+              example: 
+                env: dev
+                siteName: editorial
+                id: editorial-dev
+                load_date: 2023-01-26T10:00:1.234-05:00 
+                status: INIT_COMPLETED        
+        '404':
+          $ref: '#/components/responses/NotFound'        
+        '500':
+          $ref: '#/components/responses/InternalServerError'      
+
+  /api/1/target/get-all:
+    get:
+      security: []
+      tags:
+        - target
+      summary: Get a Crafter Deployer target.      
+      operationId: getAllTargets      
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Targets'
+              example: 
+                - load_date: 2023-03-30T13:24:36.042181-04:00
+                  env: preview
+                  siteName: hi
+                  status: INIT_COMPLETED
+                  id: hi-preview                                    
+                - load_date: 2023-03-31T09:48:48.214383-04:00
+                  env: preview           
+                  siteName: third
+                  status: INIT_COMPLETED        
+                  id: third-preview                  
+        '500':
+          $ref: '#/components/responses/InternalServerError'      
+  
+  /api/1/target/delete/{env}/{site_name}:
+    post:
+      security: []
+      tags:
+        - target
+      summary: Delete a Crafter Deployer target.    
+      operationId: deleteTarget
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example: 
+            env: dev 
+        - name: site_name
+          in: path
+          description: The target’s project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example: 
+            site_name: editorial      
+      responses:
+        '204':
+          description: NO CONTENT          
+        '404':
+          $ref: '#/components/responses/NotFound'        
+        '500':
+          $ref: '#/components/responses/InternalServerError'              
+
+  /api/1/target/deploy/{env}/{site_name}:
+    post:
+      security: []
+      tags:
+        - target
+      summary: Deploy a Crafter Deployer target.    
+      operationId: deployTarget
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example: 
+            env: dev 
+        - name: site_name
+          in: path
+          description: The target’s project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example: 
+            site_name: editorial
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                reprocess_all_files:
+                  description: If all files in all the target repos should be reprocessed.
+                  type: boolean
+                from_commit_id:
+                  description: The id of the commit to start processing changes<br><br> <i>Available since version 4.0.0</i> 
+                  type: string
+                deployment_mode:
+                  description: "The deployment mode to execute. Possible values: <br> nbsp;&nbsp;&nbsp;<b>PUBLISH</b>: All processors will run<br> &nbsp;&nbsp;&nbsp;<b>SEARCH_INDEX</b>: Only the indexing processor will run <br><br> <i>Available since version 4.0.0</i>"
+                  type: string
+      responses:
+        '202':
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string                    
+                    example: OK
+        '404':
+          $ref: '#/components/responses/NotFound'        
+        '500':
+          $ref: '#/components/responses/InternalServerError'                      
+          
+  /api/1/target/deploy-all:
+    post:
+      security: []
+      tags:
+        - target
+      summary: Deploy all Crafter Deployer targets.    
+      operationId: deployAllTargets
+      requestBody: 
+        content: 
+          application/json:
+            schema:
+              type: object
+              properties:
+                reprocess_all_files:
+                  description: If all files in all the target repos should be reprocessed.
+                  type: boolean
+                deployment_mode:
+                  description: "The deployment mode to execute. Possible values: <br> &nbsp;&nbsp;&nbsp;<b>PUBLISH</b>: All processors will run<br> &nbsp;&nbsp;&nbsp;<b>SEARCH_INDEX</b>: Only the indexing processor will run <br><br> <i>Available since version 4.0.0</i>"
+                  type: string
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'
+        '404':
+          $ref: '#/components/responses/NotFound'        
+        '500':
+          $ref: '#/components/responses/InternalServerError'                              
+
+  /api/1/target/unlock/{env}/{site_name}:
+    post:
+      security: []
+      tags:
+        - target
+      summary: Clear git lock of a Crafter Deployer target.
+      operationId: unlockTarget
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example: 
+            env: dev 
+        - name: site_name
+          in: path
+          description: The target’s project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example: 
+            site_name: editorial
+        - name: token
+          in: query
+          description: The authorization token
+          required: true
+          schema:
+            type: string
+          example: defaultManagementToken    
+      responses:
+        '200':
+          description: OK 
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'                                          
+        '404':
+          $ref: '#/components/responses/NotFound'        
+        '500':
+          $ref: '#/components/responses/InternalServerError'                              
+
+  /api/1/target/recreate/{env}/{site_name}:
+    post:
+      security: []
+      tags:
+        - target
+      summary: Recreate the underlying search index for a Crafter Deployer target.
+      operationId: recreateIndex
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example: 
+            env: dev 
+        - name: site_name
+          in: path
+          description: The target’s project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example: 
+            site_name: editorial
+        - name: token
+          in: query
+          description: The authorization token
+          required: true
+          schema:
+            type: string
+          example: defaultManagementToken    
+      responses:
+        '202':
+          $ref: '#/components/responses/Accepted'                   
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'                     
+        '404':
+          $ref: '#/components/responses/NotFound'        
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/target/duplicate/{env}/{source_site_name}:
+    post:
+      tags:
+        - target
+      summary: Duplicate a target
+      operationId: duplicateTarget
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example: dev
+        - name: source_site_name
+          in: path
+          description: The source project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example: editorial
+      requestBody:
+        description: Duplicate target's request body
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                site_name:
+                  type: string
+                  description: "The name of the target’s project/site to be created (e.g. my-editorial-copy)."
+              required:
+                - site_name
+      responses:
+        '201':
+          $ref: '#/components/responses/Created'
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '409':
+          $ref: '#/components/responses/Conflict'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/monitoring/version:
+    get:
+      security: []
+      tags:
+        - monitoring
+      summary: Get a Crafter Deployer's version details.      
+      operationId: version      
+      parameters:
+        - name: token
+          in: query
+          description: The authorization token
+          required: true
+          schema:
+            type: string
+          example: defaultManagementToken    
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  VersionInfo:
+                    type: object
+                    properties: 
+                      packageName:
+                        type: string
+                      packageVersion:
+                        type: string
+                      packageBuild:
+                        type: string
+                      packageBuildDate:
+                        type: string
+                      osName:
+                        type: string
+                      osVersion:
+                        type: string
+                      osArch:
+                        type: string            
+                      javaVersion:
+                        type: string
+                      javaVendor:
+                        type: string
+                      javaVm:
+                        type: string
+                    example: 
+                      packageName: Crafter Deployer
+                      packageVersion: 4.1.0-SNAPSHOT
+                      packageBuild: f33f1804c95dd0df4902c9732203841d22022459
+                      packageBuildDate: 2023-04-17T21:28:40.642Z
+                      osName: Mac OS X
+                      osVersion: 13.2.1
+                      osArch: x86_64
+                      javaVersion: 17
+                      javaVendor: Oracle Corporation
+                      javaVm: OpenJDK 64-Bit Server VM         
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'                             
+        '500':
+          $ref: '#/components/responses/InternalServerError'              
+        
+  /api/1/monitoring/status:
+    get:
+      security: []
+      tags:
+        - monitoring
+      summary: Get a Crafter Deployer's status details.      
+      operationId: status      
+      parameters:
+        - name: token
+          in: query
+          description: The authorization token
+          required: true
+          schema:
+            type: string
+          example: defaultManagementToken    
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  StatusInfo:
+                    type: object
+                    properties: 
+                      uptime:
+                        type: string
+                      startup:
+                        type: string
+                    example: 
+                      uptime: 49986
+                      startup: 2023-04-17T14:16:29.188Z
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'                             
+        '500':
+          $ref: '#/components/responses/InternalServerError'              
+
+  /api/1/monitoring/memory:
+    get:
+      security: []
+      tags:
+        - monitoring
+      summary: Get a Crafter Deployer's memory details.      
+      operationId: memory
+      parameters:
+        - name: token
+          in: query
+          description: The authorization token
+          required: true
+          schema:
+            type: string
+          example: defaultManagementToken    
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties: 
+                  MemoryInfo:
+                    type: object
+                    properties: 
+                      totalJvmMemory:
+                        type: string
+                      freeJvmMemory:
+                        type: string
+                      maxJvmMemory:
+                        type: string  
+                      totalOsMemory:
+                        type: string  
+                      freeOsMemory:
+                        type: string
+                      totalSwapMemory:
+                        type: string
+                      freeSwapMemory:
+                        type: string      
+                    example: 
+                      totalJvmMemory: 154140672
+                      freeJvmMemory: 102165520
+                      maxJvmMemory: 1073741824
+                      totalOsMemory: 34359738368
+                      freeOsMemory: 59957248
+                      totalSwapMemory: 8589934592
+                      freeSwapMemory: 1076363264
+        '400':
+          $ref: '#/components/responses/BadRequest'
+        '401':
+          $ref: '#/components/responses/Unauthorized'                             
+        '500':
+          $ref: '#/components/responses/InternalServerError'              
+
+components:
+  schemas:
+    Targets:
+      type: object
+      properties:
+        env:
+          type: string
+        siteName:
+          type: string
+        id:
+          type: string
+        load_date:
+          type: string
+        status:
+          type: string  
+  
+  responses:
+    NotFound:
+      description: Resource not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Target not found
+  
+    BadRequest:
+      description: Invalid request
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Required request parameter 'token' for method parameter type String is not present
+
+    Unauthorized:
+      description: Unauthorized
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Invalid management token
+    Conflict:
+      description: Conflict
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Target already exists
+    InternalServerError:
+      description: Internal server error
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: Internal Server Error
+               
+    Accepted:
+      description: Accepted
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: OK

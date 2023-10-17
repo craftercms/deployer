@@ -15,6 +15,8 @@
  */
 package org.craftercms.deployer.impl.upgrade.pipeline;
 
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.commons.upgrade.UpgradeConfigurationProvider;
 import org.craftercms.commons.upgrade.UpgradeOperation;
 import org.craftercms.commons.upgrade.UpgradePipeline;
 import org.craftercms.commons.upgrade.VersionProvider;
@@ -32,9 +34,9 @@ import java.util.List;
  */
 public class TargetUpgradePipelineFactory extends DefaultUpgradePipelineFactoryImpl<Target> {
 
-    public TargetUpgradePipelineFactory(String pipelineName, Resource configurationFile,
+    public TargetUpgradePipelineFactory(String pipelineName, UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider,
                                         VersionProvider<Target> versionProvider) {
-        super(pipelineName, configurationFile, versionProvider);
+        super(pipelineName, configurationProvider, versionProvider);
     }
 
     @Override

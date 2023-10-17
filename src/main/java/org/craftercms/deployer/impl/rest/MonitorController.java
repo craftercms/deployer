@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -34,11 +34,7 @@ public class MonitorController extends MonitoringRestControllerBase {
      */
     public static final String BASE_URL = "/api/1";
 
-    @Value("${deployer.main.management.authorizationToken}")
-    private String configuredToken;
-
-    @Override
-    protected String getConfiguredToken() {
-        return configuredToken;
+    public MonitorController(@Value("${deployer.main.management.authorizationToken}") final String configuredToken) {
+        super(configuredToken);
     }
 }

@@ -28,14 +28,11 @@ import org.craftercms.deployer.impl.DeploymentConstants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
-import org.springframework.beans.factory.annotation.Required;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
-import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
-import static org.craftercms.commons.config.ConfigUtils.getStringArrayProperty;
+import static org.craftercms.commons.config.ConfigUtils.*;
 
 /**
  * Base class for {@link org.craftercms.deployer.api.DeploymentProcessor}s. Inclusion/exclusion of files is handled
@@ -76,7 +73,6 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     /**
      * Sets the environment of the site.
      */
-    @Required
     public void setEnv(String env) {
         this.env = env;
     }
@@ -84,7 +80,6 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     /**
      * Sets the site name.
      */
-    @Required
     public void setSiteName(String siteName) {
         this.siteName = siteName;
     }
@@ -92,7 +87,6 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
     /**
      * Sets the target ID.
      */
-    @Required
     public void setTargetId(String targetId) {
         this.targetId = targetId;
     }

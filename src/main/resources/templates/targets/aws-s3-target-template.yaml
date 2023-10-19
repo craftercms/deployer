@@ -1,8 +1,8 @@
 version: '2.4'
 aws:
   region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
-  accessKey: {{#if aws.access_key}}{{aws.access_key}}{{else}}''{{/if}}
-  secretKey: {{#if aws.secret_key}}{{aws.secret_key}}{{else}}''{{/if}}
+  accessKey: {{#if aws.default_access_key}}{{aws.default_access_key}}{{else}}''{{/if}}
+  secretKey: {{#if aws.default_secret_key}}{{aws.default_secret_key}}{{else}}''{{/if}}
   {{#if aws.threads}}
   threads:
     {{#if aws.threads.size}}size: {{aws.threads.size}}{{/if}}

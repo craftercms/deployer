@@ -39,6 +39,8 @@ deployer:
         basePath: /config/{module}
         # The path pattern for a specific environment
         envPath: /config/{module}/env/{environment}
+      # The max maxAliasesForCollections for yaml files
+      yamlMaxAliasesForCollections: 1
     targets:
       config:
         # The folder path for target configuration files

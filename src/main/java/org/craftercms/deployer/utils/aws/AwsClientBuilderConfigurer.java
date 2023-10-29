@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -29,9 +29,10 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  *
  * @author avasquez
  */
-public class AwsClientBuilderConfigurer {
+public class AwsClientBuilderConfigurer<ClientBuilderSubclass extends AwsClientBuilder> {
 
     public static final String CONFIG_KEY_REGION = "region";
+    public static final String CONFIG_KEY_ENDPOINT = "endpoint";
     public static final String CONFIG_KEY_ACCESS_KEY = "accessKey";
     public static final String CONFIG_KEY_SECRET_KEY = "secretKey";
 
@@ -39,6 +40,7 @@ public class AwsClientBuilderConfigurer {
      * AWS Region
      */
     protected String region;
+    protected String endpoint;
     /**
      * AWS Access Key
      */
@@ -58,6 +60,9 @@ public class AwsClientBuilderConfigurer {
         if (config.containsKey(CONFIG_KEY_REGION)) {
             region = getStringProperty(config, CONFIG_KEY_REGION);
         }
+        if (config.containsKey(CONFIG_KEY_ENDPOINT)) {
+            endpoint = getStringProperty(config, CONFIG_KEY_ENDPOINT);
+        }
         if (config.containsKey(CONFIG_KEY_ACCESS_KEY) && config.containsKey(CONFIG_KEY_SECRET_KEY)) {
             accessKey = getStringProperty(config, CONFIG_KEY_ACCESS_KEY);
             secretKey = getStringProperty(config, CONFIG_KEY_SECRET_KEY);
@@ -69,10 +74,13 @@ public class AwsClientBuilderConfigurer {
      *
      * @param builder the AWS client builder
      */
-    public void configureClientBuilder(AwsClientBuilder<?, ?> builder) {
-        if (StringUtils.isNotEmpty(region)) {
+    public void configureClientBuilder(ClientBuilderSubclass builder) {
+        if (StringUtils.isNotEmpty(endpoint)) {
+            builder.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region));
+        } else if (StringUtils.isNotEmpty(region)) {
             builder.withRegion(region);
         }
+
         if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
             builder.withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)));
         }

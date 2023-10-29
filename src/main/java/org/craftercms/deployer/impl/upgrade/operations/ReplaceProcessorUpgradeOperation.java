@@ -37,7 +37,6 @@ public class ReplaceProcessorUpgradeOperation extends AbstractProcessorUpgradeOp
     public static final String CONFIG_KEY_NEW_PROCESSOR = "newProcessor";
 
     public static final String CONFIG_KEY_DELETE_PROPERTIES = "deleteProperties";
-
     protected Map<String, String> conditions;
 
     protected String newProcessorName;

@@ -1,0 +1,12 @@
+processor: myProcessor
+properties:
+  - property: includeFiles
+    values: ["^/?config/.*$", "^/?scripts/.*$"]
+  - property: excludeFiles
+    values: ["^/?config/studio/content-types.*$"]
+  - property: method
+    value: GET
+  - property: url
+    value: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
+  - property: jumpTo
+    value: fileOutputProcessor

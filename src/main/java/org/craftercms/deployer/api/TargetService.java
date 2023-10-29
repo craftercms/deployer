@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,12 +15,12 @@
  */
 package org.craftercms.deployer.api;
 
-import java.util.List;
-import java.util.Map;
-
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Service that manages targets.
@@ -111,4 +111,12 @@ public interface TargetService {
      */
     void recreateIndex(String env, String siteName) throws TargetNotFoundException;
 
+    /**
+     * Duplicates a target.
+     *
+     * @param env            the target's environment (e.g. dev)
+     * @param sourceSiteName site name of the target to duplicate
+     * @param siteName       site name for the new target
+     */
+    void duplicateTarget(String env, String sourceSiteName, String siteName) throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException;
 }

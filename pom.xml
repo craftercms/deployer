@@ -218,6 +218,12 @@
 			<artifactId>groovy-all</artifactId>
 			<version>${groovy.version}</version>
 			<type>pom</type>
+			<exclusions>
+				<exclusion>
+					<groupId>org.testng</groupId>
+					<artifactId>testng</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>

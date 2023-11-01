@@ -214,9 +214,9 @@
 		</dependency>
 
 		<dependency>
-			<groupId>org.codehaus.groovy</groupId>
+			<groupId>org.apache.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
-			<version>${groovy.version}</version>
+			<version>${groovy4.version}</version> <!-- TODO: change to groovy.version when spring boot upgrade to v3 -->
 			<type>pom</type>
 			<exclusions>
 				<exclusion>

@@ -88,3 +88,5 @@ pipelines:
                 value: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
               - property: jumpTo
                 value: fileOutputProcessor
+      - currentVersion: 2.5
+        nextVersion: 4.0.8.0

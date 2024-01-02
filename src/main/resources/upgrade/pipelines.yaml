@@ -101,6 +101,8 @@ pipelines:
       # Upgrade entrypoint
       - currentVersion: 2.6
         nextVersion: 4.1.3-t
+      - currentVersion: 4.0.8.0
+        nextVersion: 4.1.3-t
       # New version format
       - currentVersion: 4.1.3-t
         nextVersion: 4.1.3.0

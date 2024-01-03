@@ -16,7 +16,7 @@
   -->
 
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
 	<modelVersion>4.0.0</modelVersion>
 	<artifactId>crafter-deployer</artifactId>
 	<packaging>jar</packaging>
@@ -33,7 +33,7 @@
 	<parent>
 		<groupId>org.craftercms</groupId>
 		<artifactId>craftercms-spring-boot</artifactId>
-		<version>4.1.2-SNAPSHOT</version><!-- craftercms version flag -->
+		<version>4.2.0-SNAPSHOT</version><!-- craftercms version flag -->
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -42,12 +42,10 @@
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-utilities</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-validation</artifactId>
-			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>xerces</groupId>
@@ -58,12 +56,10 @@
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-git</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-search-opensearch</artifactId>
-			<version>${project.version}</version>
 			<exclusions>
 				<exclusion>
 					<groupId>xerces</groupId>
@@ -74,26 +70,22 @@
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-search-batch-indexer</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>crafter-commons-upgrade-manager</artifactId>
-			<version>${project.version}</version>
 		</dependency>
 
 		<!-- Commons -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-configuration2</artifactId>
-			<version>${commons.configuration.version}</version>
 		</dependency>
 
 		<!-- CSV -->
 		<dependency>
 			<groupId>org.apache.commons</groupId>
 			<artifactId>commons-csv</artifactId>
-			<version>${commons.csv.version}</version>
 		</dependency>
 
 		<!-- Spring -->
@@ -121,52 +113,44 @@
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-databind</artifactId>
-			<version>${jackson.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.core</groupId>
 			<artifactId>jackson-core</artifactId>
-			<version>${jackson.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>com.fasterxml.jackson.dataformat</groupId>
 			<artifactId>jackson-dataformat-xml</artifactId>
-			<version>${jackson.version}</version>
 		</dependency>
 
 		<!-- JSON-P -->
 		<dependency>
 			<groupId>org.glassfish</groupId>
 			<artifactId>jakarta.json</artifactId>
-			<version>${jakarta.json.version}</version>
 		</dependency>
 
 		<!-- Git -->
 		<dependency>
 			<groupId>org.eclipse.jgit</groupId>
 			<artifactId>org.eclipse.jgit</artifactId>
-			<version>${jgit.version}</version>
 		</dependency>
 
 		<!-- Mail -->
 		<dependency>
 			<groupId>com.sun.mail</groupId>
-            <artifactId>javax.mail</artifactId>
-			<version>${javax.mail.version}</version>
+			<artifactId>javax.mail</artifactId>
 		</dependency>
 
 		<!-- Handlebars -->
 		<dependency>
 			<groupId>com.github.jknack</groupId>
 			<artifactId>handlebars</artifactId>
-			<version>${handlebars.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.github.jknack</groupId>
 			<artifactId>handlebars-springmvc</artifactId>
-			<version>${handlebars.version}</version>
 		</dependency>
 
 		<!-- AWS -->
@@ -191,45 +175,74 @@
 		<dependency>
 			<groupId>org.bitbucket.b_c</groupId>
 			<artifactId>jose4j</artifactId>
-			<version>${jose4j.version}</version>
 		</dependency>
 		<dependency>
 			<groupId>com.squareup.okio</groupId>
 			<artifactId>okio</artifactId>
-			<version>${okio.version}</version>
 		</dependency>
 
 		<!-- Box -->
 		<dependency>
 			<groupId>com.box</groupId>
 			<artifactId>box-java-sdk</artifactId>
-			<version>${box.sdk.version}</version>
+			<exclusions>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcprov-jdk15on</artifactId>
+				</exclusion>
+				<exclusion>
+					<groupId>org.bouncycastle</groupId>
+					<artifactId>bcpkix-jdk15on</artifactId>
+				</exclusion>
+			</exclusions>
+		</dependency>
+
+		<!-- BouncyCastle Provider -->
+		<!-- This is required by the Box SDK, but it uses an older version -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
 		</dependency>
 
 		<!-- WebDAV -->
 		<dependency>
 			<groupId>com.github.lookfirst</groupId>
 			<artifactId>sardine</artifactId>
-			<version>${sardine.version}</version>
 		</dependency>
 
 		<dependency>
-			<groupId>org.codehaus.groovy</groupId>
+			<groupId>org.apache.groovy</groupId>
 			<artifactId>groovy-all</artifactId>
-			<version>${groovy.version}</version>
+			<version>${groovy4.version}
+			</version> <!-- TODO: change to groovy.version when spring boot upgrade to v3 -->
 			<type>pom</type>
+			<exclusions>
+				<exclusion>
+					<groupId>org.testng</groupId>
+					<artifactId>testng</artifactId>
+				</exclusion>
+			</exclusions>
 		</dependency>
 
 		<dependency>
 			<groupId>org.apache.ivy</groupId>
 			<artifactId>ivy</artifactId>
-			<version>${ivy.version}</version>
 		</dependency>
 
 		<dependency>
 			<groupId>org.craftercms</groupId>
 			<artifactId>script-security</artifactId>
-			<version>${script.security.version}</version>
+		</dependency>
+
+		<!-- Test -->
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
 		</dependency>
 
 	</dependencies>
@@ -256,11 +269,11 @@
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-jar-plugin</artifactId>
-				<version>${maven.jar.version}</version>
 				<configuration>
 					<archive>
 						<manifest>
-							<addDefaultImplementationEntries>true</addDefaultImplementationEntries>
+							<addDefaultImplementationEntries>true
+							</addDefaultImplementationEntries>
 						</manifest>
 						<manifestEntries>
 							<Implementation-Build>${buildNumber}</Implementation-Build>
@@ -272,7 +285,6 @@
 			<plugin>
 				<groupId>org.codehaus.mojo</groupId>
 				<artifactId>buildnumber-maven-plugin</artifactId>
-				<version>${buildnumber.maven.version}</version>
 				<executions>
 					<execution>
 						<phase>validate</phase>
@@ -297,8 +309,10 @@
 						<deployer.main.homePath>target/test-resources</deployer.main.homePath>
 						<targets.dir>target/test-resources/targets</targets.dir>
 						<deployments.dir>target/test-logs</deployments.dir>
-						<processedCommits.dir>target/test-resources/processed-commits</processedCommits.dir>
-						<deploymentEvents.dir>target/test-resources/deployment-events</deploymentEvents.dir>
+						<processedCommits.dir>target/test-resources/processed-commits
+						</processedCommits.dir>
+						<deploymentEvents.dir>target/test-resources/deployment-events
+						</deploymentEvents.dir>
 						<logs.dir>target/test-logs</logs.dir>
 					</systemPropertyVariables>
 				</configuration>

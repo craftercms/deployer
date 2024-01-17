@@ -177,8 +177,9 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	}
 
 	@Bean("crafter.configurationReader")
-	public EncryptionAwareConfigurationReader configurationReader(@Autowired TextEncryptor textEncryptor) {
-		return new EncryptionAwareConfigurationReader(textEncryptor);
+	public EncryptionAwareConfigurationReader configurationReader(@Autowired TextEncryptor textEncryptor,
+																  @Value("${deployer.main.config.yamlMaxAliasesForCollections}") int yamlMaxAliasesForCollections) {
+		return new EncryptionAwareConfigurationReader(textEncryptor, yamlMaxAliasesForCollections);
 	}
 
 	@Bean("crafter.publishingTargetResolver")

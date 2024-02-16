@@ -166,8 +166,10 @@ target:
             - application/vnd.ms-excel
             - application/vnd.ms-powerpoint
             - application/vnd.openxmlformats-officedocument.presentationml.presentation
+            - application/x-subrip
             - image/*
             - video/*
+            - audio/*
             - text/x-freemarker
             - text/x-groovy
             - text/javascript

@@ -65,6 +65,7 @@ target:
         - "index.provided_name"
         - "index.number_of_shards"
         - "index.replication.type"
+        - "index.version.upgraded"
     indexing:
       xml:
         flattening:

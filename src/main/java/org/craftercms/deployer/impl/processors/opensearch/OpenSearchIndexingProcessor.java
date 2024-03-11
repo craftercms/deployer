@@ -63,7 +63,9 @@ public class OpenSearchIndexingProcessor extends AbstractSearchIndexingProcessor
 
     @Override
     protected void doCreateIndexIfMissing() {
-        searchAdminService.createIndex(indexId);
+        if (!searchAdminService.indexExists(indexId)) {
+            searchAdminService.createIndex(indexId);
+        }
     }
 
     @Override

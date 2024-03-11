@@ -97,3 +97,20 @@ pipelines:
                 value: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
               - property: jumpTo
                 value: fileOutputProcessor
+
+      # Upgrade entrypoint
+      - currentVersion: 2.6
+        nextVersion: 4.1.3-t
+      - currentVersion: 4.0.8.0
+        nextVersion: 4.1.3-t
+      # New version format
+      - currentVersion: 4.1.3-t
+        nextVersion: 4.1.3.0
+        # Added recent operations in case of upgrade from 4.0.x
+        operations:
+          - type: replaceProcessorUpgrader
+            processor: elasticsearchIndexingProcessor
+            newProcessor: searchIndexingProcessor
+          - type: replaceProcessorUpgrader
+            processor: authoringElasticsearchIndexingProcessor
+            newProcessor: authoringSearchIndexingProcessor

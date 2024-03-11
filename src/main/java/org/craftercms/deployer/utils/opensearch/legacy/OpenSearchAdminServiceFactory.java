@@ -63,7 +63,7 @@ public class OpenSearchAdminServiceFactory extends AbstractOpenSearchFactory<Ope
     protected OpenSearchAdminService doCreateSingleInstance(final RestHighLevelClient client) {
         return new OpenSearchAdminServiceImpl(
                 authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(),
-                config.indexSettings, client);
+                config.indexSettings, config.ignoredSettings, client);
     }
 
     @Override
@@ -71,7 +71,7 @@ public class OpenSearchAdminServiceFactory extends AbstractOpenSearchFactory<Ope
                                                            final RestHighLevelClient[] writeClients) {
         return new MultiOpenSearchAdminServiceImpl(
                 authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(), readClient,
-                config.indexSettings, writeClients);
+                config.indexSettings, config.ignoredSettings, writeClients);
     }
 
 }

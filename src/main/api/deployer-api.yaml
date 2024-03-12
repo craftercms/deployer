@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Deployer API
-  version: '4.0.3.0'
+  version: '4.1.3'
   title: Crafter Deployer
   termsOfService: ''
   contact:
@@ -676,6 +676,17 @@ components:
                
     Accepted:
       description: Accepted
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+                example: OK
+
+    Created:
+      description: Created
       content:
         application/json:
           schema:

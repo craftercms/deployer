@@ -23,6 +23,7 @@ target:
   lifecycleHooks:
     delete:
       - hookName: deleteLocalRepoFolderLifecycleHook
+      - hookName: deleteIndexLifecycleHook
   deployment:
     {{#if disable_deploy_cron}}
     scheduling:

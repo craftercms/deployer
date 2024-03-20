@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -36,6 +36,7 @@ public abstract class DeploymentConstants {
     public static final String CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.create";
     public static final String INIT_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.init";
     public static final String DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.delete";
+    public static final String DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.duplicate";
 
     // Target lifecycle hooks configuration keys
     public static final String HOOK_NAME_CONFIG_KEY = "hookName";

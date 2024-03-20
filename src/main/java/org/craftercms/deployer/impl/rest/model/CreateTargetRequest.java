@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,7 +15,6 @@
  */
 package org.craftercms.deployer.impl.rest.model;
 
-import com.fasterxml.jackson.annotation.JsonAnySetter;
 import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
@@ -23,14 +22,10 @@ import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
-import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.*;
+import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 
 /**
  * Holds the parameters to create a Target
@@ -39,41 +34,14 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 public class CreateTargetRequest {
     @NotEmpty
     @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
-    private String siteName;
-    @NotEmpty
-    @Size(max = 50)
     @ValidateNoTagsParam
     @ValidateSecurePathParam
     @EsapiValidatedParam(type = SITE_ID, message = "Value is not a valid environment name")
     private String env;
-    private boolean replace;
-    @NotBlank
+    @NotEmpty
     @Size(max = 50)
-    @ValidateNoTagsParam
-    @ValidateSecurePathParam
-    private String templateName = "remote";
-    @ValidateNoTagsParam
-    private String repoUrl;
-    @ValidateNoTagsParam
-    @ValidateSecurePathParam
-    private String repoBranch;
-    @Size(max = 255)
-    @EsapiValidatedParam(type = USERNAME)
-    private String repoUsername;
-    @ValidateNoTagsParam
-    @ValidateSecurePathParam
-    private String sshPrivateKeyPath;
-    @ValidateNoTagsParam
-    private String engineUrl;
-    private List<@NotBlank @EsapiValidatedParam(type = EMAIL) String> notificationAddresses;
-
-    @JsonUnwrapped
-    private final Map<String, Object> extraParams;
-
-    public CreateTargetRequest() {
-        this.extraParams = new HashMap<>();
-    }
+    @EsapiValidatedParam(type = SITE_ID)
+    private String siteName;
 
     public String getSiteName() {
         return siteName;
@@ -83,6 +51,9 @@ public class CreateTargetRequest {
         this.siteName = siteName;
     }
 
+    @JsonUnwrapped
+    private TargetTemplateParams targetTemplateParams;
+
     public String getEnv() {
         return env;
     }
@@ -91,77 +62,12 @@ public class CreateTargetRequest {
         this.env = env;
     }
 
-    public boolean isReplace() {
-        return replace;
+    public TargetTemplateParams getTargetTemplateParams() {
+        return targetTemplateParams;
     }
 
-    public void setReplace(boolean replace) {
-        this.replace = replace;
+    public void setTargetTemplateParams(TargetTemplateParams targetTemplateParams) {
+        this.targetTemplateParams = targetTemplateParams;
     }
 
-    public String getTemplateName() {
-        return templateName;
-    }
-
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
-
-    public String getRepoUrl() {
-        return repoUrl;
-    }
-
-    public void setRepoUrl(String repoUrl) {
-        this.repoUrl = repoUrl;
-    }
-
-    public String getRepoBranch() {
-        return repoBranch;
-    }
-
-    public void setRepoBranch(String repoBranch) {
-        this.repoBranch = repoBranch;
-    }
-
-    public String getRepoUsername() {
-        return repoUsername;
-    }
-
-    public void setRepoUsername(String repoUsername) {
-        this.repoUsername = repoUsername;
-    }
-
-    public String getSshPrivateKeyPath() {
-        return sshPrivateKeyPath;
-    }
-
-    public void setSshPrivateKeyPath(String sshPrivateKeyPath) {
-        this.sshPrivateKeyPath = sshPrivateKeyPath;
-    }
-
-    public String getEngineUrl() {
-        return engineUrl;
-    }
-
-    public void setEngineUrl(String engineUrl) {
-        this.engineUrl = engineUrl;
-    }
-
-    public List<String> getNotificationAddresses() {
-        return notificationAddresses;
-    }
-
-    public void setNotificationAddresses(List<String> notificationAddresses) {
-        this.notificationAddresses = notificationAddresses;
-    }
-
-    @JsonAnySetter
-    public Map<String, Object> getExtraParams() {
-        return extraParams;
-    }
-
-    @JsonAnySetter
-    public void addExtraParam(String key, Object value) {
-        this.extraParams.put(key, value);
-    }
 }

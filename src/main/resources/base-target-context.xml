@@ -49,6 +49,31 @@
         <constructor-arg name="searchAdminService" ref="searchAdminService"/>
     </bean>
 
+    <!-- Duplicate target hooks START -->
+    <bean id="baseDuplicateLifecycleHook" abstract="true">
+        <constructor-arg name="siteName" value="${target.siteName}"/>
+        <constructor-arg name="sourceSiteName" value="${target.sourceSiteName}"/>
+    </bean>
+
+    <bean id="duplicateIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.DuplicateIndexHook"
+          scope="prototype" parent="baseDuplicateLifecycleHook">
+        <constructor-arg name="indexIdFormat" value="${target.search.indexIdFormat}"/>
+        <constructor-arg name="searchAdminService" ref="searchAdminService"/>
+    </bean>
+
+    <bean id="duplicateProcessCommitsFileLifecycleHook"
+          class="org.craftercms.deployer.impl.lifecycle.DuplicateProcessedCommitsHook"
+          scope="prototype" parent="baseDuplicateLifecycleHook">
+        <constructor-arg name="env" value="${target.env}"/>
+        <constructor-arg name="processedCommitsStore" ref="processedCommitsStore"/>
+    </bean>
+
+    <bean id="duplicateS3LifecycleHook" class="org.craftercms.deployer.impl.lifecycle.aws.DuplicateS3LifecycleHook"
+          scope="prototype" parent="baseDuplicateLifecycleHook">
+    </bean>
+
+    <!-- Duplicate target hooks END -->
+
     <bean id="createCloudFormationLifecycleHook"
           class="org.craftercms.deployer.impl.lifecycle.aws.CreateCloudFormationLifecycleHook" scope="prototype">
         <property name="templatesResource" value="${deployer.main.targets.config.aws.cloudformation.location}"/>

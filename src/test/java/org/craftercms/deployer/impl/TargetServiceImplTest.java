@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -47,10 +47,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import static java.util.Collections.emptyMap;
 import static org.craftercms.deployer.impl.DeploymentConstants.CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -251,7 +253,7 @@ public class TargetServiceImplTest {
         TargetService targetServiceSpy = Mockito.spy(targetService);
         doReturn(false).when(targetServiceSpy).targetExists(ENVIRONMENT, NON_EXISTING_SITE);
         assertThrows(TargetNotFoundException.class,
-                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, NON_EXISTING_SITE, NEW_SITE_NAME));
+                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, NON_EXISTING_SITE, NEW_SITE_NAME, false, "test", emptyMap()));
     }
 
     @Test
@@ -260,11 +262,11 @@ public class TargetServiceImplTest {
         when(targetServiceSpy.targetExists(ENVIRONMENT, EXISTING_SITE)).thenReturn(true);
 
         assertThrows(TargetAlreadyExistsException.class,
-                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, EXISTING_SITE));
+                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, EXISTING_SITE, false, "test", emptyMap()));
     }
 
     @Test
-    public void testDuplicateTarget() throws DeployerException, ConfigurationException, IOException {
+    public void testDuplicateTarget() throws Exception {
         ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
 
         Target mockSourceTarget = mock(Target.class);
@@ -276,17 +278,13 @@ public class TargetServiceImplTest {
         when(mockNewTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, NEW_SITE_NAME));
 
         TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
-        doNothing().when(targetServiceSpy).duplicateIndex(any(), any());
-        doReturn(mockSourceTarget).when(targetServiceSpy).getTarget(ENVIRONMENT, SOURCE_SITE_NAME);
-        doReturn(mockNewTarget).when(targetServiceSpy).duplicateTargetConfigurations(any(), any());
+        doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
         when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
 
-        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME);
+        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
 
-        verify(targetServiceSpy).duplicateIndex(mockSourceTarget, NEW_SITE_NAME);
-        verify(targetServiceSpy).startInit(mockNewTarget);
-        verify(targetService.processedCommitsStore).store(mockNewTarget.getId(), theProcessedCommit);
+        verify(targetServiceSpy).executeDuplicateHooks(any());
     }
 
     private File createTargetsFolder() throws IOException {

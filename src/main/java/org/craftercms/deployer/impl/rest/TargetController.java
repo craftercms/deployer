@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -19,7 +19,10 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
-import org.craftercms.commons.validation.annotations.param.*;
+import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
+import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
+import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
@@ -30,6 +33,7 @@ import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.impl.rest.model.CreateTargetRequest;
 import org.craftercms.deployer.impl.rest.model.DuplicateTargetRequest;
+import org.craftercms.deployer.impl.rest.model.TargetTemplateParams;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.HttpHeaders;
@@ -40,6 +44,8 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -116,7 +122,7 @@ public class TargetController {
      *               The body must contain at least a {@code env} and {@code site_name} parameter. Other required
      *               parameters depend on the template used.
      * @return the response entity 201 CREATED status
-     * @throws DeployerException   if an error occurred during target creation
+     * @throws DeployerException if an error occurred during target creation
      */
     @RequestMapping(value = CREATE_TARGET_URL, method = RequestMethod.POST)
     public ResponseEntity<Result> createTarget(@Valid @RequestBody CreateTargetRequest params) throws DeployerException {
@@ -344,7 +350,7 @@ public class TargetController {
      * @param createRequest the request
      * @return a map containing the necessary properties to invoke the create target
      */
-    private Map<String, Object> getTemplateParams(CreateTargetRequest createRequest) {
+    private Map<String, Object> getTemplateParams(TargetTemplateParams createRequest) {
         Map<String, Object> templateParams = new HashMap<>();
         templateParams.put(REPO_URL_PARAM_NAME, createRequest.getRepoUrl());
         templateParams.put(REPO_BRANCH_PARAM_NAME, createRequest.getRepoBranch());
@@ -361,9 +367,10 @@ public class TargetController {
             throws DeployerException {
         final String env = createRequest.getEnv();
         final String siteName = createRequest.getSiteName();
-        final boolean replace = createRequest.isReplace();
-        final String templateName = createRequest.getTemplateName();
-        Map<String, Object> templateParams = getTemplateParams(createRequest);
+        final TargetTemplateParams params = createRequest.getTargetTemplateParams();
+        final boolean replace = params.isReplace();
+        final String templateName = params.getTemplateName();
+        Map<String, Object> templateParams = getTemplateParams(params);
 
         if (createIfNotExists) {
             if (!targetService.targetExists(env, siteName)) {
@@ -395,11 +402,14 @@ public class TargetController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(DUPLICATE_TARGET_URL)
-    public void duplicateTarget(@ValidateSecurePathParam @ValidateNoTagsParam @PathVariable(ENV_PATH_VAR_NAME) String env,
+    public void duplicateTarget(@NotEmpty @Size(max = 50) @ValidateSecurePathParam @ValidateNoTagsParam @PathVariable(ENV_PATH_VAR_NAME) String env,
                                 @EsapiValidatedParam(type = SITE_ID) @PathVariable(SITE_NAME_PATH_VAR_NAME) String sourceSiteName,
-                                @RequestBody DuplicateTargetRequest duplicateTargetRequest)
+                                @Valid @RequestBody DuplicateTargetRequest duplicateTargetRequest)
             throws TargetServiceException, TargetAlreadyExistsException, TargetNotFoundException {
-        targetService.duplicateTarget(env, sourceSiteName, duplicateTargetRequest.getSiteName());
+
+        final TargetTemplateParams params = duplicateTargetRequest.getTargetTemplateParams();
+        targetService.duplicateTarget(env, sourceSiteName, duplicateTargetRequest.getSiteName(),
+                params.isReplace(), params.getTemplateName(), getTemplateParams(params));
     }
 
     protected void validateToken(String token) throws InvalidManagementTokenException {

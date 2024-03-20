@@ -11,6 +11,9 @@ aws:
 target:
   env: {{env}}
   siteName: {{site_name}}
+  {{#if source_target}}
+  sourceSiteName: {{source_target.siteName}}
+  {{/if}}
   {{#if local_repo_path}}
   localRepoPath: {{local_repo_path}}
   {{/if}}
@@ -24,6 +27,20 @@ target:
     delete:
       - hookName: deleteLocalRepoFolderLifecycleHook
       - hookName: deleteIndexLifecycleHook
+    {{#if source_target}}
+    duplicate:
+      - hookName: duplicateIndexLifecycleHook
+      - hookName: duplicateProcessCommitsFileLifecycleHook
+      - hookName: duplicateS3LifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        url: {{aws.s3.url}}
+        endpoint: {{aws.s3.endpoint}}
+        pathStyleAccess: {{aws.s3.path_style_access}}
+        sourceConfig:
+          url: {{source.aws.s3.url}}
+    {{/if}}
   deployment:
     {{#if disable_deploy_cron}}
     scheduling:

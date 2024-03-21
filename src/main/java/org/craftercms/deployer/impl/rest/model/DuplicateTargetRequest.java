@@ -21,8 +21,8 @@ import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
-import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotEmpty;
+import jakarta.validation.constraints.Size;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.SITE_ID;
 

@@ -70,6 +70,7 @@
 
     <bean id="duplicateS3LifecycleHook" class="org.craftercms.deployer.impl.lifecycle.aws.DuplicateS3LifecycleHook"
           scope="prototype" parent="baseDuplicateLifecycleHook">
+        <constructor-arg name="blobExtension" value="${deployer.main.targets.config.blob.file.extension}"/>
     </bean>
 
     <!-- Duplicate target hooks END -->

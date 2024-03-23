@@ -19,14 +19,15 @@ import com.amazonaws.services.s3.AmazonS3;
 import com.amazonaws.services.s3.AmazonS3ClientBuilder;
 import com.amazonaws.services.s3.AmazonS3URI;
 import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsS3ClientBuilderConfigurer;
+import org.craftercms.deployer.utils.aws.AwsS3Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -50,7 +51,6 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
 public abstract class AbstractS3Processor extends AbstractMainDeploymentProcessor {
 
     protected static final String CONFIG_KEY_URL = "url";
-    protected static final String MACRO_SITENAME = "{siteName}";
 
     protected static final String DELIMITER = "/";
 
@@ -91,20 +91,14 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
      * Returns the base key from the S3 URL, making sure to replace the {@code {siteName}} macro instances
      */
     protected String getS3BaseKey() {
-        String baseKey = s3Url.getKey();
-        if (StringUtils.isNotEmpty(baseKey)) {
-            return baseKey.replace(MACRO_SITENAME, siteName);
-        } else {
-            return StringUtils.EMPTY;
-        }
+        return AwsS3Utils.getS3BaseKey(s3Url, siteName);
     }
 
     /*
      * Returns the bucket from the S3 URL, making sure to replace the {@code {siteName}} macro instances
      */
     protected String getBucket() {
-        String bucket = s3Url.getBucket();
-        return bucket.replace(MACRO_SITENAME, siteName);
+        return AwsS3Utils.getBucket(s3Url, siteName);
     }
 
     /**
@@ -130,12 +124,7 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
      * Builds the {@link TransferManager} using the shared {@link ExecutorService}
      */
     protected TransferManager buildTransferManager(AmazonS3 client) {
-        return TransferManagerBuilder
-                .standard()
-                .withS3Client(client)
-                .withExecutorFactory(() -> threadPoolTaskExecutor.getThreadPoolExecutor())
-                .withShutDownThreadPools(false)
-                .build();
+        return AwsUtils.buildTransferManager(client, threadPoolTaskExecutor::getThreadPoolExecutor);
     }
 
     /**

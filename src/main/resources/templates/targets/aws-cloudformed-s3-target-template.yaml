@@ -47,6 +47,21 @@ target:
           DeliveryLBDomainName: ${aws.cloudformation.deliveryLBDomainName}
           CloudFrontCertificateArn: ${aws.cloudformation.cloudfrontCertificateArn}
           AlternateCloudFrontDomainNames: ${aws.cloudformation.alternateCloudFrontDomainNames}
+    {{#if source_target}}
+    duplicate:
+      - hookName: duplicateIndexLifecycleHook
+      - hookName: duplicateProcessCommitsFileLifecycleHook
+      - hookName: duplicateS3LifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        url: {{aws.s3.url}}
+        endpoint: {{aws.s3.endpoint}}
+        pathStyleAccess: {{aws.s3.path_style_access}}
+        sourceConfig:
+          url: {{source.aws.s3.url}}
+          localRepoPath: {{source.local_repo_path}}
+    {{/if}}
     init:
       - hookName: waitTillCloudFormationStackUsableLifecycleHook
         region: ${aws.region}

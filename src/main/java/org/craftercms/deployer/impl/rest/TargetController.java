@@ -402,7 +402,7 @@ public class TargetController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(DUPLICATE_TARGET_URL)
-    public void duplicateTarget(@NotEmpty @Size(max = 50) @ValidateSecurePathParam @ValidateNoTagsParam @PathVariable(ENV_PATH_VAR_NAME) String env,
+    public ResponseEntity<Result> duplicateTarget(@NotEmpty @Size(max = 50) @ValidateSecurePathParam @ValidateNoTagsParam @PathVariable(ENV_PATH_VAR_NAME) String env,
                                 @EsapiValidatedParam(type = SITE_ID) @PathVariable(SITE_NAME_PATH_VAR_NAME) String sourceSiteName,
                                 @Valid @RequestBody DuplicateTargetRequest duplicateTargetRequest)
             throws TargetServiceException, TargetAlreadyExistsException, TargetNotFoundException {
@@ -410,6 +410,8 @@ public class TargetController {
         final TargetTemplateParams params = duplicateTargetRequest.getTargetTemplateParams();
         targetService.duplicateTarget(env, sourceSiteName, duplicateTargetRequest.getSiteName(),
                 params.isReplace(), params.getTemplateName(), getTemplateParams(params));
+
+        return ResponseEntity.status(HttpStatus.CREATED).body(Result.OK);
     }
 
     protected void validateToken(String token) throws InvalidManagementTokenException {

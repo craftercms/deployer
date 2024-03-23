@@ -576,10 +576,10 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 target.getConfiguration(), target.getApplicationContext(), DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
 
         logger.info("Executing duplicate hooks for target '{}'", target.getId());
-
         for (TargetLifecycleHook hook : duplicateHooks) {
             hook.execute(target);
         }
+        logger.info("Duplicate hooks executed for target '{}'", target.getId());
     }
 
     protected void executeCreateHooks(Target target) throws Exception {

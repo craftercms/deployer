@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,16 +20,17 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.core.util.cache.CacheTemplate;
-import org.craftercms.search.batch.BatchIndexer;
-import org.craftercms.search.batch.UpdateSet;
-import org.craftercms.search.batch.UpdateStatus;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Context;
+import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.utils.BooleanUtils;
+import org.craftercms.search.batch.BatchIndexer;
+import org.craftercms.search.batch.UpdateSet;
+import org.craftercms.search.batch.UpdateStatus;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.ObjectFactory;
@@ -44,6 +45,7 @@ import java.util.regex.Pattern;
 import static org.apache.commons.collections4.ListUtils.emptyIfNull;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
+import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FILES_PARAM_NAME;
 
 /**
  * Processor that indexes the files on the change set, using one or several {@link BatchIndexer}. After the files have
@@ -212,8 +214,9 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             logger.info("Ensuring that index {} exists", indexId);
             doCreateIndexIfMissing();
         }
+        boolean isReprocessAll = BooleanUtils.toBoolean(getDeploymentParam(REPROCESS_ALL_FILES_PARAM_NAME));
         changeSet = super.getFilteredChangeSet(changeSet);
-        if (changeSet != null && !changeSet.isEmpty() && xmlFlatteningEnabled) {
+        if (changeSet != null && !changeSet.isEmpty() && xmlFlatteningEnabled && !isReprocessAll) {
             List<String> createdFiles = changeSet.getCreatedFiles();
             List<String> updatedFiles = changeSet.getUpdatedFiles();
             List<String> deletedFiles = changeSet.getDeletedFiles();

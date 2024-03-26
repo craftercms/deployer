@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,8 +23,10 @@ import org.craftercms.commons.lang.RegexUtils;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentProcessor;
+import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.DeploymentConstants;
+import org.craftercms.deployer.impl.TargetImpl;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
@@ -219,6 +221,20 @@ public abstract class AbstractDeploymentProcessor implements DeploymentProcessor
         logger.info("Jumping to processor of target '" + targetId + "' with label '" + jumpTo + "'");
 
         deployment.addParam(JUMPING_TO_PARAM_NAME, jumpTo);
+    }
+
+    /**
+     * Get a param from the current deployment
+     * @param param the param name
+     * @return the param value, or null if the param is not set or current deployment is null
+     */
+    protected Object getDeploymentParam(String param) {
+        Target target = TargetImpl.getCurrent();
+        if (target == null) {
+            return null;
+        }
+        Deployment currentDeployment = target.getCurrentDeployment();
+        return currentDeployment == null ? null : currentDeployment.getParam(param);
     }
 
     /**

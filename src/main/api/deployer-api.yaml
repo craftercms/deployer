@@ -37,52 +37,8 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                env:
-                  type: string
-                  description: "The target’s environment (e.g. dev)."                  
-                site_name:
-                  type: string
-                  description: "The target’s project/site name (e.g. my-editorial)."                    
-                replace:
-                  type: boolean
-                  description: "Replace the existing target." 
-                template_name:
-                  type: string
-                  description: "The template to use for configuration generation. Out-of-the-box remote and local are provided. If not specified, remote will be used."   
-                disable_deploy_cron:
-                  type: boolean
-                  description: "Disables the cron job that runs deployments every certain amount of time."   
-                repo_url:
-                  type: string
-                  description: "Depends on the template. If <i>remote</i> is being used, it specifies the URL of the remote repo to pull from (e.g. ssh://…). If instead the template is <i>local</i>, <i>repo_url</i> is the filesystem path of the local repo (e.g. /opt/..)."   
-                repo_branch:
-                  type: string
-                  description: "Only use with <i>remote</i> template. The branch name of the remote Git repo to pull from. If not specified, the branch will be whatever branch is the current one in the remote repo."
-                repo_username:
-                  type: string
-                  description: "Only use with <i>remote</i> template. The username of the remote Git repo."
-                repo_password:
-                  type: string
-                  description: "Only use with <i>remote</i> template. The username of the remote Git repo."
-                ssh_private_key_path:
-                  type: string
-                  description: "Only use with <i>remote</i> template. The path for the private key used for the remote Git repo."  
-                ssh_private_key_passphrase:
-                  type: string
-                  description: "Only use with <i>remote</i> template. The passphrase for the private key for the remote Git repo (only if the key is passphrase-protected)."
-                engine_url:
-                  type: string
-                  description: "Base URL of Engine, used to make API calls like clear cache and rebuild context. If not specified, the default is http://localhost:8080."
-                notification_addresses:
-                  type: string
-                  description: "The email addresses that should receive deployment notifications."                
-              required: 
-                - env
-                - site_name
-                - repo_url
-            examples: 
+              $ref: '#/components/schemas/CreateTargetRequest'
+            examples:
               simpleExample:
                 summary: Simple example of the request body
                 value:
@@ -108,16 +64,7 @@ paths:
                   notification_addresses: admin1@my-editorial.com", "admin2@my-editorial.com
       responses:
         '201':
-          description: CREATED
-          content:
-            application/json:
-              schema:
-                type: object
-                properties: 
-                  message:
-                    type: string
-                example: 
-                  message: "OK"    
+          $ref: '#/components/responses/Created'
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
@@ -424,13 +371,7 @@ paths:
         content:
           application/json:
             schema:
-              type: object
-              properties:
-                site_name:
-                  type: string
-                  description: "The name of the target’s project/site to be created (e.g. my-editorial-copy)."
-              required:
-                - site_name
+              $ref: '#/components/schemas/DuplicateTargetRequest'
       responses:
         '201':
           $ref: '#/components/responses/Created'
@@ -604,6 +545,9 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'              
 
+
+
+
 components:
   schemas:
     Targets:
@@ -618,8 +562,65 @@ components:
         load_date:
           type: string
         status:
-          type: string  
-  
+          type: string
+
+    DuplicateTargetRequest:
+      allOf:
+        - $ref: '#/components/schemas/CreateTargetRequest'
+        - type: object
+          properties:
+            source:
+              allOf:
+              - $ref: '#/components/schemas/CreateTargetRequest'
+
+    CreateTargetRequest:
+      type: object
+      properties:
+        env:
+          type: string
+          description: "The target’s environment (e.g. dev)."
+        site_name:
+          type: string
+          description: "The target’s project/site name (e.g. my-editorial)."
+        replace:
+          type: boolean
+          description: "Replace the existing target."
+        template_name:
+          type: string
+          description: "The template to use for configuration generation. Out-of-the-box remote and local are provided. If not specified, remote will be used."
+        disable_deploy_cron:
+          type: boolean
+          description: "Disables the cron job that runs deployments every certain amount of time."
+        repo_url:
+          type: string
+          description: "Depends on the template. If <i>remote</i> is being used, it specifies the URL of the remote repo to pull from (e.g. ssh://…). If instead the template is <i>local</i>, <i>repo_url</i> is the filesystem path of the local repo (e.g. /opt/..)."
+        repo_branch:
+          type: string
+          description: "Only use with <i>remote</i> template. The branch name of the remote Git repo to pull from. If not specified, the branch will be whatever branch is the current one in the remote repo."
+        repo_username:
+          type: string
+          description: "Only use with <i>remote</i> template. The username of the remote Git repo."
+        repo_password:
+          type: string
+          description: "Only use with <i>remote</i> template. The username of the remote Git repo."
+        ssh_private_key_path:
+          type: string
+          description: "Only use with <i>remote</i> template. The path for the private key used for the remote Git repo."
+        ssh_private_key_passphrase:
+          type: string
+          description: "Only use with <i>remote</i> template. The passphrase for the private key for the remote Git repo (only if the key is passphrase-protected)."
+        engine_url:
+          type: string
+          description: "Base URL of Engine, used to make API calls like clear cache and rebuild context. If not specified, the default is http://localhost:8080."
+        notification_addresses:
+          type: string
+          description: "The email addresses that should receive deployment notifications."
+      required:
+        - env
+        - site_name
+        - repo_url
+
+
   responses:
     NotFound:
       description: Resource not found
@@ -631,7 +632,18 @@ components:
               message:
                 type: string
                 example: Target not found
-  
+    Created:
+      description: CREATED
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              message:
+                type: string
+            example:
+              message: "OK"
+
     BadRequest:
       description: Invalid request
       content:

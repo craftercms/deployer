@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -25,6 +25,8 @@ import org.springframework.beans.factory.BeanCreationException;
 import org.springframework.beans.factory.DisposableBean;
 import org.springframework.beans.factory.ObjectFactory;
 
+import java.util.Map;
+
 /**
  * Factory for a singleton Core {@link Context}. The context is created on the first {@link #getObject()} call, and
  * destroyed when the factory is destroyed.
@@ -37,9 +39,13 @@ import org.springframework.beans.factory.ObjectFactory;
  */
 public class SingletonContextFactory implements ObjectFactory<Context>, DisposableBean {
 
+    private static final String SITE_NAME_CONFIG_VARIABLE = "siteName";
+    private static final String SITE_ID_CONFIG_VARIABLE = "siteId";
+
     private static final Logger logger = LoggerFactory.getLogger(SingletonContextFactory.class);
 
     private String targetId;
+    private String siteName;
     private String localRepoUrl;
     private ContentStoreService contentStoreService;
     private boolean xmlMergingEnabled;
@@ -50,6 +56,10 @@ public class SingletonContextFactory implements ObjectFactory<Context>, Disposab
 
     public void setTargetId(final String targetId) {
         this.targetId = targetId;
+    }
+
+    public void setSiteName(final String siteName) {
+        this.siteName = siteName;
     }
 
     public void setLocalRepoUrl(String localRepoUrl) {
@@ -76,9 +86,12 @@ public class SingletonContextFactory implements ObjectFactory<Context>, Disposab
     public Context getObject() throws BeansException {
         if (context == null) {
             try {
+                Map<String, String> configVariables =
+                        Map.of(SITE_NAME_CONFIG_VARIABLE, siteName,
+                                SITE_ID_CONFIG_VARIABLE, siteName);
                 context = contentStoreService.getContext(targetId, FileSystemContentStoreAdapter.STORE_TYPE,
-                    localRepoUrl, xmlMergingEnabled, enableCache, maxAllowedItemsInCache,
-                    Context.DEFAULT_IGNORE_HIDDEN_FILES);
+                        localRepoUrl, xmlMergingEnabled, enableCache, maxAllowedItemsInCache,
+                        Context.DEFAULT_IGNORE_HIDDEN_FILES, configVariables);
 
                 logger.debug("Content store context created: {}", context);
             } catch (Exception e) {

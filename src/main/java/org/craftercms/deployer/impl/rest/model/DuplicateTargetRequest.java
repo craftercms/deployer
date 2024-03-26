@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,11 +15,10 @@
  */
 package org.craftercms.deployer.impl.rest.model;
 
+import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
@@ -34,25 +33,7 @@ public class DuplicateTargetRequest {
     @NotEmpty
     @Size(max = 50)
     @EsapiValidatedParam(type = SITE_ID)
-    private String sourceSiteName;
-    @NotEmpty
-    @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
     private String siteName;
-    @NotEmpty
-    @Size(max = 50)
-    @ValidateNoTagsParam
-    @ValidateSecurePathParam
-    @EsapiValidatedParam(type = SITE_ID, message = "Value is not a valid environment name")
-    private String env;
-
-    public String getSourceSiteName() {
-        return sourceSiteName;
-    }
-
-    public void setSourceSiteName(String sourceSiteName) {
-        this.sourceSiteName = sourceSiteName;
-    }
 
     public String getSiteName() {
         return siteName;
@@ -62,12 +43,14 @@ public class DuplicateTargetRequest {
         this.siteName = siteName;
     }
 
-    public String getEnv() {
-        return env;
+    @JsonUnwrapped
+    private TargetTemplateParams targetTemplateParams;
+
+    public TargetTemplateParams getTargetTemplateParams() {
+        return targetTemplateParams;
     }
 
-    public void setEnv(String env) {
-        this.env = env;
+    public void setTargetTemplateParams(TargetTemplateParams targetTemplateParams) {
+        this.targetTemplateParams = targetTemplateParams;
     }
-
 }

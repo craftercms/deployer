@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -83,7 +83,7 @@ public class S3DeploymentEventsProcessor extends AbstractS3Processor {
         if (Files.exists(file)) {
             logger.info("Uploading deployment events from {}", file);
             try {
-                client.putObject(s3Url.getBucket(), getS3Key(deploymentEventsFileUrl), file.toFile());
+                client.putObject(getBucket(), getS3Key(deploymentEventsFileUrl), file.toFile());
             } catch (Exception e) {
                 throw new DeployerException("Error uploading deployment events @ " + file, e);
             }

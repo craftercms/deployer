@@ -19,10 +19,7 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
-import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
-import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
-import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
-import org.craftercms.commons.validation.annotations.param.ValidateStringParam;
+import org.craftercms.commons.validation.annotations.param.*;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentService;
 import org.craftercms.deployer.api.Target;
@@ -45,7 +42,6 @@ import org.springframework.web.bind.annotation.*;
 import javax.validation.Valid;
 import javax.validation.constraints.NotBlank;
 import javax.validation.constraints.NotEmpty;
-import javax.validation.constraints.Size;
 import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
@@ -402,8 +398,8 @@ public class TargetController {
 
     @ResponseStatus(HttpStatus.CREATED)
     @PostMapping(DUPLICATE_TARGET_URL)
-    public ResponseEntity<Result> duplicateTarget(@NotEmpty @Size(max = 50) @ValidateSecurePathParam @ValidateNoTagsParam @PathVariable(ENV_PATH_VAR_NAME) String env,
-                                @EsapiValidatedParam(type = SITE_ID) @PathVariable(SITE_NAME_PATH_VAR_NAME) String sourceSiteName,
+    public ResponseEntity<Result> duplicateTarget(@NotEmpty @ValidSiteId @PathVariable(ENV_PATH_VAR_NAME) String env,
+                                @ValidSiteId @PathVariable(SITE_NAME_PATH_VAR_NAME) String sourceSiteName,
                                 @Valid @RequestBody DuplicateTargetRequest duplicateTargetRequest)
             throws TargetServiceException, TargetAlreadyExistsException, TargetNotFoundException {
 

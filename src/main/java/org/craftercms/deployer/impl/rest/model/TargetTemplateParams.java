@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidUsername;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
@@ -48,8 +49,7 @@ public class TargetTemplateParams {
     @ValidateNoTagsParam
     @ValidateSecurePathParam
     private String repoBranch;
-    @Size(max = 255)
-    @EsapiValidatedParam(type = USERNAME)
+    @ValidUsername
     private String repoUsername;
     @ValidateNoTagsParam
     @ValidateSecurePathParam

@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 
 import javax.validation.constraints.NotEmpty;
 import javax.validation.constraints.Size;
@@ -31,8 +32,7 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class DuplicateTargetRequest {
     @NotEmpty
-    @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     private String siteName;
 
     public String getSiteName() {

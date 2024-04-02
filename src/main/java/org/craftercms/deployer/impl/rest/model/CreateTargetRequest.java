@@ -19,6 +19,7 @@ import com.fasterxml.jackson.annotation.JsonUnwrapped;
 import com.fasterxml.jackson.databind.PropertyNamingStrategies;
 import com.fasterxml.jackson.databind.annotation.JsonNaming;
 import org.craftercms.commons.validation.annotations.param.EsapiValidatedParam;
+import org.craftercms.commons.validation.annotations.param.ValidSiteId;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
@@ -33,14 +34,10 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CreateTargetRequest {
     @NotEmpty
-    @Size(max = 50)
-    @ValidateNoTagsParam
-    @ValidateSecurePathParam
-    @EsapiValidatedParam(type = SITE_ID, message = "Value is not a valid environment name")
+    @ValidSiteId(message = "Value is not a valid environment name")
     private String env;
     @NotEmpty
-    @Size(max = 50)
-    @EsapiValidatedParam(type = SITE_ID)
+    @ValidSiteId
     private String siteName;
 
     public String getSiteName() {

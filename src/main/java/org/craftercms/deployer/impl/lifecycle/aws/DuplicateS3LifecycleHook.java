@@ -94,13 +94,11 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
     protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
         builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
         s3Url = new AmazonS3URI(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
-
         ignoreBlobs = getBooleanProperty(config, CONFIG_KEY_IGNORE_BLOBS, true);
 
         Configuration srcTargetConfig = config.subset(CONFIG_KEY_SOURCE_CONFIG);
         srcS3Url = new AmazonS3URI(appendIfMissing(getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_URL), DELIMITER));
         srcLocalRepoPath = getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_LOCAL_REPO_URL);
-
     }
 
     protected AmazonS3 buildClient(AwsClientBuilderConfigurer<AmazonS3ClientBuilder> builderConfigurer) {

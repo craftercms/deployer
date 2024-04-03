@@ -40,8 +40,12 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.stream.Collectors;
+import java.util.stream.Stream;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
@@ -59,7 +63,9 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
 
     protected final Logger logger = LoggerFactory.getLogger(getClass());
 
-    public static final String CONFIG_KEY_IGNORE_BLOBS = "ignoreBlobs";
+    public static final String GIT_ROOT = ".git" + File.separator;
+
+    protected static final String CONFIG_KEY_IGNORE_BLOBS = "ignoreBlobs";
 
     protected static final String CONFIG_KEY_SOURCE_CONFIG = "sourceConfig";
     protected static final String CONFIG_KEY_LOCAL_REPO_URL = "localRepoPath";
@@ -70,7 +76,7 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
     private final ProcessedCommitsStore processedCommitsStore;
     private final TargetService targetService;
     private final String blobExtension;
-    protected final ThreadPoolTaskExecutor threadPoolTaskExecutor;
+    private final ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     private boolean ignoreBlobs;
     private AwsClientBuilderConfigurer<AmazonS3ClientBuilder> builderConfigurer;
@@ -109,33 +115,23 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
 
     /**
      * Get the list of paths to copy between buckets.
-     * This method will list all files in the source bucket (filtering out .blob files if ignoreBlobs is true).
+     * This method will list all files in the source repository (filtering out .blob files if ignoreBlobs is true).
      *
      * @return List of paths to copy between buckets
      * @throws DeployerException If an error occurs while retrieving the list of paths
      */
     private List<String> getItemPathList(Target target) throws DeployerException {
-        Target srcTarget = targetService.getTarget(target.getEnv(), sourceSiteName);
-
-        List<String> paths = new LinkedList<>();
-        try (Git git = GitUtils.openRepository(new File(srcLocalRepoPath))) {
-            Repository repo = git.getRepository();
-            try (TreeWalk walk = new TreeWalk(repo)) {
-                walk.reset(); // Drop tree, we are going to add a new one
-                walk.setRecursive(true);
-                walk.addTree(GitUtils.getTreeForCommit(repo, processedCommitsStore.load(srcTarget.getId())));
-                if (ignoreBlobs) {
-                    walk.setFilter(PathSuffixFilter.create(blobExtension).negate());
-                }
-                while (walk.next()) {
-                    paths.add(walk.getPathString());
-                }
-            }
+        Path repoPath = Path.of(this.srcLocalRepoPath);
+        try (Stream<Path> paths = Files.walk(repoPath)) {
+            return paths.filter(Files::isRegularFile)
+                    .map(repoPath::relativize)
+                    .map(Path::toString)
+                    .filter(p -> !p.startsWith(GIT_ROOT))
+                    .filter(p -> !ignoreBlobs || !p.endsWith(blobExtension))
+                    .collect(Collectors.toList());
         } catch (IOException e) {
             throw new DeployerException(format("Error while retrieving list of paths to copy between buckets during duplication from site '%s' to '%s'", sourceSiteName, siteName), e);
         }
-
-        return paths;
     }
 
     @Override

@@ -51,11 +51,21 @@ target:
       # List of URLs for OpenSearch
       urls:
         - http://localhost:9201
+      # Default index settings
       indexSettings:
         - key: "index.mapping.total_fields.limit"
           value : 3000
         - key: "index.mapping.depth.limit"
           value: 40
+      # Ignored (when copying an index) settings
+      ignoredSettings:
+        - "index.creation_date"
+        - "index.uuid"
+        - "index.version.created"
+        - "index.provided_name"
+        - "index.number_of_shards"
+        - "index.replication.type"
+        - "index.version.upgraded"
     indexing:
       xml:
         flattening:

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -21,7 +21,6 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.MapUtils;
 import org.apache.commons.configuration2.CombinedConfiguration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.configuration2.YAMLConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.configuration2.tree.OverrideCombiner;
 import org.apache.commons.io.FileUtils;
@@ -41,10 +40,8 @@ import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
-import org.craftercms.deployer.utils.config.yaml.KeyOrderedYAMLConfiguration;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.craftercms.search.opensearch.OpenSearchAdminService;
-import org.eclipse.jgit.lib.ObjectId;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.DisposableBean;
@@ -66,7 +63,6 @@ import org.springframework.stereotype.Component;
 import org.xml.sax.InputSource;
 
 import java.io.*;
-import java.nio.file.Files;
 import java.util.*;
 import java.util.concurrent.CopyOnWriteArraySet;
 import java.util.concurrent.ExecutorService;
@@ -97,6 +93,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
     public static final String TARGET_ENV_MODEL_KEY = "env";
     public static final String TARGET_SITE_NAME_MODEL_KEY = "site_name";
+    public static final String TARGET_SOURCE_TARGET_MODEL_KEY = "source_target";
     public static final String TARGET_ID_MODEL_KEY = "target_id";
 
     protected final File targetConfigFolder;
@@ -289,99 +286,30 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         adminService.recreateIndex(target.getId());
     }
 
-    /**
-     * Duplicates the index from the source site to the target site.
-     *
-     * @param sourceTarget the source site
-     * @param siteName     the target site name
-     */
-    protected void duplicateIndex(final Target sourceTarget, final String siteName) {
-        String indexIdFormat = sourceTarget.getConfiguration().getString("target.search.indexIdFormat");
-        ApplicationContext appContext = sourceTarget.getApplicationContext();
-        OpenSearchAdminService adminService = appContext.getBean(OpenSearchAdminService.class);
-        adminService.duplicateIndex(format(indexIdFormat, sourceTarget.getSiteName()), format(indexIdFormat, siteName));
-    }
-
     @Override
-    public synchronized void duplicateTarget(final String env, final String sourceSiteName, final String siteName)
+    public synchronized void duplicateTarget(final String env, final String sourceSiteName, final String siteName,
+                                             boolean replace, String templateName, Map<String, Object> templateParams)
             throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException {
-        if (targetExists(env, siteName)) {
+        if (!replace && targetExists(env, siteName)) {
             throw new TargetAlreadyExistsException(siteName, env, siteName);
         }
-        Target sourceTarget = getTarget(env, sourceSiteName);
+        Target srcTarget = getTarget(env, sourceSiteName);
+        templateParams.put(TARGET_SOURCE_TARGET_MODEL_KEY, srcTarget);
 
-        String newTargetId = TargetImpl.getId(env, siteName);
-        Target target = null;
+        String id = TargetImpl.getId(env, siteName);
+        File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
+
+        if (!replace && configFile.exists()) {
+            throw new TargetAlreadyExistsException(id, env, siteName);
+        }
+        createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
+
+        Target target = resolveTargetFromConfigFile(configFile, false);
+
         try {
-            // Create processed-commits file for the new target
-            ObjectId processedCommit = processedCommitsStore.load(sourceTarget.getId());
-            processedCommitsStore.store(newTargetId, processedCommit);
-
-            // Create new target file from the source target
-            target = duplicateTargetConfigurations(sourceTarget, siteName);
-
-            // Duplicate search index
-            duplicateIndex(sourceTarget, siteName);
-
-            startInit(target);
-            currentTargets.add(target);
-        } catch (TargetAlreadyExistsException e) {
-            logger.error("Failed to duplicate source target '{}' env '{}' into '{}'", sourceSiteName, env, siteName, e);
-            throw e;
+            executeDuplicateHooks(target);
         } catch (Exception e) {
-            logger.error("Failed to duplicate source target '{}' env '{}' into '{}'", sourceSiteName, env, siteName, e);
-            try {
-                if (target != null) {
-                    target.delete();
-                }
-                File configFile = new File(targetConfigFolder, newTargetId + "." + YAML_FILE_EXTENSION);
-                cleanupTarget(newTargetId, configFile);
-            } catch (Exception ex) {
-                logger.error("Failed to delete target '{}' env '{}' after failed duplication", sourceSiteName, env, ex);
-            }
-            throw new TargetServiceException(format("Failed to duplicate source target '%s' env '%s' into '%s'", sourceSiteName, env, siteName), e);
-        }
-    }
-
-    /**
-     * Creates a new target configuration based on an existing target.
-     * This method will copy the TARGET-context.xml and TARGET.yaml files from the source target
-     * and update the siteName and localRepoPath properties in the new TARGET.yaml file to
-     * reflect the new siteName.
-     *
-     * @param sourceTarget the source target
-     * @param siteName     the new site name
-     * @throws TargetAlreadyExistsException if a target already exists for the new site name
-     * @throws IOException                  if an error occurs while copying the source target configuration
-     * @throws ConfigurationException       if an error occurs while reading the source target configuration
-     */
-    protected Target duplicateTargetConfigurations(Target sourceTarget, String siteName)
-            throws TargetAlreadyExistsException, IOException, ConfigurationException {
-        String newTargetId = TargetImpl.getId(sourceTarget.getEnv(), siteName);
-        File configFile = new File(targetConfigFolder, newTargetId + "." + YAML_FILE_EXTENSION);
-        if (configFile.exists()) {
-            throw new TargetAlreadyExistsException(newTargetId, sourceTarget.getEnv(), siteName);
-        }
-
-        File sourceContextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT, sourceTarget.getId()));
-        File contextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT, newTargetId));
-        if (sourceContextFile.exists()) {
-                FileUtils.copyFile(sourceContextFile, contextFile);
-        }
-        try {
-            YAMLConfiguration targetConfiguration = new KeyOrderedYAMLConfiguration();
-            try (InputStream is = Files.newInputStream(sourceTarget.getConfigurationFile().toPath())) {
-                targetConfiguration.read(is);
-            }
-            targetConfiguration.setProperty(TARGET_SITE_NAME_CONFIG_KEY, siteName);
-            String newRepoPath = targetConfiguration.getString(TARGET_LOCAL_REPO_CONFIG_KEY).replace(sourceTarget.getSiteName(), siteName);
-            targetConfiguration.setProperty(TARGET_LOCAL_REPO_CONFIG_KEY, newRepoPath);
-            try (Writer writer = Files.newBufferedWriter(configFile.toPath())) {
-                targetConfiguration.write(writer);
-            }
-            return loadTarget(configFile, contextFile, true);
-        } catch (Exception e) {
-            throw new ConfigurationException(format("Failed to duplicate target configuration file '%s'", sourceTarget.getConfigurationFile()), e);
+            throw new TargetServiceException(format("Failed to execute duplicate hooks for target '%s'", id), e);
         }
     }
 
@@ -641,6 +569,17 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 .filter(target -> target.getId().equals(id))
                 .findFirst()
                 .orElse(null);
+    }
+
+    protected void executeDuplicateHooks(Target target) throws Exception {
+        List<TargetLifecycleHook> duplicateHooks = targetLifecycleHooksResolver.getHooks(
+                target.getConfiguration(), target.getApplicationContext(), DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+
+        logger.info("Executing duplicate hooks for target '{}'", target.getId());
+        for (TargetLifecycleHook hook : duplicateHooks) {
+            hook.execute(target);
+        }
+        logger.info("Duplicate hooks executed for target '{}'", target.getId());
     }
 
     protected void executeCreateHooks(Target target) throws Exception {

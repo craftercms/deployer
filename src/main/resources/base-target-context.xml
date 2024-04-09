@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <!--
-  ~ Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+  ~ Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
   ~
   ~ This program is free software: you can redistribute it and/or modify
   ~ it under the terms of the GNU General Public License version 3 as published by
@@ -48,6 +48,32 @@
         <constructor-arg name="indexIdFormat" value="${target.search.indexIdFormat}"/>
         <constructor-arg name="searchAdminService" ref="searchAdminService"/>
     </bean>
+
+    <!-- Duplicate target hooks START -->
+    <bean id="baseDuplicateLifecycleHook" abstract="true">
+        <constructor-arg name="siteName" value="${target.siteName}"/>
+        <constructor-arg name="sourceSiteName" value="${target.sourceSiteName}"/>
+    </bean>
+
+    <bean id="duplicateIndexLifecycleHook" class="org.craftercms.deployer.impl.lifecycle.DuplicateIndexHook"
+          scope="prototype" parent="baseDuplicateLifecycleHook">
+        <constructor-arg name="indexIdFormat" value="${target.search.indexIdFormat}"/>
+        <constructor-arg name="searchAdminService" ref="searchAdminService"/>
+    </bean>
+
+    <bean id="duplicateProcessCommitsFileLifecycleHook"
+          class="org.craftercms.deployer.impl.lifecycle.DuplicateProcessedCommitsHook"
+          scope="prototype" parent="baseDuplicateLifecycleHook">
+        <constructor-arg name="env" value="${target.env}"/>
+        <constructor-arg name="processedCommitsStore" ref="processedCommitsStore"/>
+    </bean>
+
+    <bean id="duplicateS3LifecycleHook" class="org.craftercms.deployer.impl.lifecycle.aws.DuplicateS3LifecycleHook"
+          scope="prototype" parent="baseDuplicateLifecycleHook">
+        <constructor-arg name="blobExtension" value="${deployer.main.targets.config.blob.file.extension}"/>
+    </bean>
+
+    <!-- Duplicate target hooks END -->
 
     <bean id="createCloudFormationLifecycleHook"
           class="org.craftercms.deployer.impl.lifecycle.aws.CreateCloudFormationLifecycleHook" scope="prototype">
@@ -162,6 +188,7 @@
 	<bean id="configurationProvider" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProviderImpl">
 		<constructor-arg name="contextFactory" ref="contextFactory"/>
 		<constructor-arg name="contentStoreService" ref="crafter.contentStoreService"/>
+        <constructor-arg name="siteName" value="${target.siteName}"/>
 	</bean>
 
     <bean id="s3ProfileLoader" class="org.craftercms.deployer.utils.config.profiles.ConfigurationProfileLoaderImpl">
@@ -197,6 +224,7 @@
 
     <bean id="contextFactory" class="org.craftercms.deployer.utils.core.SingletonContextFactory">
         <property name="targetId" value="${target.id}"/>
+        <property name="siteName" value="${target.siteName}"/>
         <property name="localRepoUrl" value="file:${target.localRepoPath}"/>
         <property name="contentStoreService" ref="crafter.contentStoreService"/>
         <property name="xmlMergingEnabled" value="${target.search.indexing.xml.merging.enabled}"/>

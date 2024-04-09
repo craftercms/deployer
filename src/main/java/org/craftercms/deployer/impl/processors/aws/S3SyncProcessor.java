@@ -127,7 +127,7 @@ public class S3SyncProcessor extends AbstractS3Processor {
 
         try {
             MultipleFileUpload upload = transferManager.uploadFileList(
-                    s3Url.getBucket(), getS3BaseKey(), new File(localRepoUrl), files);
+                    getBucket(), getS3BaseKey(), new File(localRepoUrl), files);
             upload.waitForCompletion();
 
             logger.debug("Uploads completed");
@@ -154,7 +154,7 @@ public class S3SyncProcessor extends AbstractS3Processor {
             try {
                 for (List<String> subList : ListUtils.partition(keys, MAX_DELETE_KEYS_PER_REQUEST)) {
                     DeleteObjectsRequest request =
-                            new DeleteObjectsRequest(s3Url.getBucket()).withKeys(subList.toArray(new String[] {}));
+                            new DeleteObjectsRequest(getBucket()).withKeys(subList.toArray(new String[] {}));
                     DeleteObjectsResult result = client.deleteObjects(request);
 
                     logger.debug("Deleted files: {}", result.getDeletedObjects());

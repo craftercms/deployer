@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -47,10 +47,12 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import static java.util.Collections.emptyMap;
 import static org.craftercms.deployer.impl.DeploymentConstants.CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY;
 import static org.junit.Assert.*;
 import static org.mockito.Mockito.*;
@@ -61,17 +63,21 @@ import static org.mockito.Mockito.*;
  * @author avasquez
  */
 public class TargetServiceImplTest {
-
+    private static final String RANDOM_PARAM_VARIABLE = "random_param";
 
     private static final String ENVIRONMENT = "the-env";
     private static final String SOURCE_SITE_NAME = "source-site";
     private static final String EXISTING_SITE = "existing-site";
     private static final String NON_EXISTING_SITE = "non-existing-site";
     private static final String NEW_SITE_NAME = "new-site";
+    private static final String TEMPLATE_NAME = "test";
+    private static final String TEST_PARAM_1_VARIABLE = "test-param-1";
+    private static final String TEST_PARAM_VALUE_1 = "test-value-1";
 
     private TargetServiceImpl targetService;
     private File targetsFolder;
     private List<TargetLifecycleHook> createHooks;
+    private Handlebars handlebars;
 
     @Before
     public void setUp() throws Exception {
@@ -222,7 +228,7 @@ public class TargetServiceImplTest {
         String env = "test";
         String siteName = "barfoo";
         String randomParam = RandomStringUtils.randomAlphanumeric(8);
-        Map<String, Object> params = Collections.singletonMap("random_param", randomParam);
+        Map<String, Object> params = Collections.singletonMap(RANDOM_PARAM_VARIABLE, randomParam);
 
         Target target = targetService.createTarget(env, siteName, true, "test", params);
 
@@ -251,7 +257,7 @@ public class TargetServiceImplTest {
         TargetService targetServiceSpy = Mockito.spy(targetService);
         doReturn(false).when(targetServiceSpy).targetExists(ENVIRONMENT, NON_EXISTING_SITE);
         assertThrows(TargetNotFoundException.class,
-                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, NON_EXISTING_SITE, NEW_SITE_NAME));
+                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, NON_EXISTING_SITE, NEW_SITE_NAME, false, "test", emptyMap()));
     }
 
     @Test
@@ -260,11 +266,11 @@ public class TargetServiceImplTest {
         when(targetServiceSpy.targetExists(ENVIRONMENT, EXISTING_SITE)).thenReturn(true);
 
         assertThrows(TargetAlreadyExistsException.class,
-                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, EXISTING_SITE));
+                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, EXISTING_SITE, false, "test", emptyMap()));
     }
 
     @Test
-    public void testDuplicateTarget() throws DeployerException, ConfigurationException, IOException {
+    public void testDuplicateTarget() throws Exception {
         ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
 
         Target mockSourceTarget = mock(Target.class);
@@ -276,17 +282,43 @@ public class TargetServiceImplTest {
         when(mockNewTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, NEW_SITE_NAME));
 
         TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
-        doNothing().when(targetServiceSpy).duplicateIndex(any(), any());
-        doReturn(mockSourceTarget).when(targetServiceSpy).getTarget(ENVIRONMENT, SOURCE_SITE_NAME);
-        doReturn(mockNewTarget).when(targetServiceSpy).duplicateTargetConfigurations(any(), any());
+        doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
         when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
 
-        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME);
+        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
 
-        verify(targetServiceSpy).duplicateIndex(mockSourceTarget, NEW_SITE_NAME);
-        verify(targetServiceSpy).startInit(mockNewTarget);
-        verify(targetService.processedCommitsStore).store(mockNewTarget.getId(), theProcessedCommit);
+        verify(targetServiceSpy).executeDuplicateHooks(any());
+    }
+
+    @Test
+    public void testDuplicateTargetPassTemplateParams() throws Exception {
+        Target mockSourceTarget = mock(Target.class);
+        when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+
+        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+        doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+
+        when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
+
+        Map<String, Object> templateParams = new HashMap<>();
+
+        String randomParam = RandomStringUtils.randomAlphanumeric(8);
+        templateParams.put(RANDOM_PARAM_VARIABLE, randomParam);
+        templateParams.put(TEST_PARAM_1_VARIABLE, TEST_PARAM_VALUE_1);
+        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, TEMPLATE_NAME, templateParams);
+
+        Target target = targetServiceSpy.getTarget(ENVIRONMENT, NEW_SITE_NAME);
+        assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
+
+        verify(handlebars).compile(TEMPLATE_NAME);
+        verify(targetServiceSpy).processConfigTemplate(eq(TEMPLATE_NAME), argThat(params -> {
+            if (params instanceof Map) {
+                Map<String, Object> map = (Map<String, Object>) params;
+                return TEST_PARAM_VALUE_1.equals(map.get(TEST_PARAM_1_VARIABLE));
+            }
+            return false;
+        }), any());
     }
 
     private File createTargetsFolder() throws IOException {
@@ -342,7 +374,7 @@ public class TargetServiceImplTest {
         templateLoader.setPrefix("classpath:templates/targets");
         templateLoader.setSuffix("-target-template.yaml");
 
-        Handlebars handlebars = new Handlebars(templateLoader);
+        handlebars = spy(new Handlebars(templateLoader));
         handlebars.prettyPrint(true);
 
         return handlebars;

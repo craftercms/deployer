@@ -22,6 +22,7 @@ import org.craftercms.search.opensearch.OpenSearchAdminService;
 import java.beans.ConstructorProperties;
 
 import static java.lang.String.format;
+import static org.apache.commons.lang.StringUtils.isEmpty;
 
 /**
  * Implementation of {@link org.craftercms.deployer.api.lifecycle.TargetLifecycleHook} that duplicates an index from
@@ -38,6 +39,9 @@ public class DuplicateIndexHook extends AbstractIndexAwareLifecycleHook {
 
     @Override
     protected void doExecute(Target target) throws DeployerException {
+        if (isEmpty(sourceSiteName)) {
+            throw new DeployerException("'target.sourceSiteName' is required for target duplication");
+        }
         String sourceIndexIdFormat = target.getConfiguration().getString("target.search.indexIdFormat");
         String sourceIndexId = format(sourceIndexIdFormat, sourceSiteName);
         logger.info("Starting index duplicate from '{}' for site '{}' to '{}' for site '{}'", sourceIndexId, sourceSiteName, indexId, siteName);

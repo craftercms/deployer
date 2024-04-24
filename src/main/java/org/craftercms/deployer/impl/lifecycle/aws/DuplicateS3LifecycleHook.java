@@ -48,6 +48,7 @@ import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
+import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
@@ -120,8 +121,7 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
      * @return List of paths to copy between buckets
      * @throws DeployerException If an error occurs while retrieving the list of paths
      */
-    private List<String> getItemPathList(Target target) throws DeployerException {
-        Path repoPath = Path.of(this.srcLocalRepoPath);
+    private List<String> getItemPathList(Path repoPath) throws DeployerException {
         try (Stream<Path> paths = Files.walk(repoPath)) {
             return paths.filter(Files::isRegularFile)
                     .map(repoPath::relativize)
@@ -136,10 +136,15 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
 
     @Override
     protected void doExecute(Target target) throws DeployerException {
-        AmazonS3 client = buildClient(builderConfigurer);
         logger.info("Starting S3 content duplicate from '{}' for site '{}' to '{}' for site '{}'", srcS3Url, sourceSiteName, s3Url, siteName);
-
-        List<String> paths = getItemPathList(target);
+        Path repoPath = Path.of(this.srcLocalRepoPath);
+        if (!repoPath.toFile().exists()) {
+            // Unpublished site, no local repo
+            logger.info("Local repository path '{}' does not exist, skipping S3 content duplication", this.srcLocalRepoPath);
+            return;
+        }
+        List<String> paths = getItemPathList(repoPath);
+        AmazonS3 client = buildClient(builderConfigurer);
         try {
             AwsUtils.copyObjects(client, threadPoolTaskExecutor::getThreadPoolExecutor, getBucket(srcS3Url, sourceSiteName), getS3BaseKey(srcS3Url, sourceSiteName),
                     getBucket(s3Url, siteName), getS3BaseKey(s3Url, siteName), paths);

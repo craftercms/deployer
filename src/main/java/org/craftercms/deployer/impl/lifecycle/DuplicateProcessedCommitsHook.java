@@ -53,7 +53,11 @@ public class DuplicateProcessedCommitsHook extends AbstractLifecycleHook {
         String srcTargetId = TargetImpl.getId(env, sourceSiteName);
         String newTargetId = TargetImpl.getId(env, siteName);
         ObjectId processedCommit = processedCommitsStore.load(srcTargetId);
-        processedCommitsStore.store(newTargetId, processedCommit);
-        logger.info("Completed processed-commits file duplicate from site '{}' to site '{}'", sourceSiteName, siteName);
+        if (processedCommit != null) {
+            processedCommitsStore.store(newTargetId, processedCommit);
+            logger.info("Completed processed-commits file duplicate from site '{}' to site '{}'", sourceSiteName, siteName);
+        } else {
+            logger.info("No processed-commits file found for site '{}' env '{}'", sourceSiteName, env);
+        }
     }
 }

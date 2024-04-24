@@ -219,7 +219,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         closeTargetsWithNoConfigFile(configFiles);
 
         for (File file : configFiles) {
-            Target target = resolveTargetFromConfigFile(file, false);
+            Target target = resolveTargetFromConfigFile(file, LoadMode.LOAD);
             targets.add(target);
         }
 
@@ -239,7 +239,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
         createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
 
-        return resolveTargetFromConfigFile(configFile, true);
+        return resolveTargetFromConfigFile(configFile, LoadMode.CREATE);
     }
 
     @Override
@@ -304,13 +304,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
         createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
 
-        Target target = resolveTargetFromConfigFile(configFile, false);
-
-        try {
-            executeDuplicateHooks(target);
-        } catch (Exception e) {
-            throw new TargetServiceException(format("Failed to execute duplicate hooks for target '%s'", id), e);
-        }
+        resolveTargetFromConfigFile(configFile, LoadMode.DUPLICATE);
     }
 
     protected Collection<File> getTargetConfigFiles() throws TargetServiceException {
@@ -346,7 +340,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         });
     }
 
-    protected Target resolveTargetFromConfigFile(File configFile, boolean create) throws TargetServiceException {
+    protected Target resolveTargetFromConfigFile(File configFile, LoadMode loadMode) throws TargetServiceException {
         String baseName = FilenameUtils.getBaseName(configFile.getName());
         File contextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT, baseName));
         Target target = findLoadedTargetByConfigFile(configFile);
@@ -375,7 +369,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         if (target == null) {
             logger.info("Loading target for configuration file {}", configFile);
 
-            target = loadTarget(configFile, contextFile, create);
+            target = loadTarget(configFile, contextFile, loadMode);
             currentTargets.add(target);
         }
 
@@ -397,7 +391,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         return context.getBean(TargetImpl.class);
     }
 
-    protected Target loadTarget(File configFile, File contextFile, boolean create) throws TargetServiceException {
+    protected Target loadTarget(File configFile, File contextFile, LoadMode loadMode) throws TargetServiceException {
         try {
             // Create the target temporarily to run upgrades
             TargetImpl target = buildTarget(configFile, contextFile);
@@ -407,15 +401,17 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             // Create again with all upgrades applied
             target = buildTarget(configFile, contextFile);
 
-            if (create) {
-                executeCreateHooks(target);
+            switch (loadMode) {
+                case CREATE -> executeCreateHooks(target);
+                case DUPLICATE -> executeDuplicateHooks(target);
             }
 
             startInit(target);
 
+
             return target;
         } catch (Exception e) {
-            if (create) {
+            if (loadMode.isCreate()) {
                 FileUtils.deleteQuietly(configFile);
             }
 
@@ -606,6 +602,28 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             return !filename.equals(baseTargetYamlConfigResource.getFilename()) &&
                     !filename.equals(baseTargetYamlConfigOverrideResource.getFilename()) &&
                     filename.endsWith(YAML_FILE_EXTENSION);
+        }
+    }
+
+    /**
+     * Different modes to load a target
+     */
+    protected enum LoadMode {
+        // Just load the target from configuration
+        LOAD(false),
+        // Execute create hooks
+        CREATE(true),
+        // Execute duplicate hooks
+        DUPLICATE(true);
+
+        private final boolean create;
+
+        LoadMode(final boolean create) {
+            this.create = create;
+        }
+
+        public boolean isCreate() {
+            return create;
         }
     }
 

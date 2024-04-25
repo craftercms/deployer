@@ -35,6 +35,8 @@ import org.eclipse.jgit.lib.ObjectId;
 import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
+import org.mockito.ArgumentMatcher;
+import org.mockito.InOrder;
 import org.mockito.Mockito;
 import org.springframework.beans.factory.support.DefaultListableBeanFactory;
 import org.springframework.beans.factory.xml.XmlBeanDefinitionReader;
@@ -78,6 +80,14 @@ public class TargetServiceImplTest {
     private File targetsFolder;
     private List<TargetLifecycleHook> createHooks;
     private Handlebars handlebars;
+
+    private final ArgumentMatcher<Target> matchesNewTarget = (Target target) -> matches(target, NEW_SITE_NAME, ENVIRONMENT);
+
+    private static boolean matches(final Target target, final String siteName, final String env) {
+        assertEquals(siteName, target.getSiteName());
+        assertEquals(env, target.getEnv());
+        return true;
+    }
 
     @Before
     public void setUp() throws Exception {
@@ -240,6 +250,29 @@ public class TargetServiceImplTest {
     }
 
     @Test
+    public void testInitHooksOnCreateTarget() throws Exception {
+        String env = "test";
+        String siteName = "barfoo";
+        String randomParam = RandomStringUtils.randomAlphanumeric(8);
+        Map<String, Object> params = Collections.singletonMap(RANDOM_PARAM_VARIABLE, randomParam);
+
+        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+        Target target = targetServiceSpy.createTarget(env, siteName, true, "test", params);
+
+        assertNotNull(target);
+        assertEquals(env, target.getConfiguration().getString(DeploymentConstants.TARGET_ENV_CONFIG_KEY));
+        assertEquals(siteName, target.getConfiguration().getString(DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY));
+        assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
+        verify(createHooks.get(0)).execute(target);
+
+        InOrder inOrder = inOrder(targetServiceSpy);
+        ArgumentMatcher<Target> matchesTarget = t -> matches(t, siteName, env);
+        inOrder.verify(targetServiceSpy).executeCreateHooks(argThat(matchesTarget));
+        inOrder.verify(targetServiceSpy).startInit(argThat(matchesTarget));
+        verify(targetServiceSpy, never()).executeDuplicateHooks(argThat(matchesTarget));
+    }
+
+    @Test
     public void testDeleteTarget() throws Exception {
         List<Target> targets = targetService.resolveTargets();
 
@@ -289,6 +322,29 @@ public class TargetServiceImplTest {
         targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
 
         verify(targetServiceSpy).executeDuplicateHooks(any());
+    }
+
+    @Test
+    public void testInitHooksOnDuplicateTarget() throws Exception {
+        ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
+
+        Target mockSourceTarget = mock(Target.class);
+        when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+
+        when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
+
+        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+        doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+
+        when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
+
+        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
+
+        InOrder inOrder = inOrder(targetServiceSpy);
+
+        inOrder.verify(targetServiceSpy).executeDuplicateHooks(argThat(matchesNewTarget));
+        inOrder.verify(targetServiceSpy).startInit(argThat(matchesNewTarget));
+        verify(targetServiceSpy, never()).executeCreateHooks(argThat(matchesNewTarget));
     }
 
     @Test

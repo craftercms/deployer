@@ -24,14 +24,13 @@ import org.craftercms.commons.validation.annotations.param.ValidUsername;
 import org.craftercms.commons.validation.annotations.param.ValidateNoTagsParam;
 import org.craftercms.commons.validation.annotations.param.ValidateSecurePathParam;
 
-import javax.validation.constraints.NotBlank;
-import javax.validation.constraints.Size;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Size;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.EMAIL;
-import static org.craftercms.commons.validation.annotations.param.EsapiValidationType.USERNAME;
 
 /**
  * Common parameters to be consumed by target templates

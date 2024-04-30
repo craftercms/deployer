@@ -238,26 +238,26 @@
           class="org.craftercms.commons.file.stores.impl.PathPartsBasedProfileAwareRemotePathParser"/>
 
     <bean id="urlRemotePathParser" class="org.craftercms.commons.file.stores.impl.FixedStoreTypeRemotePathParser">
-        <property name="storeType" value="url"/>
+        <constructor-arg name="storeType" value="url"/>
     </bean>
 
     <bean id="s3FileStore" class="org.craftercms.commons.file.stores.impl.s3.S3FileStore">
-        <property name="profileLoader" ref="s3ProfileLoader"/>
-        <property name="clientFactory" ref="crafter.s3ClientFactory"/>
+        <constructor-arg name="clientFactory" ref="crafter.s3ClientFactory"/>
+        <constructor-arg name="profileLoader" ref="s3ProfileLoader"/>
     </bean>
 
     <bean id="boxFileStore" class="org.craftercms.commons.file.stores.impl.box.BoxFileStore">
-        <property name="profileLoader" ref="boxProfileLoader"/>
+        <constructor-arg name="profileLoader" ref="boxProfileLoader"/>
     </bean>
 
     <bean id="webDavFileStore" class="org.craftercms.commons.file.stores.impl.webdav.WebDavFileStore">
-        <property name="profileLoader" ref="webDavProfileLoader"/>
+        <constructor-arg name="profileLoader" ref="webDavProfileLoader"/>
     </bean>
 
     <bean id="urlBasedFileStore" class="org.craftercms.commons.file.stores.impl.UrlBasedFileStore"/>
 
     <bean id="remoteFileResolver" class="org.craftercms.commons.file.stores.impl.RemoteFileResolverImpl">
-        <property name="pathParsers">
+        <constructor-arg name="pathParsers">
             <map>
                 <!--
                 HTTP/HTTPS URLs are only indexed if they contain the protocol (http:// or https://). Protocol
@@ -267,24 +267,24 @@
                 <entry key="^(http:|https:)//.+$" value-ref="urlRemotePathParser"/>
                 <entry key="^/?remote-assets/([^/]+)/([^/]+)/(.+)$" value-ref="profileAwareRemotePathParser"/>
             </map>
-        </property>
-        <property name="stores">
+        </constructor-arg>
+        <constructor-arg name="stores">
             <map>
                 <entry key="s3" value-ref="s3FileStore"/>
                 <entry key="box" value-ref="boxFileStore"/>
                 <entry key="url" value-ref="urlBasedFileStore"/>
                 <entry key="webdav" value-ref="webDavFileStore"/>
             </map>
-        </property>
+        </constructor-arg>
     </bean>
 
     <!-- Search -->
 
     <bean id="includeDescriptorsProcessor"
           class="org.craftercms.core.processors.impl.PageAwareIncludeDescriptorsProcessor">
-        <property name="includeElementXPathQuery" value="${target.search.indexing.xml.flattening.includeElementXPathQuery}"/>
+        <constructor-arg name="includeElementXPathQuery" value="${target.search.indexing.xml.flattening.includeElementXPathQuery}"/>
+        <constructor-arg name="disabledIncludeNodeXPathQuery" value="${target.search.indexing.xml.flattening.disabledIncludeNodeXPathQuery}"/>
         <property name="removeIncludeElement" value="${target.search.indexing.xml.flattening.removeIncludeTags}"/>
-        <property name="disabledIncludeNodeXPathQuery" value="${target.search.indexing.xml.flattening.disabledIncludeNodeXPathQuery}"/>
         <property name="localeCodeXPathQuery" value="${target.search.indexing.xml.locale.xpath}"/>
         <property name="pagesPathPattern" value="${target.search.indexing.xml.flattening.pagesPathPattern}"/>
         <property name="includedItemsProcessor" ref="includeDescriptorsProcessor"/>
@@ -353,7 +353,7 @@
     </bean>
 
     <bean id="emailFactory" class="org.craftercms.commons.mail.impl.EmailFactoryImpl">
-        <property name="mailSender" ref="mailSender"/>
+        <constructor-arg name="mailSender" ref="mailSender"/>
         <property name="freeMarkerConfig" ref="mailFreemarkerConfig"/>
         <property name="templateSuffix" value="${target.notifications.mail.templates.suffix}"/>
         <property name="templateEncoding" value="${target.notifications.mail.encoding}"/>
@@ -433,11 +433,11 @@
           class="org.craftercms.search.commons.service.impl.HtmlStrippingConverter"/>
 
     <bean id="dateTimeConverter" class="org.craftercms.search.commons.service.impl.DateTimeConverter">
-        <property name="dateTimeFieldPattern" value="${target.search.indexing.field.type.dateTime.pattern}"/>
+        <constructor-arg name="dateTimeFieldPattern" value="${target.search.indexing.field.type.dateTime.pattern}"/>
     </bean>
 
     <bean id="timeOnlyConverter" class="org.craftercms.search.commons.service.impl.DateTimeConverter">
-        <property name="dateTimeFieldPattern" value="${target.search.indexing.field.type.timeOnly.pattern}"/>
+        <constructor-arg name="dateTimeFieldPattern" value="${target.search.indexing.field.type.timeOnly.pattern}"/>
     </bean>
 
     <bean id="fieldValueConverter" class="org.craftercms.search.commons.service.impl.CompositeSuffixBasedConverter">
@@ -454,29 +454,29 @@
     </bean>
 
     <bean id="elementParser" class="org.craftercms.search.opensearch.impl.OpenSearchElementParserImpl">
-        <property name="fieldValueConverter" ref="fieldValueConverter"/>
+        <constructor-arg name="fieldValueConverter" ref="fieldValueConverter"/>
     </bean>
 
     <bean id="elementParserService" class="org.craftercms.search.commons.service.impl.ElementParserServiceImpl">
-        <property name="parsers">
+        <constructor-arg name="parsers">
             <list>
                 <ref bean="itemListElementParser"/>
                 <ref bean="tokenizedElementParser"/>
                 <ref bean="elementParser"/>
             </list>
-        </property>
+        </constructor-arg>
     </bean>
 
     <bean id="searchDocumentBuilder"
           class="org.craftercms.search.opensearch.impl.OpenSearchDocumentBuilder">
+        <constructor-arg name="parserService" ref="elementParserService"/>
+        <constructor-arg name="fieldValueConverter" ref="fieldValueConverter"/>
         <property name="idFieldName" value="${target.search.indexing.field.name.id}"/>
         <property name="rootIdFieldName" value="${target.search.indexing.field.name.rootId}"/>
         <property name="siteFieldName" value="${target.search.indexing.field.name.site}"/>
         <property name="localIdFieldName" value="${target.search.indexing.field.name.localId}"/>
         <property name="publishingDateFieldName" value="${target.search.indexing.field.name.publishedDate.name}"/>
         <property name="publishingDateAltFieldName" value="${target.search.indexing.field.name.publishedDate.alt}"/>
-        <property name="fieldValueConverter" ref="fieldValueConverter"/>
-        <property name="parserService" ref="elementParserService"/>
         <property name="copyFields">
             <map>
                 <entry key=".+${target.search.indexing.field.type.html.suffix}"
@@ -572,6 +572,7 @@
     <bean id="authoringSearchXmlFileBatchIndexer" parent="abstractXmlFileBatchIndexer"
           class="org.craftercms.search.opensearch.batch.OpenSearchXmlFileBatchIndexer">
         <constructor-arg name="searchAdminService" ref="searchAdminService"/>
+        <constructor-arg name="localeExtractor" ref="descriptorLocaleExtractor"/>
         <constructor-arg name="searchService" ref="searchService"/>
         <constructor-arg name="enableTranslation" value="${target.translation.enable}"/>
         <property name="metadataExtractors" ref="authoringMetadataExtractors"/>
@@ -596,7 +597,7 @@
     </bean>
 
     <bean id="contentTypeMetadataExtractor" class="org.craftercms.search.metadata.impl.ContentTypeMetadataExtractor">
-        <property name="fieldXpath" value="${target.search.indexing.binary.authoring.contentType.xpath}"/>
+        <constructor-arg name="fieldXpath" value="${target.search.indexing.binary.authoring.contentType.xpath}"/>
         <property name="includePatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.metadataExtractorPathPatterns', T(java.util.List))}"/>
     </bean>
@@ -607,7 +608,7 @@
     </bean>
 
     <bean id="internalNameMetadataExtractor" class="org.craftercms.search.metadata.impl.InternalNameMetadataExtractor">
-        <property name="internalNameFieldXpath" value="${target.search.indexing.binary.authoring.internalName.xpath}"/>
+        <constructor-arg name="internalNameFieldXpath" value="${target.search.indexing.binary.authoring.internalName.xpath}"/>
         <property name="includePatterns"
                   value="#{environment.getProperty('target.search.indexing.binary.authoring.internalName.includePatterns', T(java.util.List))}"/>
     </bean>

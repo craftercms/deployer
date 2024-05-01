@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -117,6 +117,10 @@ public interface TargetService {
      * @param env            the target's environment (e.g. dev)
      * @param sourceSiteName site name of the target to duplicate
      * @param siteName       site name for the new target
+     * @param replace        replace the target if it already exists
+     *                       (if false and the target already exists, an exception will be thrown)
+     * @param templateName   the name of the template used to create the target configuration
+     * @param templateParams the parameters that the template needs
      */
-    void duplicateTarget(String env, String sourceSiteName, String siteName) throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException;
+    void duplicateTarget(String env, String sourceSiteName, String siteName, boolean replace, String templateName, Map<String, Object> templateParams) throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException;
 }

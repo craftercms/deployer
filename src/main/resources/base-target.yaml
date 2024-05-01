@@ -3,6 +3,8 @@
 ####################################################
 
 target:
+  # The source site name when duplicating a target.
+  sourceSiteName: ''
   # The local folder path where the target repository will be placed
   localRepoPath: ${deployer.main.deployments.folderPath}/${target.env}/${target.siteName}
   # The default datetime pattern that will be used
@@ -260,6 +262,9 @@ target:
     # The lifecycle hooks executed during a target delete
     delete:
       - hookName: deleteIndexLifecycleHook
+    duplicate:
+      - hookName: duplicateIndexLifecycleHook
+      - hookName: duplicateProcessCommitsFileLifecycleHook
   core:
     cache:
       # Indicates if the cache should be using while reading files from the repo

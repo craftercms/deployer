@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,38 +20,50 @@ import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
 import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
-import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
 import software.amazon.awssdk.regions.Region;
+import software.amazon.awssdk.services.s3.S3AsyncClientBuilder;
+import software.amazon.awssdk.services.s3.S3Configuration;
 
 import java.net.URI;
 
+import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
- * Helper class the configures a {@code AwsClientBuilder} with properties like region and credentials.
- *
- * @author avasquez
+ * S3 async client builder
  */
-public class AwsClientBuilderConfigurer<ClientBuilderSubclass extends AwsClientBuilder> {
+public class AwsS3AsyncClientBuilderConfigurer {
 
     public static final String CONFIG_KEY_REGION = "region";
     public static final String CONFIG_KEY_ENDPOINT = "endpoint";
     public static final String CONFIG_KEY_ACCESS_KEY = "accessKey";
     public static final String CONFIG_KEY_SECRET_KEY = "secretKey";
+    public static final String CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED = "pathStyleAccess";
 
     /**
      * AWS Region
      */
     protected String region;
+
+    /**
+     * AWS endpoint
+     */
     protected String endpoint;
+
     /**
      * AWS Access Key
      */
     protected String accessKey;
+
     /**
      * AWS Secret Key
      */
     protected String secretKey;
+
+    /**
+     * Whether to use path style access or not
+     */
+    protected boolean pathStyleAccessEnabled = false;
 
     /**
      * Main constructor Extracts the region and credentials from the config.
@@ -59,16 +71,22 @@ public class AwsClientBuilderConfigurer<ClientBuilderSubclass extends AwsClientB
      * @param config the config with the client properties
      * @throws ConfigurationException if an exception occurs while reading the configuration
      */
-    public AwsClientBuilderConfigurer(Configuration config) throws ConfigurationException {
+    public AwsS3AsyncClientBuilderConfigurer(Configuration config) throws ConfigurationException {
         if (config.containsKey(CONFIG_KEY_REGION)) {
             region = getStringProperty(config, CONFIG_KEY_REGION);
         }
+
         if (config.containsKey(CONFIG_KEY_ENDPOINT)) {
             endpoint = getStringProperty(config, CONFIG_KEY_ENDPOINT);
         }
+
         if (config.containsKey(CONFIG_KEY_ACCESS_KEY) && config.containsKey(CONFIG_KEY_SECRET_KEY)) {
             accessKey = getStringProperty(config, CONFIG_KEY_ACCESS_KEY);
             secretKey = getStringProperty(config, CONFIG_KEY_SECRET_KEY);
+        }
+
+        if (config.containsKey(CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED)) {
+            pathStyleAccessEnabled = getBooleanProperty(config, CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED);
         }
     }
 
@@ -77,7 +95,7 @@ public class AwsClientBuilderConfigurer<ClientBuilderSubclass extends AwsClientB
      *
      * @param builder the AWS client builder
      */
-    public void configureClientBuilder(ClientBuilderSubclass builder) {
+    public void configureClientBuilder(S3AsyncClientBuilder builder) {
         if (StringUtils.isNotEmpty(endpoint)) {
             builder.endpointOverride(URI.create(endpoint));
         } else if (StringUtils.isNotEmpty(region)) {
@@ -87,6 +105,11 @@ public class AwsClientBuilderConfigurer<ClientBuilderSubclass extends AwsClientB
         if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
             builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
         }
-    }
 
+        if (pathStyleAccessEnabled) {
+            builder.serviceConfiguration(S3Configuration.builder()
+                    .pathStyleAccessEnabled(true)
+                    .build());
+        }
+    }
 }

@@ -16,12 +16,6 @@
 
 package org.craftercms.deployer.impl.processors.aws;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.model.AmazonS3Exception;
-import com.amazonaws.services.s3.model.DeleteObjectsRequest;
-import com.amazonaws.services.s3.model.DeleteObjectsResult;
-import com.amazonaws.services.s3.transfer.MultipleFileUpload;
-import com.amazonaws.services.s3.transfer.TransferManager;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
@@ -31,13 +25,24 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import software.amazon.awssdk.services.s3.S3AsyncClient;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
+import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
+import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
+import software.amazon.awssdk.transfer.s3.model.FileUpload;
+import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 import java.beans.ConstructorProperties;
 import java.io.File;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
 import static org.apache.commons.lang3.StringUtils.endsWith;
+import static org.apache.lucene.util.IOUtils.deleteFiles;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 
 /**
@@ -94,19 +99,21 @@ public class S3SyncProcessor extends AbstractS3Processor {
         logger.info("Performing S3 sync with bucket {}...", s3Url);
 
         try {
-            AmazonS3 client = buildClient();
+            S3AsyncClient asyncClient = buildAsyncClient();
 
             List<String> changedFiles =
                 ListUtils.union(filteredChangeSet.getCreatedFiles(), filteredChangeSet.getUpdatedFiles());
 
             if (CollectionUtils.isNotEmpty(changedFiles)) {
-                uploadFiles(client, changedFiles);
+                uploadFiles(asyncClient, changedFiles);
             }
 
+
+            S3Client client = buildClient();
             if (CollectionUtils.isNotEmpty(filteredChangeSet.getDeletedFiles())) {
                 deleteFiles(client, filteredChangeSet.getDeletedFiles());
             }
-        } catch (AmazonS3Exception e) {
+        } catch (S3Exception e) {
             throw new DeployerException("Error connecting to S3", e);
         }
 
@@ -115,26 +122,36 @@ public class S3SyncProcessor extends AbstractS3Processor {
 
     /**
      * Performs the upload of the given files.
-     * @param client AWS S3 client
+     * @param client AWS S3 async client
      * @param paths list of files to upload
      * @throws DeployerException if there is any error reading or uploading the files
      */
-    protected void uploadFiles(AmazonS3 client, List<String> paths) throws DeployerException {
+    protected void uploadFiles(S3AsyncClient client, List<String> paths) throws DeployerException {
         logger.info("Uploading {} files", paths.size());
 
-        TransferManager transferManager = buildTransferManager(client);
-        List<File> files = paths.stream().map(path -> new File(localRepoUrl, path)).collect(Collectors.toList());
+        S3TransferManager transferManager = buildTransferManager(client);
 
         try {
-            MultipleFileUpload upload = transferManager.uploadFileList(
-                    getBucket(), getS3BaseKey(), new File(localRepoUrl), files);
-            upload.waitForCompletion();
+            List<CompletableFuture<CompletedFileUpload>> futures = paths.stream().map(path -> {
+                String baseKey = getS3BaseKey();
+                if (!baseKey.endsWith(DELIMITER)) {
+                    baseKey = baseKey + DELIMITER;
+                }
+                String key = baseKey + Paths.get(path).getFileName().toString();
+                UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                        .putObjectRequest(p -> p.bucket(getBucket()).key(key))
+                        .source(Paths.get(localRepoUrl, path))
+                        .build();
+                return transferManager.uploadFile(uploadFileRequest).completionFuture();
+            }).collect(Collectors.toList());
+
+            CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
             logger.debug("Uploads completed");
         } catch (Exception e) {
             throw new DeployerException("Error uploading files " + paths, e);
         } finally {
-            transferManager.shutdownNow(false);
+            transferManager.close();
         }
     }
 
@@ -144,7 +161,7 @@ public class S3SyncProcessor extends AbstractS3Processor {
      * @param files list of files to delete
      * @throws DeployerException if there is any error deleting the files
      */
-    protected void deleteFiles(AmazonS3 client, List<String> files) throws DeployerException {
+    protected void deleteFiles(S3Client client, List<String> files) throws DeployerException {
         if(CollectionUtils.isNotEmpty(files)) {
             logger.info("Deleting {} files", files.size());
             logger.debug("Deleting files: {}", files);
@@ -153,11 +170,19 @@ public class S3SyncProcessor extends AbstractS3Processor {
 
             try {
                 for (List<String> subList : ListUtils.partition(keys, MAX_DELETE_KEYS_PER_REQUEST)) {
-                    DeleteObjectsRequest request =
-                            new DeleteObjectsRequest(getBucket()).withKeys(subList.toArray(new String[] {}));
-                    DeleteObjectsResult result = client.deleteObjects(request);
+                    List<ObjectIdentifier> identifiers = subList.stream().map(s ->
+                            ObjectIdentifier.builder()
+                                    .key(s)
+                                    .build())
+                            .collect(Collectors.toList());
 
-                    logger.debug("Deleted files: {}", result.getDeletedObjects());
+                    DeleteObjectsRequest request = DeleteObjectsRequest.builder()
+                            .bucket(getBucket())
+                            .delete(Delete.builder().objects(identifiers).build())
+                            .build();
+                    DeleteObjectsResponse result = client.deleteObjects(request);
+
+                    logger.debug("Deleted files: {}", result.deleted());
                 }
             } catch (Exception e) {
                 throw new DeployerException("Error deleting files", e);

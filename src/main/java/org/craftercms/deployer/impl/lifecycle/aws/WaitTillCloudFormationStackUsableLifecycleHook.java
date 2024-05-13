@@ -15,9 +15,6 @@
  */
 package org.craftercms.deployer.impl.lifecycle.aws;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.Output;
-import com.amazonaws.services.cloudformation.model.Stack;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.ArrayUtils;
@@ -28,6 +25,9 @@ import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsCloudFormationUtils;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.Output;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 import java.util.HashMap;
 import java.util.Iterator;
@@ -104,7 +104,7 @@ public class WaitTillCloudFormationStackUsableLifecycleHook extends AbstractLife
 
     @Override
     public void doExecute(Target target) throws DeployerException {
-        AmazonCloudFormation cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
+        CloudFormationClient cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
 
         while (!isTargetDeleted(target) && !isStackUsable(cloudFormation)) {
             try {
@@ -116,14 +116,14 @@ public class WaitTillCloudFormationStackUsableLifecycleHook extends AbstractLife
         }
     }
 
-    protected boolean isStackUsable(AmazonCloudFormation cloudFormation) throws DeployerException {
+    protected boolean isStackUsable(CloudFormationClient cloudFormation) throws DeployerException {
         Stack stack = AwsCloudFormationUtils.getStack(cloudFormation, stackName);
         if (stack != null) {
-            String statusCode = stack.getStackStatus();
+            String statusCode = stack.stackStatusAsString();
             if (ArrayUtils.contains(STACK_STATUS_CODES_USABLE, statusCode)) {
                 logger.info("CloudFormation stack '{}' is usable (status '{}')", stackName, statusCode);
 
-                mapOutputsToConfig(stack.getOutputs());
+                mapOutputsToConfig(stack.outputs());
 
                 return true;
             } else if (ArrayUtils.contains(STACK_STATUS_CODES_IN_PROGRESS, statusCode)) {
@@ -144,8 +144,8 @@ public class WaitTillCloudFormationStackUsableLifecycleHook extends AbstractLife
     protected void mapOutputsToConfig(List<Output> outputs) {
         if (CollectionUtils.isNotEmpty(outputs)) {
             for (Output output : outputs) {
-                String configKey = outputMappings.get(output.getOutputKey());
-                String outputValue = output.getOutputValue();
+                String configKey = outputMappings.get(output.outputKey());
+                String outputValue = output.outputValue();
 
                 targetConfig.setProperty(configKey, outputValue);
             }

@@ -15,12 +15,6 @@
  */
 package org.craftercms.deployer.impl.lifecycle.aws;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.model.DeleteObjectsRequest;
-import com.amazonaws.services.s3.model.ListVersionsRequest;
-import com.amazonaws.services.s3.model.ObjectListing;
-import com.amazonaws.services.s3.model.VersionListing;
 import org.apache.commons.collections.CollectionUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.config.ConfigurationException;
@@ -29,6 +23,11 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.model.*;
+import software.amazon.awssdk.services.s3.paginators.ListObjectVersionsIterable;
+import software.amazon.awssdk.services.s3.paginators.ListObjectsV2Iterable;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -59,61 +58,65 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
     @Override
     public void doExecute(Target target) throws DeployerException {
         try {
-            AmazonS3 s3 = buildClient();
+            S3Client s3 = buildClient();
 
-            if (s3.doesBucketExistV2(bucketName)) {
-                logger.info("Emptying bucket '{}'...", bucketName);
+            if (!bucketExist(s3, bucketName)) {
+                return;
+            }
 
-                // Delete all objects from the bucket. This is sufficient
-                // for unversioned buckets. For versioned buckets, when you attempt to delete objects, Amazon S3 inserts
-                // delete markers for all objects, but doesn't delete the object versions.
-                // To delete objects from versioned buckets, delete all of the object versions before deleting
-                // the bucket (see below for an example).
-                ObjectListing objectList = s3.listObjects(bucketName);
-                while (true) {
-                    List<DeleteObjectsRequest.KeyVersion> objectsToDelete = objectList.getObjectSummaries().stream()
-                            .map(o -> new DeleteObjectsRequest.KeyVersion(o.getKey()))
-                            .collect(Collectors.toList());
+            logger.info("Emptying bucket '{}'...", bucketName);
 
-                    if (CollectionUtils.isNotEmpty(objectsToDelete)) {
-                        logger.info("Deleting {} objects", objectsToDelete.size());
+            // Delete all objects from the bucket. This is sufficient
+            // for unversioned buckets. For versioned buckets, when you attempt to delete objects, Amazon S3 inserts
+            // delete markers for all objects, but doesn't delete the object versions.
+            // To delete objects from versioned buckets, delete all of the object versions before deleting
+            // the bucket (see below for an example).
+            ListObjectsV2Request request = ListObjectsV2Request.builder()
+                    .bucket(bucketName)
+                    .build();
+            ListObjectsV2Iterable listObjectsV2Responses = s3.listObjectsV2Paginator(request);
+            for (ListObjectsV2Response objectList: listObjectsV2Responses) {
+                List<ObjectIdentifier> objectsToDelete = objectList.contents().stream().map(s ->
+                        ObjectIdentifier.builder()
+                                .key(s.key())
+                                .build()
+                ).collect(Collectors.toList());
 
-                        s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(objectsToDelete));
-                    } else {
-                        logger.info("No objects to delete");
-                    }
-
-                    // If the bucket contains many objects, the listObjects() call
-                    // might not return all of the objects in the first listing. Check to
-                    // see whether the listing was truncated. If so, retrieve the next page of objects
-                    // and delete them.
-                    if (objectList.isTruncated()) {
-                        objectList = s3.listNextBatchOfObjects(objectList);
-                    } else {
-                        break;
-                    }
+                if (CollectionUtils.isNotEmpty(objectsToDelete)) {
+                    logger.info("Deleting {} objects", objectsToDelete.size());
+                    s3.deleteObjects(DeleteObjectsRequest.builder()
+                            .bucket(bucketName)
+                            .delete(Delete.builder()
+                                    .objects(objectsToDelete)
+                                    .build())
+                            .build());
+                } else {
+                    logger.info("No objects to delete");
                 }
+            }
 
-                // Delete all object versions (required for versioned buckets).
-                VersionListing versionList = s3.listVersions(new ListVersionsRequest().withBucketName(bucketName));
-                while (true) {
-                    List<DeleteObjectsRequest.KeyVersion> versionsToDelete = versionList.getVersionSummaries().stream()
-                            .map(v -> new DeleteObjectsRequest.KeyVersion(v.getKey(), v.getVersionId()))
-                            .collect(Collectors.toList());
+            // Delete all object versions (required for versioned buckets).
+            ListObjectVersionsRequest listObjectVersionsRequest = ListObjectVersionsRequest.builder()
+                    .bucket(bucketName)
+                    .build();
+            ListObjectVersionsIterable listObjectVersionsResponses = s3.listObjectVersionsPaginator(listObjectVersionsRequest);
+            for (ListObjectVersionsResponse versionList: listObjectVersionsResponses) {
+                List<ObjectIdentifier> versionsToDelete = versionList.versions().stream().map(v ->
+                                ObjectIdentifier.builder()
+                                        .key(v.key())
+                                        .versionId(v.versionId())
+                                        .build()
+                        )
+                        .collect(Collectors.toList());
+                if (CollectionUtils.isNotEmpty(versionsToDelete)) {
+                    logger.info("Deleting {} object versions", versionsToDelete.size());
 
-                    if (CollectionUtils.isNotEmpty(versionsToDelete)) {
-                        logger.info("Deleting {} object versions", versionsToDelete.size());
-
-                        s3.deleteObjects(new DeleteObjectsRequest(bucketName).withKeys(versionsToDelete));
-                    } else {
-                        logger.info("No object versions to delete");
-                    }
-
-                    if (versionList.isTruncated()) {
-                        versionList = s3.listNextBatchOfVersions(versionList);
-                    } else {
-                        break;
-                    }
+                    s3.deleteObjects(DeleteObjectsRequest.builder()
+                            .bucket(bucketName)
+                            .delete(Delete.builder().objects(versionsToDelete).build())
+                            .build());
+                } else {
+                    logger.info("No object versions to delete");
                 }
             }
         } catch (Exception e) {
@@ -121,11 +124,30 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
         }
     }
 
-    protected AmazonS3 buildClient() {
-        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+    protected S3Client buildClient() {
+        S3ClientBuilder builder = S3Client.builder();
         builderConfigurer.configureClientBuilder(builder);
 
         return builder.build();
+    }
+
+    /**
+     * Check if a bucket exist
+     * @param s3Client an instance of {@link S3Client}
+     * @param bucketName bucket name
+     * @return true if bucket exist, false otherwise
+     */
+    private boolean bucketExist(S3Client s3Client, String bucketName) {
+        try {
+            HeadBucketRequest request = HeadBucketRequest.builder()
+                    .bucket(bucketName)
+                    .build();
+            HeadBucketResponse response = s3Client.headBucket(request);
+            return response.sdkHttpResponse().isSuccessful();
+        } catch (Exception e) {
+            logger.debug("Error while get head of bucket '{}", bucketName, e);
+            return false;
+        }
     }
 
 }

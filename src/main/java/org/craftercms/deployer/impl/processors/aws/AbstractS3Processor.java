@@ -15,24 +15,22 @@
  */
 package org.craftercms.deployer.impl.processors.aws;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.services.s3.transfer.TransferManager;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
-import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
+import org.craftercms.deployer.utils.aws.AwsS3AsyncClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsS3ClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsS3Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import software.amazon.awssdk.services.s3.*;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
-import java.util.concurrent.ExecutorService;
+import java.net.URI;
 
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
@@ -57,17 +55,22 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
-     * Helper class the configures credentials and other properties for a {@link AmazonS3} client.
+     * Helper class the configures credentials and other properties for a {@link S3Client} client.
      */
-    protected AwsClientBuilderConfigurer<AmazonS3ClientBuilder> builderConfigurer;
+    protected AwsS3ClientBuilderConfigurer builderConfigurer;
+
+    /**
+     * Helper class the configures credentials and other properties for a {@link S3AsyncClient} client.
+     */
+    protected AwsS3AsyncClientBuilderConfigurer asyncBuilderConfigurer;
 
     /**
      * AWS S3 bucket URL
      */
-    protected AmazonS3URI s3Url;
+    protected S3Uri s3Url;
 
     /**
-     * Thread pool to use for {@link TransferManager} instances
+     * Thread pool to use for {@link S3TransferManager} instances
      */
     protected ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
@@ -81,7 +84,10 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
     @Override
     protected void doInit(final Configuration config) throws ConfigurationException {
         builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
-        s3Url = new AmazonS3URI(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+        asyncBuilderConfigurer = new AwsS3AsyncClientBuilderConfigurer(config);
+        s3Url = S3Uri.builder()
+                .uri(URI.create(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER)))
+                .build();
 
         // use true as default for backward compatibility
         failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
@@ -111,20 +117,31 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
     }
 
     /**
-     * Builds the {@link AmazonS3} client.
+     * Builds the {@link S3Client} client.
      */
-    protected AmazonS3 buildClient() {
-        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+    protected S3Client buildClient() {
+        S3ClientBuilder builder = S3Client.builder();
         builderConfigurer.configureClientBuilder(builder);
 
         return builder.build();
     }
 
     /**
-     * Builds the {@link TransferManager} using the shared {@link ExecutorService}
+     * Build the {@link S3AsyncClient}
+     * @return
      */
-    protected TransferManager buildTransferManager(AmazonS3 client) {
-        return AwsUtils.buildTransferManager(client, threadPoolTaskExecutor::getThreadPoolExecutor);
+    protected S3AsyncClient buildAsyncClient() {
+        S3AsyncClientBuilder builder = S3AsyncClient.builder();
+        asyncBuilderConfigurer.configureClientBuilder(builder);
+
+        return builder.build();
+    }
+
+    /**
+     * Builds the {@link S3TransferManager}
+     */
+    protected S3TransferManager buildTransferManager(S3AsyncClient client) {
+        return AwsUtils.buildTransferManager(client);
     }
 
     /**

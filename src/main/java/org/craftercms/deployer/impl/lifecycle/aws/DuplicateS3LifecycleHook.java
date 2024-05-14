@@ -91,15 +91,12 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
     @Override
     protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
         builderConfigurer = new AwsS3AsyncClientBuilderConfigurer(config);
-        s3Url = S3Uri.builder()
-                .uri(URI.create(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER)))
-                .build();
+        S3Utilities s3Utilities = buildClient(builderConfigurer).utilities();
+        s3Url = s3Utilities.parseUri(URI.create(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER)));
         ignoreBlobs = getBooleanProperty(config, CONFIG_KEY_IGNORE_BLOBS, true);
 
         Configuration srcTargetConfig = config.subset(CONFIG_KEY_SOURCE_CONFIG);
-        srcS3Url = S3Uri.builder()
-                .uri(URI.create(appendIfMissing(getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_URL), DELIMITER)))
-                .build();
+        srcS3Url = s3Utilities.parseUri(URI.create(appendIfMissing(getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_URL), DELIMITER)));
         srcLocalRepoPath = getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_LOCAL_REPO_URL);
     }
 

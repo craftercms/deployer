@@ -19,11 +19,13 @@ package org.craftercms.deployer.impl.processors.aws;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.utils.aws.AwsS3Utils;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
 import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
@@ -41,6 +43,7 @@ import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.stream.Collectors;
 
+import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.endsWith;
 import static org.apache.lucene.util.IOUtils.deleteFiles;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
@@ -133,13 +136,8 @@ public class S3SyncProcessor extends AbstractS3Processor {
 
         try {
             List<CompletableFuture<CompletedFileUpload>> futures = paths.stream().map(path -> {
-                String baseKey = getS3BaseKey();
-                if (!baseKey.endsWith(DELIMITER)) {
-                    baseKey = baseKey + DELIMITER;
-                }
-                String key = baseKey + Paths.get(path).getFileName().toString();
                 UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
-                        .putObjectRequest(p -> p.bucket(getBucket()).key(key))
+                        .putObjectRequest(p -> p.bucket(getBucket()).key(getS3Key(path)))
                         .source(Paths.get(localRepoUrl, path))
                         .build();
                 return transferManager.uploadFile(uploadFileRequest).completionFuture();
@@ -149,7 +147,7 @@ public class S3SyncProcessor extends AbstractS3Processor {
 
             logger.debug("Uploads completed");
         } catch (Exception e) {
-            throw new DeployerException("Error uploading files " + paths, e);
+            throw new DeployerException(format("Error uploading files '%s'", paths), e);
         } finally {
             transferManager.close();
         }

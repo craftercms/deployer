@@ -110,7 +110,9 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
      * @return the full S3 key
      */
     protected String getS3Key(String file) {
-        return StringUtils.appendIfMissing(getS3BaseKey(), DELIMITER) + StringUtils.stripStart(file, DELIMITER);
+        String path = StringUtils.appendIfMissing(getS3BaseKey(), DELIMITER) + StringUtils.stripStart(file, DELIMITER);
+        // S3 key should not start with a delimiter
+        return StringUtils.stripStart(path, DELIMITER);
     }
 
     /**

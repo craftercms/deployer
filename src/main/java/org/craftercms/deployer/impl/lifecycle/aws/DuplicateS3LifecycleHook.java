@@ -18,6 +18,7 @@ package org.craftercms.deployer.impl.lifecycle.aws;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
@@ -92,11 +93,13 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
     protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
         builderConfigurer = new AwsS3AsyncClientBuilderConfigurer(config);
         S3Utilities s3Utilities = buildClient(builderConfigurer).utilities();
-        s3Url = s3Utilities.parseUri(URI.create(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER)));
+        String uri = HttpUtils.encodeUrlMacro(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+        s3Url = s3Utilities.parseUri(URI.create(uri));
         ignoreBlobs = getBooleanProperty(config, CONFIG_KEY_IGNORE_BLOBS, true);
 
         Configuration srcTargetConfig = config.subset(CONFIG_KEY_SOURCE_CONFIG);
-        srcS3Url = s3Utilities.parseUri(URI.create(appendIfMissing(getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_URL), DELIMITER)));
+        String srcUri = HttpUtils.encodeUrlMacro(appendIfMissing(getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_URL), DELIMITER));
+        srcS3Url = s3Utilities.parseUri(URI.create(srcUri));
         srcLocalRepoPath = getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_LOCAL_REPO_URL);
     }
 

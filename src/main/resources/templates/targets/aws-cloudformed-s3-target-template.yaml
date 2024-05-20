@@ -23,6 +23,9 @@ aws:
 target:
   env: {{env}}
   siteName: {{site_name}}
+  {{#if source_target}}
+  sourceSiteName: {{source_target.siteName}}
+  {{/if}}
   {{#if local_repo_path}}
   localRepoPath: {{local_repo_path}}
   {{/if}}
@@ -140,7 +143,7 @@ target:
         secretKey: ${aws.secretKey}
         url: ${aws.cloudformation.s3Url}
       - processorName: searchIndexingProcessor
-        excludeFiles: ['^/sources/.*$']       
+        excludeFiles: ['^/sources/.*$']
       # -------------------- END OF MAIN PIPELINE --------------------
       - processorName: fileOutputProcessor
       {{#if notification_addresses}}

@@ -17,7 +17,7 @@ package org.craftercms.deployer.utils.aws;
 
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.config.ConfigurationException;
-import software.amazon.awssdk.services.s3.S3ClientBuilder;
+import software.amazon.awssdk.services.s3.S3BaseClientBuilder;
 import software.amazon.awssdk.services.s3.S3Configuration;
 
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
@@ -25,7 +25,7 @@ import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 /**
  * {@link AwsClientBuilderConfigurer} extension for S3 clients.
  */
-public class AwsS3ClientBuilderConfigurer extends AwsClientBuilderConfigurer<S3ClientBuilder> {
+public class AwsS3ClientBuilderConfigurer extends AwsClientBuilderConfigurer<S3BaseClientBuilder> {
 
     public static final String CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED = "pathStyleAccess";
 
@@ -48,7 +48,7 @@ public class AwsS3ClientBuilderConfigurer extends AwsClientBuilderConfigurer<S3C
     }
 
     @Override
-    public void configureClientBuilder(S3ClientBuilder builder) {
+    public void configureClientBuilder(S3BaseClientBuilder builder) {
         super.configureClientBuilder(builder);
         if (pathStyleAccessEnabled) {
             builder.serviceConfiguration(S3Configuration.builder()

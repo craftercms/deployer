@@ -24,7 +24,7 @@ import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
-import org.craftercms.deployer.utils.aws.AwsS3AsyncClientBuilderConfigurer;
+import org.craftercms.deployer.utils.aws.AwsS3ClientBuilderConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
@@ -72,7 +72,7 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
     private final ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     private boolean ignoreBlobs;
-    private AwsS3AsyncClientBuilderConfigurer builderConfigurer;
+    private AwsS3ClientBuilderConfigurer builderConfigurer;
     private S3Uri s3Url;
     private S3Uri srcS3Url;
     private String srcLocalRepoPath;
@@ -91,7 +91,7 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
 
     @Override
     protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
-        builderConfigurer = new AwsS3AsyncClientBuilderConfigurer(config);
+        builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
         S3Utilities s3Utilities = buildClient(builderConfigurer).utilities();
         String uri = HttpUtils.encodeUrlMacro(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
         s3Url = s3Utilities.parseUri(URI.create(uri));
@@ -103,7 +103,7 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
         srcLocalRepoPath = getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_LOCAL_REPO_URL);
     }
 
-    protected S3AsyncClient buildClient(AwsS3AsyncClientBuilderConfigurer builderConfigurer) {
+    protected S3AsyncClient buildClient(AwsS3ClientBuilderConfigurer builderConfigurer) {
         S3AsyncClientBuilder builder = S3AsyncClient.builder();
         builderConfigurer.configureClientBuilder(builder);
         return builder.build();

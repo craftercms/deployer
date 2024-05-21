@@ -21,7 +21,6 @@ import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
-import org.craftercms.deployer.utils.aws.AwsS3AsyncClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsS3ClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsS3Utils;
 import org.slf4j.Logger;
@@ -32,7 +31,6 @@ import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
 import java.net.URI;
 
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
@@ -60,11 +58,6 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
     protected AwsS3ClientBuilderConfigurer builderConfigurer;
 
     /**
-     * Helper class the configures credentials and other properties for a {@link S3AsyncClient} client.
-     */
-    protected AwsS3AsyncClientBuilderConfigurer asyncBuilderConfigurer;
-
-    /**
      * AWS S3 bucket URL
      */
     protected S3Uri s3Url;
@@ -84,7 +77,6 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
     @Override
     protected void doInit(final Configuration config) throws ConfigurationException {
         builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
-        asyncBuilderConfigurer = new AwsS3AsyncClientBuilderConfigurer(config);
         URI uri = URI.create(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
         s3Url = buildClient().utilities().parseUri(uri);
         // use true as default for backward compatibility
@@ -132,7 +124,7 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
      */
     protected S3AsyncClient buildAsyncClient() {
         S3AsyncClientBuilder builder = S3AsyncClient.builder();
-        asyncBuilderConfigurer.configureClientBuilder(builder);
+        builderConfigurer.configureClientBuilder(builder);
 
         return builder.build();
     }

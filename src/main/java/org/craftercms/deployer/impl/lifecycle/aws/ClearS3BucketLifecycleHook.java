@@ -144,7 +144,7 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
                     .build();
             HeadBucketResponse response = s3Client.headBucket(request);
             return response.sdkHttpResponse().isSuccessful();
-        } catch (Exception e) {
+        } catch (NoSuchBucketException e) {
             logger.debug("Error while get head of bucket '{}", bucketName, e);
             return false;
         }

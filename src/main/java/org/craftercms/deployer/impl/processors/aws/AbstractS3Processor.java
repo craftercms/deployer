@@ -85,7 +85,8 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
     protected void doInit(final Configuration config) throws ConfigurationException {
         builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
         asyncBuilderConfigurer = new AwsS3AsyncClientBuilderConfigurer(config);
-        s3Url = buildClient().utilities().parseUri(URI.create(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER)));
+        URI uri = URI.create(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+        s3Url = buildClient().utilities().parseUri(uri);
         // use true as default for backward compatibility
         failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
     }

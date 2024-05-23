@@ -144,7 +144,7 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
             AwsUtils.copyObjects(client, threadPoolTaskExecutor.getThreadPoolExecutor(), getBucket(srcS3Url, sourceSiteName), getS3BaseKey(srcS3Url, sourceSiteName),
                     getBucket(s3Url, siteName), getS3BaseKey(s3Url, siteName), paths);
         } catch (Exception e) {
-            throw new DeployerException(format("Interrupted while waiting for S3 content duplication from site '%s' to '%s'", sourceSiteName, siteName), e);
+            throw new DeployerException(format("Exception while waiting for S3 content duplication from site '%s' to '%s'", sourceSiteName, siteName), e);
         }
         logger.info("Completed S3 content duplicate from '{}' for site '{}' to '{}' for site '{}'", srcS3Url, sourceSiteName, s3Url, siteName);
     }

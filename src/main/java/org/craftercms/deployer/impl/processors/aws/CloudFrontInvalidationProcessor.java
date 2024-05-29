@@ -33,13 +33,14 @@ import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-import com.amazonaws.services.cloudfront.AmazonCloudFront;
-import com.amazonaws.services.cloudfront.AmazonCloudFrontClientBuilder;
-import com.amazonaws.services.cloudfront.model.CreateInvalidationRequest;
-import com.amazonaws.services.cloudfront.model.CreateInvalidationResult;
-import com.amazonaws.services.cloudfront.model.InvalidationBatch;
-import com.amazonaws.services.cloudfront.model.Paths;
 import org.springframework.web.util.UriUtils;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudfront.CloudFrontClient;
+import software.amazon.awssdk.services.cloudfront.CloudFrontClientBuilder;
+import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationRequest;
+import software.amazon.awssdk.services.cloudfront.model.CreateInvalidationResponse;
+import software.amazon.awssdk.services.cloudfront.model.InvalidationBatch;
+import software.amazon.awssdk.services.cloudfront.model.Paths;
 
 import static org.craftercms.commons.config.ConfigUtils.*;
 
@@ -63,7 +64,7 @@ public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProce
     // Config properties (populated on init)
 
     /**
-     * Helper class the configures credentials and other properties for a {@link AmazonCloudFront} client.
+     * Helper class the configures credentials and other properties for a {@link CloudFrontClient} client.
      */
     protected AwsClientBuilderConfigurer builderConfigurer;
     /**
@@ -90,7 +91,7 @@ public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProce
 
         logger.info("Performing Cloudfront invalidation...");
 
-        AmazonCloudFront client = buildClient();
+        CloudFrontClient client = buildClient();
 
         List<String> changedFiles =
             ListUtils.union(filteredChangeSet.getUpdatedFiles(), filteredChangeSet.getDeletedFiles());
@@ -100,7 +101,10 @@ public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProce
                                        .map(f -> UriUtils.encodePath(f, StandardCharsets.UTF_8))
                                        .collect(Collectors.toList());
 
-            Paths paths = new Paths().withItems(changedFiles).withQuantity(changedFiles.size());
+            Paths paths = Paths.builder()
+                    .items(changedFiles)
+                    .quantity(changedFiles.size())
+                    .build();
 
             logger.info("Will invalidate {} files", changedFiles.size());
 
@@ -110,11 +114,17 @@ public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProce
 
                     logger.info("Creating invalidation for distribution {} with reference {}", distribution, caller);
 
-                    InvalidationBatch batch = new InvalidationBatch().withPaths(paths).withCallerReference(caller);
-                    CreateInvalidationRequest request = new CreateInvalidationRequest(distribution, batch);
-                    CreateInvalidationResult result = client.createInvalidation(request);
+                    InvalidationBatch batch = InvalidationBatch.builder()
+                            .paths(paths)
+                            .callerReference(caller)
+                            .build();
+                    CreateInvalidationRequest request = CreateInvalidationRequest.builder()
+                            .distributionId(distribution)
+                            .invalidationBatch(batch)
+                            .build();
+                    CreateInvalidationResponse result = client.createInvalidation(request);
 
-                    logger.info("Created invalidation {} for distribution {}", result.getInvalidation().getId(),
+                    logger.info("Created invalidation {} for distribution {}", result.invalidation().id(),
                                 distribution);
                 } catch (Exception e) {
                     throw new DeployerException("Error invalidating changed files for distribution " + distribution, e);
@@ -128,10 +138,10 @@ public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProce
     }
 
     /**
-     * Builds the {@link AmazonCloudFront} client.
+     * Builds the {@link CloudFrontClient} client.
      */
-    protected AmazonCloudFront buildClient() {
-        AmazonCloudFrontClientBuilder builder = AmazonCloudFrontClientBuilder.standard();
+    protected CloudFrontClient buildClient() {
+        CloudFrontClientBuilder builder = CloudFrontClient.builder();
         builderConfigurer.configureClientBuilder(builder);
 
         return builder.build();

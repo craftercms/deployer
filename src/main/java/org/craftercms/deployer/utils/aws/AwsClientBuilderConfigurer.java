@@ -15,12 +15,15 @@
  */
 package org.craftercms.deployer.utils.aws;
 
-import com.amazonaws.auth.AWSStaticCredentialsProvider;
-import com.amazonaws.auth.BasicAWSCredentials;
-import com.amazonaws.client.builder.AwsClientBuilder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import software.amazon.awssdk.auth.credentials.AwsBasicCredentials;
+import software.amazon.awssdk.auth.credentials.StaticCredentialsProvider;
+import software.amazon.awssdk.awscore.client.builder.AwsClientBuilder;
+import software.amazon.awssdk.regions.Region;
+
+import java.net.URI;
 
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
@@ -76,13 +79,13 @@ public class AwsClientBuilderConfigurer<ClientBuilderSubclass extends AwsClientB
      */
     public void configureClientBuilder(ClientBuilderSubclass builder) {
         if (StringUtils.isNotEmpty(endpoint)) {
-            builder.withEndpointConfiguration(new AwsClientBuilder.EndpointConfiguration(endpoint, region));
+            builder.endpointOverride(URI.create(endpoint));
         } else if (StringUtils.isNotEmpty(region)) {
-            builder.withRegion(region);
+            builder.region(Region.of(region));
         }
 
         if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
-            builder.withCredentials(new AWSStaticCredentialsProvider(new BasicAWSCredentials(accessKey, secretKey)));
+            builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
         }
     }
 

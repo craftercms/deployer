@@ -25,13 +25,7 @@ import org.craftercms.commons.upgrade.VersionProvider;
 import org.craftercms.commons.upgrade.impl.configuration.YamlConfigurationProvider;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.impl.upgrade.TargetVersionProvider;
-import org.craftercms.deployer.impl.upgrade.operations.AddLifecycleHookUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.AddProcessorUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.ElasticsearchIndexUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.EncryptionUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.ProcessorUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.RemovePropertyUpgradeOperation;
-import org.craftercms.deployer.impl.upgrade.operations.ReplaceProcessorUpgradeOperation;
+import org.craftercms.deployer.impl.upgrade.operations.*;
 import org.craftercms.deployer.impl.upgrade.pipeline.TargetUpgradePipelineFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -117,6 +111,12 @@ public class UpgradeManagerConfig {
     @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
     public RemovePropertyUpgradeOperation removePropertyUpgrader() {
         return new RemovePropertyUpgradeOperation();
+    }
+
+    @Bean
+    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+    public RemoveProcessorUpgradeOperation removeProcessorUpgrader() {
+        return new RemoveProcessorUpgradeOperation();
     }
 
 }

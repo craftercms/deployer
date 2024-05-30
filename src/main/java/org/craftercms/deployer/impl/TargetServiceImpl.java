@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -93,6 +93,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
     public static final String TARGET_ENV_MODEL_KEY = "env";
     public static final String TARGET_SITE_NAME_MODEL_KEY = "site_name";
+    public static final String TARGET_SOURCE_TARGET_MODEL_KEY = "source_target";
     public static final String TARGET_ID_MODEL_KEY = "target_id";
 
     protected final File targetConfigFolder;
@@ -218,7 +219,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         closeTargetsWithNoConfigFile(configFiles);
 
         for (File file : configFiles) {
-            Target target = resolveTargetFromConfigFile(file, false);
+            Target target = resolveTargetFromConfigFile(file, LoadMode.LOAD);
             targets.add(target);
         }
 
@@ -238,7 +239,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         }
         createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
 
-        return resolveTargetFromConfigFile(configFile, true);
+        return resolveTargetFromConfigFile(configFile, LoadMode.CREATE);
     }
 
     @Override
@@ -253,13 +254,15 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
         target.delete();
 
-        try {
-            processedCommitsStore.delete(id);
-        } catch (DeployerException e) {
-            throw new TargetServiceException(format("Error while deleting processed commit from store for target '%s'", id), e);
-        }
+        cleanupTarget(id, target.getConfigurationFile());
+    }
 
-        File configFile = target.getConfigurationFile();
+    private void cleanupTarget(String targetId, File configFile) throws TargetServiceException {
+        try {
+            processedCommitsStore.delete(targetId);
+        } catch (DeployerException e) {
+            throw new TargetServiceException(format("Error while deleting processed commit from store for target '%s'", targetId), e);
+        }
         if (configFile.exists()) {
             logger.info("Deleting target configuration file at '{}'", configFile);
 
@@ -281,6 +284,27 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         ApplicationContext appContext = target.getApplicationContext();
         OpenSearchAdminService adminService = appContext.getBean(OpenSearchAdminService.class);
         adminService.recreateIndex(target.getId());
+    }
+
+    @Override
+    public synchronized void duplicateTarget(final String env, final String sourceSiteName, final String siteName,
+                                             boolean replace, String templateName, Map<String, Object> templateParams)
+            throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException {
+        if (!replace && targetExists(env, siteName)) {
+            throw new TargetAlreadyExistsException(siteName, env, siteName);
+        }
+        Target srcTarget = getTarget(env, sourceSiteName);
+        templateParams.put(TARGET_SOURCE_TARGET_MODEL_KEY, srcTarget);
+
+        String id = TargetImpl.getId(env, siteName);
+        File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
+
+        if (!replace && configFile.exists()) {
+            throw new TargetAlreadyExistsException(id, env, siteName);
+        }
+        createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
+
+        resolveTargetFromConfigFile(configFile, LoadMode.DUPLICATE);
     }
 
     protected Collection<File> getTargetConfigFiles() throws TargetServiceException {
@@ -316,7 +340,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         });
     }
 
-    protected Target resolveTargetFromConfigFile(File configFile, boolean create) throws TargetServiceException {
+    protected Target resolveTargetFromConfigFile(File configFile, LoadMode loadMode) throws TargetServiceException {
         String baseName = FilenameUtils.getBaseName(configFile.getName());
         File contextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT, baseName));
         Target target = findLoadedTargetByConfigFile(configFile);
@@ -345,7 +369,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         if (target == null) {
             logger.info("Loading target for configuration file {}", configFile);
 
-            target = loadTarget(configFile, contextFile, create);
+            target = loadTarget(configFile, contextFile, loadMode);
             currentTargets.add(target);
         }
 
@@ -367,7 +391,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         return context.getBean(TargetImpl.class);
     }
 
-    protected Target loadTarget(File configFile, File contextFile, boolean create) throws TargetServiceException {
+    protected Target loadTarget(File configFile, File contextFile, LoadMode loadMode) throws TargetServiceException {
         try {
             // Create the target temporarily to run upgrades
             TargetImpl target = buildTarget(configFile, contextFile);
@@ -377,15 +401,17 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             // Create again with all upgrades applied
             target = buildTarget(configFile, contextFile);
 
-            if (create) {
-                executeCreateHooks(target);
+            switch (loadMode) {
+                case CREATE -> executeCreateHooks(target);
+                case DUPLICATE -> executeDuplicateHooks(target);
             }
 
             startInit(target);
 
+
             return target;
         } catch (Exception e) {
-            if (create) {
+            if (loadMode.isCreate()) {
                 FileUtils.deleteQuietly(configFile);
             }
 
@@ -541,6 +567,17 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 .orElse(null);
     }
 
+    protected void executeDuplicateHooks(Target target) throws Exception {
+        List<TargetLifecycleHook> duplicateHooks = targetLifecycleHooksResolver.getHooks(
+                target.getConfiguration(), target.getApplicationContext(), DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+
+        logger.info("Executing duplicate hooks for target '{}'", target.getId());
+        for (TargetLifecycleHook hook : duplicateHooks) {
+            hook.execute(target);
+        }
+        logger.info("Duplicate hooks executed for target '{}'", target.getId());
+    }
+
     protected void executeCreateHooks(Target target) throws Exception {
         List<TargetLifecycleHook> createHooks = targetLifecycleHooksResolver.getHooks(
                 target.getConfiguration(), target.getApplicationContext(), CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
@@ -565,6 +602,28 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             return !filename.equals(baseTargetYamlConfigResource.getFilename()) &&
                     !filename.equals(baseTargetYamlConfigOverrideResource.getFilename()) &&
                     filename.endsWith(YAML_FILE_EXTENSION);
+        }
+    }
+
+    /**
+     * Different modes to load a target
+     */
+    protected enum LoadMode {
+        // Just load the target from configuration
+        LOAD(false),
+        // Execute create hooks
+        CREATE(true),
+        // Execute duplicate hooks
+        DUPLICATE(true);
+
+        private final boolean create;
+
+        LoadMode(final boolean create) {
+            this.create = create;
+        }
+
+        public boolean isCreate() {
+            return create;
         }
     }
 

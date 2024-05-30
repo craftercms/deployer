@@ -3,6 +3,8 @@
 ####################################################
 
 target:
+  # The source site name when duplicating a target.
+  sourceSiteName: ''
   # The local folder path where the target repository will be placed
   localRepoPath: ${deployer.main.deployments.folderPath}/${target.env}/${target.siteName}
   # The default datetime pattern that will be used
@@ -51,11 +53,21 @@ target:
       # List of URLs for OpenSearch
       urls:
         - http://localhost:9201
+      # Default index settings
       indexSettings:
         - key: "index.mapping.total_fields.limit"
           value : 3000
         - key: "index.mapping.depth.limit"
           value: 40
+      # Ignored (when copying an index) settings
+      ignoredSettings:
+        - "index.creation_date"
+        - "index.uuid"
+        - "index.version.created"
+        - "index.provided_name"
+        - "index.number_of_shards"
+        - "index.replication.type"
+        - "index.version.upgraded"
     indexing:
       xml:
         flattening:
@@ -166,8 +178,10 @@ target:
             - application/vnd.ms-excel
             - application/vnd.ms-powerpoint
             - application/vnd.openxmlformats-officedocument.presentationml.presentation
+            - application/x-subrip
             - image/*
             - video/*
+            - audio/*
             - text/x-freemarker
             - text/x-groovy
             - text/javascript
@@ -248,6 +262,9 @@ target:
     # The lifecycle hooks executed during a target delete
     delete:
       - hookName: deleteIndexLifecycleHook
+    duplicate:
+      - hookName: duplicateIndexLifecycleHook
+      - hookName: duplicateProcessCommitsFileLifecycleHook
   core:
     cache:
       # Indicates if the cache should be using while reading files from the repo

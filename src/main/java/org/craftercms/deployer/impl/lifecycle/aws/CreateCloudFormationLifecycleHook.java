@@ -15,10 +15,6 @@
  */
 package org.craftercms.deployer.impl.lifecycle.aws;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.CreateStackRequest;
-import com.amazonaws.services.cloudformation.model.CreateStackResult;
-import com.amazonaws.services.cloudformation.model.Parameter;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.IOUtils;
 import org.craftercms.commons.config.ConfigurationException;
@@ -29,6 +25,10 @@ import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsCloudFormationUtils;
 import org.springframework.core.io.Resource;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
+import software.amazon.awssdk.services.cloudformation.model.CreateStackResponse;
+import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
@@ -86,14 +86,17 @@ public class CreateCloudFormationLifecycleHook extends AbstractLifecycleHook {
                 String key = keys.next();
                 String value = templateParamsConfig.getString(key);
 
-                templateParams.add(new Parameter().withParameterKey(key).withParameterValue(value));
+                templateParams.add(Parameter.builder()
+                        .parameterKey(key)
+                        .parameterValue(value)
+                        .build());
             }
         }
     }
 
     @Override
     public void doExecute(Target target) throws DeployerException {
-        AmazonCloudFormation cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
+        CloudFormationClient cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
 
         if (AwsCloudFormationUtils.stackExists(cloudFormation, stackName)) {
             logger.info("CloudFormation stack '{}' already exists. Skipping create...", stackName);
@@ -104,16 +107,17 @@ public class CreateCloudFormationLifecycleHook extends AbstractLifecycleHook {
         }
     }
 
-    protected void createCloudFormationStack(AmazonCloudFormation cloudFormation) throws DeployerException {
+    protected void createCloudFormationStack(CloudFormationClient cloudFormation) throws DeployerException {
         try {
-            CreateStackRequest request = new CreateStackRequest();
-            request.setStackName(stackName);
-            request.setTemplateBody(getTemplateBody());
-            request.setParameters(templateParams);
+            CreateStackRequest request = CreateStackRequest.builder()
+                    .stackName(stackName)
+                    .templateBody(getTemplateBody())
+                    .parameters(templateParams)
+                    .build();
 
-            CreateStackResult result = cloudFormation.createStack(request);
+            CreateStackResponse result = cloudFormation.createStack(request);
 
-            logger.info("Creation of CloudFormation stack '{}' started (stack ID '{}')", stackName, result.getStackId());
+            logger.info("Creation of CloudFormation stack '{}' started (stack ID '{}')", stackName, result.stackId());
         } catch (Exception e) {
             throw new DeployerException("Unable to create CloudFormation stack '" + stackName + "'", e);
         }

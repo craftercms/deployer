@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,24 +15,22 @@
  */
 package org.craftercms.deployer.impl.processors.aws;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.AmazonS3URI;
-import com.amazonaws.services.s3.transfer.TransferManager;
-import com.amazonaws.services.s3.transfer.TransferManagerBuilder;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
-import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
+import org.craftercms.deployer.utils.aws.AwsS3ClientBuilderConfigurer;
+import org.craftercms.deployer.utils.aws.AwsS3Utils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import software.amazon.awssdk.services.s3.*;
+import software.amazon.awssdk.transfer.s3.S3TransferManager;
 
-import java.util.concurrent.ExecutorService;
+import java.net.URI;
 
-import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
 /**
@@ -49,24 +47,23 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
 public abstract class AbstractS3Processor extends AbstractMainDeploymentProcessor {
 
     protected static final String CONFIG_KEY_URL = "url";
-    protected static final String MACRO_SITENAME = "{siteName}";
 
     protected static final String DELIMITER = "/";
 
     protected Logger logger = LoggerFactory.getLogger(getClass());
 
     /**
-     * Helper class the configures credentials and other properties for a {@link AmazonS3} client.
+     * Helper class the configures credentials and other properties for a {@link S3Client} client.
      */
-    protected AwsClientBuilderConfigurer builderConfigurer;
+    protected AwsS3ClientBuilderConfigurer builderConfigurer;
 
     /**
      * AWS S3 bucket URL
      */
-    protected AmazonS3URI s3Url;
+    protected S3Uri s3Url;
 
     /**
-     * Thread pool to use for {@link TransferManager} instances
+     * Thread pool to use for {@link S3TransferManager} instances
      */
     protected ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
@@ -79,9 +76,9 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
      */
     @Override
     protected void doInit(final Configuration config) throws ConfigurationException {
-        builderConfigurer = new AwsClientBuilderConfigurer(config);
-        s3Url = new AmazonS3URI(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
-
+        builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
+        URI uri = URI.create(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+        s3Url = buildClient().utilities().parseUri(uri);
         // use true as default for backward compatibility
         failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
     }
@@ -90,12 +87,14 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
      * Returns the base key from the S3 URL, making sure to replace the {@code {siteName}} macro instances
      */
     protected String getS3BaseKey() {
-        String baseKey = s3Url.getKey();
-        if (StringUtils.isNotEmpty(baseKey)) {
-            return baseKey.replace(MACRO_SITENAME, siteName);
-        } else {
-            return StringUtils.EMPTY;
-        }
+        return AwsS3Utils.getS3BaseKey(s3Url, siteName);
+    }
+
+    /*
+     * Returns the bucket from the S3 URL, making sure to replace the {@code {siteName}} macro instances
+     */
+    protected String getBucket() {
+        return AwsS3Utils.getBucket(s3Url, siteName);
     }
 
     /**
@@ -104,29 +103,37 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
      * @return the full S3 key
      */
     protected String getS3Key(String file) {
-        return StringUtils.appendIfMissing(getS3BaseKey(), DELIMITER) + StringUtils.stripStart(file, DELIMITER);
+        String path = StringUtils.appendIfMissing(getS3BaseKey(), DELIMITER) + StringUtils.stripStart(file, DELIMITER);
+        // S3 key should not start with a delimiter
+        return StringUtils.stripStart(path, DELIMITER);
     }
 
     /**
-     * Builds the {@link AmazonS3} client.
+     * Builds the {@link S3Client} client.
      */
-    protected AmazonS3 buildClient() {
-        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+    protected S3Client buildClient() {
+        S3ClientBuilder builder = S3Client.builder();
         builderConfigurer.configureClientBuilder(builder);
 
         return builder.build();
     }
 
     /**
-     * Builds the {@link TransferManager} using the shared {@link ExecutorService}
+     * Build the {@link S3AsyncClient}
+     * @return
      */
-    protected TransferManager buildTransferManager(AmazonS3 client) {
-        return TransferManagerBuilder
-                .standard()
-                .withS3Client(client)
-                .withExecutorFactory(() -> threadPoolTaskExecutor.getThreadPoolExecutor())
-                .withShutDownThreadPools(false)
-                .build();
+    protected S3AsyncClient buildAsyncClient() {
+        S3AsyncClientBuilder builder = S3AsyncClient.builder();
+        builderConfigurer.configureClientBuilder(builder);
+
+        return builder.build();
+    }
+
+    /**
+     * Builds the {@link S3TransferManager}
+     */
+    protected S3TransferManager buildTransferManager(S3AsyncClient client) {
+        return AwsUtils.buildTransferManager(client);
     }
 
     /**

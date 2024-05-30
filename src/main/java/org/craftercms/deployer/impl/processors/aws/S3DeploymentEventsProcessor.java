@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,7 +15,6 @@
  */
 package org.craftercms.deployer.impl.processors.aws;
 
-import com.amazonaws.services.s3.AmazonS3;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
@@ -24,6 +23,9 @@ import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.events.DeploymentEventsStore;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import software.amazon.awssdk.core.sync.RequestBody;
+import software.amazon.awssdk.services.s3.S3Client;
+import software.amazon.awssdk.services.s3.model.PutObjectRequest;
 
 import java.beans.ConstructorProperties;
 import java.nio.file.Files;
@@ -77,13 +79,17 @@ public class S3DeploymentEventsProcessor extends AbstractS3Processor {
     @Override
     protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution, ChangeSet filteredChangeSet,
                                       ChangeSet originalChangeSet) throws DeployerException {
-        AmazonS3 client = buildClient();
+        S3Client client = buildClient();
         Path file = store.getSource(deployment.getTarget());
 
         if (Files.exists(file)) {
             logger.info("Uploading deployment events from {}", file);
             try {
-                client.putObject(s3Url.getBucket(), getS3Key(deploymentEventsFileUrl), file.toFile());
+                PutObjectRequest request = PutObjectRequest.builder()
+                        .bucket(getBucket())
+                        .key(getS3Key(deploymentEventsFileUrl))
+                        .build();
+                client.putObject(request, RequestBody.fromFile(file.toFile()));
             } catch (Exception e) {
                 throw new DeployerException("Error uploading deployment events @ " + file, e);
             }

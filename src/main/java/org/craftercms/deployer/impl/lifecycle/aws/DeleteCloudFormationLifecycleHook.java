@@ -15,8 +15,6 @@
  */
 package org.craftercms.deployer.impl.lifecycle.aws;
 
-import com.amazonaws.services.cloudformation.AmazonCloudFormation;
-import com.amazonaws.services.cloudformation.model.*;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.ArrayUtils;
 import org.craftercms.commons.config.ConfigurationException;
@@ -26,6 +24,9 @@ import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
 import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsCloudFormationUtils;
+import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.DeleteStackRequest;
+import software.amazon.awssdk.services.cloudformation.model.Stack;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 
@@ -57,14 +58,14 @@ public class DeleteCloudFormationLifecycleHook extends AbstractLifecycleHook {
 
     @Override
     public void doExecute(Target target) throws DeployerException {
-        AmazonCloudFormation cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
+        CloudFormationClient cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
         Stack stack = AwsCloudFormationUtils.getStack(cloudFormation, stackName);
 
-        if (stack != null && !ArrayUtils.contains(STACK_STATUS_CODES_DELETED, stack.getStackStatus())) {
+        if (stack != null && !ArrayUtils.contains(STACK_STATUS_CODES_DELETED, stack.stackStatus())) {
             logger.info("Deleting CloudFormation stack '{}'", stackName);
 
             try {
-                cloudFormation.deleteStack(new DeleteStackRequest().withStackName(stackName));
+                cloudFormation.deleteStack(DeleteStackRequest.builder().stackName(stackName).build());
 
                 logger.info("Deletion of CloudFormation stack '{}' started", stackName);
             } catch (Exception e) {

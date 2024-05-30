@@ -17,14 +17,12 @@
 
 package org.craftercms.deployer.utils.opensearch.legacy;
 
-import java.beans.ConstructorProperties;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.lang3.ArrayUtils;
+
+import java.beans.ConstructorProperties;
+import java.util.*;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -46,6 +44,7 @@ public class OpenSearchConfig {
     public static final String CONFIG_KEY_LOCALE_MAPPING = CONFIG_KEY_GLOBAL_CLUSTER + ".locale.mapping";
 
     public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.openSearch.indexSettings";
+    public static final String CONFIG_KEY_IGNORED_INDEX_SETTINGS = "target.search.openSearch.ignoredSettings";
 
     public static final String CONFIG_KEY_KEY = "key";
 
@@ -72,6 +71,7 @@ public class OpenSearchConfig {
     public final Map<String, String> localeMapping = new HashMap<>();
 
     public final Map<String, String> indexSettings;
+    public final Set<String> ignoredSettings;
 
     @ConstructorProperties({"config"})
     public OpenSearchConfig(HierarchicalConfiguration<?> config) {
@@ -103,6 +103,7 @@ public class OpenSearchConfig {
         indexSettings = new HashMap<>();
         config.configurationsAt(CONFIG_KEY_INDEX_SETTINGS).forEach(settingConfig ->
                 indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
+        ignoredSettings = new HashSet<>(Arrays.asList(config.getStringArray(CONFIG_KEY_IGNORED_INDEX_SETTINGS)));
     }
 
     /**

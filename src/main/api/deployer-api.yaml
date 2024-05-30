@@ -696,14 +696,3 @@ components:
               message:
                 type: string
                 example: OK
-
-    Created:
-      description: Created
-      content:
-        application/json:
-          schema:
-            type: object
-            properties:
-              message:
-                type: string
-                example: OK

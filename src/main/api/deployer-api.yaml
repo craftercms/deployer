@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Deployer API
-  version: '4.1.4'
+  version: '4.1.5'
   title: Crafter Deployer
   termsOfService: ''
   contact:
@@ -68,7 +68,7 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '409':
-          $ref: '#/components/responses/Conflict'        
+          $ref: '#/components/responses/Conflict'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -77,7 +77,7 @@ paths:
       security: []
       tags:
         - target
-      summary: Get a Crafter Deployer target.      
+      summary: Get a Crafter Deployer target.
       operationId: getTarget
       parameters:
         - name: env
@@ -86,16 +86,16 @@ paths:
           required: true
           schema:
             type: string
-          example: 
-             env: dev 
+          example:
+             env: dev
         - name: site_name
           in: path
           description: The target’s project/site name (e.g. editorial).
           required: true
           schema:
             type: string
-          example: 
-            site_name: editorial      
+          example:
+            site_name: editorial
       responses:
         '200':
           description: OK
@@ -103,24 +103,24 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/Targets'
-              example: 
+              example:
                 env: dev
                 siteName: editorial
                 id: editorial-dev
-                load_date: 2023-01-26T10:00:1.234-05:00 
-                status: INIT_COMPLETED        
+                load_date: 2023-01-26T10:00:1.234-05:00
+                status: INIT_COMPLETED
         '404':
-          $ref: '#/components/responses/NotFound'        
+          $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'      
+          $ref: '#/components/responses/InternalServerError'
 
   /api/1/target/get-all:
     get:
       security: []
       tags:
         - target
-      summary: Get a Crafter Deployer target.      
-      operationId: getAllTargets      
+      summary: Get a Crafter Deployer target.
+      operationId: getAllTargets
       responses:
         '200':
           description: OK
@@ -130,26 +130,26 @@ paths:
                 type: array
                 items:
                   $ref: '#/components/schemas/Targets'
-              example: 
+              example:
                 - load_date: 2023-03-30T13:24:36.042181-04:00
                   env: preview
                   siteName: hi
                   status: INIT_COMPLETED
-                  id: hi-preview                                    
+                  id: hi-preview
                 - load_date: 2023-03-31T09:48:48.214383-04:00
-                  env: preview           
+                  env: preview
                   siteName: third
-                  status: INIT_COMPLETED        
-                  id: third-preview                  
+                  status: INIT_COMPLETED
+                  id: third-preview
         '500':
-          $ref: '#/components/responses/InternalServerError'      
-  
+          $ref: '#/components/responses/InternalServerError'
+
   /api/1/target/delete/{env}/{site_name}:
     post:
       security: []
       tags:
         - target
-      summary: Delete a Crafter Deployer target.    
+      summary: Delete a Crafter Deployer target.
       operationId: deleteTarget
       parameters:
         - name: env
@@ -158,30 +158,30 @@ paths:
           required: true
           schema:
             type: string
-          example: 
-            env: dev 
+          example:
+            env: dev
         - name: site_name
           in: path
           description: The target’s project/site name (e.g. editorial).
           required: true
           schema:
             type: string
-          example: 
-            site_name: editorial      
+          example:
+            site_name: editorial
       responses:
         '204':
-          description: NO CONTENT          
+          description: NO CONTENT
         '404':
-          $ref: '#/components/responses/NotFound'        
+          $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'              
+          $ref: '#/components/responses/InternalServerError'
 
   /api/1/target/deploy/{env}/{site_name}:
     post:
       security: []
       tags:
         - target
-      summary: Deploy a Crafter Deployer target.    
+      summary: Deploy a Crafter Deployer target.
       operationId: deployTarget
       parameters:
         - name: env
@@ -190,18 +190,18 @@ paths:
           required: true
           schema:
             type: string
-          example: 
-            env: dev 
+          example:
+            env: dev
         - name: site_name
           in: path
           description: The target’s project/site name (e.g. editorial).
           required: true
           schema:
             type: string
-          example: 
+          example:
             site_name: editorial
-      requestBody: 
-        content: 
+      requestBody:
+        content:
           application/json:
             schema:
               type: object
@@ -210,7 +210,7 @@ paths:
                   description: If all files in all the target repos should be reprocessed.
                   type: boolean
                 from_commit_id:
-                  description: The id of the commit to start processing changes<br><br> <i>Available since version 4.0.0</i> 
+                  description: The id of the commit to start processing changes<br><br> <i>Available since version 4.0.0</i>
                   type: string
                 deployment_mode:
                   description: "The deployment mode to execute. Possible values: <br> nbsp;&nbsp;&nbsp;<b>PUBLISH</b>: All processors will run<br> &nbsp;&nbsp;&nbsp;<b>SEARCH_INDEX</b>: Only the indexing processor will run <br><br> <i>Available since version 4.0.0</i>"
@@ -224,22 +224,22 @@ paths:
                 type: object
                 properties:
                   message:
-                    type: string                    
+                    type: string
                     example: OK
         '404':
-          $ref: '#/components/responses/NotFound'        
+          $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'                      
-          
+          $ref: '#/components/responses/InternalServerError'
+
   /api/1/target/deploy-all:
     post:
       security: []
       tags:
         - target
-      summary: Deploy all Crafter Deployer targets.    
+      summary: Deploy all Crafter Deployer targets.
       operationId: deployAllTargets
-      requestBody: 
-        content: 
+      requestBody:
+        content:
           application/json:
             schema:
               type: object
@@ -254,9 +254,9 @@ paths:
         '202':
           $ref: '#/components/responses/Accepted'
         '404':
-          $ref: '#/components/responses/NotFound'        
+          $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'                              
+          $ref: '#/components/responses/InternalServerError'
 
   /api/1/target/unlock/{env}/{site_name}:
     post:
@@ -272,15 +272,15 @@ paths:
           required: true
           schema:
             type: string
-          example: 
-            env: dev 
+          example:
+            env: dev
         - name: site_name
           in: path
           description: The target’s project/site name (e.g. editorial).
           required: true
           schema:
             type: string
-          example: 
+          example:
             site_name: editorial
         - name: token
           in: query
@@ -288,18 +288,18 @@ paths:
           required: true
           schema:
             type: string
-          example: defaultManagementToken    
+          example: defaultManagementToken
       responses:
         '200':
-          description: OK 
+          description: OK
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'                                          
+          $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'        
+          $ref: '#/components/responses/NotFound'
         '500':
-          $ref: '#/components/responses/InternalServerError'                              
+          $ref: '#/components/responses/InternalServerError'
 
   /api/1/target/recreate/{env}/{site_name}:
     post:
@@ -315,15 +315,15 @@ paths:
           required: true
           schema:
             type: string
-          example: 
-            env: dev 
+          example:
+            env: dev
         - name: site_name
           in: path
           description: The target’s project/site name (e.g. editorial).
           required: true
           schema:
             type: string
-          example: 
+          example:
             site_name: editorial
         - name: token
           in: query
@@ -331,16 +331,16 @@ paths:
           required: true
           schema:
             type: string
-          example: defaultManagementToken    
+          example: defaultManagementToken
       responses:
         '202':
-          $ref: '#/components/responses/Accepted'                   
+          $ref: '#/components/responses/Accepted'
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'                     
+          $ref: '#/components/responses/Unauthorized'
         '404':
-          $ref: '#/components/responses/NotFound'        
+          $ref: '#/components/responses/NotFound'
         '500':
           $ref: '#/components/responses/InternalServerError'
 
@@ -391,8 +391,8 @@ paths:
       security: []
       tags:
         - monitoring
-      summary: Get a Crafter Deployer's version details.      
-      operationId: version      
+      summary: Get a Crafter Deployer's version details.
+      operationId: version
       parameters:
         - name: token
           in: query
@@ -400,7 +400,7 @@ paths:
           required: true
           schema:
             type: string
-          example: defaultManagementToken    
+          example: defaultManagementToken
       responses:
         '200':
           description: OK
@@ -408,10 +408,10 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: 
+                properties:
                   VersionInfo:
                     type: object
-                    properties: 
+                    properties:
                       packageName:
                         type: string
                       packageVersion:
@@ -425,14 +425,14 @@ paths:
                       osVersion:
                         type: string
                       osArch:
-                        type: string            
+                        type: string
                       javaVersion:
                         type: string
                       javaVendor:
                         type: string
                       javaVm:
                         type: string
-                    example: 
+                    example:
                       packageName: Crafter Deployer
                       packageVersion: 4.1.0-SNAPSHOT
                       packageBuild: f33f1804c95dd0df4902c9732203841d22022459
@@ -442,21 +442,21 @@ paths:
                       osArch: x86_64
                       javaVersion: 17
                       javaVendor: Oracle Corporation
-                      javaVm: OpenJDK 64-Bit Server VM         
+                      javaVm: OpenJDK 64-Bit Server VM
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'                             
+          $ref: '#/components/responses/Unauthorized'
         '500':
-          $ref: '#/components/responses/InternalServerError'              
-        
+          $ref: '#/components/responses/InternalServerError'
+
   /api/1/monitoring/status:
     get:
       security: []
       tags:
         - monitoring
-      summary: Get a Crafter Deployer's status details.      
-      operationId: status      
+      summary: Get a Crafter Deployer's status details.
+      operationId: status
       parameters:
         - name: token
           in: query
@@ -464,7 +464,7 @@ paths:
           required: true
           schema:
             type: string
-          example: defaultManagementToken    
+          example: defaultManagementToken
       responses:
         '200':
           description: OK
@@ -472,30 +472,30 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: 
+                properties:
                   StatusInfo:
                     type: object
-                    properties: 
+                    properties:
                       uptime:
                         type: string
                       startup:
                         type: string
-                    example: 
+                    example:
                       uptime: 49986
                       startup: 2023-04-17T14:16:29.188Z
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'                             
+          $ref: '#/components/responses/Unauthorized'
         '500':
-          $ref: '#/components/responses/InternalServerError'              
+          $ref: '#/components/responses/InternalServerError'
 
   /api/1/monitoring/memory:
     get:
       security: []
       tags:
         - monitoring
-      summary: Get a Crafter Deployer's memory details.      
+      summary: Get a Crafter Deployer's memory details.
       operationId: memory
       parameters:
         - name: token
@@ -504,7 +504,7 @@ paths:
           required: true
           schema:
             type: string
-          example: defaultManagementToken    
+          example: defaultManagementToken
       responses:
         '200':
           description: OK
@@ -512,25 +512,25 @@ paths:
             application/json:
               schema:
                 type: object
-                properties: 
+                properties:
                   MemoryInfo:
                     type: object
-                    properties: 
+                    properties:
                       totalJvmMemory:
                         type: string
                       freeJvmMemory:
                         type: string
                       maxJvmMemory:
-                        type: string  
+                        type: string
                       totalOsMemory:
-                        type: string  
+                        type: string
                       freeOsMemory:
                         type: string
                       totalSwapMemory:
                         type: string
                       freeSwapMemory:
-                        type: string      
-                    example: 
+                        type: string
+                    example:
                       totalJvmMemory: 154140672
                       freeJvmMemory: 102165520
                       maxJvmMemory: 1073741824
@@ -541,9 +541,9 @@ paths:
         '400':
           $ref: '#/components/responses/BadRequest'
         '401':
-          $ref: '#/components/responses/Unauthorized'                             
+          $ref: '#/components/responses/Unauthorized'
         '500':
-          $ref: '#/components/responses/InternalServerError'              
+          $ref: '#/components/responses/InternalServerError'
 
 
 
@@ -685,7 +685,7 @@ components:
               message:
                 type: string
                 example: Internal Server Error
-               
+
     Accepted:
       description: Accepted
       content:

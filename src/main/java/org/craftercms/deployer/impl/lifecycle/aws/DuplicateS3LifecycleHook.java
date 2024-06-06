@@ -15,40 +15,32 @@
  */
 package org.craftercms.deployer.impl.lifecycle.aws;
 
-import com.amazonaws.services.s3.AmazonS3;
-import com.amazonaws.services.s3.AmazonS3ClientBuilder;
-import com.amazonaws.services.s3.AmazonS3URI;
 import org.apache.commons.configuration2.Configuration;
 import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
-import org.craftercms.commons.git.utils.GitUtils;
+import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.lifecycle.AbstractLifecycleHook;
-import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsS3ClientBuilderConfigurer;
-import org.eclipse.jgit.api.Git;
-import org.eclipse.jgit.lib.Repository;
-import org.eclipse.jgit.treewalk.TreeWalk;
-import org.eclipse.jgit.treewalk.filter.PathSuffixFilter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.scheduling.concurrent.ThreadPoolTaskExecutor;
+import software.amazon.awssdk.services.s3.*;
 
 import java.beans.ConstructorProperties;
 import java.io.File;
 import java.io.IOException;
+import java.net.URI;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 import static java.lang.String.format;
-import static java.util.Collections.emptyList;
 import static org.apache.commons.lang3.StringUtils.appendIfMissing;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
@@ -80,9 +72,9 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
     private final ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
     private boolean ignoreBlobs;
-    private AwsClientBuilderConfigurer<AmazonS3ClientBuilder> builderConfigurer;
-    private AmazonS3URI s3Url;
-    private AmazonS3URI srcS3Url;
+    private AwsS3ClientBuilderConfigurer builderConfigurer;
+    private S3Uri s3Url;
+    private S3Uri srcS3Url;
     private String srcLocalRepoPath;
 
     @ConstructorProperties({"siteName", "sourceSiteName", "processedCommitsStore",
@@ -100,16 +92,19 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
     @Override
     protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
         builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
-        s3Url = new AmazonS3URI(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+        S3Utilities s3Utilities = buildClient(builderConfigurer).utilities();
+        String uri = HttpUtils.encodeUrlMacro(appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+        s3Url = s3Utilities.parseUri(URI.create(uri));
         ignoreBlobs = getBooleanProperty(config, CONFIG_KEY_IGNORE_BLOBS, true);
 
         Configuration srcTargetConfig = config.subset(CONFIG_KEY_SOURCE_CONFIG);
-        srcS3Url = new AmazonS3URI(appendIfMissing(getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_URL), DELIMITER));
+        String srcUri = HttpUtils.encodeUrlMacro(appendIfMissing(getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_URL), DELIMITER));
+        srcS3Url = s3Utilities.parseUri(URI.create(srcUri));
         srcLocalRepoPath = getRequiredStringProperty(srcTargetConfig, CONFIG_KEY_LOCAL_REPO_URL);
     }
 
-    protected AmazonS3 buildClient(AwsClientBuilderConfigurer<AmazonS3ClientBuilder> builderConfigurer) {
-        AmazonS3ClientBuilder builder = AmazonS3ClientBuilder.standard();
+    protected S3AsyncClient buildClient(AwsS3ClientBuilderConfigurer builderConfigurer) {
+        S3AsyncClientBuilder builder = S3AsyncClient.builder();
         builderConfigurer.configureClientBuilder(builder);
         return builder.build();
     }
@@ -144,12 +139,12 @@ public class DuplicateS3LifecycleHook extends AbstractLifecycleHook {
             return;
         }
         List<String> paths = getItemPathList(repoPath);
-        AmazonS3 client = buildClient(builderConfigurer);
+        S3AsyncClient client = buildClient(builderConfigurer);
         try {
-            AwsUtils.copyObjects(client, threadPoolTaskExecutor::getThreadPoolExecutor, getBucket(srcS3Url, sourceSiteName), getS3BaseKey(srcS3Url, sourceSiteName),
+            AwsUtils.copyObjects(client, threadPoolTaskExecutor.getThreadPoolExecutor(), getBucket(srcS3Url, sourceSiteName), getS3BaseKey(srcS3Url, sourceSiteName),
                     getBucket(s3Url, siteName), getS3BaseKey(s3Url, siteName), paths);
-        } catch (InterruptedException e) {
-            throw new DeployerException(format("Interrupted while waiting for S3 content duplication from site '%s' to '%s'", sourceSiteName, siteName), e);
+        } catch (Exception e) {
+            throw new DeployerException(format("Exception while waiting for S3 content duplication from site '%s' to '%s'", sourceSiteName, siteName), e);
         }
         logger.info("Completed S3 content duplicate from '{}' for site '{}' to '{}' for site '{}'", srcS3Url, sourceSiteName, s3Url, siteName);
     }

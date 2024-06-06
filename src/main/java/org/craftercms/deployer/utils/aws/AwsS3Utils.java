@@ -15,8 +15,8 @@
  */
 package org.craftercms.deployer.utils.aws;
 
-import com.amazonaws.services.s3.AmazonS3URI;
 import org.apache.commons.lang3.StringUtils;
+import software.amazon.awssdk.services.s3.S3Uri;
 
 /**
  * Provides utility aws-related functionality.
@@ -31,13 +31,9 @@ public final class AwsS3Utils {
      * @param s3Url    the S3 URL
      * @param siteName the site name
      */
-    public static String getS3BaseKey(AmazonS3URI s3Url, String siteName) {
-        String baseKey = s3Url.getKey();
-        if (StringUtils.isNotEmpty(baseKey)) {
-            return baseKey.replace(MACRO_SITENAME, siteName);
-        } else {
-            return StringUtils.EMPTY;
-        }
+    public static String getS3BaseKey(S3Uri s3Url, String siteName) {
+        String baseKey = s3Url.key().orElse(StringUtils.EMPTY);
+        return baseKey.replace(MACRO_SITENAME, siteName);
     }
 
     /**
@@ -46,8 +42,8 @@ public final class AwsS3Utils {
      * @param s3Url    the S3 URL
      * @param siteName the site name
      */
-    public static String getBucket(AmazonS3URI s3Url, String siteName) {
-        String bucket = s3Url.getBucket();
+    public static String getBucket(S3Uri s3Url, String siteName) {
+        String bucket = s3Url.bucket().orElse(StringUtils.EMPTY);
         return bucket.replace(MACRO_SITENAME, siteName);
     }
 }

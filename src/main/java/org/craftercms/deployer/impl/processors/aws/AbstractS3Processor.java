@@ -19,6 +19,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.craftercms.deployer.utils.aws.AwsS3ClientBuilderConfigurer;
@@ -77,8 +78,8 @@ public abstract class AbstractS3Processor extends AbstractMainDeploymentProcesso
     @Override
     protected void doInit(final Configuration config) throws ConfigurationException {
         builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
-        URI uri = URI.create(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
-        s3Url = buildClient().utilities().parseUri(uri);
+        String uri = HttpUtils.encodeUrlMacro(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+        s3Url = buildClient().utilities().parseUri(URI.create(uri));
         // use true as default for backward compatibility
         failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
     }

@@ -15,6 +15,7 @@ aws:
     alternateCloudFrontDomainNames: {{#if aws.cloudformation.alternateCloudFrontDomainNames}}{{aws.cloudformation.alternateCloudFrontDomainNames}}{{else}}''{{/if}}
     disableCloudformationDelete: false
     disableS3BucketClear: false
+    stackCapabilities: {{#if aws.cloudformation.stackCapabilities}}{{aws.cloudformation.stackCapabilities}}{{else}}''{{/if}}
   {{#if aws.threads}}
   threads:
     {{#if aws.threads.size}}size: {{aws.threads.size}}{{/if}}
@@ -44,6 +45,7 @@ target:
         secretKey: ${aws.cloudformation.secretKey}
         stackName: ${aws.cloudformation.stackName}
         templateFilename: serverless-site-stack.yaml
+        stackCapabilities: ${aws.cloudformation.stackCapabilities}
         templateParams:
           SiteName: ${target.siteName}
           S3BucketName: ${aws.cloudformation.s3BucketName}

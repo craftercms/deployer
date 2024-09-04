@@ -24,6 +24,7 @@ import software.amazon.awssdk.services.s3.S3Uri;
 public final class AwsS3Utils {
 
     static final String MACRO_SITENAME = "{siteName}";
+    public static final int MAX_DELETE_KEYS_PER_REQUEST = 1000;
 
     /**
      * Returns the base key from the S3 URL, making sure to replace the {@code {siteName}} macro instances

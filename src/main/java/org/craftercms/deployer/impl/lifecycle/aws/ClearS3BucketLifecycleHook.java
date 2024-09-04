@@ -171,7 +171,7 @@ public class ClearS3BucketLifecycleHook extends AbstractLifecycleHook {
                             .bucket(bucketName)
                             .delete(Delete.builder().objects(subList).build())
                             .build());
-                    logger.debug("Deleted files: {}", result.deleted());
+                    logger.debug("Deleted object versions and delete markers: {}", result.deleted());
                 }
             } else {
                 logger.info("No object versions to delete");

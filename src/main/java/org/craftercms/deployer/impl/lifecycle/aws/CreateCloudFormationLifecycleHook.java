@@ -26,17 +26,20 @@ import org.craftercms.deployer.utils.aws.AwsClientBuilderConfigurer;
 import org.craftercms.deployer.utils.aws.AwsCloudFormationUtils;
 import org.springframework.core.io.Resource;
 import software.amazon.awssdk.services.cloudformation.CloudFormationClient;
+import software.amazon.awssdk.services.cloudformation.model.Capability;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackRequest;
 import software.amazon.awssdk.services.cloudformation.model.CreateStackResponse;
 import software.amazon.awssdk.services.cloudformation.model.Parameter;
 
 import java.io.FileNotFoundException;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Iterator;
+import java.util.*;
+import java.util.stream.Collectors;
 
+import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
  * Implementation of {@link TargetLifecycleHook} that creates a CloudFormation stack based on a provided
@@ -49,6 +52,7 @@ public class CreateCloudFormationLifecycleHook extends AbstractLifecycleHook {
     protected static final String CONFIG_KEY_STACK_NAME = "stackName";
     protected static final String CONFIG_KEY_TEMPLATE_FILENAME = "templateFilename";
     protected static final String CONFIG_KEY_TEMPLATE_PARAMS = "templateParams";
+    protected static final String CONFIG_KEY_STACK_CAPABILITIES = "stackCapabilities";
 
     protected Resource templatesResource;
     protected Resource templatesOverrideResource;
@@ -59,9 +63,11 @@ public class CreateCloudFormationLifecycleHook extends AbstractLifecycleHook {
     protected String stackName;
     protected String templateFilename;
     protected Collection<Parameter> templateParams;
+    protected List<Capability> stackCapabilities;
 
     public CreateCloudFormationLifecycleHook() {
         this.templateParams = new ArrayList<>();
+        this.stackCapabilities = new ArrayList<>();
     }
 
     public void setTemplatesResource(Resource templatesResource) {
@@ -92,6 +98,26 @@ public class CreateCloudFormationLifecycleHook extends AbstractLifecycleHook {
                         .build());
             }
         }
+
+        this.stackCapabilities = loadCapabilities(config);
+    }
+
+    /**
+     * Load capabilities from configuration
+     * @param config the configuration object
+     * @return list of {@link Capability}
+     * @throws ConfigurationException
+     */
+    private List<Capability> loadCapabilities(Configuration config) throws ConfigurationException {
+        String property = getStringProperty(config, CONFIG_KEY_STACK_CAPABILITIES, "");
+        if (isEmpty(property)) {
+            return new ArrayList<>();
+        }
+
+        return Arrays.stream(property.split(","))
+                .map(String::trim)
+                .map(Capability::fromValue)
+                .collect(Collectors.toList());
     }
 
     @Override
@@ -109,11 +135,16 @@ public class CreateCloudFormationLifecycleHook extends AbstractLifecycleHook {
 
     protected void createCloudFormationStack(CloudFormationClient cloudFormation) throws DeployerException {
         try {
-            CreateStackRequest request = CreateStackRequest.builder()
+            CreateStackRequest.Builder builder = CreateStackRequest.builder()
                     .stackName(stackName)
                     .templateBody(getTemplateBody())
-                    .parameters(templateParams)
-                    .build();
+                    .parameters(templateParams);
+
+            if (isNotEmpty(stackCapabilities)) {
+                builder.capabilities(stackCapabilities);
+            }
+
+            CreateStackRequest request = builder.build();
 
             CreateStackResponse result = cloudFormation.createStack(request);
 

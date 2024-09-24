@@ -157,3 +157,6 @@ deployer:
           # The location of the blacklist to use for all targets
           # (this will have no effect if the sandbox is disabled)
           path: 'classpath:groovy/blacklist'
+        whitelist:
+          # List of patterns for that is allowed to call as `staticMethod java.lang.System getenv java.lang.String` parameter (regexes separated by commas)
+          getenvRegex: crafter_.*

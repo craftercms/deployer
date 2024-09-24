@@ -19,7 +19,6 @@ package org.craftercms.deployer.impl.processors.aws;
 import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
@@ -32,12 +31,9 @@ import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
 import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
-import software.amazon.awssdk.transfer.s3.model.CompletedUpload;
-import software.amazon.awssdk.transfer.s3.model.FileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 import java.beans.ConstructorProperties;
-import java.io.File;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -45,7 +41,6 @@ import java.util.stream.Collectors;
 
 import static java.lang.String.format;
 import static org.apache.commons.lang3.StringUtils.endsWith;
-import static org.apache.lucene.util.IOUtils.deleteFiles;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 
 /**
@@ -57,7 +52,6 @@ import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 public class S3SyncProcessor extends AbstractS3Processor {
 
     public static final String CONFIG_KEY_IGNORE_BLOBS = "ignoreBlobs";
-    private static final int MAX_DELETE_KEYS_PER_REQUEST = 1000;
 
     /**
      * URL for the local git repository
@@ -167,7 +161,7 @@ public class S3SyncProcessor extends AbstractS3Processor {
                 files.stream().map(this::getS3Key).collect(Collectors.toList());
 
             try {
-                for (List<String> subList : ListUtils.partition(keys, MAX_DELETE_KEYS_PER_REQUEST)) {
+                for (List<String> subList : ListUtils.partition(keys, AwsS3Utils.MAX_DELETE_KEYS_PER_REQUEST)) {
                     List<ObjectIdentifier> identifiers = subList.stream().map(s ->
                             ObjectIdentifier.builder()
                                     .key(s)

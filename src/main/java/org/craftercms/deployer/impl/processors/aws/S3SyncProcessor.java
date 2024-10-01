@@ -30,10 +30,11 @@ import software.amazon.awssdk.services.s3.S3AsyncClient;
 import software.amazon.awssdk.services.s3.S3Client;
 import software.amazon.awssdk.services.s3.model.*;
 import software.amazon.awssdk.transfer.s3.S3TransferManager;
-import software.amazon.awssdk.transfer.s3.model.CompletedFileUpload;
 import software.amazon.awssdk.transfer.s3.model.UploadFileRequest;
 
 import java.beans.ConstructorProperties;
+import java.io.FileNotFoundException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -129,21 +130,34 @@ public class S3SyncProcessor extends AbstractS3Processor {
         S3TransferManager transferManager = buildTransferManager(client);
 
         try {
-            List<CompletableFuture<CompletedFileUpload>> futures = paths.stream().map(path -> {
-                UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
-                        .putObjectRequest(p -> p.bucket(getBucket()).key(getS3Key(path)))
-                        .source(Paths.get(localRepoUrl, path))
-                        .build();
-                return transferManager.uploadFile(uploadFileRequest).completionFuture();
-            }).collect(Collectors.toList());
+            List<CompletableFuture<Void>> futures = paths.stream().map(item -> {
+                Path path = Paths.get(localRepoUrl, item);
+                if (path.toFile().exists()) {
+                    UploadFileRequest uploadFileRequest = UploadFileRequest.builder()
+                            .putObjectRequest(p -> p.bucket(getBucket()).key(getS3Key(item)))
+                            .source(path)
+                            .build();
+                    return CompletableFuture
+                            .runAsync(() -> transferManager.uploadFile(uploadFileRequest).completionFuture().join())
+                            .thenRun(() -> logger.debug("Uploaded file: {}", item))
+                            .exceptionally(e -> {
+                                logger.error("Error uploading file: {}", item, e);
+                                return null;
+                            });
+                }
+                if (Paths.get(localRepoUrl, item + blobExtension).toFile().exists()) {
+                    logger.debug("Blob-backed file found, no file to upload: {}", item);
+                    return CompletableFuture.<Void>completedFuture(null);
+                }
+
+                return CompletableFuture.<Void>failedFuture(new FileNotFoundException(format("File '%s' not found", item)));
+            }).toList();
 
             CompletableFuture.allOf(futures.toArray(new CompletableFuture[0])).join();
 
             logger.debug("Uploads completed");
         } catch (Exception e) {
             throw new DeployerException(format("Error uploading files '%s'", paths), e);
-        } finally {
-            transferManager.close();
         }
     }
 

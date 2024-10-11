@@ -61,17 +61,23 @@ public class OpenSearchAdminServiceFactory extends AbstractOpenSearchFactory<Ope
 
     @Override
     protected OpenSearchAdminService doCreateSingleInstance(final RestHighLevelClient client) {
-        return new OpenSearchAdminServiceImpl(
+        OpenSearchAdminServiceImpl openSearchAdminService = new OpenSearchAdminServiceImpl(
                 authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(),
                 config.indexSettings, config.ignoredSettings, client);
+        openSearchAdminService.setReindexSlices(config.reindexSlices);
+        openSearchAdminService.setReindexTimeoutSeconds(config.reindexTimeoutSeconds);
+        return openSearchAdminService;
     }
 
     @Override
     protected OpenSearchAdminService doCreateMultiInstance(final RestHighLevelClient readClient,
                                                            final RestHighLevelClient[] writeClients) {
-        return new MultiOpenSearchAdminServiceImpl(
+        MultiOpenSearchAdminServiceImpl openSearchAdminService = new MultiOpenSearchAdminServiceImpl(
                 authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(), readClient,
                 config.indexSettings, config.ignoredSettings, writeClients);
+        openSearchAdminService.setReindexSlices(config.reindexSlices);
+        openSearchAdminService.setReindexTimeoutSeconds(config.reindexTimeoutSeconds);
+        return openSearchAdminService;
     }
 
 }

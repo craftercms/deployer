@@ -68,6 +68,12 @@ target:
         - "index.number_of_shards"
         - "index.replication.type"
         - "index.version.upgraded"
+      client:
+        # Number of slices to divide the reindex task. 0 means 'auto',
+        # so OpenSearch will automatically determine the number of slices to use
+        reindexSlices: 0
+        # Max time in seconds to wait for a reindex task to finish
+        reindexTimeoutSeconds: 300
     indexing:
       xml:
         flattening:

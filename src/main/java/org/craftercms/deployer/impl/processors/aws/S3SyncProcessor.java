@@ -138,7 +138,7 @@ public class S3SyncProcessor extends AbstractS3Processor {
                             .source(path)
                             .build();
                     return CompletableFuture
-                            .runAsync(() -> transferManager.uploadFile(uploadFileRequest).completionFuture().join())
+                            .runAsync(() -> transferManager.uploadFile(uploadFileRequest).completionFuture().join(), threadPoolTaskExecutor)
                             .thenRun(() -> logger.debug("Uploaded file: {}", item))
                             .exceptionally(e -> {
                                 logger.error("Error uploading file: {}", item, e);

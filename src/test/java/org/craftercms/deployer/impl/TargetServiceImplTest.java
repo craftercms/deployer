@@ -54,6 +54,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.concurrent.ExecutorService;
 
+import static java.util.Collections.emptyList;
 import static java.util.Collections.emptyMap;
 import static org.craftercms.deployer.impl.DeploymentConstants.CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY;
 import static org.junit.Assert.*;
@@ -257,19 +258,24 @@ public class TargetServiceImplTest {
         Map<String, Object> params = Collections.singletonMap(RANDOM_PARAM_VARIABLE, randomParam);
 
         TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
-        Target target = targetServiceSpy.createTarget(env, siteName, true, "test", params);
+        TargetImpl mockTarget = mock(TargetImpl.class);
+        doAnswer(invocationOnMock -> {
+            TargetImpl target = (TargetImpl) invocationOnMock.callRealMethod();
+            return spy(target);
+        }).when(targetServiceSpy).buildTarget(any(), any());
+        TargetImpl target = (TargetImpl) targetServiceSpy.createTarget(env, siteName, true, "test", params);
 
         assertNotNull(target);
         assertEquals(env, target.getConfiguration().getString(DeploymentConstants.TARGET_ENV_CONFIG_KEY));
         assertEquals(siteName, target.getConfiguration().getString(DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY));
         assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
-        verify(createHooks.get(0)).execute(target);
+        verify(target).executeCreateHooks();
 
-        InOrder inOrder = inOrder(targetServiceSpy);
+        InOrder inOrder = inOrder(targetServiceSpy, target);
         ArgumentMatcher<Target> matchesTarget = t -> matches(t, siteName, env);
-        inOrder.verify(targetServiceSpy).executeCreateHooks(argThat(matchesTarget));
+        inOrder.verify(target).executeCreateHooks();
         inOrder.verify(targetServiceSpy).startInit(argThat(matchesTarget));
-        verify(targetServiceSpy, never()).executeDuplicateHooks(argThat(matchesTarget));
+        verify(target, never()).executeDuplicateHooks();
     }
 
     @Test
@@ -306,22 +312,23 @@ public class TargetServiceImplTest {
     public void testDuplicateTarget() throws Exception {
         ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
 
-        Target mockSourceTarget = mock(Target.class);
+        TargetImpl mockSourceTarget = mock(TargetImpl.class);
         when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
         when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
 
-        Target mockNewTarget = mock(Target.class);
+        TargetImpl mockNewTarget = mock(TargetImpl.class);
         when(mockNewTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, NEW_SITE_NAME));
 
         TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+        doReturn(mockNewTarget).when(targetServiceSpy).buildTarget(any(), any());
         doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
         when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
 
         targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
 
-        verify(targetServiceSpy).executeDuplicateHooks(any());
+        verify(mockNewTarget).executeDuplicateHooks();
     }
 
     @Test
@@ -334,17 +341,51 @@ public class TargetServiceImplTest {
         when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
 
         TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+        TargetImpl mockNewTarget = mock(TargetImpl.class);
+        doReturn(NEW_SITE_NAME).when(mockNewTarget).getSiteName();
+        doReturn(ENVIRONMENT).when(mockNewTarget).getEnv();
         doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+        doReturn(mockNewTarget).when(targetServiceSpy).buildTarget(any(), any());
 
         when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
 
         targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
 
-        InOrder inOrder = inOrder(targetServiceSpy);
+        InOrder inOrder = inOrder(targetServiceSpy, mockNewTarget);
 
-        inOrder.verify(targetServiceSpy).executeDuplicateHooks(argThat(matchesNewTarget));
+        inOrder.verify(mockNewTarget).executeDuplicateHooks();
         inOrder.verify(targetServiceSpy).startInit(argThat(matchesNewTarget));
-        verify(targetServiceSpy, never()).executeCreateHooks(argThat(matchesNewTarget));
+        verify(mockNewTarget, never()).executeCreateHooks();
+    }
+
+    @Test
+    public void testDuplicateHooksOnDuplicateTarget() throws Exception {
+        ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
+
+        Target mockSourceTarget = mock(Target.class);
+        when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+
+        when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
+
+        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+        TargetImpl mockNewTarget = mock(TargetImpl.class);
+        doReturn(emptyList()).when(mockNewTarget).getDuplicateHooks();
+        doCallRealMethod().when(mockNewTarget).executeDuplicateHooks();
+        doReturn(NEW_SITE_NAME).when(mockNewTarget).getSiteName();
+        doReturn(ENVIRONMENT).when(mockNewTarget).getEnv();
+        doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+        doReturn(mockNewTarget).when(targetServiceSpy).buildTarget(any(), any());
+
+        when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
+
+        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
+
+        InOrder inOrder = inOrder(targetServiceSpy, mockNewTarget);
+
+        inOrder.verify(mockNewTarget).executeDuplicateHooks();
+        inOrder.verify(mockNewTarget).getDuplicateHooks();
+        inOrder.verify(targetServiceSpy).startInit(argThat(matchesNewTarget));
+        verify(mockNewTarget, never()).executeCreateHooks();
     }
 
     @Test

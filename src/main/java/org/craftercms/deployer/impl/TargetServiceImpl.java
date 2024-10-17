@@ -39,7 +39,6 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
-import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
 import org.craftercms.deployer.utils.handlebars.MissingValueHelper;
 import org.craftercms.search.opensearch.OpenSearchAdminService;
 import org.slf4j.Logger;
@@ -402,8 +401,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             target = buildTarget(configFile, contextFile);
 
             switch (loadMode) {
-                case CREATE -> executeCreateHooks(target);
-                case DUPLICATE -> executeDuplicateHooks(target);
+                case CREATE -> target.executeCreateHooks();
+                case DUPLICATE -> target.executeDuplicateHooks();
             }
 
             startInit(target);
@@ -565,28 +564,6 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
                 .filter(target -> target.getId().equals(id))
                 .findFirst()
                 .orElse(null);
-    }
-
-    protected void executeDuplicateHooks(Target target) throws Exception {
-        List<TargetLifecycleHook> duplicateHooks = targetLifecycleHooksResolver.getHooks(
-                target.getConfiguration(), target.getApplicationContext(), DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
-
-        logger.info("Executing duplicate hooks for target '{}'", target.getId());
-        for (TargetLifecycleHook hook : duplicateHooks) {
-            hook.execute(target);
-        }
-        logger.info("Duplicate hooks executed for target '{}'", target.getId());
-    }
-
-    protected void executeCreateHooks(Target target) throws Exception {
-        List<TargetLifecycleHook> createHooks = targetLifecycleHooksResolver.getHooks(
-                target.getConfiguration(), target.getApplicationContext(), CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
-
-        logger.info("Executing create hooks for target '{}'", target.getId());
-
-        for (TargetLifecycleHook hook : createHooks) {
-            hook.execute(target);
-        }
     }
 
     protected void startInit(Target target) {

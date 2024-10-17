@@ -19,8 +19,8 @@ import org.apache.commons.collections4.CollectionUtils;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.apache.commons.lang3.StringUtils;
-import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.git.utils.GitUtils;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.Target;
@@ -170,9 +170,7 @@ public class TargetImpl implements Target {
         try {
             logger.info("Executing init hooks for target '{}'", getId());
 
-            for (TargetLifecycleHook hook : getInitHooks()) {
-                hook.execute(TargetImpl.this);
-            }
+            executeHooks(getInitHooks());
 
             logger.info("Creating deployment pipeline for target '{}'", getId());
 
@@ -191,6 +189,24 @@ public class TargetImpl implements Target {
         }
 
         MDC.remove(TARGET_ID_MDC_KEY);
+    }
+
+    void executeCreateHooks() throws ConfigurationException, DeployerException {
+        logger.info("Executing create hooks for target '{}'", getId());
+        executeHooks(getCreateHooks());
+        logger.info("Create hooks executed for target '{}'", getId());
+    }
+
+    void executeDuplicateHooks() throws Exception {
+        logger.info("Executing duplicate hooks for target '{}'", getId());
+        executeHooks(getDuplicateHooks());
+        logger.info("Duplicate hooks executed for target '{}'", getId());
+    }
+
+    private void executeHooks(final Collection<TargetLifecycleHook> hooks) throws DeployerException {
+        for (TargetLifecycleHook hook : hooks) {
+            hook.execute(this);
+        }
     }
 
     @Override
@@ -303,9 +319,7 @@ public class TargetImpl implements Target {
 
             logger.info("Executing delete hooks for target '{}'", getId());
 
-            for (TargetLifecycleHook hook : getDeleteHooks()) {
-                hook.execute(this);
-            }
+            executeHooks(getDeleteHooks());
 
             logger.info("Releasing resources for target '{}'", getId());
 
@@ -344,14 +358,24 @@ public class TargetImpl implements Target {
         MDC.remove(TARGET_ID_MDC_KEY);
     }
 
-    protected List<TargetLifecycleHook> getInitHooks() throws DeployerException, ConfigurationException {
-        return targetLifecycleHooksResolver.getHooks(configuration, applicationContext,
-                                                     INIT_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+    protected Collection<TargetLifecycleHook> getCreateHooks() throws ConfigurationException, DeployerException {
+        return getHooksFromConfig(CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
     }
 
-    protected List<TargetLifecycleHook> getDeleteHooks() throws DeployerException, ConfigurationException {
-        return targetLifecycleHooksResolver.getHooks(configuration, applicationContext,
-                                                     DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+    protected Collection<TargetLifecycleHook> getDuplicateHooks() throws ConfigurationException, DeployerException {
+        return getHooksFromConfig(DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+    }
+
+    protected Collection<TargetLifecycleHook> getInitHooks() throws DeployerException, ConfigurationException {
+        return getHooksFromConfig(INIT_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+    }
+
+    protected Collection<TargetLifecycleHook> getDeleteHooks() throws DeployerException, ConfigurationException {
+        return getHooksFromConfig(DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+    }
+
+    private Collection<TargetLifecycleHook> getHooksFromConfig(final String configKey) throws ConfigurationException, DeployerException {
+        return targetLifecycleHooksResolver.getHooks(configuration, applicationContext, configKey);
     }
 
     protected void scheduleDeployments() throws ConfigurationException {

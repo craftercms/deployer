@@ -33,7 +33,7 @@
 	<parent>
 		<groupId>org.craftercms</groupId>
 		<artifactId>craftercms-spring-boot</artifactId>
-		<version>4.2.0-SNAPSHOT</version><!-- craftercms version flag -->
+		<version>4.2.1-SNAPSHOT</version><!-- craftercms version flag -->
 		<relativePath/> <!-- lookup parent from repository -->
 	</parent>
 
@@ -121,8 +121,8 @@
 
 		<!-- Mail -->
 		<dependency>
-			<groupId>com.sun.mail</groupId>
-			<artifactId>jakarta.mail</artifactId>
+			<groupId>org.eclipse.angus</groupId>
+			<artifactId>angus-mail</artifactId>
 		</dependency>
 
 		<!-- Handlebars -->

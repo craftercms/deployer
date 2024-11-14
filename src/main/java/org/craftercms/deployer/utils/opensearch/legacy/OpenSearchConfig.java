@@ -45,6 +45,8 @@ public class OpenSearchConfig {
 
     public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.openSearch.indexSettings";
     public static final String CONFIG_KEY_IGNORED_INDEX_SETTINGS = "target.search.openSearch.ignoredSettings";
+    public static final String CONFIG_KEY_REINDEX_SLICES = "target.search.openSearch.client.reindexSlices";
+    public static final String CONFIG_KEY_REINDEX_TIMEOUT_SECONDS = "target.search.openSearch.client.reindexTimeoutSeconds";
 
     public static final String CONFIG_KEY_KEY = "key";
 
@@ -72,6 +74,8 @@ public class OpenSearchConfig {
 
     public final Map<String, String> indexSettings;
     public final Set<String> ignoredSettings;
+    public final int reindexSlices;
+    public final int reindexTimeoutSeconds;
 
     @ConstructorProperties({"config"})
     public OpenSearchConfig(HierarchicalConfiguration<?> config) {
@@ -104,6 +108,9 @@ public class OpenSearchConfig {
         config.configurationsAt(CONFIG_KEY_INDEX_SETTINGS).forEach(settingConfig ->
                 indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
         ignoredSettings = new HashSet<>(Arrays.asList(config.getStringArray(CONFIG_KEY_IGNORED_INDEX_SETTINGS)));
+
+        reindexSlices = config.getInt(CONFIG_KEY_REINDEX_SLICES);
+        reindexTimeoutSeconds = config.getInt(CONFIG_KEY_REINDEX_TIMEOUT_SECONDS);
     }
 
     /**

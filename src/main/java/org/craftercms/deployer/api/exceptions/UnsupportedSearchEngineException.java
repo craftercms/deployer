@@ -27,7 +27,7 @@ public class UnsupportedSearchEngineException extends DeployerException {
 
     public static final UnsupportedSearchEngineException CRAFTER_SEARCH =
             new UnsupportedSearchEngineException("CrafterSearch", "Elasticsearch",
-            "https://docs.craftercms.org/en/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html");
+            "https://craftercms.com/docs/4.0/developers/cook-books/how-tos/migrate-site-to-elasticsearch.html");
 
     protected UnsupportedSearchEngineException(String unsupportedSearchEngine, String newSearchEngine, String docUrl) {
         super(format("Unsupported search engine %s, please update your site to use %s. For more information see %s",

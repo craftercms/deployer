@@ -15,6 +15,9 @@ target:
     {{/if}}
     pipeline:
       - processorName: gitPullProcessor
+        fastForwardMode: {{#if fast_forward_mode}}{{fast_forward_mode}}{{else}}FF{{/if}}
+        contentMergeOption: {{#if content_merge_option}}{{content_merge_option}}{{else}}CONFLICT{{/if}}
+        mergeStrategy: {{#if merge_strategy}}{{merge_strategy}}{{else}}theirs{{/if}}
         remoteRepo:
           url: {{repo_url}}
           branch: {{#if repo_branch}}{{repo_branch}}{{else}}live{{/if}}

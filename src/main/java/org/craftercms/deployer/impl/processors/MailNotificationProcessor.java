@@ -34,6 +34,8 @@ import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.format.DateTimeFormatter;
 import java.util.*;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 import static org.craftercms.commons.config.ConfigUtils.*;
 
@@ -93,6 +95,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     public static final String END_MODEL_KEY = "end";
     public static final String STATUS_MODEL_KEY = "status";
     public static final String OUTPUT_ATTACHED_MODEL_KEY = "outputAttached";
+    public static final String PROCESSOR_MATCH_PATTERNS_CONFIG_KEY = "failedProcessors";
 
     protected String defaultTemplateName;
     protected String defaultFrom;
@@ -112,6 +115,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     protected boolean html;
     protected String serverName;
     protected StatusCondition statusCondition;
+    protected Pattern failedProcessorsPattern;
     protected DateTimeFormatter dateTimeFormatter;
 
     /**
@@ -179,6 +183,11 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
         serverName = getStringProperty(config, SERVER_NAME_CONFIG_KEY);
         statusCondition = StatusCondition.valueOf(getStringProperty(config, STATUS_CONDITION_KEY, defaultStatusCondition));
 
+        String processorsMatchRegex = getStringProperty(config, PROCESSOR_MATCH_PATTERNS_CONFIG_KEY);
+        if (processorsMatchRegex != null) {
+            failedProcessorsPattern = Pattern.compile(processorsMatchRegex);
+        }
+
         if (StringUtils.isEmpty(serverName)) {
             try {
                 serverName = InetAddress.getLocalHost().getHostName();
@@ -205,6 +214,10 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
                 logger.info("Skipping notification because status '{}' does not match the condition '{}'",
                             status, statusCondition);
                 return null;
+        }
+        if (!matchFailedProcessors(deployment)) {
+            logger.info("Skipping notification because failed processors do not match the configured patterns");
+            return null;
         }
 
         Map<String, Object> templateModel = new HashMap<>();
@@ -250,6 +263,18 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
         }
 
         return null;
+    }
+
+    /**
+     * Indicates if any failed deployment processor matches the configured patterns.
+     */
+    private boolean matchFailedProcessors(final Deployment deployment) {
+        return failedProcessorsPattern == null ||
+                deployment.getProcessorExecutions().stream()
+                        .filter(ex -> ex.getStatus() == Deployment.Status.FAILURE)
+                        .map(ProcessorExecution::getProcessorName)
+                        .map(failedProcessorsPattern::matcher)
+                        .anyMatch(Matcher::matches);
     }
 
     protected boolean hasExecutionsFailures(Deployment deployment) {

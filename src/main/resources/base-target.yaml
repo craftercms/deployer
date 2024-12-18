@@ -247,6 +247,10 @@ target:
       html: true
       # For which status should the notifications be sent
       status: ON_ANY_STATUS
+      # The directory to keep the last notification datetime files
+      lastDateDir: ${deployer.main.targets.config.folderPath}
+      # The file to keep track of the last notification email datetime
+      defaultLastDateFilenameSuffix: -lastNotification
   config:
     profiles:
       aws:

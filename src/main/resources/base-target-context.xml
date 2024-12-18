@@ -182,6 +182,8 @@
         <property name="defaultHtml" value="${target.notifications.mail.html}"/>
         <property name="defaultStatusCondition" value="${target.notifications.mail.status}"/>
         <property name="defaultDateTimePattern" value="${target.defaultDateTimePattern}"/>
+        <property name="lastNotificationDateDir" value="${target.notifications.mail.lastDateDir}"/>
+        <property name="defaultLastDateFilenameSuffix" value="${target.notifications.mail.defaultLastDateFilenameSuffix}"/>
     </bean>
 
     <!-- Configuration Profiles -->

@@ -17,6 +17,7 @@ package org.craftercms.deployer.impl.processors;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.mail.Email;
@@ -96,6 +97,8 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     public static final String STATUS_MODEL_KEY = "status";
     public static final String OUTPUT_ATTACHED_MODEL_KEY = "outputAttached";
     public static final String PROCESSOR_MATCH_PATTERNS_CONFIG_KEY = "failedProcessors";
+    public static final String MUTE_PERIOD_MINUTES_CONFIG_KEY = "mutePeriodMinutes";
+    public static final String LAST_DATETIME_FILE_SUFFIX_CONFIG_KEY = "lastDateFilenameSuffix";
 
     protected String defaultTemplateName;
     protected String defaultFrom;
@@ -103,6 +106,8 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     protected boolean defaultHtml;
     protected String defaultStatusCondition;
     protected String defaultDateTimePattern;
+    protected String defaultLastDateFilenameSuffix;
+    protected String lastNotificationDateDir;
     protected EmailFactory emailFactory;
     protected ObjectMapper objectMapper;
 
@@ -116,6 +121,8 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     protected String serverName;
     protected StatusCondition statusCondition;
     protected Pattern failedProcessorsPattern;
+    protected int mutePeriodMinutes;
+    private String lastDateFilenameSuffix;
     protected DateTimeFormatter dateTimeFormatter;
 
     /**
@@ -160,6 +167,21 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
     }
 
     /**
+     * Set the suffix default filename to store the last time an email was sent.
+     * This will be appended to the target and processor ids
+     */
+    public void setDefaultLastDateFilenameSuffix(String defaultLastDateFilenameSuffix) {
+        this.defaultLastDateFilenameSuffix = defaultLastDateFilenameSuffix;
+    }
+
+    /**
+     * Set the directory where the last notification date will be stored.
+     */
+    public void setLastNotificationDateDir(String lastNotificationDateDir) {
+        this.lastNotificationDateDir = lastNotificationDateDir;
+    }
+
+    /**
      * Sets the {@link EmailFactory} used to generate the emails.
      */
     public void setEmailFactory(EmailFactory emailFactory) {
@@ -187,6 +209,9 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
         if (processorsMatchRegex != null) {
             failedProcessorsPattern = Pattern.compile(processorsMatchRegex);
         }
+        mutePeriodMinutes = getIntegerProperty(config, MUTE_PERIOD_MINUTES_CONFIG_KEY, 0);
+
+        lastDateFilenameSuffix = getStringProperty(config, LAST_DATETIME_FILE_SUFFIX_CONFIG_KEY, defaultLastDateFilenameSuffix);
 
         if (StringUtils.isEmpty(serverName)) {
             try {
@@ -217,6 +242,11 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
         }
         if (!matchFailedProcessors(deployment)) {
             logger.info("Skipping notification because failed processors do not match the configured patterns");
+            return null;
+        }
+
+        if (!shouldSendNotification()) {
+            logger.info("Skipping notification because the mute period has not expired");
             return null;
         }
 
@@ -253,6 +283,7 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
 
             email.send();
 
+            storeNotificationDate();
             logger.info("Deployment notification successfully sent to {}", Arrays.toString(to));
         } catch (Exception e) {
             throw new DeployerException("Error while sending email with deployment report", e);
@@ -263,6 +294,50 @@ public class MailNotificationProcessor extends AbstractPostDeploymentProcessor {
         }
 
         return null;
+    }
+
+    private File getLastDateFile() {
+        String filename = "%s-%s%s".formatted(targetId, name, lastDateFilenameSuffix);
+        return new File(lastNotificationDateDir, filename);
+    }
+
+    private void storeNotificationDate() {
+        if (mutePeriodMinutes <= 0) {
+            // No need to store the timestamp if there is no mute period
+            return;
+        }
+        try {
+            FileUtils.write(getLastDateFile(), String.valueOf(System.currentTimeMillis()), "UTF-8", false);
+        } catch (IOException e) {
+            logger.warn("Could not store last notification date", e);
+        }
+    }
+
+    private boolean shouldSendNotification() {
+        File lastDateFile = getLastDateFile();
+        if (mutePeriodMinutes <= 0) {
+            logger.info("Mute period is 0 or negative, sending notification");
+            return true;
+        }
+        if (!lastDateFile.exists()) {
+            logger.info("No last notification date file found, sending notification");
+            return true;
+        }
+        try {
+            String lastDate = FileUtils.readFileToString(lastDateFile, "UTF-8").trim();
+            long lastEmailMillis = Long.parseLong(lastDate);
+            long mutePeriodMillis = mutePeriodMinutes * 60 * 1000L;
+            if (System.currentTimeMillis() - lastEmailMillis < mutePeriodMillis) {
+                logger.info("Mute period has not expired, skipping notification");
+                return false;
+            }
+        } catch (NumberFormatException e) {
+            logger.error("Could not parse last notification date from file '{}'", lastDateFile, e);
+        } catch (IOException e) {
+            logger.error("Could not read last notification date from file '{}'", lastDateFile, e);
+        }
+
+        return true;
     }
 
     /**

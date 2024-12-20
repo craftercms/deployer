@@ -62,4 +62,18 @@ target:
           {{#list notification_addresses}}
           - {{this}}
           {{/list}}
+      - processorName: mailNotificationProcessor
+        status: ON_ANY_FAILURE
+        mutePeriodMinutes: {{#if mute_period_minutes}}{{mute_period_minutes}}{{else}}60{{/if}}
+        to:
+          {{#list notification_addresses}}
+          - {{this}}
+          {{/list}}
+      {{/if}}
+      {{#if webhook_url}}
+      - processorName: webhookNotificationProcessor
+        status: ON_ANY_FAILURE
+        mutePeriodMinutes: {{#if mute_period_minutes}}{{mute_period_minutes}}{{else}}60{{/if}}
+        url: {{webhook_url}}
+        method: POST
       {{/if}}

@@ -174,24 +174,36 @@
 
     <bean id="baseNotificationProcessor" abstract="true" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.notification.NotificationProcessor">
-        <property name="defaultTemplateName" value="${target.notifications.mail.templates.default}"/>
-        <property name="defaultStatusCondition" value="${target.notifications.mail.status}"/>
+        <property name="defaultStatusCondition" value="${target.notifications.status}"/>
         <property name="defaultDateTimePattern" value="${target.defaultDateTimePattern}"/>
-        <property name="lastNotificationDateDir" value="${target.notifications.mail.lastDateDir}"/>
+        <property name="lastNotificationDateDir" value="${target.notifications.lastDateDir}"/>
         <property name="defaultLastDateFilenameSuffix"
-                  value="${target.notifications.mail.defaultLastDateFilenameSuffix}"/>
-        <property name="freeMarkerConfig" ref="mailFreemarkerConfig"/>
-        <property name="templateSuffix" value="${target.notifications.mail.templates.suffix}"/>
-        <property name="templateEncoding" value="${target.notifications.mail.encoding}"/>
+                  value="${target.notifications.defaultLastDateFilenameSuffix}"/>
     </bean>
 
     <bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.notification.MailNotificationProcessor"
           parent="baseNotificationProcessor">
+        <property name="defaultTemplateName" value="${target.notifications.mail.templates.default}"/>
+        <property name="freeMarkerConfig" ref="mailFreemarkerConfig"/>
+        <property name="templateEncoding" value="${target.notifications.mail.encoding}"/>
+        <property name="templateSuffix" value="${target.notifications.mail.templates.suffix}"/>
         <property name="emailFactory" ref="emailFactory"/>
         <property name="objectMapper" ref="objectMapper"/>
         <property name="defaultFrom" value="${target.notifications.mail.from}"/>
         <property name="defaultSubject" value="${target.notifications.mail.subject}"/>
         <property name="defaultHtml" value="${target.notifications.mail.html}"/>
+    </bean>
+
+    <bean id="webhookNotificationProcessor"
+          class="org.craftercms.deployer.impl.processors.notification.WebhookNotificationProcessor"
+          parent="baseNotificationProcessor">
+        <property name="defaultTemplateName" value="${target.notifications.webhook.templates.default}"/>
+        <property name="freeMarkerConfig" ref="webhookFreemarkerConfig"/>
+        <property name="templateEncoding" value="${target.notifications.webhook.encoding}"/>
+        <property name="templateSuffix" value="${target.notifications.webhook.templates.suffix}"/>
+        <property name="defaultMethod" value="${target.notifications.webhook.defaultMethod}"/>
+        <property name="defaultContentType" value="${target.notifications.webhook.defaultContentType}"/>
+        <property name="objectMapper" ref="objectMapper"/>
     </bean>
 
     <!-- Configuration Profiles -->
@@ -344,6 +356,12 @@
         <property name="itemProcessors" ref="itemProcessors"/>
     </bean>
 
+    <!-- Webhook -->
+    <bean id="webhookFreemarkerConfig" class="org.springframework.ui.freemarker.FreeMarkerConfigurationFactoryBean">
+        <property name="templateLoaderPaths"
+                  value="${target.notifications.mail.templates.overrideLocation},${target.notifications.webhook.templates.location}"/>
+        <property name="defaultEncoding" value="${target.notifications.webhook.encoding}"/>
+    </bean>
     <!-- Mail -->
 
     <bean id="mailSender" class="org.springframework.mail.javamail.JavaMailSenderImpl">

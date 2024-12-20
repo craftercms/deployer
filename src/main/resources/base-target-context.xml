@@ -172,18 +172,26 @@
         <property name="outputFolder" value="${deployer.main.deployments.output.folderPath}"/>
     </bean>
 
-    <bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.MailNotificationProcessor"
-          parent="deploymentProcessor">
-        <property name="emailFactory" ref="emailFactory"/>
-        <property name="objectMapper" ref="objectMapper"/>
+    <bean id="baseNotificationProcessor" abstract="true" parent="deploymentProcessor"
+          class="org.craftercms.deployer.impl.processors.notification.NotificationProcessor">
         <property name="defaultTemplateName" value="${target.notifications.mail.templates.default}"/>
-        <property name="defaultFrom" value="${target.notifications.mail.from}"/>
-        <property name="defaultSubject" value="${target.notifications.mail.subject}"/>
-        <property name="defaultHtml" value="${target.notifications.mail.html}"/>
         <property name="defaultStatusCondition" value="${target.notifications.mail.status}"/>
         <property name="defaultDateTimePattern" value="${target.defaultDateTimePattern}"/>
         <property name="lastNotificationDateDir" value="${target.notifications.mail.lastDateDir}"/>
-        <property name="defaultLastDateFilenameSuffix" value="${target.notifications.mail.defaultLastDateFilenameSuffix}"/>
+        <property name="defaultLastDateFilenameSuffix"
+                  value="${target.notifications.mail.defaultLastDateFilenameSuffix}"/>
+        <property name="freeMarkerConfig" ref="mailFreemarkerConfig"/>
+        <property name="templateSuffix" value="${target.notifications.mail.templates.suffix}"/>
+        <property name="templateEncoding" value="${target.notifications.mail.encoding}"/>
+    </bean>
+
+    <bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.notification.MailNotificationProcessor"
+          parent="baseNotificationProcessor">
+        <property name="emailFactory" ref="emailFactory"/>
+        <property name="objectMapper" ref="objectMapper"/>
+        <property name="defaultFrom" value="${target.notifications.mail.from}"/>
+        <property name="defaultSubject" value="${target.notifications.mail.subject}"/>
+        <property name="defaultHtml" value="${target.notifications.mail.html}"/>
     </bean>
 
     <!-- Configuration Profiles -->

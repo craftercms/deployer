@@ -214,6 +214,26 @@ target:
             - //item/url
             - //*[@remote="true"]
   notifications:
+    # For which status should the notifications be sent
+    status: SUCCESS
+    # The directory to keep the last notification datetime files
+    lastDateDir: ${deployer.main.targets.config.folderPath}
+    # The file to keep track of the last notification email datetime
+    defaultLastDateFilenameSuffix: -lastNotification
+    webhook:
+      # The character encoding
+      encoding: UTF-8
+      defaultMethod: post
+      defaultContentType: application/json
+      templates:
+        # The location (Spring URL) of  the webhook templates
+        location: classpath:templates/webhook
+        # The override location (Spring URL) of the webhook templates
+        overrideLocation: file:${deployer.main.config.folderPath}/templates/webhook
+        # The name of the default template
+        default: slack
+        # The suffix used to resolve the final name of a template
+        suffix: -template.ftl
     mail:
       server:
         # The hostname of the mail server used to send notifications
@@ -233,7 +253,7 @@ target:
       templates:
         # The location (Spring URL) of  the mail templates
         location: classpath:templates/mail
-        # The override location (Spring URL) of  the mail templates
+        # The override location (Spring URL) of the mail templates
         overrideLocation: file:${deployer.main.config.folderPath}/templates/mail
         # The name of the default mail template
         default: default
@@ -247,10 +267,6 @@ target:
       html: true
       # For which status should the notifications be sent
       status: SUCCESS
-      # The directory to keep the last notification datetime files
-      lastDateDir: ${deployer.main.targets.config.folderPath}
-      # The file to keep track of the last notification email datetime
-      defaultLastDateFilenameSuffix: -lastNotification
   config:
     profiles:
       aws:

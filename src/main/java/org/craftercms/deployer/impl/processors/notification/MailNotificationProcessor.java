@@ -164,7 +164,7 @@ public class MailNotificationProcessor extends NotificationProcessor<MailNotific
             objectMapper.writeValue(attachment, deployment);
             tempFileDeployment = attachment;
         } catch (IOException e) {
-            logger.error("Could not write deployment as json", e);
+            logger.error("Failed to write deployment to JSON", e);
         }
         return tempFileDeployment;
     }

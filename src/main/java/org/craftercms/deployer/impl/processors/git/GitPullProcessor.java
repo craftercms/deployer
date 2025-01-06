@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,11 +15,6 @@
  */
 package org.craftercms.deployer.impl.processors.git;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.craftercms.commons.config.ConfigurationException;
@@ -30,23 +25,40 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.merge.ContentMergeStrategy;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Objects;
+import java.util.function.Function;
+
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
+import static org.eclipse.jgit.api.MergeCommand.FastForwardMode.FF;
+import static org.eclipse.jgit.merge.ContentMergeStrategy.CONFLICT;
+import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 
 /**
  * Processor that clones/pulls a remote Git repository into a local path in the filesystem. A processor instance
  * can be configured with the following YAML properties:
  *
  * <ul>
+ *     <li><strong>fastForwardMode:</strong> The fast forward mode to use when pulling changes from the remote repo. Supported values are: FF, NO_FF, FF_ONLY.
+ *     Default is FF.</li>
+ *     <li><strong>mergeStrategy:</strong> The merge strategy to use. Supported values are: ours, theirs, simple_two_way_in_core, resolve, recursive. Default is <code>theirs</code></li>
+ *     <li><strong>contentMergeOption:</strong> The content merge strategy to handle conflicts. Supported values are CONFLICT, OURS, THEIRS, UNION. Default is <code>CONFLICT</code></li>
+ *
  *     <li><strong>remoteRepo.url:</strong> The URL of the remote Git repo to pull.</li>
  *     <li><strong>remoteRepo.name:</strong> The name to use for the remote repo when pulling from it (origin by default).</li>
  *     <li><strong>remoteRepo.branch:</strong> The branch of the remote Git repo to pull.</li>
@@ -66,11 +78,18 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
     protected static final String REMOTE_REPO_NAME_CONFIG_KEY = "remoteRepo.name";
 
+    protected static final String MERGE_STRATEGY_CONFIG_KEY = "mergeStrategy";
+    protected static final String CONTENT_MERGE_STRATEGY_OPTION_CONFIG_KEY = "contentMergeOption";
+    protected static final String FAST_FORWARD_MODE_CONFIG_KEY = "fastForwardMode";
+
     private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 
     // Config properties (populated on init)
 
     protected String remoteRepoName;
+    protected MergeStrategy mergeStrategy;
+    protected ContentMergeStrategy contentMergeStrategy;
+    protected FastForwardMode fastForwardMode;
 
     public GitPullProcessor(File localRepoFolder, AuthConfiguratorFactory authConfiguratorFactory) {
         super(localRepoFolder, authConfiguratorFactory);
@@ -82,8 +101,32 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
         remoteRepoName = getStringProperty(config, REMOTE_REPO_NAME_CONFIG_KEY, Constants.DEFAULT_REMOTE_NAME);
 
+        mergeStrategy = throwIfNull(config, MERGE_STRATEGY_CONFIG_KEY, THEIRS.getName(),
+                MergeStrategy::get);
+
+        contentMergeStrategy = throwIfNull(config, CONTENT_MERGE_STRATEGY_OPTION_CONFIG_KEY, CONFLICT.name(),
+                ContentMergeStrategy::valueOf);
+
+        fastForwardMode = throwIfNull(config, FAST_FORWARD_MODE_CONFIG_KEY, FF.name(),
+                FastForwardMode::valueOf);
+
         // use true as default for backward compatibility
         failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
+    }
+
+    /**
+     * Throw a {@link ConfigurationException} if the value returned by the mapping function is null.
+     * Notice that the raw configured value can be null, in which case the default value is used (which we know is supported).
+     */
+    private <T> T throwIfNull(Configuration config, String configKey, String defaultValue, Function<String, T> mappingFunction)
+            throws ConfigurationException {
+        String rawValue = getStringProperty(config, configKey, defaultValue);
+        T value = mappingFunction.apply(rawValue);
+        if (Objects.isNull(value)) {
+            throw new ConfigurationException("Unsupported value '%s' for configuration key '%s'".formatted(rawValue, configKey));
+        }
+
+        return value;
     }
 
     @Override
@@ -112,7 +155,8 @@ public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
             GitUtils.discardAllChanges(git);
 
             PullResult pullResult = GitUtils.pull(git, remoteRepoName, remoteRepoUrl, remoteRepoBranch,
-                                                  MergeStrategy.THEIRS, authenticationConfigurator);
+                    mergeStrategy, contentMergeStrategy, fastForwardMode,
+                    authenticationConfigurator);
             String details;
 
             if (pullResult != null && pullResult.getMergeResult() != null) {

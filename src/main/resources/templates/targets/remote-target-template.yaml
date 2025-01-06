@@ -15,6 +15,12 @@ target:
     {{/if}}
     pipeline:
       - processorName: gitPullProcessor
+        # Allow to pass the options --ff (FF), --no-ff (NO_FF) or --ff-only (FF_ONLY) to git pull. Default is FF.
+        fastForwardMode: {{#if fast_forward_mode}}{{fast_forward_mode}}{{else}}FF{{/if}}
+        # Indicate to jgit what to do when facing a merge conflict. Available values are CONFLICT, OURS, THEIRS, UNION. Default is CONFLICT
+        contentMergeOption: {{#if content_merge_option}}{{content_merge_option}}{{else}}CONFLICT{{/if}}
+        # The merge strategy for jgit pull command. Available values are ours, theirs, simple-two-way-in-core, resolve, recursive. Default is theirs
+        mergeStrategy: {{#if merge_strategy}}{{merge_strategy}}{{else}}theirs{{/if}}
         remoteRepo:
           url: {{repo_url}}
           branch: {{#if repo_branch}}{{repo_branch}}{{else}}live{{/if}}
@@ -56,4 +62,18 @@ target:
           {{#list notification_addresses}}
           - {{this}}
           {{/list}}
+      - processorName: mailNotificationProcessor
+        status: ON_ANY_FAILURE
+        mutePeriodMinutes: {{#if mute_period_minutes}}{{mute_period_minutes}}{{else}}60{{/if}}
+        to:
+          {{#list notification_addresses}}
+          - {{this}}
+          {{/list}}
+      {{/if}}
+      {{#if webhook_url}}
+      - processorName: webhookNotificationProcessor
+        status: ON_ANY_FAILURE
+        mutePeriodMinutes: {{#if mute_period_minutes}}{{mute_period_minutes}}{{else}}60{{/if}}
+        url: {{webhook_url}}
+        method: POST
       {{/if}}

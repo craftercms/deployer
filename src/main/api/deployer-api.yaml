@@ -62,6 +62,22 @@ paths:
                   repo_branch: live
                   engine_url: http://localhost:8080
                   notification_addresses: admin1@my-editorial.com", "admin2@my-editorial.com
+              withGitPullOptions:
+                summary: Example of request body with git pull options
+                value:
+                  env: dev
+                  site_name: my-editorial
+                  replace: false
+                  template_name: remote
+                  repo_url: ssh://crafter@server/opt/crafter/data/repos/sites/my-editorial/published
+                  repo_username: crafter
+                  repo_password: crafter
+                  repo_branch: live
+                  engine_url: http://localhost:8080
+                  fast_forward_mode: "FF"
+                  merge_strategy: "recursive"
+                  content_merge_option: "THEIRS"
+                
       responses:
         '201':
           $ref: '#/components/responses/Created'

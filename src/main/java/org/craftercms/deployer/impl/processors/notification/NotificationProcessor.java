@@ -18,18 +18,17 @@ package org.craftercms.deployer.impl.processors.notification;
 import freemarker.template.Template;
 import freemarker.template.TemplateException;
 import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.io.FileUtils;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.impl.ProcessorStateStore;
 import org.craftercms.deployer.impl.processors.AbstractPostDeploymentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.io.StringWriter;
 import java.net.InetAddress;
@@ -84,7 +83,7 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
     private String defaultLastDateFilenameSuffix;
     private String defaultTemplateName;
     private String defaultDateTimePattern;
-    private String lastNotificationDateDir;
+    private ProcessorStateStore processorStateStore;
 
     private freemarker.template.Configuration freeMarkerConfig;
     private String templatePrefix = "";
@@ -198,14 +197,6 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
     protected abstract void doNotify(T message) throws DeployerException;
 
     /**
-     * Returns the last notification date file for the given processor.
-     */
-    private File getLastDateFile(String processor) {
-        String filename = "%s-%s-%s%s".formatted(targetId, name, processor, lastDateFilenameSuffix);
-        return new File(lastNotificationDateDir, filename);
-    }
-
-    /**
      * Stores the current date as the last notification date for the given processor.
      */
     private void storeNotificationDate(String processor) {
@@ -218,10 +209,14 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
             return;
         }
         try {
-            FileUtils.write(getLastDateFile(processor), String.valueOf(System.currentTimeMillis()), DEFAULT_ENCODING, false);
+            processorStateStore.store(targetId, name, getStateFileSuffix(processor), String.valueOf(System.currentTimeMillis()));
         } catch (IOException e) {
             logger.warn("Could not store last notification date", e);
         }
+    }
+
+    private String getStateFileSuffix(String processor) {
+        return "%s%s".formatted(processor, lastDateFilenameSuffix);
     }
 
     /**
@@ -233,27 +228,28 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
             logger.info("Mute period does not apply for successful deployments, sending notification");
             return false;
         }
-        File lastDateFile = getLastDateFile(processor);
         if (mutePeriodMinutes <= 0) {
             logger.info("Mute period is 0 or negative, sending notification");
             return false;
         }
-        if (!lastDateFile.exists()) {
-            logger.info("No last notification date file found, sending notification");
-            return false;
-        }
+
         try {
-            String lastDate = FileUtils.readFileToString(lastDateFile, "UTF-8").trim();
-            long lastEmailMillis = Long.parseLong(lastDate);
+            String lastNotificationTimestamp = processorStateStore.load(targetId, name, getStateFileSuffix(processor));
+            if (lastNotificationTimestamp == null) {
+                logger.info("No last notification date found, sending notification");
+                return false;
+            }
+            long lastNotificationMillis = Long.parseLong(lastNotificationTimestamp);
             long mutePeriodMillis = mutePeriodMinutes * 60 * 1000L;
-            if (System.currentTimeMillis() - lastEmailMillis < mutePeriodMillis) {
+            if (System.currentTimeMillis() - lastNotificationMillis < mutePeriodMillis) {
                 logger.info("Mute period has not expired, skipping notification");
                 return true;
             }
         } catch (NumberFormatException e) {
-            logger.error("Could not parse last notification date from file '{}'", lastDateFile, e);
+            logger.error("Could not parse last notification date", e);
+
         } catch (IOException e) {
-            logger.error("Could not read last notification date from file '{}'", lastDateFile, e);
+            logger.error("Could not read last notification date from store", e);
         }
 
         return false;
@@ -343,10 +339,6 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
         this.defaultTemplateName = defaultTemplateName;
     }
 
-    public void setLastNotificationDateDir(String lastNotificationDateDir) {
-        this.lastNotificationDateDir = lastNotificationDateDir;
-    }
-
     public void setFreeMarkerConfig(freemarker.template.Configuration freeMarkerConfig) {
         this.freeMarkerConfig = freeMarkerConfig;
     }
@@ -361,6 +353,10 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 
     public void setTemplateEncoding(String templateEncoding) {
         this.templateEncoding = templateEncoding;
+    }
+
+    public void setProcessorStateStore(ProcessorStateStore processorStateStore) {
+        this.processorStateStore = processorStateStore;
     }
 
     /**

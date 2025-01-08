@@ -33,6 +33,8 @@ import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.commons.git.utils.AuthConfiguratorFactory;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.events.DeploymentEventsStore;
+import org.craftercms.deployer.impl.ProcessorStateStore;
+import org.craftercms.deployer.impl.ProcessorStateStoreImpl;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
 import org.craftercms.deployer.impl.events.FileBasedDeploymentEventsStore;
@@ -88,6 +90,8 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	private String targetConfigTemplatesEncoding;
 	@Value("${deployer.main.deployments.processedCommits.folderPath}")
 	private File processedCommitsFolder;
+	@Value("${deployer.main.deployments.processorStates.folderPath}")
+	private File processorsStateFolder;
 
 	@Value("${deployer.main.deployments.pool.size}")
 	private int deploymentPoolSize;
@@ -111,6 +115,14 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	public ProcessedCommitsStore processedCommitsStore() {
 		ProcessedCommitsStoreImpl store = new ProcessedCommitsStoreImpl();
 		store.setStoreFolder(processedCommitsFolder);
+
+		return store;
+	}
+
+	@Bean
+	public ProcessorStateStore processorStateStore() {
+		ProcessorStateStoreImpl store = new ProcessorStateStoreImpl();
+		store.setStoreFolder(processorsStateFolder);
 
 		return store;
 	}

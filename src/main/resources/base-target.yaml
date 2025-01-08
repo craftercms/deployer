@@ -216,8 +216,6 @@ target:
   notifications:
     # For which status should the notifications be sent
     status: SUCCESS
-    # The directory to keep the last notification datetime files
-    lastDateDir: ${deployer.main.targets.config.folderPath}
     # The file to keep track of the last notification email datetime
     defaultLastDateFilenameSuffix: -lastNotification
     webhook:

@@ -98,6 +98,7 @@ public class TargetServiceImplTest {
         TaskScheduler taskScheduler = createTaskScheduler();
         ExecutorService taskExecutor = createTaskExecutor();
         ProcessedCommitsStore processedCommitsStore = createProcessedCommitsStore();
+        ProcessorStateStore processorStateStore = mock(ProcessorStateStore.class);
         TargetLifecycleHooksResolver targetLifecycleHooksResolver = createTargetLifecycleHooksResolver();
 
         DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
@@ -125,6 +126,7 @@ public class TargetServiceImplTest {
             taskScheduler,
             taskExecutor,
             processedCommitsStore,
+            processorStateStore,
             targetLifecycleHooksResolver,
             createConfigurationReader(),
             createUpgradeManager());

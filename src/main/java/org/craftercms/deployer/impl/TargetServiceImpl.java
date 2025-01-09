@@ -107,6 +107,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
     protected final TaskScheduler taskScheduler;
     protected final ExecutorService taskExecutor;
     protected final ProcessedCommitsStore processedCommitsStore;
+    protected final ProcessorStateStore processorStateStore;
     protected final TargetLifecycleHooksResolver targetLifecycleHooksResolver;
     protected final EncryptionAwareConfigurationReader configurationReader;
     protected final UpgradeManager<Target> upgradeManager;
@@ -125,6 +126,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
             @Autowired TaskScheduler taskScheduler,
             @Autowired ExecutorService taskExecutor,
             @Autowired ProcessedCommitsStore processedCommitsStore,
+            @Autowired ProcessorStateStore processorStateStore,
             @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
             @Autowired EncryptionAwareConfigurationReader configurationReader,
             @Autowired UpgradeManager<Target> upgradeManager) {
@@ -140,6 +142,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
         this.taskScheduler = taskScheduler;
         this.taskExecutor = taskExecutor;
         this.processedCommitsStore = processedCommitsStore;
+        this.processorStateStore = processorStateStore;
         this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
         this.configurationReader = configurationReader;
         this.upgradeManager = upgradeManager;
@@ -275,6 +278,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
             FileUtils.deleteQuietly(contextFile);
         }
+        processorStateStore.delete(targetId);
     }
 
     @Override

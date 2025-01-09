@@ -99,6 +99,9 @@ deployer:
       processedCommits:
         # The folder path where processed commit files are stored
         folderPath: ${processedCommits.dir}
+      processorStates:
+        # The directory to keep the target processors states
+        folderPath: ${processorsState.dir}
       pool:
         # Thread pool core size
         size: 10

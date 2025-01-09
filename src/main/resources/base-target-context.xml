@@ -174,9 +174,9 @@
 
     <bean id="baseNotificationProcessor" abstract="true" parent="deploymentProcessor"
           class="org.craftercms.deployer.impl.processors.notification.NotificationProcessor">
+        <property name="processorStateStore" ref="processorStateStore"/>
         <property name="defaultStatusCondition" value="${target.notifications.status}"/>
         <property name="defaultDateTimePattern" value="${target.defaultDateTimePattern}"/>
-        <property name="lastNotificationDateDir" value="${target.notifications.lastDateDir}"/>
         <property name="defaultLastDateFilenameSuffix"
                   value="${target.notifications.defaultLastDateFilenameSuffix}"/>
     </bean>

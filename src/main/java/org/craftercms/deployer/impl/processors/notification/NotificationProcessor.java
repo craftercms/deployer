@@ -141,7 +141,7 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
         return switch (statusCondition) {
             case SUCCESS -> status == Deployment.Status.SUCCESS;
             case ON_ANY_STATUS -> true;
-            case ON_ANY_FAILURE -> hasExecutionsFailures(deployment);
+            case ON_ANY_FAILURE -> status == Deployment.Status.FAILURE || hasExecutionsFailures(deployment);
             case ON_TOTAL_FAILURE -> status == Deployment.Status.FAILURE;
         };
     }

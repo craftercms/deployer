@@ -77,7 +77,6 @@ paths:
                   fast_forward_mode: "FF"
                   merge_strategy: "recursive"
                   content_merge_option: "THEIRS"
-
       responses:
         '201':
           $ref: '#/components/responses/Created'

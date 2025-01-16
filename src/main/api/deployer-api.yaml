@@ -102,7 +102,7 @@ paths:
           schema:
             type: string
           example:
-             env: dev
+            env: dev
         - name: site_name
           in: path
           description: The target’s project/site name (e.g. editorial).
@@ -560,9 +560,6 @@ paths:
         '500':
           $ref: '#/components/responses/InternalServerError'
 
-
-
-
 components:
   schemas:
     Targets:
@@ -586,7 +583,7 @@ components:
           properties:
             source:
               allOf:
-              - $ref: '#/components/schemas/CreateTargetRequest'
+                - $ref: '#/components/schemas/CreateTargetRequest'
 
     CreateTargetRequest:
       type: object

@@ -16,325 +16,325 @@
   -->
 
 <project xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns="http://maven.apache.org/POM/4.0.0"
-		 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
-		<modelVersion>4.0.0</modelVersion>
-		<artifactId>crafter-deployer</artifactId>
-		<packaging>jar</packaging>
+	 xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+	<modelVersion>4.0.0</modelVersion>
+	<artifactId>crafter-deployer</artifactId>
+	<packaging>jar</packaging>
 
-		<name>Crafter Deployer</name>
-		<description>Crafter deployer</description>
+	<name>Crafter Deployer</name>
+	<description>Crafter deployer</description>
 
-		<scm>
-				<connection>scm:git:git://github.com/craftercms/deployer</connection>
-				<developerConnection>scm:git:git://github.com/craftercms/deployer</developerConnection>
-				<url>scm:git:git://github.com/craftercms/deployer</url>
-		</scm>
+	<scm>
+		<connection>scm:git:git://github.com/craftercms/deployer</connection>
+		<developerConnection>scm:git:git://github.com/craftercms/deployer</developerConnection>
+		<url>scm:git:git://github.com/craftercms/deployer</url>
+	</scm>
 
-		<parent>
-				<groupId>org.craftercms</groupId>
-				<artifactId>craftercms-spring-boot</artifactId>
-				<version>5.0.0-SNAPSHOT</version><!-- craftercms version flag -->
-				<relativePath/> <!-- lookup parent from repository -->
-		</parent>
+	<parent>
+		<groupId>org.craftercms</groupId>
+		<artifactId>craftercms-spring-boot</artifactId>
+		<version>5.0.0-SNAPSHOT</version><!-- craftercms version flag -->
+		<relativePath/> <!-- lookup parent from repository -->
+	</parent>
 
-		<dependencies>
-				<!-- Crafter -->
-				<dependency>
-						<groupId>org.craftercms</groupId>
-						<artifactId>crafter-commons-utilities</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>org.craftercms</groupId>
-						<artifactId>crafter-commons-validation</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>org.craftercms</groupId>
-						<artifactId>crafter-commons-git</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>org.craftercms</groupId>
-						<artifactId>crafter-search-opensearch</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>org.craftercms</groupId>
-						<artifactId>crafter-search-batch-indexer</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>org.craftercms</groupId>
-						<artifactId>crafter-commons-upgrade-manager</artifactId>
-				</dependency>
+	<dependencies>
+		<!-- Crafter -->
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-utilities</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-validation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-git</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-search-opensearch</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-search-batch-indexer</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>crafter-commons-upgrade-manager</artifactId>
+		</dependency>
 
-				<!-- Commons -->
-				<dependency>
-						<groupId>org.apache.commons</groupId>
-						<artifactId>commons-configuration2</artifactId>
-				</dependency>
+		<!-- Commons -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-configuration2</artifactId>
+		</dependency>
 
-				<!-- CSV -->
-				<dependency>
-						<groupId>org.apache.commons</groupId>
-						<artifactId>commons-csv</artifactId>
-				</dependency>
+		<!-- CSV -->
+		<dependency>
+			<groupId>org.apache.commons</groupId>
+			<artifactId>commons-csv</artifactId>
+		</dependency>
 
-				<!-- Spring -->
-				<dependency>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-starter-web</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-starter-log4j2</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>org.springframework.boot</groupId>
-						<artifactId>spring-boot-starter-test</artifactId>
-						<scope>test</scope>
-				</dependency>
+		<!-- Spring -->
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-web</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-log4j2</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.springframework.boot</groupId>
+			<artifactId>spring-boot-starter-test</artifactId>
+			<scope>test</scope>
+		</dependency>
 
-				<!-- Jackson -->
-				<dependency>
-						<groupId>com.fasterxml.jackson.core</groupId>
-						<artifactId>jackson-databind</artifactId>
-				</dependency>
+		<!-- Jackson -->
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-databind</artifactId>
+		</dependency>
 
-				<dependency>
-						<groupId>com.fasterxml.jackson.core</groupId>
-						<artifactId>jackson-core</artifactId>
-				</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.core</groupId>
+			<artifactId>jackson-core</artifactId>
+		</dependency>
 
-				<dependency>
-						<groupId>com.fasterxml.jackson.dataformat</groupId>
-						<artifactId>jackson-dataformat-xml</artifactId>
-				</dependency>
+		<dependency>
+			<groupId>com.fasterxml.jackson.dataformat</groupId>
+			<artifactId>jackson-dataformat-xml</artifactId>
+		</dependency>
 
-				<!-- JSON-P -->
-				<dependency>
-						<groupId>org.glassfish</groupId>
-						<artifactId>jakarta.json</artifactId>
-				</dependency>
+		<!-- JSON-P -->
+		<dependency>
+			<groupId>org.glassfish</groupId>
+			<artifactId>jakarta.json</artifactId>
+		</dependency>
 
-				<!-- Git -->
-				<dependency>
-						<groupId>org.eclipse.jgit</groupId>
-						<artifactId>org.eclipse.jgit</artifactId>
-				</dependency>
+		<!-- Git -->
+		<dependency>
+			<groupId>org.eclipse.jgit</groupId>
+			<artifactId>org.eclipse.jgit</artifactId>
+		</dependency>
 
-				<!-- Mail -->
-				<dependency>
-						<groupId>org.eclipse.angus</groupId>
-						<artifactId>angus-mail</artifactId>
-				</dependency>
+		<!-- Mail -->
+		<dependency>
+			<groupId>org.eclipse.angus</groupId>
+			<artifactId>angus-mail</artifactId>
+		</dependency>
 
-				<!-- Handlebars -->
-				<dependency>
-						<groupId>com.github.jknack</groupId>
-						<artifactId>handlebars</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>com.github.jknack</groupId>
-						<artifactId>handlebars-springmvc</artifactId>
-				</dependency>
+		<!-- Handlebars -->
+		<dependency>
+			<groupId>com.github.jknack</groupId>
+			<artifactId>handlebars</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.github.jknack</groupId>
+			<artifactId>handlebars-springmvc</artifactId>
+		</dependency>
 
-				<!-- AWS -->
-				<dependency>
-						<groupId>software.amazon.awssdk</groupId>
-						<artifactId>s3</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>software.amazon.awssdk</groupId>
-						<artifactId>sts</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>software.amazon.awssdk</groupId>
-						<artifactId>cloudfront</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>software.amazon.awssdk</groupId>
-						<artifactId>cloudformation</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>software.amazon.awssdk</groupId>
-						<artifactId>sso</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>software.amazon.awssdk</groupId>
-						<artifactId>ssooidc</artifactId>
-				</dependency>
+		<!-- AWS -->
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>s3</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>sts</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>cloudfront</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>cloudformation</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>sso</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>software.amazon.awssdk</groupId>
+			<artifactId>ssooidc</artifactId>
+		</dependency>
 
-				<!-- overrides -->
-				<dependency>
-						<groupId>org.bitbucket.b_c</groupId>
-						<artifactId>jose4j</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>com.squareup.okio</groupId>
-						<artifactId>okio</artifactId>
-				</dependency>
+		<!-- overrides -->
+		<dependency>
+			<groupId>org.bitbucket.b_c</groupId>
+			<artifactId>jose4j</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>com.squareup.okio</groupId>
+			<artifactId>okio</artifactId>
+		</dependency>
 
-				<!-- Box -->
-				<dependency>
-						<groupId>com.box</groupId>
-						<artifactId>box-java-sdk</artifactId>
-				</dependency>
+		<!-- Box -->
+		<dependency>
+			<groupId>com.box</groupId>
+			<artifactId>box-java-sdk</artifactId>
+		</dependency>
 
-				<!-- BouncyCastle Provider -->
-				<!-- This is required by the Box SDK, but it uses an older version -->
-				<dependency>
-						<groupId>org.bouncycastle</groupId>
-						<artifactId>bcprov-jdk18on</artifactId>
-				</dependency>
-				<dependency>
-						<groupId>org.bouncycastle</groupId>
-						<artifactId>bcpkix-jdk18on</artifactId>
-				</dependency>
+		<!-- BouncyCastle Provider -->
+		<!-- This is required by the Box SDK, but it uses an older version -->
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcprov-jdk18on</artifactId>
+		</dependency>
+		<dependency>
+			<groupId>org.bouncycastle</groupId>
+			<artifactId>bcpkix-jdk18on</artifactId>
+		</dependency>
 
-				<!-- WebDAV -->
-				<dependency>
-						<groupId>com.github.lookfirst</groupId>
-						<artifactId>sardine</artifactId>
-				</dependency>
+		<!-- WebDAV -->
+		<dependency>
+			<groupId>com.github.lookfirst</groupId>
+			<artifactId>sardine</artifactId>
+		</dependency>
 
-				<dependency>
-						<groupId>org.apache.groovy</groupId>
-						<artifactId>groovy-all</artifactId>
-						<version>${groovy.version}
-						</version>
-						<type>pom</type>
-				</dependency>
+		<dependency>
+			<groupId>org.apache.groovy</groupId>
+			<artifactId>groovy-all</artifactId>
+			<version>${groovy.version}
+			</version>
+			<type>pom</type>
+		</dependency>
 
-				<dependency>
-						<groupId>org.apache.ivy</groupId>
-						<artifactId>ivy</artifactId>
-				</dependency>
+		<dependency>
+			<groupId>org.apache.ivy</groupId>
+			<artifactId>ivy</artifactId>
+		</dependency>
 
-				<dependency>
-						<groupId>org.craftercms</groupId>
-						<artifactId>script-security</artifactId>
-				</dependency>
+		<dependency>
+			<groupId>org.craftercms</groupId>
+			<artifactId>script-security</artifactId>
+		</dependency>
 
-				<!-- Test -->
-				<dependency>
-						<groupId>org.junit.vintage</groupId>
-						<artifactId>junit-vintage-engine</artifactId>
-						<scope>test</scope>
-				</dependency>
+		<!-- Test -->
+		<dependency>
+			<groupId>org.junit.vintage</groupId>
+			<artifactId>junit-vintage-engine</artifactId>
+			<scope>test</scope>
+		</dependency>
 
-		</dependencies>
+	</dependencies>
 
-		<build>
-				<finalName>crafter-deployer</finalName>
-				<plugins>
-						<plugin>
-								<groupId>org.apache.maven.plugins</groupId>
-								<artifactId>maven-checkstyle-plugin</artifactId>
-								<configuration>
-										<configLocation>https://raw.githubusercontent.com/craftercms/craftercms/refs/heads/develop/checkstyle.xml</configLocation>
-								</configuration>
-								<executions>
-										<execution>
-												<id>validate</id>
-												<phase>validate</phase>
-												<goals>
-														<goal>check</goal>
-												</goals>
-										</execution>
-								</executions>
-						</plugin>
-						<plugin>
-								<groupId>org.springframework.boot</groupId>
-								<artifactId>spring-boot-maven-plugin</artifactId>
-								<executions>
-										<execution>
-												<id>repackage</id>
-												<goals>
-														<goal>repackage</goal>
-												</goals>
-												<configuration>
-														<attach>false</attach>
-														<layout>ZIP</layout>
-												</configuration>
-										</execution>
-								</executions>
-						</plugin>
-						<plugin>
-								<groupId>org.apache.maven.plugins</groupId>
-								<artifactId>maven-jar-plugin</artifactId>
-								<configuration>
-										<archive>
-												<manifest>
-														<addDefaultImplementationEntries>true
-														</addDefaultImplementationEntries>
-												</manifest>
-												<manifestEntries>
-														<Implementation-Build>${buildNumber}</Implementation-Build>
-														<Build-On>${timestamp}</Build-On>
-												</manifestEntries>
-										</archive>
-								</configuration>
-						</plugin>
-						<plugin>
-								<groupId>org.codehaus.mojo</groupId>
-								<artifactId>buildnumber-maven-plugin</artifactId>
-								<executions>
-										<execution>
-												<phase>validate</phase>
-												<goals>
-														<goal>create</goal>
-														<goal>create-timestamp</goal>
-												</goals>
-										</execution>
-								</executions>
-								<configuration>
-										<doCheck>false</doCheck>
-										<doUpdate>false</doUpdate>
-										<revisionOnScmFailure>unknown</revisionOnScmFailure>
-								</configuration>
-						</plugin>
+	<build>
+		<finalName>crafter-deployer</finalName>
+		<plugins>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-checkstyle-plugin</artifactId>
+				<configuration>
+					<configLocation>https://raw.githubusercontent.com/craftercms/craftercms/refs/heads/develop/checkstyle.xml</configLocation>
+				</configuration>
+				<executions>
+					<execution>
+						<id>validate</id>
+						<phase>validate</phase>
+						<goals>
+							<goal>check</goal>
+						</goals>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.springframework.boot</groupId>
+				<artifactId>spring-boot-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<id>repackage</id>
+						<goals>
+							<goal>repackage</goal>
+						</goals>
+						<configuration>
+							<attach>false</attach>
+							<layout>ZIP</layout>
+						</configuration>
+					</execution>
+				</executions>
+			</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-jar-plugin</artifactId>
+				<configuration>
+					<archive>
+						<manifest>
+							<addDefaultImplementationEntries>true
+							</addDefaultImplementationEntries>
+						</manifest>
+						<manifestEntries>
+							<Implementation-Build>${buildNumber}</Implementation-Build>
+							<Build-On>${timestamp}</Build-On>
+						</manifestEntries>
+					</archive>
+				</configuration>
+			</plugin>
+			<plugin>
+				<groupId>org.codehaus.mojo</groupId>
+				<artifactId>buildnumber-maven-plugin</artifactId>
+				<executions>
+					<execution>
+						<phase>validate</phase>
+						<goals>
+							<goal>create</goal>
+							<goal>create-timestamp</goal>
+						</goals>
+					</execution>
+				</executions>
+				<configuration>
+					<doCheck>false</doCheck>
+					<doUpdate>false</doUpdate>
+					<revisionOnScmFailure>unknown</revisionOnScmFailure>
+				</configuration>
+			</plugin>
 
-						<plugin>
-								<groupId>org.apache.maven.plugins</groupId>
-								<artifactId>maven-surefire-plugin</artifactId>
-								<configuration>
-										<systemPropertyVariables>
-												<deployer.main.homePath>target/test-resources</deployer.main.homePath>
-												<targets.dir>target/test-resources/targets</targets.dir>
-												<deployments.dir>target/test-logs</deployments.dir>
-												<processedCommits.dir>target/test-resources/processed-commits
-												</processedCommits.dir>
-												<deploymentEvents.dir>target/test-resources/deployment-events
-												</deploymentEvents.dir>
-												<logs.dir>target/test-logs</logs.dir>
-										</systemPropertyVariables>
-								</configuration>
-						</plugin>
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<configuration>
+					<systemPropertyVariables>
+						<deployer.main.homePath>target/test-resources</deployer.main.homePath>
+						<targets.dir>target/test-resources/targets</targets.dir>
+						<deployments.dir>target/test-logs</deployments.dir>
+						<processedCommits.dir>target/test-resources/processed-commits
+						</processedCommits.dir>
+						<deploymentEvents.dir>target/test-resources/deployment-events
+						</deploymentEvents.dir>
+						<logs.dir>target/test-logs</logs.dir>
+					</systemPropertyVariables>
+				</configuration>
+			</plugin>
 
-				</plugins>
-		</build>
+		</plugins>
+	</build>
 
-		<repositories>
-				<repository>
-						<id>sonatype-snapshots</id>
-						<name>Sonatype Snapshot Repository</name>
-						<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
-						<releases>
-								<enabled>false</enabled>
-						</releases>
-						<snapshots>
-								<enabled>true</enabled>
-								<updatePolicy>always</updatePolicy>
-								<checksumPolicy>fail</checksumPolicy>
-						</snapshots>
-				</repository>
-		</repositories>
+	<repositories>
+		<repository>
+			<id>sonatype-snapshots</id>
+			<name>Sonatype Snapshot Repository</name>
+			<url>https://s01.oss.sonatype.org/content/repositories/snapshots/</url>
+			<releases>
+				<enabled>false</enabled>
+			</releases>
+			<snapshots>
+				<enabled>true</enabled>
+				<updatePolicy>always</updatePolicy>
+				<checksumPolicy>fail</checksumPolicy>
+			</snapshots>
+		</repository>
+	</repositories>
 
-		<distributionManagement>
-				<snapshotRepository>
-						<id>sonatype-snapshots</id>
-						<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
-				</snapshotRepository>
-				<repository>
-						<id>sonatype-staging</id>
-						<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
-				</repository>
-		</distributionManagement>
+	<distributionManagement>
+		<snapshotRepository>
+			<id>sonatype-snapshots</id>
+			<url>https://s01.oss.sonatype.org/content/repositories/snapshots</url>
+		</snapshotRepository>
+		<repository>
+			<id>sonatype-staging</id>
+			<url>https://s01.oss.sonatype.org/service/local/staging/deploy/maven2/</url>
+		</repository>
+	</distributionManagement>
 </project>

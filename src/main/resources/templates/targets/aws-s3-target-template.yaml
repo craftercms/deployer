@@ -78,18 +78,18 @@ aws:
                 pathStyleAccess: {{aws.s3.path_style_access}}
                 url: {{aws.s3.url}}
             -   processorName: delayProcessor
-              { { #if delay}}seconds: {{delay}}{{/if}}
-                { { #if aws.distribution.ids}}
-                      -   processorName: cloudfrontInvalidationProcessor
-                              includeFiles: [ '^/static-assets/.*$' ]
-                              region: ${ aws.region }
-                              accessKey: ${ aws.accessKey }
-                              secretKey: ${ aws.secretKey }
-                              distributions:
-                            { { #list aws.distribution.ids}}
-                                  - {{this } }
-                              {{/list } }
-                {{/if } }
+          { { #if delay}}seconds: {{delay}}{{/if}}
+            { { #if aws.distribution.ids}}
+                  -   processorName: cloudfrontInvalidationProcessor
+                          includeFiles: [ '^/static-assets/.*$' ]
+                          region: ${ aws.region }
+                          accessKey: ${ aws.accessKey }
+                          secretKey: ${ aws.secretKey }
+                          distributions:
+                        { { #list aws.distribution.ids}}
+                              - {{this } }
+                          {{/list } }
+            {{/if } }
             -   processorName: fileBasedDeploymentEventProcessor
                 includeFiles: [ "^/?config/.*$", "^/?scripts/.*$" ]
                 excludeFiles: [ '^/config/studio/content-types/.*$' ]

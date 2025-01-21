@@ -32,20 +32,18 @@ import java.util.List;
  */
 public interface TargetLifecycleHooksResolver {
 
-    /**
-     * Resolved a {@link TargetLifecycleHook} based on the specified configuration
-     *
-     * @param configuration                 the target's YAML configuration
-     * @param applicationContext            the target's application context
-     * @param lifecycleHooksPropertyName    the name of the hook list property in the YAML configuration
-     *
-     * @return the lifecycle hooks
-     *
-     * @throws ConfigurationException if a configuration related exception occurs
-     * @throws DeployerException if a general error occurs
-     */
-    List<TargetLifecycleHook> getHooks(HierarchicalConfiguration<ImmutableNode> configuration,
-                                       ApplicationContext applicationContext, String lifecycleHooksPropertyName)
-            throws ConfigurationException, DeployerException;
+	/**
+	 * Resolved a {@link TargetLifecycleHook} based on the specified configuration
+	 *
+	 * @param configuration              the target's YAML configuration
+	 * @param applicationContext         the target's application context
+	 * @param lifecycleHooksPropertyName the name of the hook list property in the YAML configuration
+	 * @return the lifecycle hooks
+	 * @throws ConfigurationException if a configuration related exception occurs
+	 * @throws DeployerException      if a general error occurs
+	 */
+	List<TargetLifecycleHook> getHooks(HierarchicalConfiguration<ImmutableNode> configuration,
+					   ApplicationContext applicationContext, String lifecycleHooksPropertyName)
+		throws ConfigurationException, DeployerException;
 
 }

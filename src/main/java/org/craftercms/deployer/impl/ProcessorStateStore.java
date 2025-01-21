@@ -23,31 +23,31 @@ import java.io.IOException;
  */
 public interface ProcessorStateStore {
 
-    /**
-     * Loads the stored state valuefor the specified target and processor.
-     *
-     * @param targetId      the target's ID
-     * @param processorName the processor's name
-     * @param suffix        the suffix to use for the state file name
-     * @return the stored state value, or null if not found
-     * @throws IOException if an error occurs while reading the file
-     */
-    String load(String targetId, String processorName, String suffix) throws IOException;
+	/**
+	 * Loads the stored state valuefor the specified target and processor.
+	 *
+	 * @param targetId      the target's ID
+	 * @param processorName the processor's name
+	 * @param suffix        the suffix to use for the state file name
+	 * @return the stored state value, or null if not found
+	 * @throws IOException if an error occurs while reading the file
+	 */
+	String load(String targetId, String processorName, String suffix) throws IOException;
 
-    /**
-     * Stores the specified value for the target and processor.
-     *
-     * @param targetId      the target's ID
-     * @param processorName the processor's name
-     * @param suffix        the suffix to use for the state file name
-     * @throws IOException if an error occurs while writing the file
-     */
-    void store(String targetId, String processorName, String suffix, String value) throws IOException;
+	/**
+	 * Stores the specified value for the target and processor.
+	 *
+	 * @param targetId      the target's ID
+	 * @param processorName the processor's name
+	 * @param suffix        the suffix to use for the state file name
+	 * @throws IOException if an error occurs while writing the file
+	 */
+	void store(String targetId, String processorName, String suffix, String value) throws IOException;
 
-    /**
-     * Delete the state files directory for the specified target.
-     *
-     * @param targetId the target's ID
-     */
-    void delete(String targetId);
+	/**
+	 * Delete the state files directory for the specified target.
+	 *
+	 * @param targetId the target's ID
+	 */
+	void delete(String targetId);
 }

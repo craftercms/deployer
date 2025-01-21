@@ -35,28 +35,28 @@ import java.nio.file.Paths;
  */
 public class DeleteLocalRepoFolderLifecycleHook extends AbstractLifecycleHook {
 
-    protected Path localRepoFolder;
+	protected Path localRepoFolder;
 
-    public void setLocalRepoFolder(String localRepoFolder) {
-        this.localRepoFolder = Paths.get(localRepoFolder);
-    }
+	public void setLocalRepoFolder(String localRepoFolder) {
+		this.localRepoFolder = Paths.get(localRepoFolder);
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
-        // Do nothing
-    }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
+		// Do nothing
+	}
 
-    @Override
-    protected void doExecute(Target target) throws DeployerException {
-        try {
-            if (Files.exists(localRepoFolder)) {
-                FileUtils.forceDelete(localRepoFolder.toFile());
+	@Override
+	protected void doExecute(Target target) throws DeployerException {
+		try {
+			if (Files.exists(localRepoFolder)) {
+				FileUtils.forceDelete(localRepoFolder.toFile());
 
-                logger.info("Local repo folder {} deleted", localRepoFolder);
-            }
-        } catch (IOException e) {
-            throw new DeployerException("Unable to delete local repo folder " + localRepoFolder, e);
-        }
-    }
+				logger.info("Local repo folder {} deleted", localRepoFolder);
+			}
+		} catch (IOException e) {
+			throw new DeployerException("Unable to delete local repo folder " + localRepoFolder, e);
+		}
+	}
 
 }

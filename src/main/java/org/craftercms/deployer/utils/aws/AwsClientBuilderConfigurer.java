@@ -34,59 +34,59 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  */
 public class AwsClientBuilderConfigurer<ClientBuilderSubclass extends AwsClientBuilder> {
 
-    public static final String CONFIG_KEY_REGION = "region";
-    public static final String CONFIG_KEY_ENDPOINT = "endpoint";
-    public static final String CONFIG_KEY_ACCESS_KEY = "accessKey";
-    public static final String CONFIG_KEY_SECRET_KEY = "secretKey";
+	public static final String CONFIG_KEY_REGION = "region";
+	public static final String CONFIG_KEY_ENDPOINT = "endpoint";
+	public static final String CONFIG_KEY_ACCESS_KEY = "accessKey";
+	public static final String CONFIG_KEY_SECRET_KEY = "secretKey";
 
-    /**
-     * AWS Region
-     */
-    protected String region;
-    protected String endpoint;
-    /**
-     * AWS Access Key
-     */
-    protected String accessKey;
-    /**
-     * AWS Secret Key
-     */
-    protected String secretKey;
+	/**
+	 * AWS Region
+	 */
+	protected String region;
+	protected String endpoint;
+	/**
+	 * AWS Access Key
+	 */
+	protected String accessKey;
+	/**
+	 * AWS Secret Key
+	 */
+	protected String secretKey;
 
-    /**
-     * Main constructor Extracts the region and credentials from the config.
-     *
-     * @param config the config with the client properties
-     * @throws ConfigurationException if an exception occurs while reading the configuration
-     */
-    public AwsClientBuilderConfigurer(Configuration config) throws ConfigurationException {
-        if (config.containsKey(CONFIG_KEY_REGION)) {
-            region = getStringProperty(config, CONFIG_KEY_REGION);
-        }
-        if (config.containsKey(CONFIG_KEY_ENDPOINT)) {
-            endpoint = getStringProperty(config, CONFIG_KEY_ENDPOINT);
-        }
-        if (config.containsKey(CONFIG_KEY_ACCESS_KEY) && config.containsKey(CONFIG_KEY_SECRET_KEY)) {
-            accessKey = getStringProperty(config, CONFIG_KEY_ACCESS_KEY);
-            secretKey = getStringProperty(config, CONFIG_KEY_SECRET_KEY);
-        }
-    }
+	/**
+	 * Main constructor Extracts the region and credentials from the config.
+	 *
+	 * @param config the config with the client properties
+	 * @throws ConfigurationException if an exception occurs while reading the configuration
+	 */
+	public AwsClientBuilderConfigurer(Configuration config) throws ConfigurationException {
+		if (config.containsKey(CONFIG_KEY_REGION)) {
+			region = getStringProperty(config, CONFIG_KEY_REGION);
+		}
+		if (config.containsKey(CONFIG_KEY_ENDPOINT)) {
+			endpoint = getStringProperty(config, CONFIG_KEY_ENDPOINT);
+		}
+		if (config.containsKey(CONFIG_KEY_ACCESS_KEY) && config.containsKey(CONFIG_KEY_SECRET_KEY)) {
+			accessKey = getStringProperty(config, CONFIG_KEY_ACCESS_KEY);
+			secretKey = getStringProperty(config, CONFIG_KEY_SECRET_KEY);
+		}
+	}
 
-    /**
-     * Configures the specified builder, with any credentials and other properties provided in the configuration.
-     *
-     * @param builder the AWS client builder
-     */
-    public void configureClientBuilder(ClientBuilderSubclass builder) {
-        if (StringUtils.isNotEmpty(endpoint)) {
-            builder.endpointOverride(URI.create(endpoint));
-        } else if (StringUtils.isNotEmpty(region)) {
-            builder.region(Region.of(region));
-        }
+	/**
+	 * Configures the specified builder, with any credentials and other properties provided in the configuration.
+	 *
+	 * @param builder the AWS client builder
+	 */
+	public void configureClientBuilder(ClientBuilderSubclass builder) {
+		if (StringUtils.isNotEmpty(endpoint)) {
+			builder.endpointOverride(URI.create(endpoint));
+		} else if (StringUtils.isNotEmpty(region)) {
+			builder.region(Region.of(region));
+		}
 
-        if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
-            builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
-        }
-    }
+		if (StringUtils.isNotEmpty(accessKey) && StringUtils.isNotEmpty(secretKey)) {
+			builder.credentialsProvider(StaticCredentialsProvider.create(AwsBasicCredentials.create(accessKey, secretKey)));
+		}
+	}
 
 }

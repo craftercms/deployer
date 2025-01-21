@@ -48,90 +48,90 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  */
 public class HttpMethodCallProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(HttpMethodCallProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(HttpMethodCallProcessor.class);
 
-    protected static final String URL_CONFIG_KEY = "url";
-    protected static final String METHOD_CONFIG_KEY = "method";
+	protected static final String URL_CONFIG_KEY = "url";
+	protected static final String METHOD_CONFIG_KEY = "method";
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    protected String url;
-    protected String method;
-    protected CloseableHttpClient httpClient;
+	protected String url;
+	protected String method;
+	protected CloseableHttpClient httpClient;
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        url = getRequiredStringProperty(config, URL_CONFIG_KEY);
-        method = getRequiredStringProperty(config, METHOD_CONFIG_KEY);
-        httpClient = HttpClients.createDefault();
-    }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		url = getRequiredStringProperty(config, URL_CONFIG_KEY);
+		method = getRequiredStringProperty(config, METHOD_CONFIG_KEY);
+		httpClient = HttpClients.createDefault();
+	}
 
-    @Override
-    protected void doDestroy() {
-        // Do nothing
-    }
+	@Override
+	protected void doDestroy() {
+		// Do nothing
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        HttpUriRequest request = createRequest();
-        URI uri = request.getURI();
-        String safeURI = StringUtils.EMPTY;
-        try {
-            // Try to hide sensitive data from the URL: username/password and query params
-            safeURI = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), null,
-                              uri.getFragment()).toString();
-        } catch (URISyntaxException e) {
-            logger.error("Error parsing URI", e);
-        }
-        String safeRequest = String.join(StringUtils.SPACE, request.getMethod(), safeURI);
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+		HttpUriRequest request = createRequest();
+		URI uri = request.getURI();
+		String safeURI = StringUtils.EMPTY;
+		try {
+			// Try to hide sensitive data from the URL: username/password and query params
+			safeURI = new URI(uri.getScheme(), null, uri.getHost(), uri.getPort(), uri.getPath(), null,
+				uri.getFragment()).toString();
+		} catch (URISyntaxException e) {
+			logger.error("Error parsing URI", e);
+		}
+		String safeRequest = String.join(StringUtils.SPACE, request.getMethod(), safeURI);
 
-        logger.info("Executing request {}...", safeRequest);
+		logger.info("Executing request {}...", safeRequest);
 
-        try (CloseableHttpResponse response = httpClient.execute(request)) {
-            int status = response.getStatusLine().getStatusCode();
-            HttpEntity entity = response.getEntity();
-            String body = entity != null? EntityUtils.toString(entity) : null;
+		try (CloseableHttpResponse response = httpClient.execute(request)) {
+			int status = response.getStatusLine().getStatusCode();
+			HttpEntity entity = response.getEntity();
+			String body = entity != null ? EntityUtils.toString(entity) : null;
 
-            if (StringUtils.isEmpty(body)) {
-                body = "empty";
-            }
+			if (StringUtils.isEmpty(body)) {
+				body = "empty";
+			}
 
-            if (status >= 200 && status < 300) {
-                logger.info("Successful response for request {}: status = {}, body = {}", safeRequest, status, body);
+			if (status >= 200 && status < 300) {
+				logger.info("Successful response for request {}: status = {}, body = {}", safeRequest, status, body);
 
-                execution.setStatusDetails("Successful response for request " + safeRequest + ": status = " + status);
-            } else {
-                logger.error("Error response for request {}: status = {}, body = {}", safeRequest, status, body);
+				execution.setStatusDetails("Successful response for request " + safeRequest + ": status = " + status);
+			} else {
+				logger.error("Error response for request {}: status = {}, body = {}", safeRequest, status, body);
 
-                execution.setStatusDetails("Error response for request " + safeRequest + ": status = " + status);
-                execution.endExecution(Deployment.Status.FAILURE);
-            }
-        } catch (IOException e) {
-            throw new DeployerException("IO error on HTTP request " + safeRequest, e);
-        }
+				execution.setStatusDetails("Error response for request " + safeRequest + ": status = " + status);
+				execution.endExecution(Deployment.Status.FAILURE);
+			}
+		} catch (IOException e) {
+			throw new DeployerException("IO error on HTTP request " + safeRequest, e);
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    protected HttpUriRequest createRequest() throws DeployerException {
-        if (method.equalsIgnoreCase("get")) {
-            return new HttpGet(url);
-        } else if (method.equalsIgnoreCase("post")) {
-            return new HttpPost(url);
-        } else if (method.equalsIgnoreCase("put")) {
-            return new HttpPut(url);
-        } else if (method.equalsIgnoreCase("delete")) {
-            return new HttpDelete(url);
-        } else if (method.equalsIgnoreCase("head")) {
-            return new HttpHead(url);
-        } else if (method.equalsIgnoreCase("options")) {
-            return new HttpOptions(url);
-        } else if (method.equalsIgnoreCase("trace")) {
-            return new HttpTrace(url);
-        } else {
-            throw new DeployerException("HTTP method '" + method + " not recognized");
-        }
-    }
+	protected HttpUriRequest createRequest() throws DeployerException {
+		if (method.equalsIgnoreCase("get")) {
+			return new HttpGet(url);
+		} else if (method.equalsIgnoreCase("post")) {
+			return new HttpPost(url);
+		} else if (method.equalsIgnoreCase("put")) {
+			return new HttpPut(url);
+		} else if (method.equalsIgnoreCase("delete")) {
+			return new HttpDelete(url);
+		} else if (method.equalsIgnoreCase("head")) {
+			return new HttpHead(url);
+		} else if (method.equalsIgnoreCase("options")) {
+			return new HttpOptions(url);
+		} else if (method.equalsIgnoreCase("trace")) {
+			return new HttpTrace(url);
+		} else {
+			throw new DeployerException("HTTP method '" + method + " not recognized");
+		}
+	}
 
 }

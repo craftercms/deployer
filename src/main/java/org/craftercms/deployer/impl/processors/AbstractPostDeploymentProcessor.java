@@ -27,26 +27,26 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
  */
 public abstract class AbstractPostDeploymentProcessor extends AbstractDeploymentProcessor {
 
-    @Override
-    public boolean isPostDeployment() {
-        return true;
-    }
+	@Override
+	public boolean isPostDeployment() {
+		return true;
+	}
 
-    @Override
-    protected ChangeSet doExecute(Deployment deployment, ChangeSet filteredChangeSet,
-                                  ChangeSet originalChangeSet) throws Exception {
-        deployment.end(Deployment.Status.SUCCESS);
+	@Override
+	protected ChangeSet doExecute(Deployment deployment, ChangeSet filteredChangeSet,
+				      ChangeSet originalChangeSet) throws Exception {
+		deployment.end(Deployment.Status.SUCCESS);
 
-        return doPostProcess(deployment, filteredChangeSet, originalChangeSet);
-    }
+		return doPostProcess(deployment, filteredChangeSet, originalChangeSet);
+	}
 
-    @Override
-    protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
-        // Run if there's a current jump to and it matches the label if there was a failure or the change set is not empty
-        return deployment.getStatus() == Deployment.Status.FAILURE || !deployment.isChangeSetEmpty();
-    }
+	@Override
+	protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
+		// Run if there's a current jump to and it matches the label if there was a failure or the change set is not empty
+		return deployment.getStatus() == Deployment.Status.FAILURE || !deployment.isChangeSetEmpty();
+	}
 
-    protected abstract ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
-                                               ChangeSet originalChangeSet) throws DeployerException;
+	protected abstract ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
+						   ChangeSet originalChangeSet) throws DeployerException;
 
 }

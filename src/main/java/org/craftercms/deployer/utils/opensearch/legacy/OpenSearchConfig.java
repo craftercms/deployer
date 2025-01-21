@@ -35,93 +35,93 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
  */
 public class OpenSearchConfig {
 
-    public static final String CONFIG_KEY_GLOBAL_CLUSTER = "target.search.openSearch";
+	public static final String CONFIG_KEY_GLOBAL_CLUSTER = "target.search.openSearch";
 
-    public static final String CONFIG_KEY_READ_CLUSTER = CONFIG_KEY_GLOBAL_CLUSTER + ".readCluster";
+	public static final String CONFIG_KEY_READ_CLUSTER = CONFIG_KEY_GLOBAL_CLUSTER + ".readCluster";
 
-    public static final String CONFIG_KEY_WRITE_CLUSTERS = CONFIG_KEY_GLOBAL_CLUSTER + ".writeClusters";
+	public static final String CONFIG_KEY_WRITE_CLUSTERS = CONFIG_KEY_GLOBAL_CLUSTER + ".writeClusters";
 
-    public static final String CONFIG_KEY_LOCALE_MAPPING = CONFIG_KEY_GLOBAL_CLUSTER + ".locale.mapping";
+	public static final String CONFIG_KEY_LOCALE_MAPPING = CONFIG_KEY_GLOBAL_CLUSTER + ".locale.mapping";
 
-    public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.openSearch.indexSettings";
-    public static final String CONFIG_KEY_IGNORED_INDEX_SETTINGS = "target.search.openSearch.ignoredSettings";
-    public static final String CONFIG_KEY_REINDEX_SLICES = "target.search.openSearch.client.reindexSlices";
-    public static final String CONFIG_KEY_REINDEX_TIMEOUT_SECONDS = "target.search.openSearch.client.reindexTimeoutSeconds";
+	public static final String CONFIG_KEY_INDEX_SETTINGS = "target.search.openSearch.indexSettings";
+	public static final String CONFIG_KEY_IGNORED_INDEX_SETTINGS = "target.search.openSearch.ignoredSettings";
+	public static final String CONFIG_KEY_REINDEX_SLICES = "target.search.openSearch.client.reindexSlices";
+	public static final String CONFIG_KEY_REINDEX_TIMEOUT_SECONDS = "target.search.openSearch.client.reindexTimeoutSeconds";
 
-    public static final String CONFIG_KEY_KEY = "key";
+	public static final String CONFIG_KEY_KEY = "key";
 
-    public static final String CONFIG_KEY_VALUE = "value";
+	public static final String CONFIG_KEY_VALUE = "value";
 
-    /**
-     * The global cluster, used for connecting to a single cluster for read &amp; write operations
-     */
-    public final OpenSearchClusterConfig globalCluster;
+	/**
+	 * The global cluster, used for connecting to a single cluster for read &amp; write operations
+	 */
+	public final OpenSearchClusterConfig globalCluster;
 
-    /**
-     * The read cluster, used for connecting to multiple clusters
-     */
-    public final OpenSearchClusterConfig readCluster;
+	/**
+	 * The read cluster, used for connecting to multiple clusters
+	 */
+	public final OpenSearchClusterConfig readCluster;
 
-    /**
-     * The write clusters, used for connecting to multiple clusters
-     */
-    public final List<OpenSearchClusterConfig> writeClusters;
+	/**
+	 * The write clusters, used for connecting to multiple clusters
+	 */
+	public final List<OpenSearchClusterConfig> writeClusters;
 
-    /**
-     * Mapping of locale codes to OpenSearch language analyzers
-     */
-    public final Map<String, String> localeMapping = new HashMap<>();
+	/**
+	 * Mapping of locale codes to OpenSearch language analyzers
+	 */
+	public final Map<String, String> localeMapping = new HashMap<>();
 
-    public final Map<String, String> indexSettings;
-    public final Set<String> ignoredSettings;
-    public final int reindexSlices;
-    public final int reindexTimeoutSeconds;
+	public final Map<String, String> indexSettings;
+	public final Set<String> ignoredSettings;
+	public final int reindexSlices;
+	public final int reindexTimeoutSeconds;
 
-    @ConstructorProperties({"config"})
-    public OpenSearchConfig(HierarchicalConfiguration<?> config) {
-        if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_GLOBAL_CLUSTER))) {
-            globalCluster = new OpenSearchClusterConfig(config.configurationAt(CONFIG_KEY_GLOBAL_CLUSTER));
-        } else {
-            globalCluster = new OpenSearchClusterConfig();
-        }
-        if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_READ_CLUSTER))) {
-            readCluster = new OpenSearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
-                globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
-                    globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive);
-        } else {
-            readCluster = new OpenSearchClusterConfig();
-        }
-        writeClusters = config.configurationsAt(CONFIG_KEY_WRITE_CLUSTERS)
-            .stream()
-            .map(cluster -> new OpenSearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
-                    globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount,
-                    globalCluster.keepAlive))
-            .collect(toList());
-        if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
-            throw new IllegalStateException("Invalid OpenSearch configuration");
-        }
+	@ConstructorProperties({"config"})
+	public OpenSearchConfig(HierarchicalConfiguration<?> config) {
+		if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_GLOBAL_CLUSTER))) {
+			globalCluster = new OpenSearchClusterConfig(config.configurationAt(CONFIG_KEY_GLOBAL_CLUSTER));
+		} else {
+			globalCluster = new OpenSearchClusterConfig();
+		}
+		if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_READ_CLUSTER))) {
+			readCluster = new OpenSearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
+				globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
+				globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive);
+		} else {
+			readCluster = new OpenSearchClusterConfig();
+		}
+		writeClusters = config.configurationsAt(CONFIG_KEY_WRITE_CLUSTERS)
+			.stream()
+			.map(cluster -> new OpenSearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
+				globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount,
+				globalCluster.keepAlive))
+			.collect(toList());
+		if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
+			throw new IllegalStateException("Invalid OpenSearch configuration");
+		}
 
-        Configuration mapping = config.configurationAt(CONFIG_KEY_LOCALE_MAPPING);
-        mapping.getKeys().forEachRemaining(key -> localeMapping.put(key, mapping.getString(key)));
+		Configuration mapping = config.configurationAt(CONFIG_KEY_LOCALE_MAPPING);
+		mapping.getKeys().forEachRemaining(key -> localeMapping.put(key, mapping.getString(key)));
 
-        indexSettings = new HashMap<>();
-        config.configurationsAt(CONFIG_KEY_INDEX_SETTINGS).forEach(settingConfig ->
-                indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
-        ignoredSettings = new HashSet<>(Arrays.asList(config.getStringArray(CONFIG_KEY_IGNORED_INDEX_SETTINGS)));
+		indexSettings = new HashMap<>();
+		config.configurationsAt(CONFIG_KEY_INDEX_SETTINGS).forEach(settingConfig ->
+			indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
+		ignoredSettings = new HashSet<>(Arrays.asList(config.getStringArray(CONFIG_KEY_IGNORED_INDEX_SETTINGS)));
 
-        reindexSlices = config.getInt(CONFIG_KEY_REINDEX_SLICES);
-        reindexTimeoutSeconds = config.getInt(CONFIG_KEY_REINDEX_TIMEOUT_SECONDS);
-    }
+		reindexSlices = config.getInt(CONFIG_KEY_REINDEX_SLICES);
+		reindexTimeoutSeconds = config.getInt(CONFIG_KEY_REINDEX_TIMEOUT_SECONDS);
+	}
 
-    /**
-     * Indicates if a single cluster should be used, only if any of the read or write clusters is missing
-     */
-    public boolean useSingleCluster() {
-        return ArrayUtils.isEmpty(readCluster.urls) || isEmpty(writeClusters);
-    }
+	/**
+	 * Indicates if a single cluster should be used, only if any of the read or write clusters is missing
+	 */
+	public boolean useSingleCluster() {
+		return ArrayUtils.isEmpty(readCluster.urls) || isEmpty(writeClusters);
+	}
 
-    public Map<String, String> getLocaleMapping() {
-        return localeMapping;
-    }
+	public Map<String, String> getLocaleMapping() {
+		return localeMapping;
+	}
 
 }

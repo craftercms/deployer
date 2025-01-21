@@ -43,52 +43,52 @@ import static org.apache.commons.collections4.CollectionUtils.isEmpty;
 @Component("deploymentService")
 public class DeploymentServiceImpl implements DeploymentService {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
-    protected final TargetService targetService;
+	protected final TargetService targetService;
 
-    @Autowired
-    public DeploymentServiceImpl(TargetService targetService) {
-        this.targetService = targetService;
-    }
+	@Autowired
+	public DeploymentServiceImpl(TargetService targetService) {
+		this.targetService = targetService;
+	}
 
-    @Override
-    public List<Deployment> deployAllTargets(boolean waitTillDone,
-                                             Map<String, Object> params) throws DeploymentServiceException {
-        List<Target> targets;
-        try {
-            targets = targetService.getAllTargets();
-        } catch (TargetServiceException e) {
-            throw new DeploymentServiceException("Unable to retrieve list of targets", e);
-        }
+	@Override
+	public List<Deployment> deployAllTargets(boolean waitTillDone,
+						 Map<String, Object> params) throws DeploymentServiceException {
+		List<Target> targets;
+		try {
+			targets = targetService.getAllTargets();
+		} catch (TargetServiceException e) {
+			throw new DeploymentServiceException("Unable to retrieve list of targets", e);
+		}
 
-        List<Deployment> deployments = new ArrayList<>();
+		List<Deployment> deployments = new ArrayList<>();
 
-        if (isEmpty(targets)) {
-            return deployments;
-        }
-        for (Target target : targets) {
-            Deployment deployment;
-            try {
-                deployment = target.deploy(waitTillDone, params);
-                deployments.add(deployment);
-            } catch (TargetNotReadyException e) {
-                logger.error(e.getMessage());
-            }
-        }
+		if (isEmpty(targets)) {
+			return deployments;
+		}
+		for (Target target : targets) {
+			Deployment deployment;
+			try {
+				deployment = target.deploy(waitTillDone, params);
+				deployments.add(deployment);
+			} catch (TargetNotReadyException e) {
+				logger.error(e.getMessage());
+			}
+		}
 
-        return deployments;
-    }
+		return deployments;
+	}
 
-    @Override
-    public Deployment deployTarget(String env, String siteName, boolean waitTillDone,
-                                   Map<String, Object> params) throws TargetNotFoundException,
-                                                                      DeploymentServiceException {
-        try {
-            return targetService.getTarget(env, siteName).deploy(waitTillDone, params);
-        } catch (TargetServiceException | TargetNotReadyException e) {
-            throw new DeploymentServiceException(format("Error while deploying target '%s'", TargetImpl.getId(env, siteName)), e);
-        }
-    }
+	@Override
+	public Deployment deployTarget(String env, String siteName, boolean waitTillDone,
+				       Map<String, Object> params) throws TargetNotFoundException,
+		DeploymentServiceException {
+		try {
+			return targetService.getTarget(env, siteName).deploy(waitTillDone, params);
+		} catch (TargetServiceException | TargetNotReadyException e) {
+			throw new DeploymentServiceException(format("Error while deploying target '%s'", TargetImpl.getId(env, siteName)), e);
+		}
+	}
 
 }

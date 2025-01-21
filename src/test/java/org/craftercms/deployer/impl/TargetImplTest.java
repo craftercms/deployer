@@ -39,89 +39,89 @@ import static org.mockito.Mockito.*;
  */
 public class TargetImplTest {
 
-    private static final String TEST_ENV = "test";
-    private static final String TEST_SITE_NAME = "test";
+	private static final String TEST_ENV = "test";
+	private static final String TEST_SITE_NAME = "test";
 
-    private volatile int count;
-    private TargetImpl target;
+	private volatile int count;
+	private TargetImpl target;
 
-    @Before
-    public void setUp() throws Exception {
-        count = 0;
-        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, null, null, createConfig(), null,
-            Executors.newSingleThreadExecutor(), null, createTargetLifecycleHooksResolver(),
-            createDeploymentPipelineFactory());
-    }
+	@Before
+	public void setUp() throws Exception {
+		count = 0;
+		target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, null, null, createConfig(), null,
+			Executors.newSingleThreadExecutor(), null, createTargetLifecycleHooksResolver(),
+			createDeploymentPipelineFactory());
+	}
 
-    @Test
-    public void testDeploy() throws Exception {
-        try {
-            target.deploy(false, new HashMap<>());
-            fail("TargetNotReadyException expected");
-        } catch (TargetNotReadyException e) {
-            // All good
-        }
+	@Test
+	public void testDeploy() throws Exception {
+		try {
+			target.deploy(false, new HashMap<>());
+			fail("TargetNotReadyException expected");
+		} catch (TargetNotReadyException e) {
+			// All good
+		}
 
-        target.init();
+		target.init();
 
-        Deployment dep1 = target.deploy(false, new HashMap<>());
-        Deployment dep2 = target.deploy(false, new HashMap<>());
-        Deployment dep3 = target.deploy(false, new HashMap<>());
+		Deployment dep1 = target.deploy(false, new HashMap<>());
+		Deployment dep2 = target.deploy(false, new HashMap<>());
+		Deployment dep3 = target.deploy(false, new HashMap<>());
 
-        assertEquals(3, target.getAllDeployments().size());
+		assertEquals(3, target.getAllDeployments().size());
 
-        Thread.sleep(7000);
+		Thread.sleep(7000);
 
-        assertNotNull(dep1.getEnd());
-        assertEquals(Deployment.Status.SUCCESS, dep1.getStatus());
-        assertNotNull(dep2.getEnd());
-        assertEquals(Deployment.Status.SUCCESS, dep2.getStatus());
-        assertNotNull(dep3.getEnd());
-        assertEquals(Deployment.Status.SUCCESS, dep3.getStatus());
-        assertEquals(3, count);
-    }
+		assertNotNull(dep1.getEnd());
+		assertEquals(Deployment.Status.SUCCESS, dep1.getStatus());
+		assertNotNull(dep2.getEnd());
+		assertEquals(Deployment.Status.SUCCESS, dep2.getStatus());
+		assertNotNull(dep3.getEnd());
+		assertEquals(Deployment.Status.SUCCESS, dep3.getStatus());
+		assertEquals(3, count);
+	}
 
-    @SuppressWarnings("unchecked")
-    private HierarchicalConfiguration<ImmutableNode> createConfig() {
-        return mock(HierarchicalConfiguration.class);
-    }
+	@SuppressWarnings("unchecked")
+	private HierarchicalConfiguration<ImmutableNode> createConfig() {
+		return mock(HierarchicalConfiguration.class);
+	}
 
-    private TargetLifecycleHooksResolver createTargetLifecycleHooksResolver()
-            throws DeployerException, ConfigurationException {
-        TargetLifecycleHooksResolver resolver = mock(TargetLifecycleHooksResolver.class);
-        when(resolver.getHooks(any(), any(), anyString())).thenReturn(Collections.emptyList());
+	private TargetLifecycleHooksResolver createTargetLifecycleHooksResolver()
+		throws DeployerException, ConfigurationException {
+		TargetLifecycleHooksResolver resolver = mock(TargetLifecycleHooksResolver.class);
+		when(resolver.getHooks(any(), any(), anyString())).thenReturn(Collections.emptyList());
 
-        return resolver;
-    }
+		return resolver;
+	}
 
-    private DeploymentPipelineFactory createDeploymentPipelineFactory()
-            throws DeployerException, ConfigurationException {
-        DeploymentPipeline pipeline = createDeploymentPipeline();
-        DeploymentPipelineFactory factory = mock(DeploymentPipelineFactory.class);
+	private DeploymentPipelineFactory createDeploymentPipelineFactory()
+		throws DeployerException, ConfigurationException {
+		DeploymentPipeline pipeline = createDeploymentPipeline();
+		DeploymentPipelineFactory factory = mock(DeploymentPipelineFactory.class);
 
-        when(factory.getPipeline(any(), any(), anyString())).thenReturn(pipeline);
+		when(factory.getPipeline(any(), any(), anyString())).thenReturn(pipeline);
 
-        return factory;
-    }
+		return factory;
+	}
 
-    private DeploymentPipeline createDeploymentPipeline() {
-        DeploymentPipeline pipeline = mock(DeploymentPipeline.class);
-        doAnswer(invocationOnMock -> {
-            Deployment deployment = (Deployment)invocationOnMock.getArguments()[0];
-            deployment.start();
+	private DeploymentPipeline createDeploymentPipeline() {
+		DeploymentPipeline pipeline = mock(DeploymentPipeline.class);
+		doAnswer(invocationOnMock -> {
+			Deployment deployment = (Deployment) invocationOnMock.getArguments()[0];
+			deployment.start();
 
-            int currentCount = ++count;
+			int currentCount = ++count;
 
-            Thread.sleep(2000);
+			Thread.sleep(2000);
 
-            assertEquals(currentCount, count);
+			assertEquals(currentCount, count);
 
-            deployment.end(Deployment.Status.SUCCESS);
+			deployment.end(Deployment.Status.SUCCESS);
 
-            return null;
-        }).when(pipeline).execute(any(Deployment.class));
+			return null;
+		}).when(pipeline).execute(any(Deployment.class));
 
-        return pipeline;
-    }
+		return pipeline;
+	}
 
 }

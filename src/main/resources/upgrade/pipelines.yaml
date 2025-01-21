@@ -15,102 +15,102 @@
 # Crafter Deployer Upgrade Manager Configuration
 
 pipelines:
-  target:
-    requires: '>=1.7'
-    versions:
-      - currentVersion: 1.7
-        nextVersion: 2.0
-        operations:
-          - type: processorUpgrader
-            processor: '.+IndexingProcessor'
-            add:
-              - property: excludeFiles
-                values:
-                  - '^/sources/.*$'
-      - currentVersion: 2.0
-        nextVersion: 2.1
-        operations:
-          - type: addProcessorUpgrader
-            envPattern: authoring
-            processor: httpMethodCallProcessor
-            properties:
-              - property: includeFiles
-                values: [ "^/?config/studio/plugins/classes/.*$" ]
-              - property: method
-                value: GET
-              - property: url
-                value: ${target.studioUrl}/api/2/plugin/script/reload.json?siteId=${target.siteName}&token=${target.studioManagementToken}
-            beforeProcessor: fileOutputProcessor
-      - currentVersion: 2.1
-        nextVersion: 2.2
-        operations:
-          - type: replaceProcessorUpgrader
-            envPattern: (preview|default)
-            processor: searchIndexingProcessor
-            newProcessor: elasticsearchIndexingProcessor
-          - type: removePropertyUpgrader
-            envPattern: (preview|default)
-            property: target.crafterSearchEnabled
-      - currentVersion: 2.2
-        nextVersion: 2.3
-        operations:
-          - type: processorUpgrader
-            envPattern: authoring
-            processor: 'httpMethodCallProcessor'
-            replace:
-              - property: includeFiles
-                pattern: studio/plugins/classes
-                expression: studio/scripts/classes
-      - currentVersion: 2.3
-        nextVersion: 2.4
-        operations:
-          - type: processorUpgrader
-            envPattern: authoring
-            processor: 'authoringElasticsearchIndexingProcessor'
-            add:
-              - property: excludeFiles
-                values:
-                  - '^/\.crafter/.*$'
-      - currentVersion: 2.4
-        nextVersion: 2.5
-        operations:
-          - type: replaceProcessorUpgrader
-            processor: elasticsearchIndexingProcessor
-            newProcessor: searchIndexingProcessor
-          - type: replaceProcessorUpgrader
-            processor: authoringElasticsearchIndexingProcessor
-            newProcessor: authoringSearchIndexingProcessor
-      - currentVersion: 2.5
-        nextVersion: 2.6
-        operations:
-          - type: removeProcessorUpgrader
-            envPattern: preview
-            processor: httpMethodCallProcessor
-            properties:
-              - property: includeFiles
-                values: ["^/?config/.*$", "^/?scripts/.*$"]
-              - property: excludeFiles
-                values: ["^/?config/studio/content-types.*$"]
-              - property: method
-                value: GET
-              - property: url
-                value: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
-              - property: jumpTo
-                value: fileOutputProcessor
-
-      # Upgrade entrypoint
-      - currentVersion: 2.6
-        nextVersion: 4.1.3-t
-      - currentVersion: 4.0.8.0
-        nextVersion: 4.1.3-t
-      # New version format
-      - currentVersion: 4.1.3-t
-        nextVersion: 4.1.3.0
-        # Added recent operations in case of upgrade from 4.0.x
-        operations:
-          - type: replaceProcessorUpgrader
-            processor: elasticsearchIndexingProcessor
-            newProcessor: searchIndexingProcessor
-          - type: replaceProcessorUpgrader
-            processor: authoringElasticsearchIndexingProcessor
-            newProcessor: authoringSearchIndexingProcessor
+    target:
+        requires: '>=1.7'
+        versions:
+            -   currentVersion: 1.7
+                nextVersion: 2.0
+                operations:
+                    -   type: processorUpgrader
+                        processor: '.+IndexingProcessor'
+                        add:
+                            -   property: excludeFiles
+                                values:
+                                    - '^/sources/.*$'
+            -   currentVersion: 2.0
+                nextVersion: 2.1
+                operations:
+                    -   type: addProcessorUpgrader
+                        envPattern: authoring
+                        processor: httpMethodCallProcessor
+                        properties:
+                            -   property: includeFiles
+                                values: [ "^/?config/studio/plugins/classes/.*$" ]
+                            -   property: method
+                                value: GET
+                            -   property: url
+                                value: ${target.studioUrl}/api/2/plugin/script/reload.json?siteId=${target.siteName}&token=${target.studioManagementToken}
+                        beforeProcessor: fileOutputProcessor
+            -   currentVersion: 2.1
+                nextVersion: 2.2
+                operations:
+                    -   type: replaceProcessorUpgrader
+                        envPattern: (preview|default)
+                        processor: searchIndexingProcessor
+                        newProcessor: elasticsearchIndexingProcessor
+                    -   type: removePropertyUpgrader
+                        envPattern: (preview|default)
+                        property: target.crafterSearchEnabled
+            -   currentVersion: 2.2
+                nextVersion: 2.3
+                operations:
+                    -   type: processorUpgrader
+                        envPattern: authoring
+                        processor: 'httpMethodCallProcessor'
+                        replace:
+                            -   property: includeFiles
+                                pattern: studio/plugins/classes
+                                expression: studio/scripts/classes
+            -   currentVersion: 2.3
+                nextVersion: 2.4
+                operations:
+                    -   type: processorUpgrader
+                        envPattern: authoring
+                        processor: 'authoringElasticsearchIndexingProcessor'
+                        add:
+                            -   property: excludeFiles
+                                values:
+                                    - '^/\.crafter/.*$'
+            -   currentVersion: 2.4
+                nextVersion: 2.5
+                operations:
+                    -   type: replaceProcessorUpgrader
+                        processor: elasticsearchIndexingProcessor
+                        newProcessor: searchIndexingProcessor
+                    -   type: replaceProcessorUpgrader
+                        processor: authoringElasticsearchIndexingProcessor
+                        newProcessor: authoringSearchIndexingProcessor
+            -   currentVersion: 2.5
+                nextVersion: 2.6
+                operations:
+                    -   type: removeProcessorUpgrader
+                        envPattern: preview
+                        processor: httpMethodCallProcessor
+                        properties:
+                            -   property: includeFiles
+                                values: [ "^/?config/.*$", "^/?scripts/.*$" ]
+                            -   property: excludeFiles
+                                values: [ "^/?config/studio/content-types.*$" ]
+                            -   property: method
+                                value: GET
+                            -   property: url
+                                value: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
+                            -   property: jumpTo
+                                value: fileOutputProcessor
+            
+            # Upgrade entrypoint
+            -   currentVersion: 2.6
+                nextVersion: 4.1.3-t
+            -   currentVersion: 4.0.8.0
+                nextVersion: 4.1.3-t
+            # New version format
+            -   currentVersion: 4.1.3-t
+                nextVersion: 4.1.3.0
+                # Added recent operations in case of upgrade from 4.0.x
+                operations:
+                    -   type: replaceProcessorUpgrader
+                        processor: elasticsearchIndexingProcessor
+                        newProcessor: searchIndexingProcessor
+                    -   type: replaceProcessorUpgrader
+                        processor: authoringElasticsearchIndexingProcessor
+                        newProcessor: authoringSearchIndexingProcessor

@@ -23,28 +23,28 @@ import software.amazon.awssdk.services.s3.S3Uri;
  */
 public final class AwsS3Utils {
 
-    static final String MACRO_SITENAME = "{siteName}";
-    public static final int MAX_DELETE_KEYS_PER_REQUEST = 1000;
+	static final String MACRO_SITENAME = "{siteName}";
+	public static final int MAX_DELETE_KEYS_PER_REQUEST = 1000;
 
-    /**
-     * Returns the base key from the S3 URL, making sure to replace the {@code {siteName}} macro instances
-     *
-     * @param s3Url    the S3 URL
-     * @param siteName the site name
-     */
-    public static String getS3BaseKey(S3Uri s3Url, String siteName) {
-        String baseKey = s3Url.key().orElse(StringUtils.EMPTY);
-        return baseKey.replace(MACRO_SITENAME, siteName);
-    }
+	/**
+	 * Returns the base key from the S3 URL, making sure to replace the {@code {siteName}} macro instances
+	 *
+	 * @param s3Url    the S3 URL
+	 * @param siteName the site name
+	 */
+	public static String getS3BaseKey(S3Uri s3Url, String siteName) {
+		String baseKey = s3Url.key().orElse(StringUtils.EMPTY);
+		return baseKey.replace(MACRO_SITENAME, siteName);
+	}
 
-    /**
-     * Returns the bucket from the S3 URL, making sure to replace the {@code {siteName}} macro instances
-     *
-     * @param s3Url    the S3 URL
-     * @param siteName the site name
-     */
-    public static String getBucket(S3Uri s3Url, String siteName) {
-        String bucket = s3Url.bucket().orElse(StringUtils.EMPTY);
-        return bucket.replace(MACRO_SITENAME, siteName);
-    }
+	/**
+	 * Returns the bucket from the S3 URL, making sure to replace the {@code {siteName}} macro instances
+	 *
+	 * @param s3Url    the S3 URL
+	 * @param siteName the site name
+	 */
+	public static String getBucket(S3Uri s3Url, String siteName) {
+		String bucket = s3Url.bucket().orElse(StringUtils.EMPTY);
+		return bucket.replace(MACRO_SITENAME, siteName);
+	}
 }

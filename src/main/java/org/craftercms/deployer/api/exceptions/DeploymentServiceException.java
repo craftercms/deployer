@@ -22,12 +22,12 @@ package org.craftercms.deployer.api.exceptions;
  */
 public class DeploymentServiceException extends DeployerException {
 
-    public DeploymentServiceException(Throwable cause) {
-        super(cause);
-    }
+	public DeploymentServiceException(Throwable cause) {
+		super(cause);
+	}
 
-    public DeploymentServiceException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public DeploymentServiceException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
 }

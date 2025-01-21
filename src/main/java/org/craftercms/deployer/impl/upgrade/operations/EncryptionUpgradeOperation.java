@@ -37,47 +37,47 @@ import java.util.regex.Pattern;
  */
 public class EncryptionUpgradeOperation extends AbstractUpgradeOperation<Target> {
 
-    protected static String DEFAULT_ENCRYPTED_PATTERN = "\\$\\{enc:([^}#]+)}";
+	protected static String DEFAULT_ENCRYPTED_PATTERN = "\\$\\{enc:([^}#]+)}";
 
-    protected Pattern encryptedPattern;
+	protected Pattern encryptedPattern;
 
-    protected TextEncryptor textEncryptor;
+	protected TextEncryptor textEncryptor;
 
-    public EncryptionUpgradeOperation(TextEncryptor textEncryptor) {
-        this.encryptedPattern = Pattern.compile(DEFAULT_ENCRYPTED_PATTERN);
-        this.textEncryptor = textEncryptor;
-    }
+	public EncryptionUpgradeOperation(TextEncryptor textEncryptor) {
+		this.encryptedPattern = Pattern.compile(DEFAULT_ENCRYPTED_PATTERN);
+		this.textEncryptor = textEncryptor;
+	}
 
-    @Override
-    protected void doExecute(UpgradeContext<Target> context) throws Exception {
-        File file = context.getTarget().getConfigurationFile();
+	@Override
+	protected void doExecute(UpgradeContext<Target> context) throws Exception {
+		File file = context.getTarget().getConfigurationFile();
 
-        String content;
-        try (Reader reader = new FileReader(file)) {
-            content = IOUtils.toString(reader);
-        }
+		String content;
+		try (Reader reader = new FileReader(file)) {
+			content = IOUtils.toString(reader);
+		}
 
-        Matcher matcher = encryptedPattern.matcher(content);
-        boolean updateFile = matcher.matches();
-        // for each one
-        while(matcher.find()) {
-            String encryptedValue = matcher.group(1);
-            // decrypt it
-            String originalValue = textEncryptor.decrypt(encryptedValue);
-            // encrypt it again
-            String newValue = textEncryptor.encrypt(originalValue);
-            // replace it
-            content = content.replaceAll(encryptedValue, newValue);
+		Matcher matcher = encryptedPattern.matcher(content);
+		boolean updateFile = matcher.matches();
+		// for each one
+		while (matcher.find()) {
+			String encryptedValue = matcher.group(1);
+			// decrypt it
+			String originalValue = textEncryptor.decrypt(encryptedValue);
+			// encrypt it again
+			String newValue = textEncryptor.encrypt(originalValue);
+			// replace it
+			content = content.replaceAll(encryptedValue, newValue);
 
-            updateFile = true;
-        }
+			updateFile = true;
+		}
 
-        // update the file if needed
-        if (updateFile) {
-            try (Writer writer = new FileWriter(file)) {
-                IOUtils.write(content, writer);
-            }
-        }
-    }
+		// update the file if needed
+		if (updateFile) {
+			try (Writer writer = new FileWriter(file)) {
+				IOUtils.write(content, writer);
+			}
+		}
+	}
 
 }

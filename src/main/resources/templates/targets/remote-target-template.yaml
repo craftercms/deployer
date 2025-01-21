@@ -1,79 +1,79 @@
 version: '2.4'
 target:
-  env: {{env}}
-  siteName: {{site_name}}
-  {{#if source_target}}
-  sourceSiteName: {{source_target.siteName}}
-  {{/if}}
-  lifecycleHooks:
-    delete:
-      - hookName: deleteLocalRepoFolderLifecycleHook
-  deployment:
-    {{#if disable_deploy_cron}}
-    scheduling:
-       enabled: false
+    env: {{env}}
+    siteName: {{site_name}}
+  { { #if source_target}}
+      sourceSiteName: {{source_target.siteName } }
     {{/if}}
-    pipeline:
-      - processorName: gitPullProcessor
-        # Allow to pass the options --ff (FF), --no-ff (NO_FF) or --ff-only (FF_ONLY) to git pull. Default is FF.
-        fastForwardMode: {{#if fast_forward_mode}}{{fast_forward_mode}}{{else}}FF{{/if}}
-        # Indicate to jgit what to do when facing a merge conflict. Available values are CONFLICT, OURS, THEIRS, UNION. Default is CONFLICT
-        contentMergeOption: {{#if content_merge_option}}{{content_merge_option}}{{else}}CONFLICT{{/if}}
-        # The merge strategy for jgit pull command. Available values are ours, theirs, simple-two-way-in-core, resolve, recursive. Default is theirs
-        mergeStrategy: {{#if merge_strategy}}{{merge_strategy}}{{else}}theirs{{/if}}
-        remoteRepo:
-          url: {{repo_url}}
-          branch: {{#if repo_branch}}{{repo_branch}}{{else}}live{{/if}}
-          {{#if repo_username}}
-          username: {{repo_username}}
-          {{/if}}
-          {{#if repo_password}}
-          password: {{repo_password}}
-          {{/if}}
-          {{#if ssh_private_key_path}}
-          ssh:
-            privateKey:
-              path: {{ssh_private_key_path}}
-              {{#if ssh_private_key_passphrase}}
-              passphrase: {{ssh_private_key_passphrase}}
-              {{/if}}
-          {{/if}}
-      - processorName: gitDiffProcessor
-      - processorName: searchIndexingProcessor
-        excludeFiles: ['^/sources/.*$']
-      - processorName: httpMethodCallProcessor
-        includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
-        excludeFiles: ["^/?config/studio/content-types.*$"]
-        method: GET
-        url: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
-        jumpTo: fileOutputProcessor
-      - processorName: httpMethodCallProcessor
-        method: GET
-        url: ${target.engineUrl}/api/1/site/cache/clear.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
-      - processorName: httpMethodCallProcessor
-        includeFiles: ["^/?config/studio/content-types.*$"]
-        method: GET
-        url: ${target.engineUrl}/api/1/site/context/graphql/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
-      - processorName: fileOutputProcessor
-        processorLabel: fileOutputProcessor
-      {{#if notification_addresses}}
-      - processorName: mailNotificationProcessor
-        to:
-          {{#list notification_addresses}}
-          - {{this}}
-          {{/list}}
-      - processorName: mailNotificationProcessor
-        status: ON_ANY_FAILURE
-        mutePeriodMinutes: {{#if mute_period_minutes}}{{mute_period_minutes}}{{else}}60{{/if}}
-        to:
-          {{#list notification_addresses}}
-          - {{this}}
-          {{/list}}
-      {{/if}}
-      {{#if webhook_url}}
-      - processorName: webhookNotificationProcessor
-        status: ON_ANY_FAILURE
-        mutePeriodMinutes: {{#if mute_period_minutes}}{{mute_period_minutes}}{{else}}60{{/if}}
-        url: {{webhook_url}}
-        method: POST
-      {{/if}}
+    lifecycleHooks:
+        delete:
+            -   hookName: deleteLocalRepoFolderLifecycleHook
+    deployment:
+      { { #if disable_deploy_cron}}
+          scheduling:
+              enabled: false
+              {{/if } }
+        pipeline:
+            -   processorName: gitPullProcessor
+                # Allow to pass the options --ff (FF), --no-ff (NO_FF) or --ff-only (FF_ONLY) to git pull. Default is FF.
+                fastForwardMode: { { #if fast_forward_mode}}{{fast_forward_mode}}{{else}}FF{{/if}}
+                  # Indicate to jgit what to do when facing a merge conflict. Available values are CONFLICT, OURS, THEIRS, UNION. Default is CONFLICT
+                    contentMergeOption: { { #if content_merge_option}}{{content_merge_option}}{{else}}CONFLICT{{/if}}
+                      # The merge strategy for jgit pull command. Available values are ours, theirs, simple-two-way-in-core, resolve, recursive. Default is theirs
+                        mergeStrategy: { { #if merge_strategy}}{{merge_strategy}}{{else}}theirs{{/if}}
+                            remoteRepo:
+                                url: {{repo_url } }
+                            branch: { { #if repo_branch}}{{repo_branch}}{{else}}live{{/if}}
+                              { { #if repo_username}}
+                                  username: {{repo_username } }
+                              {{/if } }
+                          { { #if repo_password}}
+                              password: {{repo_password } }
+                            {{/if } }
+                      { { #if ssh_private_key_path}}
+                          ssh:
+                              privateKey:
+                                  path: {{ssh_private_key_path } }
+                      { { #if ssh_private_key_passphrase}}
+                          passphrase: {{ssh_private_key_passphrase } }
+                                            {{/if } }
+                                     {{/if}}
+            -   processorName: gitDiffProcessor
+            -   processorName: searchIndexingProcessor
+                excludeFiles: [ '^/sources/.*$' ]
+            -   processorName: httpMethodCallProcessor
+                includeFiles: [ "^/?config/.*$", "^/?scripts/.*$" ]
+                excludeFiles: [ "^/?config/studio/content-types.*$" ]
+                method: GET
+                url: ${target.engineUrl}/api/1/site/context/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
+                jumpTo: fileOutputProcessor
+            -   processorName: httpMethodCallProcessor
+                method: GET
+                url: ${target.engineUrl}/api/1/site/cache/clear.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
+            -   processorName: httpMethodCallProcessor
+                includeFiles: [ "^/?config/studio/content-types.*$" ]
+                method: GET
+                url: ${target.engineUrl}/api/1/site/context/graphql/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
+            -   processorName: fileOutputProcessor
+                processorLabel: fileOutputProcessor
+          { { #if notification_addresses}}
+                -   processorName: mailNotificationProcessor
+                        to:
+                          { { #list notification_addresses}}
+                                - {{this } }
+                              {{/list } }
+            -   processorName: mailNotificationProcessor
+                status: ON_ANY_FAILURE
+                mutePeriodMinutes: { { #if mute_period_minutes}}{{mute_period_minutes}}{{else}}60{{/if}}
+                    to:
+                      { { #list notification_addresses}}
+                            - {{this } }
+                          {{/list } }
+            {{/if}}
+          { { #if webhook_url}}
+                -   processorName: webhookNotificationProcessor
+                        status: ON_ANY_FAILURE
+                        mutePeriodMinutes: { { #if mute_period_minutes}}{{mute_period_minutes}}{{else}}60{{/if}}
+                            url: {{webhook_url } }
+                        method: POST
+                        {{/if } }

@@ -31,29 +31,29 @@ import org.slf4j.LoggerFactory;
  */
 public abstract class AbstractLifecycleHook implements TargetLifecycleHook {
 
-    public static final String CONFIG_KEY_DISABLED = "disabled";
+	public static final String CONFIG_KEY_DISABLED = "disabled";
 
-    protected Logger logger = LoggerFactory.getLogger(getClass());
+	protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    protected boolean disabled;
+	protected boolean disabled;
 
-    @Override
-    public void init(Configuration config) throws ConfigurationException, DeployerException {
-        disabled = config.getBoolean(CONFIG_KEY_DISABLED, false);
-        doInit(config);
-    }
+	@Override
+	public void init(Configuration config) throws ConfigurationException, DeployerException {
+		disabled = config.getBoolean(CONFIG_KEY_DISABLED, false);
+		doInit(config);
+	}
 
-    protected abstract void doInit(Configuration config) throws ConfigurationException, DeployerException;
+	protected abstract void doInit(Configuration config) throws ConfigurationException, DeployerException;
 
-    @Override
-    public void execute(Target target) throws DeployerException {
-        if (disabled) {
-            logger.info("Skipping execution for target {}", target.getId());
-        } else {
-            doExecute(target);
-        }
-    }
+	@Override
+	public void execute(Target target) throws DeployerException {
+		if (disabled) {
+			logger.info("Skipping execution for target {}", target.getId());
+		} else {
+			doExecute(target);
+		}
+	}
 
-    protected abstract void doExecute(Target target) throws DeployerException;
+	protected abstract void doExecute(Target target) throws DeployerException;
 
 }

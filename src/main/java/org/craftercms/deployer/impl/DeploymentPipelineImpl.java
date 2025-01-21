@@ -33,55 +33,55 @@ import org.slf4j.LoggerFactory;
  */
 public class DeploymentPipelineImpl implements DeploymentPipeline {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(DeploymentServiceImpl.class);
 
-    protected List<DeploymentProcessor> deploymentProcessors;
+	protected List<DeploymentProcessor> deploymentProcessors;
 
-    public DeploymentPipelineImpl(List<DeploymentProcessor> deploymentProcessors) {
-        this.deploymentProcessors = deploymentProcessors;
-    }
+	public DeploymentPipelineImpl(List<DeploymentProcessor> deploymentProcessors) {
+		this.deploymentProcessors = deploymentProcessors;
+	}
 
-    @Override
-    public void destroy() throws DeployerException {
-        if (CollectionUtils.isNotEmpty(deploymentProcessors)) {
-            for (DeploymentProcessor processor : deploymentProcessors) {
-                try {
-                    processor.destroy();
-                } catch (Exception e) {
-                    logger.error("Failed to destroy processor " + processor, e);
-                }
-            }
-        }
-    }
+	@Override
+	public void destroy() throws DeployerException {
+		if (CollectionUtils.isNotEmpty(deploymentProcessors)) {
+			for (DeploymentProcessor processor : deploymentProcessors) {
+				try {
+					processor.destroy();
+				} catch (Exception e) {
+					logger.error("Failed to destroy processor " + processor, e);
+				}
+			}
+		}
+	}
 
-    @Override
-    public List<DeploymentProcessor> getProcessors() {
-        return Collections.unmodifiableList(deploymentProcessors);
-    }
+	@Override
+	public List<DeploymentProcessor> getProcessors() {
+		return Collections.unmodifiableList(deploymentProcessors);
+	}
 
-    @Override
-    public void execute(Deployment deployment) {
-        deployment.start();
-        try {
-            executeProcessors(deployment);
+	@Override
+	public void execute(Deployment deployment) {
+		deployment.start();
+		try {
+			executeProcessors(deployment);
 
-            deployment.end(Deployment.Status.SUCCESS);
-        } catch (Exception e) {
-            logger.error("Unexpected error occurred while executing deployment pipeline for target '{}'",
-                         deployment.getTarget().getId(), e);
+			deployment.end(Deployment.Status.SUCCESS);
+		} catch (Exception e) {
+			logger.error("Unexpected error occurred while executing deployment pipeline for target '{}'",
+				deployment.getTarget().getId(), e);
 
-            deployment.end(Deployment.Status.FAILURE);
-        }
-    }
+			deployment.end(Deployment.Status.FAILURE);
+		}
+	}
 
-    protected void executeProcessors(Deployment deployment) {
-        if (CollectionUtils.isNotEmpty(deploymentProcessors)) {
-            for (DeploymentProcessor processor : deploymentProcessors) {
-                if (processor.supportsMode(deployment.getMode())) {
-                    processor.execute(deployment);
-                }
-            }
-        }
-    }
+	protected void executeProcessors(Deployment deployment) {
+		if (CollectionUtils.isNotEmpty(deploymentProcessors)) {
+			for (DeploymentProcessor processor : deploymentProcessors) {
+				if (processor.supportsMode(deployment.getMode())) {
+					processor.execute(deployment);
+				}
+			}
+		}
+	}
 
 }

@@ -63,296 +63,296 @@ import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FIL
  */
 public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractSearchIndexingProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractSearchIndexingProcessor.class);
 
-    protected static final String INDEX_ID_CONFIG_KEY = "indexId";
-    protected static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
-    protected static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
-    protected static final String CREATE_INDEX_IF_MISSING_CONFIG_KEY = "createIndexIfMissing";
+	protected static final String INDEX_ID_CONFIG_KEY = "indexId";
+	protected static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
+	protected static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
+	protected static final String CREATE_INDEX_IF_MISSING_CONFIG_KEY = "createIndexIfMissing";
 
-    protected static final Pattern DEFAULT_DESCRIPTOR_PATH_PATTERN = Pattern.compile("^/site/.+\\.xml$");
-    protected static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
-    protected static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
+	protected static final Pattern DEFAULT_DESCRIPTOR_PATH_PATTERN = Pattern.compile("^/site/.+\\.xml$");
+	protected static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
+	protected static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
 
-    protected CacheTemplate cacheTemplate;
-    protected ObjectFactory<Context> contextFactory;
-    protected ContentStoreService contentStoreService;
-    protected List<BatchIndexer> batchIndexers;
-    protected boolean xmlFlatteningEnabled;
-    protected Pattern descriptorPathPattern;
-    protected Pattern componentPathPattern;
-    protected int itemsThatIncludeComponentQueryRows;
-    protected String indexIdFormat;
+	protected CacheTemplate cacheTemplate;
+	protected ObjectFactory<Context> contextFactory;
+	protected ContentStoreService contentStoreService;
+	protected List<BatchIndexer> batchIndexers;
+	protected boolean xmlFlatteningEnabled;
+	protected Pattern descriptorPathPattern;
+	protected Pattern componentPathPattern;
+	protected int itemsThatIncludeComponentQueryRows;
+	protected String indexIdFormat;
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    protected String indexId;
-    protected boolean reindexItemsOnComponentUpdates;
-    protected boolean createIndexIfMissing;
+	protected String indexId;
+	protected boolean reindexItemsOnComponentUpdates;
+	protected boolean createIndexIfMissing;
 
-    public AbstractSearchIndexingProcessor() {
-        this.descriptorPathPattern = DEFAULT_DESCRIPTOR_PATH_PATTERN;
-        this.componentPathPattern = DEFAULT_COMPONENT_PATH_PATTERN;
-        this.itemsThatIncludeComponentQueryRows = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS;
-    }
+	public AbstractSearchIndexingProcessor() {
+		this.descriptorPathPattern = DEFAULT_DESCRIPTOR_PATH_PATTERN;
+		this.componentPathPattern = DEFAULT_COMPONENT_PATH_PATTERN;
+		this.itemsThatIncludeComponentQueryRows = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS;
+	}
 
-    public void setCacheTemplate(final CacheTemplate cacheTemplate) {
-        this.cacheTemplate = cacheTemplate;
-    }
+	public void setCacheTemplate(final CacheTemplate cacheTemplate) {
+		this.cacheTemplate = cacheTemplate;
+	}
 
-    /**
-     * Sets the factory for the {@link Context}.
-     */
-    public void setContextFactory(ObjectFactory<Context> contextFactory) {
-        this.contextFactory = contextFactory;
-    }
+	/**
+	 * Sets the factory for the {@link Context}.
+	 */
+	public void setContextFactory(ObjectFactory<Context> contextFactory) {
+		this.contextFactory = contextFactory;
+	}
 
-    /**
-     * Sets the content store used to retrieve the files to index.
-     */
-    public void setContentStoreService(ContentStoreService contentStoreService) {
-        this.contentStoreService = contentStoreService;
-    }
+	/**
+	 * Sets the content store used to retrieve the files to index.
+	 */
+	public void setContentStoreService(ContentStoreService contentStoreService) {
+		this.contentStoreService = contentStoreService;
+	}
 
-    /**
-     * Sets the single batch indexer used for indexing.
-     */
-    public void setBatchIndexer(BatchIndexer batchIndexer) {
-        this.batchIndexers = Collections.singletonList(batchIndexer);
-    }
+	/**
+	 * Sets the single batch indexer used for indexing.
+	 */
+	public void setBatchIndexer(BatchIndexer batchIndexer) {
+		this.batchIndexers = Collections.singletonList(batchIndexer);
+	}
 
-    /**
-     * Sets the list of batch indexers used for indexing.
-     */
-    public void setBatchIndexers(List<BatchIndexer> batchIndexers) {
-        this.batchIndexers = batchIndexers;
-    }
+	/**
+	 * Sets the list of batch indexers used for indexing.
+	 */
+	public void setBatchIndexers(List<BatchIndexer> batchIndexers) {
+		this.batchIndexers = batchIndexers;
+	}
 
-    /**
-     * Sets whether XML flattening is enabled. Only used in conjunction with {@code reindexItemsOnComponentUpdates}
-     * to see if pages/components should be re-indexed when components they include are updated.
-     */
-    public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {
-        this.xmlFlatteningEnabled = xmlFlatteningEnabled;
-    }
+	/**
+	 * Sets whether XML flattening is enabled. Only used in conjunction with {@code reindexItemsOnComponentUpdates}
+	 * to see if pages/components should be re-indexed when components they include are updated.
+	 */
+	public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {
+		this.xmlFlatteningEnabled = xmlFlatteningEnabled;
+	}
 
-    /**
-     * Sets the regex used to match descriptor paths for detecting inheriting items that should be reindex.
-     */
-    public void setDescriptorPathRegex(String descriptorPathRegex) {
-        descriptorPathPattern = Pattern.compile(descriptorPathRegex);
-    }
+	/**
+	 * Sets the regex used to match descriptor paths for detecting inheriting items that should be reindex.
+	 */
+	public void setDescriptorPathRegex(String descriptorPathRegex) {
+		descriptorPathPattern = Pattern.compile(descriptorPathRegex);
+	}
 
-    /**
-     * Sets the regex used to match component paths (used when {@code reindexItemsOnComponentUpdates} is enabled).
-     */
-    public void setComponentPathRegex(String componentPathRegex) {
-        componentPathPattern = Pattern.compile(componentPathRegex);
-    }
+	/**
+	 * Sets the regex used to match component paths (used when {@code reindexItemsOnComponentUpdates} is enabled).
+	 */
+	public void setComponentPathRegex(String componentPathRegex) {
+		componentPathPattern = Pattern.compile(componentPathRegex);
+	}
 
-    /**
-     * Sets the rows to fetch for the search query used to find items that include components (used when
-     * {@code reindexItemsOnComponentUpdates} is enabled).
-     */
-    public void setItemsThatIncludeComponentQueryRows(int itemsThatIncludeComponentQueryRows) {
-        this.itemsThatIncludeComponentQueryRows = itemsThatIncludeComponentQueryRows;
-    }
+	/**
+	 * Sets the rows to fetch for the search query used to find items that include components (used when
+	 * {@code reindexItemsOnComponentUpdates} is enabled).
+	 */
+	public void setItemsThatIncludeComponentQueryRows(int itemsThatIncludeComponentQueryRows) {
+		this.itemsThatIncludeComponentQueryRows = itemsThatIncludeComponentQueryRows;
+	}
 
-    /**
-     * The format used for the index id
-     */
-    public void setIndexIdFormat(String indexIdFormat) {
-        this.indexIdFormat = indexIdFormat;
-    }
+	/**
+	 * The format used for the index id
+	 */
+	public void setIndexIdFormat(String indexIdFormat) {
+		this.indexIdFormat = indexIdFormat;
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        boolean ignoreIndexId = getBooleanProperty(config, IGNORE_INDEX_ID_CONFIG_KEY, false);
-        if (ignoreIndexId) {
-            indexId = null;
-        } else {
-            indexId = getStringProperty(config, INDEX_ID_CONFIG_KEY);
-            if (StringUtils.isEmpty(indexId)) {
-                indexId = String.format(indexIdFormat, siteName);
-            }
-        }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		boolean ignoreIndexId = getBooleanProperty(config, IGNORE_INDEX_ID_CONFIG_KEY, false);
+		if (ignoreIndexId) {
+			indexId = null;
+		} else {
+			indexId = getStringProperty(config, INDEX_ID_CONFIG_KEY);
+			if (StringUtils.isEmpty(indexId)) {
+				indexId = String.format(indexIdFormat, siteName);
+			}
+		}
 
-        reindexItemsOnComponentUpdates = getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES, true);
+		reindexItemsOnComponentUpdates = getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES, true);
 
-        createIndexIfMissing = getBooleanProperty(config, CREATE_INDEX_IF_MISSING_CONFIG_KEY, true);
+		createIndexIfMissing = getBooleanProperty(config, CREATE_INDEX_IF_MISSING_CONFIG_KEY, true);
 
-        if (CollectionUtils.isEmpty(batchIndexers)) {
-            throw new IllegalStateException("At least one batch indexer should be provided");
-        }
-    }
+		if (CollectionUtils.isEmpty(batchIndexers)) {
+			throw new IllegalStateException("At least one batch indexer should be provided");
+		}
+	}
 
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
-    @Override
-    public boolean supportsMode(Deployment.Mode mode) {
-        return mode == Deployment.Mode.PUBLISH || mode == Deployment.Mode.SEARCH_INDEX;
-    }
+	@Override
+	public boolean supportsMode(Deployment.Mode mode) {
+		return mode == Deployment.Mode.PUBLISH || mode == Deployment.Mode.SEARCH_INDEX;
+	}
 
-    protected abstract void doCreateIndexIfMissing();
+	protected abstract void doCreateIndexIfMissing();
 
-    /**
-     * Expand changeSet by adding pages/components that need to be updated because a component that they include was updated.
-     *
-     * @param changeSet original change set
-     * @return filtered change set
-     */
-    protected ChangeSet expandChangeSet(ChangeSet changeSet) {
-        if (createIndexIfMissing) {
-            logger.info("Ensuring that index {} exists", indexId);
-            doCreateIndexIfMissing();
-        }
-        boolean isReprocessAll = BooleanUtils.toBoolean(getDeploymentParam(REPROCESS_ALL_FILES_PARAM_NAME));
-        if (changeSet == null || changeSet.isEmpty() || !xmlFlatteningEnabled || isReprocessAll) {
-            return changeSet;
-        }
-        List<String> createdFiles = changeSet.getCreatedFiles();
-        List<String> updatedFiles = changeSet.getUpdatedFiles();
-        List<String> deletedFiles = changeSet.getDeletedFiles();
-        List<String> newUpdatedFiles = new ArrayList<>(updatedFiles);
+	/**
+	 * Expand changeSet by adding pages/components that need to be updated because a component that they include was updated.
+	 *
+	 * @param changeSet original change set
+	 * @return filtered change set
+	 */
+	protected ChangeSet expandChangeSet(ChangeSet changeSet) {
+		if (createIndexIfMissing) {
+			logger.info("Ensuring that index {} exists", indexId);
+			doCreateIndexIfMissing();
+		}
+		boolean isReprocessAll = BooleanUtils.toBoolean(getDeploymentParam(REPROCESS_ALL_FILES_PARAM_NAME));
+		if (changeSet == null || changeSet.isEmpty() || !xmlFlatteningEnabled || isReprocessAll) {
+			return changeSet;
+		}
+		List<String> createdFiles = changeSet.getCreatedFiles();
+		List<String> updatedFiles = changeSet.getUpdatedFiles();
+		List<String> deletedFiles = changeSet.getDeletedFiles();
+		List<String> newUpdatedFiles = new ArrayList<>(updatedFiles);
 
-        if (CollectionUtils.isNotEmpty(createdFiles)) {
-            for (String path : createdFiles) {
-                if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                                                                    deletedFiles);
-                }
-                if (reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                }
-            }
-        }
+		if (CollectionUtils.isNotEmpty(createdFiles)) {
+			for (String path : createdFiles) {
+				if (isDescriptor(path)) {
+					addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
+						deletedFiles);
+				}
+				if (reindexItemsOnComponentUpdates && isComponent(path)) {
+					addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+				}
+			}
+		}
 
-        if (CollectionUtils.isNotEmpty(updatedFiles)) {
-            for (String path : updatedFiles) {
-                if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                                                                    deletedFiles);
-                }
-                if (reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                }
-            }
-        }
+		if (CollectionUtils.isNotEmpty(updatedFiles)) {
+			for (String path : updatedFiles) {
+				if (isDescriptor(path)) {
+					addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
+						deletedFiles);
+				}
+				if (reindexItemsOnComponentUpdates && isComponent(path)) {
+					addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+				}
+			}
+		}
 
 
-        if (CollectionUtils.isNotEmpty(deletedFiles)) {
-            for (String path : deletedFiles) {
-                if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                                                                    deletedFiles);
-                }
-                if (reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                }
-            }
-        }
+		if (CollectionUtils.isNotEmpty(deletedFiles)) {
+			for (String path : deletedFiles) {
+				if (isDescriptor(path)) {
+					addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
+						deletedFiles);
+				}
+				if (reindexItemsOnComponentUpdates && isComponent(path)) {
+					addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+				}
+			}
+		}
 
-        ChangeSet filteredChangeSet = new ChangeSet(createdFiles, newUpdatedFiles, deletedFiles);
-        filteredChangeSet.setUpdateDetails(changeSet.getUpdateDetails());
-        filteredChangeSet.setUpdateLog(changeSet.getUpdateLog());
-        return filteredChangeSet;
-    }
+		ChangeSet filteredChangeSet = new ChangeSet(createdFiles, newUpdatedFiles, deletedFiles);
+		filteredChangeSet.setUpdateDetails(changeSet.getUpdateDetails());
+		filteredChangeSet.setUpdateLog(changeSet.getUpdateLog());
+		return filteredChangeSet;
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        logger.info("Performing search indexing...");
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+		logger.info("Performing search indexing...");
 
-        ChangeSet expandedChangeSet = expandChangeSet(filteredChangeSet);
+		ChangeSet expandedChangeSet = expandChangeSet(filteredChangeSet);
 
-        List<String> createdFiles = emptyIfNull(expandedChangeSet.getCreatedFiles());
-        List<String> updatedFiles = emptyIfNull(expandedChangeSet.getUpdatedFiles());
-        List<String> deletedFiles = emptyIfNull(expandedChangeSet.getDeletedFiles());
-        UpdateSet updateSet = new UpdateSet(ListUtils.union(createdFiles, updatedFiles), deletedFiles);
-        updateSet.setUpdateDetails(expandedChangeSet.getUpdateDetails());
-        updateSet.setUpdateLog(expandedChangeSet.getUpdateLog());
-        UpdateStatus updateStatus = new UpdateStatus();
+		List<String> createdFiles = emptyIfNull(expandedChangeSet.getCreatedFiles());
+		List<String> updatedFiles = emptyIfNull(expandedChangeSet.getUpdatedFiles());
+		List<String> deletedFiles = emptyIfNull(expandedChangeSet.getDeletedFiles());
+		UpdateSet updateSet = new UpdateSet(ListUtils.union(createdFiles, updatedFiles), deletedFiles);
+		updateSet.setUpdateDetails(expandedChangeSet.getUpdateDetails());
+		updateSet.setUpdateLog(expandedChangeSet.getUpdateLog());
+		UpdateStatus updateStatus = new UpdateStatus();
 
-        execution.setStatusDetails(updateStatus);
+		execution.setStatusDetails(updateStatus);
 
-        Context context = contextFactory.getObject();
+		Context context = contextFactory.getObject();
 
-        logger.debug("Clearing cache for context {}", context);
-        cacheTemplate.getCacheService().clearScope(context);
+		logger.debug("Clearing cache for context {}", context);
+		cacheTemplate.getCacheService().clearScope(context);
 
-        boolean failed = false;
-        try {
-            for (BatchIndexer indexer : batchIndexers) {
-                indexer.updateIndex(indexId, siteName, contentStoreService, context, updateSet,
-                                    updateStatus);
+		boolean failed = false;
+		try {
+			for (BatchIndexer indexer : batchIndexers) {
+				indexer.updateIndex(indexId, siteName, contentStoreService, context, updateSet,
+					updateStatus);
 
-                if (updateStatus.getAttemptedUpdatesAndDeletes() > 0) {
-                    doCommit(indexId);
-                }
+				if (updateStatus.getAttemptedUpdatesAndDeletes() > 0) {
+					doCommit(indexId);
+				}
 
-                failed = failed || updateStatus.getFailedUpdatesAndDeletes() > 0;
-            }
-        } catch (Exception e) {
-            throw new DeployerException("Error while performing search indexing", e);
-        }
+				failed = failed || updateStatus.getFailedUpdatesAndDeletes() > 0;
+			}
+		} catch (Exception e) {
+			throw new DeployerException("Error while performing search indexing", e);
+		}
 
-        if (failed) {
-            throw new DeployerException("Failed to update or delete some files, please check previous log messages " +
-                    "for the causes of the failures");
-        }
+		if (failed) {
+			throw new DeployerException("Failed to update or delete some files, please check previous log messages " +
+				"for the causes of the failures");
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    protected abstract void doCommit(final String indexId);
+	protected abstract void doCommit(final String indexId);
 
-    protected boolean isDescriptor(String path) {
-        return descriptorPathPattern.matcher(path).matches();
-    }
+	protected boolean isDescriptor(String path) {
+		return descriptorPathPattern.matcher(path).matches();
+	}
 
-    protected boolean isComponent(String path) {
-        return componentPathPattern.matcher(path).matches();
-    }
+	protected boolean isComponent(String path) {
+		return componentPathPattern.matcher(path).matches();
+	}
 
-    protected boolean isBeingUpdatedOrDeleted(String path, List<String> createdFiles, List<String> updatedFiles,
-                                              List<String> deletedFiles) {
-        return createdFiles.contains(path) || updatedFiles.contains(path) || deletedFiles.contains(path);
-    }
+	protected boolean isBeingUpdatedOrDeleted(String path, List<String> createdFiles, List<String> updatedFiles,
+						  List<String> deletedFiles) {
+		return createdFiles.contains(path) || updatedFiles.contains(path) || deletedFiles.contains(path);
+	}
 
-    protected abstract List<String> getItemsThatInheritDescriptor(String indexId, String descriptorPath);
+	protected abstract List<String> getItemsThatInheritDescriptor(String indexId, String descriptorPath);
 
-    protected void addItemsThatInheritFromDescriptorToUpdatedFiles(String descriptorPath, List<String> createdFiles,
-                                                                  List<String> updatedFiles,
-                                                                   List<String> deletedFiles) {
-        addAffectedItemsToUpdatedFiles(descriptorPath, createdFiles, updatedFiles, deletedFiles,
-                                        this::getItemsThatInheritDescriptor);
-    }
+	protected void addItemsThatInheritFromDescriptorToUpdatedFiles(String descriptorPath, List<String> createdFiles,
+								       List<String> updatedFiles,
+								       List<String> deletedFiles) {
+		addAffectedItemsToUpdatedFiles(descriptorPath, createdFiles, updatedFiles, deletedFiles,
+			this::getItemsThatInheritDescriptor);
+	}
 
-    protected abstract List<String> getItemsThatIncludeComponent(String indexId, String componentPath);
+	protected abstract List<String> getItemsThatIncludeComponent(String indexId, String componentPath);
 
-    protected void addItemsThatIncludeComponentToUpdatedFiles(String componentPath, List<String> createdFiles,
-                                                              List<String> updatedFiles, List<String> deletedFiles) {
-        addAffectedItemsToUpdatedFiles(componentPath, createdFiles, updatedFiles, deletedFiles,
-                                        this::getItemsThatIncludeComponent);
-    }
+	protected void addItemsThatIncludeComponentToUpdatedFiles(String componentPath, List<String> createdFiles,
+								  List<String> updatedFiles, List<String> deletedFiles) {
+		addAffectedItemsToUpdatedFiles(componentPath, createdFiles, updatedFiles, deletedFiles,
+			this::getItemsThatIncludeComponent);
+	}
 
-    protected void addAffectedItemsToUpdatedFiles(String path, List<String> createdFiles, List<String> updatedFiles,
-                                                  List<String> deletedFiles,
-                                                  BiFunction<String, String, List<String>> function) {
-        List<String> itemPaths = function.apply(indexId, path);
-        if (CollectionUtils.isNotEmpty(itemPaths)) {
-            for (String itemPath : itemPaths) {
-                if (!isBeingUpdatedOrDeleted(itemPath, createdFiles, updatedFiles, deletedFiles)) {
-                    logger.debug("Item {} is affected by the update of {}. Adding it to list of updated files.",
-                        itemPath, path);
+	protected void addAffectedItemsToUpdatedFiles(String path, List<String> createdFiles, List<String> updatedFiles,
+						      List<String> deletedFiles,
+						      BiFunction<String, String, List<String>> function) {
+		List<String> itemPaths = function.apply(indexId, path);
+		if (CollectionUtils.isNotEmpty(itemPaths)) {
+			for (String itemPath : itemPaths) {
+				if (!isBeingUpdatedOrDeleted(itemPath, createdFiles, updatedFiles, deletedFiles)) {
+					logger.debug("Item {} is affected by the update of {}. Adding it to list of updated files.",
+						itemPath, path);
 
-                    updatedFiles.add(itemPath);
-                }
-            }
-        }
-    }
+					updatedFiles.add(itemPath);
+				}
+			}
+		}
+	}
 
 }

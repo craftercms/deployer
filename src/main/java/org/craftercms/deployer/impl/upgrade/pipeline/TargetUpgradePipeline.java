@@ -39,31 +39,31 @@ import java.util.List;
  */
 public class TargetUpgradePipeline extends DefaultUpgradePipelineImpl<Target> {
 
-    public TargetUpgradePipeline(String name, List<UpgradeOperation<Target>> upgradeOperations) {
-        super(name, upgradeOperations);
-    }
+	public TargetUpgradePipeline(String name, List<UpgradeOperation<Target>> upgradeOperations) {
+		super(name, upgradeOperations);
+	}
 
-    @Override
-    public void execute(UpgradeContext<Target> context) throws UpgradeException {
-        try {
-            if (!isEmpty()) {
-                createConfigurationBackup((TargetUpgradeContext) context);
-            }
-        } catch (Exception e) {
-            throw new UpgradeException("Error creating configuration backup for target " +
-                    context.getTarget().getId());
-        }
+	@Override
+	public void execute(UpgradeContext<Target> context) throws UpgradeException {
+		try {
+			if (!isEmpty()) {
+				createConfigurationBackup((TargetUpgradeContext) context);
+			}
+		} catch (Exception e) {
+			throw new UpgradeException("Error creating configuration backup for target " +
+				context.getTarget().getId());
+		}
 
-        super.execute(context);
-    }
+		super.execute(context);
+	}
 
-    protected void createConfigurationBackup(TargetUpgradeContext context) throws IOException {
-        Path configurationFile = context.getTarget().getConfigurationFile().toPath();
-        String configurationPath = configurationFile.toAbsolutePath().toString();
-        String backupPath = configurationPath + "." +
-                LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd'.'A")) + ".backup";
+	protected void createConfigurationBackup(TargetUpgradeContext context) throws IOException {
+		Path configurationFile = context.getTarget().getConfigurationFile().toPath();
+		String configurationPath = configurationFile.toAbsolutePath().toString();
+		String backupPath = configurationPath + "." +
+			LocalDateTime.now().format(DateTimeFormatter.ofPattern("yyyyMMdd'.'A")) + ".backup";
 
-        Files.copy(configurationFile, Paths.get(backupPath));
-    }
+		Files.copy(configurationFile, Paths.get(backupPath));
+	}
 
 }

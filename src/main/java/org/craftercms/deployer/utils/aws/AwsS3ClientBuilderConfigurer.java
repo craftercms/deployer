@@ -27,33 +27,33 @@ import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
  */
 public class AwsS3ClientBuilderConfigurer extends AwsClientBuilderConfigurer<S3BaseClientBuilder> {
 
-    public static final String CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED = "pathStyleAccess";
+	public static final String CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED = "pathStyleAccess";
 
-    /**
-     * Whether to use path style access or not
-     */
-    protected boolean pathStyleAccessEnabled = false;
+	/**
+	 * Whether to use path style access or not
+	 */
+	protected boolean pathStyleAccessEnabled = false;
 
-    /**
-     * Main constructor Extracts the region and credentials from the config.
-     *
-     * @param config the config with the client properties
-     * @throws ConfigurationException if an exception occurs while reading the configuration
-     */
-    public AwsS3ClientBuilderConfigurer(Configuration config) throws ConfigurationException {
-        super(config);
-        if (config.containsKey(CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED)) {
-            pathStyleAccessEnabled = getBooleanProperty(config, CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED);
-        }
-    }
+	/**
+	 * Main constructor Extracts the region and credentials from the config.
+	 *
+	 * @param config the config with the client properties
+	 * @throws ConfigurationException if an exception occurs while reading the configuration
+	 */
+	public AwsS3ClientBuilderConfigurer(Configuration config) throws ConfigurationException {
+		super(config);
+		if (config.containsKey(CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED)) {
+			pathStyleAccessEnabled = getBooleanProperty(config, CONFIG_KEY_PATH_STYLE_ACCESS_ENABLED);
+		}
+	}
 
-    @Override
-    public void configureClientBuilder(S3BaseClientBuilder builder) {
-        super.configureClientBuilder(builder);
-        if (pathStyleAccessEnabled) {
-            builder.serviceConfiguration(S3Configuration.builder()
-                    .pathStyleAccessEnabled(true)
-                    .build());
-        }
-    }
+	@Override
+	public void configureClientBuilder(S3BaseClientBuilder builder) {
+		super.configureClientBuilder(builder);
+		if (pathStyleAccessEnabled) {
+			builder.serviceConfiguration(S3Configuration.builder()
+				.pathStyleAccessEnabled(true)
+				.build());
+		}
+	}
 }

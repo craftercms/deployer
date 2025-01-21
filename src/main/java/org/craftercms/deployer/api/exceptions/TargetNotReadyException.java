@@ -22,8 +22,8 @@ package org.craftercms.deployer.api.exceptions;
  */
 public class TargetNotReadyException extends DeployerException {
 
-    public TargetNotReadyException(String message) {
-        super(message);
-    }
+	public TargetNotReadyException(String message) {
+		super(message);
+	}
 
 }

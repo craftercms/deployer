@@ -65,120 +65,120 @@ import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
  */
 public class GitPushProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(GitPushProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(GitPushProcessor.class);
 
-    protected static final String FORCE_CONFIG_KEY = "force";
-    protected static final String PUSH_ALL_CONFIG_KEY = "pushAll";
-    protected static final String LOCAL_BRANCH_CONFIG_KEY = "localRepoBranch";
+	protected static final String FORCE_CONFIG_KEY = "force";
+	protected static final String PUSH_ALL_CONFIG_KEY = "pushAll";
+	protected static final String LOCAL_BRANCH_CONFIG_KEY = "localRepoBranch";
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    protected boolean force;
-    protected boolean pushAll;
-    protected String localBranch;
+	protected boolean force;
+	protected boolean pushAll;
+	protected String localBranch;
 
-    public GitPushProcessor(File localRepoFolder, AuthConfiguratorFactory authConfiguratorFactory) {
-        super(localRepoFolder, authConfiguratorFactory);
-    }
+	public GitPushProcessor(File localRepoFolder, AuthConfiguratorFactory authConfiguratorFactory) {
+		super(localRepoFolder, authConfiguratorFactory);
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        super.doInit(config);
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		super.doInit(config);
 
-        force = getBooleanProperty(config, FORCE_CONFIG_KEY, false);
-        pushAll = getBooleanProperty(config, PUSH_ALL_CONFIG_KEY, false);
-        localBranch = getStringProperty(config, LOCAL_BRANCH_CONFIG_KEY, Constants.HEAD);
-    }
+		force = getBooleanProperty(config, FORCE_CONFIG_KEY, false);
+		pushAll = getBooleanProperty(config, PUSH_ALL_CONFIG_KEY, false);
+		localBranch = getStringProperty(config, LOCAL_BRANCH_CONFIG_KEY, Constants.HEAD);
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        File gitFolder = new File(localRepoFolder, GitUtils.GIT_FOLDER_NAME);
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+		File gitFolder = new File(localRepoFolder, GitUtils.GIT_FOLDER_NAME);
 
-        if (localRepoFolder.exists() && gitFolder.exists()) {
-            doPush(execution);
-        } else {
-        	logger.warn("No local git repository @ {}", localRepoFolder);
-        }
+		if (localRepoFolder.exists() && gitFolder.exists()) {
+			doPush(execution);
+		} else {
+			logger.warn("No local git repository @ {}", localRepoFolder);
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    protected void doPush(ProcessorExecution execution) throws DeployerException {
-        try (Git git = openLocalRepository()) {
-            logger.info("Executing git push for repository {} (force = {})...", localRepoFolder, force);
+	protected void doPush(ProcessorExecution execution) throws DeployerException {
+		try (Git git = openLocalRepository()) {
+			logger.info("Executing git push for repository {} (force = {})...", localRepoFolder, force);
 
-            Iterable<PushResult> pushResults = GitUtils.push(git, remoteRepoUrl, pushAll, localBranch, remoteRepoBranch,
-                                                             authenticationConfigurator, force);
-            List<String> detailsList = new ArrayList<>();
+			Iterable<PushResult> pushResults = GitUtils.push(git, remoteRepoUrl, pushAll, localBranch, remoteRepoBranch,
+				authenticationConfigurator, force);
+			List<String> detailsList = new ArrayList<>();
 
-            boolean success = checkPushResults(pushResults, detailsList);
+			boolean success = checkPushResults(pushResults, detailsList);
 
-            if (CollectionUtils.isNotEmpty(detailsList)) {
-                execution.setStatusDetails(detailsList);
+			if (CollectionUtils.isNotEmpty(detailsList)) {
+				execution.setStatusDetails(detailsList);
 
-                if (!success) {
-                    execution.endExecution(Status.FAILURE);
-                }
-            } else {
-                execution.setStatusDetails("No result returned after push operation");
-            }
-        } catch (GitAPIException e) {
-            throw new DeployerException("Execution of git push failed", e);
-        }
-    }
+				if (!success) {
+					execution.endExecution(Status.FAILURE);
+				}
+			} else {
+				execution.setStatusDetails("No result returned after push operation");
+			}
+		} catch (GitAPIException e) {
+			throw new DeployerException("Execution of git push failed", e);
+		}
+	}
 
-    protected boolean checkPushResults(Iterable<PushResult> pushResults,
-                                       List<String> detailList) throws DeployerException {
-        boolean success = true;
+	protected boolean checkPushResults(Iterable<PushResult> pushResults,
+					   List<String> detailList) throws DeployerException {
+		boolean success = true;
 
-        if (pushResults != null) {
-            for (PushResult result : pushResults) {
-                Collection<RemoteRefUpdate> remoteRefUpdates = result.getRemoteUpdates();
-                if (CollectionUtils.isNotEmpty(remoteRefUpdates)) {
-                    for (RemoteRefUpdate update : remoteRefUpdates) {
-                        if (!checkRemoteRefUpdate(update, detailList)) {
-                            success = false;
-                        }
-                    }
-                }
-            }
-        }
+		if (pushResults != null) {
+			for (PushResult result : pushResults) {
+				Collection<RemoteRefUpdate> remoteRefUpdates = result.getRemoteUpdates();
+				if (CollectionUtils.isNotEmpty(remoteRefUpdates)) {
+					for (RemoteRefUpdate update : remoteRefUpdates) {
+						if (!checkRemoteRefUpdate(update, detailList)) {
+							success = false;
+						}
+					}
+				}
+			}
+		}
 
-        return success;
-    }
+		return success;
+	}
 
-    protected boolean checkRemoteRefUpdate(RemoteRefUpdate update, List<String> detailList) throws DeployerException {
-        RemoteRefUpdate.Status status = update.getStatus();
-        String updatedBranch = update.getRemoteName();
-        String details;
+	protected boolean checkRemoteRefUpdate(RemoteRefUpdate update, List<String> detailList) throws DeployerException {
+		RemoteRefUpdate.Status status = update.getStatus();
+		String updatedBranch = update.getRemoteName();
+		String details;
 
-        switch (status) {
-            case OK:
-                details = "Branch '" + updatedBranch + "' of remote repo " + remoteRepoUrl + " updated " +
-                          "successfully (update with status " + status + ")";
-                detailList.add(details);
+		switch (status) {
+			case OK:
+				details = "Branch '" + updatedBranch + "' of remote repo " + remoteRepoUrl + " updated " +
+					"successfully (update with status " + status + ")";
+				detailList.add(details);
 
-                logger.info(details);
+				logger.info(details);
 
-                return true;
-            case UP_TO_DATE:
-                details = "Branch '" + updatedBranch + "' of remote repo " + remoteRepoUrl + " already up " +
-                          "to date (update with status " + status + ")";
-                detailList.add(details);
+				return true;
+			case UP_TO_DATE:
+				details = "Branch '" + updatedBranch + "' of remote repo " + remoteRepoUrl + " already up " +
+					"to date (update with status " + status + ")";
+				detailList.add(details);
 
-                logger.info(details);
+				logger.info(details);
 
-                return true;
-            default:
-                // Non-supported push results
-                details = "Received unexpected result after executing push: " + status;
-                detailList.add(details);
+				return true;
+			default:
+				// Non-supported push results
+				details = "Received unexpected result after executing push: " + status;
+				detailList.add(details);
 
-                logger.error(details);
+				logger.error(details);
 
-                return false;
-        }
-    }
+				return false;
+		}
+	}
 
 }

@@ -41,51 +41,51 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class RemoveProcessorUpgradeOperationTest {
 
-    private static final String PROCESSOR = "myProcessor";
-    private static final String OTHER_PROCESSOR = "otherProcessor";
+	private static final String PROCESSOR = "myProcessor";
+	private static final String OTHER_PROCESSOR = "otherProcessor";
 
-    private Map<String, Object> targetConfig;
+	private Map<String, Object> targetConfig;
 
-    @Mock
-    private Target target;
+	@Mock
+	private Target target;
 
-    @InjectMocks
-    private RemoveProcessorUpgradeOperation processor;
+	@InjectMocks
+	private RemoveProcessorUpgradeOperation processor;
 
-    @Before
-    public void setUp() throws ConfigurationException, IOException, org.apache.commons.configuration2.ex.ConfigurationException {
-        YamlConfiguration config = new YamlConfiguration();
-        Resource configFile = new ClassPathResource("upgrade/removeProcessor/config.yaml");
-        try (InputStream is = configFile.getInputStream()) {
-            config.read(is);
-        }
+	@Before
+	public void setUp() throws ConfigurationException, IOException, org.apache.commons.configuration2.ex.ConfigurationException {
+		YamlConfiguration config = new YamlConfiguration();
+		Resource configFile = new ClassPathResource("upgrade/removeProcessor/config.yaml");
+		try (InputStream is = configFile.getInputStream()) {
+			config.read(is);
+		}
 
-        Yaml yaml = new Yaml();
-        Resource resource = new ClassPathResource("upgrade/removeProcessor/target.yaml");
-        try(InputStream is = resource.getInputStream()) {
-            targetConfig = yaml.load(is);
-        }
+		Yaml yaml = new Yaml();
+		Resource resource = new ClassPathResource("upgrade/removeProcessor/target.yaml");
+		try (InputStream is = resource.getInputStream()) {
+			targetConfig = yaml.load(is);
+		}
 
-        when(target.getEnv()).thenReturn("preview");
+		when(target.getEnv()).thenReturn("preview");
 
-        processor.init(null, null, config);
-    }
+		processor.init(null, null, config);
+	}
 
-    @Test
-    public void test() throws Exception {
-        processor.doExecute(target, targetConfig);
+	@Test
+	public void test() throws Exception {
+		processor.doExecute(target, targetConfig);
 
-        assertEquals("instances that do not match shouldn't be removed", 2, countProcessor(targetConfig, PROCESSOR));
-        assertEquals("other processors shouldn't be removed", 1, countProcessor(targetConfig, OTHER_PROCESSOR));
-    }
+		assertEquals("instances that do not match shouldn't be removed", 2, countProcessor(targetConfig, PROCESSOR));
+		assertEquals("other processors shouldn't be removed", 1, countProcessor(targetConfig, OTHER_PROCESSOR));
+	}
 
-    @SuppressWarnings("unchecked")
-    private long countProcessor(Map<String, Object> targetConfig, String processor) {
-        Map<String, Object> targetObj = (Map<String, Object>)targetConfig.get(CONFIG_KEY_TARGET);
-        Map<String, Object> deploymentObj = (Map<String, Object>)targetObj.get(CONFIG_KEY_DEPLOYMENT);
-        List<Map<String, Object>> pipelineObj = (List<Map<String, Object>>)deploymentObj.get(CONFIG_KEY_PIPELINE);
-        return pipelineObj.stream()
-                .filter(processorObj -> processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processor))
-                .count();
-    }
+	@SuppressWarnings("unchecked")
+	private long countProcessor(Map<String, Object> targetConfig, String processor) {
+		Map<String, Object> targetObj = (Map<String, Object>) targetConfig.get(CONFIG_KEY_TARGET);
+		Map<String, Object> deploymentObj = (Map<String, Object>) targetObj.get(CONFIG_KEY_DEPLOYMENT);
+		List<Map<String, Object>> pipelineObj = (List<Map<String, Object>>) deploymentObj.get(CONFIG_KEY_PIPELINE);
+		return pipelineObj.stream()
+			.filter(processorObj -> processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processor))
+			.count();
+	}
 }

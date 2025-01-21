@@ -27,9 +27,9 @@ import java.nio.file.Path;
  */
 public class TargetVersionProvider extends YamlFileVersionProvider<Target> {
 
-    @Override
-    protected Path getFile(UpgradeContext<Target> context) {
-        return context.getTarget().getConfigurationFile().toPath();
-    }
+	@Override
+	protected Path getFile(UpgradeContext<Target> context) {
+		return context.getTarget().getConfigurationFile().toPath();
+	}
 
 }

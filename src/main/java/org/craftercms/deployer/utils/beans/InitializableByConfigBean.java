@@ -26,14 +26,13 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
  */
 public interface InitializableByConfigBean {
 
-    /**
-     * Initializes the bean using the specified configuration.
-     *
-     * @param config the bean's configuration
-     *
-     * @throws ConfigurationException if there's configuration related exception
-     * @throws DeployerException if there's a general exception on init
-     */
-    void init(Configuration config) throws ConfigurationException, DeployerException;
+	/**
+	 * Initializes the bean using the specified configuration.
+	 *
+	 * @param config the bean's configuration
+	 * @throws ConfigurationException if there's configuration related exception
+	 * @throws DeployerException      if there's a general exception on init
+	 */
+	void init(Configuration config) throws ConfigurationException, DeployerException;
 
 }

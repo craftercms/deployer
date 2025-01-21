@@ -25,30 +25,31 @@ import org.craftercms.deployer.utils.beans.InitializableByConfigBean;
  */
 public interface DeploymentProcessor extends InitializableByConfigBean {
 
-    /**
-     * Returns true if this processor runs after the deployment has finalized.
-     */
-    boolean isPostDeployment();
+	/**
+	 * Returns true if this processor runs after the deployment has finalized.
+	 */
+	boolean isPostDeployment();
 
-    /**
-     * Destroys the processor, closing and releasing any used resources.
-     *
-     * @throws DeployerException if an error occurs
-     */
-    void destroy() throws DeployerException;
+	/**
+	 * Destroys the processor, closing and releasing any used resources.
+	 *
+	 * @throws DeployerException if an error occurs
+	 */
+	void destroy() throws DeployerException;
 
-    /**
-     * Executes the processor
-     *
-     * @param deployment    the current deployment info
-     */
-    void execute(Deployment deployment);
+	/**
+	 * Executes the processor
+	 *
+	 * @param deployment the current deployment info
+	 */
+	void execute(Deployment deployment);
 
-    /**
-     * Indicates if the processor should be included in the given deployment mode
-     * @param mode the deployment mode to check
-     * @return true if the processor should be included
-     */
-    boolean supportsMode(Deployment.Mode mode);
+	/**
+	 * Indicates if the processor should be included in the given deployment mode
+	 *
+	 * @param mode the deployment mode to check
+	 * @return true if the processor should be included
+	 */
+	boolean supportsMode(Deployment.Mode mode);
 
 }

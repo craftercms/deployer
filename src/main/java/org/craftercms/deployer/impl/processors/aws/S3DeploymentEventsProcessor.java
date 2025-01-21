@@ -48,56 +48,56 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  */
 public class S3DeploymentEventsProcessor extends AbstractS3Processor {
 
-    protected static final String DEFAULT_DEPLOYMENT_EVENTS_FILE_URL= "deployment-events.properties";
+	protected static final String DEFAULT_DEPLOYMENT_EVENTS_FILE_URL = "deployment-events.properties";
 
-    protected static final String CONFIG_KEY_DEPLOYMENT_EVENTS_FILE_URL = "deploymentEventsFileUrl";
+	protected static final String CONFIG_KEY_DEPLOYMENT_EVENTS_FILE_URL = "deploymentEventsFileUrl";
 
-    protected DeploymentEventsStore<?, Path> store;
+	protected DeploymentEventsStore<?, Path> store;
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    /**
-     * URL of the deployment events file, relative to the local git repo.
-     */
-    protected String deploymentEventsFileUrl;
+	/**
+	 * URL of the deployment events file, relative to the local git repo.
+	 */
+	protected String deploymentEventsFileUrl;
 
-    @ConstructorProperties({"threadPoolTaskExecutor", "store"})
-    public S3DeploymentEventsProcessor(ThreadPoolTaskExecutor threadPoolTaskExecutor,
-                                       DeploymentEventsStore<?, Path> store) {
-        super(threadPoolTaskExecutor);
-        this.store = store;
-    }
+	@ConstructorProperties({"threadPoolTaskExecutor", "store"})
+	public S3DeploymentEventsProcessor(ThreadPoolTaskExecutor threadPoolTaskExecutor,
+					   DeploymentEventsStore<?, Path> store) {
+		super(threadPoolTaskExecutor);
+		this.store = store;
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        super.doInit(config);
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		super.doInit(config);
 
-        deploymentEventsFileUrl = getStringProperty(config, CONFIG_KEY_DEPLOYMENT_EVENTS_FILE_URL,
-                DEFAULT_DEPLOYMENT_EVENTS_FILE_URL);
-    }
+		deploymentEventsFileUrl = getStringProperty(config, CONFIG_KEY_DEPLOYMENT_EVENTS_FILE_URL,
+			DEFAULT_DEPLOYMENT_EVENTS_FILE_URL);
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution, ChangeSet filteredChangeSet,
-                                      ChangeSet originalChangeSet) throws DeployerException {
-        S3Client client = buildClient();
-        Path file = store.getSource(deployment.getTarget());
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution, ChangeSet filteredChangeSet,
+					  ChangeSet originalChangeSet) throws DeployerException {
+		S3Client client = buildClient();
+		Path file = store.getSource(deployment.getTarget());
 
-        if (Files.exists(file)) {
-            logger.info("Uploading deployment events from {}", file);
-            try {
-                PutObjectRequest request = PutObjectRequest.builder()
-                        .bucket(getBucket())
-                        .key(getS3Key(deploymentEventsFileUrl))
-                        .build();
-                client.putObject(request, RequestBody.fromFile(file.toFile()));
-            } catch (Exception e) {
-                throw new DeployerException("Error uploading deployment events @ " + file, e);
-            }
-        } else {
-            logger.debug("No events found for target {}", targetId);
-        }
+		if (Files.exists(file)) {
+			logger.info("Uploading deployment events from {}", file);
+			try {
+				PutObjectRequest request = PutObjectRequest.builder()
+					.bucket(getBucket())
+					.key(getS3Key(deploymentEventsFileUrl))
+					.build();
+				client.putObject(request, RequestBody.fromFile(file.toFile()));
+			} catch (Exception e) {
+				throw new DeployerException("Error uploading deployment events @ " + file, e);
+			}
+		} else {
+			logger.debug("No events found for target {}", targetId);
+		}
 
-        return null;
-    }
+		return null;
+	}
 
 }

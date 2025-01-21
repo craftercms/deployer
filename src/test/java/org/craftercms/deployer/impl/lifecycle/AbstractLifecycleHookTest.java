@@ -31,33 +31,33 @@ import static org.mockito.Mockito.*;
 @RunWith(MockitoJUnitRunner.class)
 public class AbstractLifecycleHookTest {
 
-    @Spy
-    private AbstractLifecycleHook hook;
+	@Spy
+	private AbstractLifecycleHook hook;
 
-    @Mock
-    private Configuration config;
+	@Mock
+	private Configuration config;
 
-    @Mock
-    private Target target;
+	@Mock
+	private Target target;
 
-    @Test
-    public void hookEnabledTest() throws Exception {
-        when(config.getBoolean(AbstractLifecycleHook.CONFIG_KEY_DISABLED, false)).thenReturn(false);
+	@Test
+	public void hookEnabledTest() throws Exception {
+		when(config.getBoolean(AbstractLifecycleHook.CONFIG_KEY_DISABLED, false)).thenReturn(false);
 
-        hook.init(config);
-        hook.execute(target);
+		hook.init(config);
+		hook.execute(target);
 
-        verify(hook).doExecute(eq(target));
-    }
+		verify(hook).doExecute(eq(target));
+	}
 
-    @Test
-    public void hookDisabledTest() throws Exception {
-        when(config.getBoolean(AbstractLifecycleHook.CONFIG_KEY_DISABLED, false)).thenReturn(true);
+	@Test
+	public void hookDisabledTest() throws Exception {
+		when(config.getBoolean(AbstractLifecycleHook.CONFIG_KEY_DISABLED, false)).thenReturn(true);
 
-        hook.init(config);
-        hook.execute(target);
+		hook.init(config);
+		hook.execute(target);
 
-        verify(hook, never()).doExecute(eq(target));
-    }
+		verify(hook, never()).doExecute(eq(target));
+	}
 
 }

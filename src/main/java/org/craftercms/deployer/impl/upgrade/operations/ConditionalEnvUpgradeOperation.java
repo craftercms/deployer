@@ -31,28 +31,28 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  */
 public abstract class ConditionalEnvUpgradeOperation extends AbstractTargetUpgradeOperation {
 
-    public static final String CONFIG_KEY_ENV_PATTERN = "envPattern";
+	public static final String CONFIG_KEY_ENV_PATTERN = "envPattern";
 
-    /**
-     * The pattern to match the environment
-     */
-    protected String envPattern;
+	/**
+	 * The pattern to match the environment
+	 */
+	protected String envPattern;
 
-    @Override
-    public void init(String currentVersion, String nextVersion, HierarchicalConfiguration config)
-            throws ConfigurationException {
-        envPattern = getStringProperty(config, CONFIG_KEY_ENV_PATTERN, ".*");
+	@Override
+	public void init(String currentVersion, String nextVersion, HierarchicalConfiguration config)
+		throws ConfigurationException {
+		envPattern = getStringProperty(config, CONFIG_KEY_ENV_PATTERN, ".*");
 
-        super.init(currentVersion, nextVersion, config);
-    }
+		super.init(currentVersion, nextVersion, config);
+	}
 
-    @Override
-    protected void doExecute(Target target, Map<String, Object> targetConfig) throws Exception {
-        if (target.getEnv().matches(envPattern)) {
-            doExecuteInternal(target, targetConfig);
-        }
-    }
+	@Override
+	protected void doExecute(Target target, Map<String, Object> targetConfig) throws Exception {
+		if (target.getEnv().matches(envPattern)) {
+			doExecuteInternal(target, targetConfig);
+		}
+	}
 
-    protected abstract void doExecuteInternal(Target target, Map<String, Object> targetConfig);
+	protected abstract void doExecuteInternal(Target target, Map<String, Object> targetConfig);
 
 }

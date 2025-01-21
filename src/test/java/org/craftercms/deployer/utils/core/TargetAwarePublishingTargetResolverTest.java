@@ -36,80 +36,80 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class TargetAwarePublishingTargetResolverTest {
 
-    public static final String SITE_NAME = "mySite";
+	public static final String SITE_NAME = "mySite";
 
-    public static final String STAGING_PATTERN = ".+-staging";
+	public static final String STAGING_PATTERN = ".+-staging";
 
-    public static final String STAGING_SITE_NAME = SITE_NAME + "-staging";
+	public static final String STAGING_SITE_NAME = SITE_NAME + "-staging";
 
-    @Mock
-    private Target stagingTarget;
+	@Mock
+	private Target stagingTarget;
 
-    @Mock
-    private Target authoringTarget;
+	@Mock
+	private Target authoringTarget;
 
-    @Mock
-    private Target previewTarget;
+	@Mock
+	private Target previewTarget;
 
-    @Mock
-    private Target liveTarget;
+	@Mock
+	private Target liveTarget;
 
-    private TargetAwarePublishingTargetResolver resolver;
+	private TargetAwarePublishingTargetResolver resolver;
 
-    @Before
-    public void setUp() {
-        when(stagingTarget.getSiteName()).thenReturn(STAGING_SITE_NAME);
+	@Before
+	public void setUp() {
+		when(stagingTarget.getSiteName()).thenReturn(STAGING_SITE_NAME);
 
-        when(authoringTarget.getSiteName()).thenReturn(SITE_NAME);
-        when(authoringTarget.getEnv()).thenReturn(AUTHORING_ENV);
+		when(authoringTarget.getSiteName()).thenReturn(SITE_NAME);
+		when(authoringTarget.getEnv()).thenReturn(AUTHORING_ENV);
 
-        when(previewTarget.getSiteName()).thenReturn(SITE_NAME);
-        when(previewTarget.getEnv()).thenReturn(PREVIEW);
+		when(previewTarget.getSiteName()).thenReturn(SITE_NAME);
+		when(previewTarget.getEnv()).thenReturn(PREVIEW);
 
-        when(liveTarget.getSiteName()).thenReturn(SITE_NAME);
-        when(liveTarget.getEnv()).thenReturn("aws");
+		when(liveTarget.getSiteName()).thenReturn(SITE_NAME);
+		when(liveTarget.getEnv()).thenReturn("aws");
 
-        resolver = new TargetAwarePublishingTargetResolver(STAGING_PATTERN);
-    }
+		resolver = new TargetAwarePublishingTargetResolver(STAGING_PATTERN);
+	}
 
-    @Test
-    public void testStaging() {
-        TargetImpl.setCurrent(stagingTarget);
+	@Test
+	public void testStaging() {
+		TargetImpl.setCurrent(stagingTarget);
 
-        String target = resolver.getPublishingTarget();
-        assertEquals(target, STAGING);
+		String target = resolver.getPublishingTarget();
+		assertEquals(target, STAGING);
 
-        TargetImpl.clear();
-    }
+		TargetImpl.clear();
+	}
 
-    @Test
-    public void testAuthoring() {
-        TargetImpl.setCurrent(authoringTarget);
+	@Test
+	public void testAuthoring() {
+		TargetImpl.setCurrent(authoringTarget);
 
-        String target = resolver.getPublishingTarget();
-        assertEquals(target, PREVIEW);
+		String target = resolver.getPublishingTarget();
+		assertEquals(target, PREVIEW);
 
-        TargetImpl.clear();
-    }
+		TargetImpl.clear();
+	}
 
-    @Test
-    public void testPreview() {
-        TargetImpl.setCurrent(previewTarget);
+	@Test
+	public void testPreview() {
+		TargetImpl.setCurrent(previewTarget);
 
-        String target = resolver.getPublishingTarget();
-        assertEquals(target, PREVIEW);
+		String target = resolver.getPublishingTarget();
+		assertEquals(target, PREVIEW);
 
-        TargetImpl.clear();
-    }
+		TargetImpl.clear();
+	}
 
-    @Test
-    public void testLive() {
-        TargetImpl.setCurrent(liveTarget);
+	@Test
+	public void testLive() {
+		TargetImpl.setCurrent(liveTarget);
 
-        String target = resolver.getPublishingTarget();
-        assertEquals(target, LIVE);
+		String target = resolver.getPublishingTarget();
+		assertEquals(target, LIVE);
 
-        TargetImpl.clear();
-    }
+		TargetImpl.clear();
+	}
 
 }

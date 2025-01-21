@@ -37,49 +37,49 @@ import org.slf4j.LoggerFactory;
  */
 public class DelayProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(DelayProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(DelayProcessor.class);
 
-    protected static final String CONFIG_KEY_SECONDS = "seconds";
+	protected static final String CONFIG_KEY_SECONDS = "seconds";
 
-    // Config properties (populated in init)
+	// Config properties (populated in init)
 
-    /**
-     * Amount of seconds to wait
-     */
-    protected long seconds;
+	/**
+	 * Amount of seconds to wait
+	 */
+	protected long seconds;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doInit(final Configuration config) {
-        seconds = config.getLong(CONFIG_KEY_SECONDS, 10);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void doInit(final Configuration config) {
+		seconds = config.getLong(CONFIG_KEY_SECONDS, 10);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) {
 
-        logger.info("Delaying pipeline execution for {} seconds", seconds);
+		logger.info("Delaying pipeline execution for {} seconds", seconds);
 
-        try {
-            Thread.sleep(seconds * 1000);
-        } catch (InterruptedException e) {
-            logger.warn("Could not delay pipeline execution", e);
-        }
+		try {
+			Thread.sleep(seconds * 1000);
+		} catch (InterruptedException e) {
+			logger.warn("Could not delay pipeline execution", e);
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
 }

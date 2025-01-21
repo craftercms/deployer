@@ -31,43 +31,43 @@ import static org.craftercms.commons.config.ConfigUtils.DEFAULT_ENCODING;
  */
 public class ProcessorStateStoreImpl implements ProcessorStateStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProcessorStateStoreImpl.class);
-    private File storeFolder;
+	private static final Logger logger = LoggerFactory.getLogger(ProcessorStateStoreImpl.class);
+	private File storeFolder;
 
-    @Override
-    public String load(String targetId, String processorName, String suffix) throws IOException {
-        File lastDateFile = getLastDateFile(targetId, processorName, suffix);
-        if (!lastDateFile.exists()) {
-            logger.info("State file does not exist '{}'", lastDateFile);
-            return null;
-        }
-        return FileUtils.readFileToString(lastDateFile, "UTF-8").trim();
-    }
+	@Override
+	public String load(String targetId, String processorName, String suffix) throws IOException {
+		File lastDateFile = getLastDateFile(targetId, processorName, suffix);
+		if (!lastDateFile.exists()) {
+			logger.info("State file does not exist '{}'", lastDateFile);
+			return null;
+		}
+		return FileUtils.readFileToString(lastDateFile, "UTF-8").trim();
+	}
 
-    @Override
-    public void store(String targetId, String processorName, String suffix, String value) throws IOException {
-        FileUtils.write(getLastDateFile(targetId, processorName, suffix),
-                value, DEFAULT_ENCODING, false);
-    }
+	@Override
+	public void store(String targetId, String processorName, String suffix, String value) throws IOException {
+		FileUtils.write(getLastDateFile(targetId, processorName, suffix),
+			value, DEFAULT_ENCODING, false);
+	}
 
-    @Override
-    public void delete(String targetId) {
-        File targetNotificationsFolder = new File(storeFolder, targetId);
-        if (targetNotificationsFolder.exists()) {
-            logger.info("Deleting processor state files directory for target '{}'", targetId);
-            FileUtils.deleteQuietly(targetNotificationsFolder);
-        }
-    }
+	@Override
+	public void delete(String targetId) {
+		File targetNotificationsFolder = new File(storeFolder, targetId);
+		if (targetNotificationsFolder.exists()) {
+			logger.info("Deleting processor state files directory for target '{}'", targetId);
+			FileUtils.deleteQuietly(targetNotificationsFolder);
+		}
+	}
 
-    /**
-     * Returns the state file for the given processor.
-     */
-    private File getLastDateFile(String targetId, String processorName, String suffix) {
-        String filename = "%s/%s-%s".formatted(targetId, processorName, suffix);
-        return new File(storeFolder, filename);
-    }
+	/**
+	 * Returns the state file for the given processor.
+	 */
+	private File getLastDateFile(String targetId, String processorName, String suffix) {
+		String filename = "%s/%s-%s".formatted(targetId, processorName, suffix);
+		return new File(storeFolder, filename);
+	}
 
-    public void setStoreFolder(File storeFolder) {
-        this.storeFolder = storeFolder;
-    }
+	public void setStoreFolder(File storeFolder) {
+		this.storeFolder = storeFolder;
+	}
 }

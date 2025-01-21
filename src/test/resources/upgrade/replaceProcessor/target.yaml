@@ -1,10 +1,10 @@
 target:
-  deployment:
-    pipeline:
-      - processorName: myProcessor
-        property: foo
-      - processorName: otherProcessor
-      - processorName: myProcessor
-        property: foobar
-      - processorName: myProcessor
-        property: ['test']
+    deployment:
+        pipeline:
+            -   processorName: myProcessor
+                property: foo
+            -   processorName: otherProcessor
+            -   processorName: myProcessor
+                property: foobar
+            -   processorName: myProcessor
+                property: [ 'test' ]

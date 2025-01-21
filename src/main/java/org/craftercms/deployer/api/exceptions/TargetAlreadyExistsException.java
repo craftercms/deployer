@@ -22,28 +22,28 @@ package org.craftercms.deployer.api.exceptions;
  */
 public class TargetAlreadyExistsException extends DeployerException {
 
-    protected String id;
-    protected String env;
-    protected String siteName;
+	protected String id;
+	protected String env;
+	protected String siteName;
 
-    public TargetAlreadyExistsException(String id, String env, String siteName) {
-        super("Target '" + id + "' already exists");
+	public TargetAlreadyExistsException(String id, String env, String siteName) {
+		super("Target '" + id + "' already exists");
 
-        this.id = id;
-        this.env = env;
-        this.siteName = siteName;
-    }
+		this.id = id;
+		this.env = env;
+		this.siteName = siteName;
+	}
 
-    public String getId() {
-        return id;
-    }
+	public String getId() {
+		return id;
+	}
 
-    public String getEnv() {
-        return env;
-    }
+	public String getEnv() {
+		return env;
+	}
 
-    public String getSiteName() {
-        return siteName;
-    }
+	public String getSiteName() {
+		return siteName;
+	}
 
 }

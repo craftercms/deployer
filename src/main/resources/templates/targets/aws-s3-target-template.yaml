@@ -1,117 +1,117 @@
 version: '2.4'
 aws:
-  region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
-  accessKey: {{#if aws.default_access_key}}{{aws.default_access_key}}{{else}}''{{/if}}
-  secretKey: {{#if aws.default_secret_key}}{{aws.default_secret_key}}{{else}}''{{/if}}
-  {{#if aws.threads}}
-  threads:
-    {{#if aws.threads.size}}size: {{aws.threads.size}}{{/if}}
-    {{#if aws.threads.max}}max: {{aws.threads.max}}{{/if}}
- {{/if}}
-target:
-  env: {{env}}
-  siteName: {{site_name}}
-  {{#if source_target}}
-  sourceSiteName: {{source_target.siteName}}
-  {{/if}}
-  {{#if local_repo_path}}
-  localRepoPath: {{local_repo_path}}
-  {{/if}}
-  {{#if search_url}}
-  search:
-    openSearch:
-      urls:
-        - {{search_url}}
-  {{/if}}
-  lifecycleHooks:
-    delete:
-      - hookName: deleteLocalRepoFolderLifecycleHook
-      - hookName: deleteIndexLifecycleHook
-    {{#if source_target}}
-    duplicate:
-      - hookName: duplicateIndexLifecycleHook
-      - hookName: duplicateProcessCommitsFileLifecycleHook
-      - hookName: duplicateS3LifecycleHook
-        region: ${aws.region}
-        accessKey: ${aws.accessKey}
-        secretKey: ${aws.secretKey}
-        url: {{aws.s3.url}}
+    region: { { #if aws.region}}{{aws.region}}{{else}}''{{/if}}
+        accessKey: { { #if aws.default_access_key}}{{aws.default_access_key}}{{else}}''{{/if}}
+            secretKey: { { #if aws.default_secret_key}}{{aws.default_secret_key}}{{else}}''{{/if}}
+              { { #if aws.threads}}
+                  threads:
+                    { { #if aws.threads.size}}size: {{aws.threads.size}}{{/if}}
+                      { { #if aws.threads.max}}max: {{aws.threads.max}}{{/if}}
+                        {{/if } }
+                        target:
+                            env: {{env } }
+                      siteName: {{site_name } }
+              { { #if source_target}}
+                  sourceSiteName: {{source_target.siteName } }
+              {{/if } }
+              { { #if local_repo_path}}
+                  localRepoPath: {{local_repo_path } }
+                           {{/if } }
+          { { #if search_url}}
+              search:
+                  openSearch:
+                      urls:
+                          - {{search_url } }
+                       {{/if } }
+    lifecycleHooks:
+        delete:
+            -   hookName: deleteLocalRepoFolderLifecycleHook
+            -   hookName: deleteIndexLifecycleHook
+      { { #if source_target}}
+          duplicate:
+              -   hookName: duplicateIndexLifecycleHook
+              -   hookName: duplicateProcessCommitsFileLifecycleHook
+              -   hookName: duplicateS3LifecycleHook
+                  region: ${ aws.region }
+                  accessKey: ${ aws.accessKey }
+                  secretKey: ${ aws.secretKey }
+                  url: {{aws.s3.url } }
         endpoint: {{aws.s3.endpoint}}
         pathStyleAccess: {{aws.s3.path_style_access}}
         sourceConfig:
-          url: {{source.aws.s3.url}}
-          localRepoPath: {{source.local_repo_path}}
-    {{/if}}
-  deployment:
-    {{#if disable_deploy_cron}}
-    scheduling:
-       enabled: false
-    {{/if}}
-    pipeline:
-      # -------------------- START OF MAIN PIPELINE --------------------
-      - processorName: gitPullProcessor
-        remoteRepo:
-          url: {{repo_url}}
-          branch: {{#if repo_branch}}{{repo_branch}}{{else}}live{{/if}}
-          {{#if repo_username}}
-          username: {{repo_username}}
-          {{/if}}
-          {{#if repo_password}}
-          password: {{repo_password}}
-          {{/if}}
-          {{#if ssh_private_key_path}}
-          ssh:
-            privateKey:
-              path: {{ssh_private_key_path}}
-              {{#if ssh_private_key_passphrase}}
-              passphrase: {{ssh_private_key_passphrase}}
-              {{/if}}
-          {{/if}}
-      - processorName: gitDiffProcessor
-      - processorName: searchIndexingProcessor
-        excludeFiles: ['^/sources/.*$']
-      - processorName: s3SyncProcessor
-        region: ${aws.region}
-        accessKey: ${aws.accessKey}
-        secretKey: ${aws.secretKey}
-        endpoint: {{aws.s3.endpoint}}
-        pathStyleAccess: {{aws.s3.path_style_access}}
-        url: {{aws.s3.url}}
-      - processorName: delayProcessor
-        {{#if delay}}seconds: {{delay}}{{/if}}
-      {{#if aws.distribution.ids}}
-      - processorName: cloudfrontInvalidationProcessor
-        includeFiles: ['^/static-assets/.*$']
-        region: ${aws.region}
-        accessKey: ${aws.accessKey}
-        secretKey: ${aws.secretKey}
-        distributions:
-        {{#list aws.distribution.ids}}
-          - {{this}}
-        {{/list}}
-      {{/if}}
-      - processorName: fileBasedDeploymentEventProcessor
-        includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
-        excludeFiles: ['^/config/studio/content-types/.*$']
-        eventName: 'events.deployment.rebuildContext'
-      - processorName: fileBasedDeploymentEventProcessor
-        eventName: 'events.deployment.clearCache'
-      - processorName: fileBasedDeploymentEventProcessor
-        includeFiles: ['^/config/studio/content-types/.*$']
-        eventName: 'events.deployment.rebuildGraphQL'
-      - processorName: s3DeploymentEventsProcessor
-        region: ${aws.region}
-        accessKey: ${aws.accessKey}
-        secretKey: ${aws.secretKey}
-        endpoint: {{aws.s3.endpoint}}
-        pathStyleAccess: {{aws.s3.path_style_access}}
-        url: {{aws.s3.url}}
-      # -------------------- END OF MAIN PIPELINE --------------------
-      - processorName: fileOutputProcessor
-      {{#if notification_addresses}}
-      - processorName: mailNotificationProcessor
-        to:
-          {{#list notification_addresses}}
-          - {{this}}
-          {{/list}}
-      {{/if}}
+            url: {{source.aws.s3.url}}
+            localRepoPath: {{source.local_repo_path}}
+        {{/if}}
+    deployment:
+      { { #if disable_deploy_cron}}
+          scheduling:
+              enabled: false
+              {{/if } }
+        pipeline:
+            # -------------------- START OF MAIN PIPELINE --------------------
+            -   processorName: gitPullProcessor
+                remoteRepo:
+                    url: {{repo_url}}
+                    branch: { { #if repo_branch}}{{repo_branch}}{{else}}live{{/if}}
+                      { { #if repo_username}}
+                          username: {{repo_username } }
+                      {{/if } }
+                  { { #if repo_password}}
+                      password: {{repo_password } }
+                    {{/if}}
+                  { { #if ssh_private_key_path}}
+                      ssh:
+                          privateKey:
+                              path: {{ssh_private_key_path } }
+                  { { #if ssh_private_key_passphrase}}
+                      passphrase: {{ssh_private_key_passphrase } }
+                    {{/if}}
+                    {{/if}}
+            -   processorName: gitDiffProcessor
+            -   processorName: searchIndexingProcessor
+                excludeFiles: [ '^/sources/.*$' ]
+            -   processorName: s3SyncProcessor
+                region: ${aws.region}
+                accessKey: ${aws.accessKey}
+                secretKey: ${aws.secretKey}
+                endpoint: {{aws.s3.endpoint}}
+                pathStyleAccess: {{aws.s3.path_style_access}}
+                url: {{aws.s3.url}}
+            -   processorName: delayProcessor
+              { { #if delay}}seconds: {{delay}}{{/if}}
+                { { #if aws.distribution.ids}}
+                      -   processorName: cloudfrontInvalidationProcessor
+                              includeFiles: [ '^/static-assets/.*$' ]
+                              region: ${ aws.region }
+                              accessKey: ${ aws.accessKey }
+                              secretKey: ${ aws.secretKey }
+                              distributions:
+                            { { #list aws.distribution.ids}}
+                                  - {{this } }
+                              {{/list } }
+                {{/if } }
+            -   processorName: fileBasedDeploymentEventProcessor
+                includeFiles: [ "^/?config/.*$", "^/?scripts/.*$" ]
+                excludeFiles: [ '^/config/studio/content-types/.*$' ]
+                eventName: 'events.deployment.rebuildContext'
+            -   processorName: fileBasedDeploymentEventProcessor
+                eventName: 'events.deployment.clearCache'
+            -   processorName: fileBasedDeploymentEventProcessor
+                includeFiles: [ '^/config/studio/content-types/.*$' ]
+                eventName: 'events.deployment.rebuildGraphQL'
+            -   processorName: s3DeploymentEventsProcessor
+                region: ${aws.region}
+                accessKey: ${aws.accessKey}
+                secretKey: ${aws.secretKey}
+                endpoint: {{aws.s3.endpoint}}
+                pathStyleAccess: {{aws.s3.path_style_access}}
+                url: {{aws.s3.url}}
+            # -------------------- END OF MAIN PIPELINE --------------------
+            -   processorName: fileOutputProcessor
+          { { #if notification_addresses}}
+                -   processorName: mailNotificationProcessor
+                        to:
+                          { { #list notification_addresses}}
+                                - {{this } }
+                              {{/list } }
+            {{/if}}

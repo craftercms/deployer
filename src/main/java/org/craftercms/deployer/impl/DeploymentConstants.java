@@ -22,47 +22,47 @@ package org.craftercms.deployer.impl;
  */
 public abstract class DeploymentConstants {
 
-    // Target-specific Configuration Keys
+	// Target-specific Configuration Keys
 
-    public static final String TARGET_ENV_CONFIG_KEY = "target.env";
-    public static final String TARGET_SITE_NAME_CONFIG_KEY = "target.siteName";
-    public static final String TARGET_LOCAL_REPO_CONFIG_KEY = "target.localRepoPath";
-    public static final String TARGET_ID_CONFIG_KEY = "target.id";
-    public static final String TARGET_CONFIG_PATH_KEY = "target.configFile";
-    public static final String TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY = "target.deployment.scheduling.enabled";
-    public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
-    public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
-    public static final String TARGET_CRAFTER_SEARCH_CONFIG_KEY = "target.crafterSearchEnabled";
-    public static final String CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.create";
-    public static final String INIT_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.init";
-    public static final String DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.delete";
-    public static final String DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.duplicate";
+	public static final String TARGET_ENV_CONFIG_KEY = "target.env";
+	public static final String TARGET_SITE_NAME_CONFIG_KEY = "target.siteName";
+	public static final String TARGET_LOCAL_REPO_CONFIG_KEY = "target.localRepoPath";
+	public static final String TARGET_ID_CONFIG_KEY = "target.id";
+	public static final String TARGET_CONFIG_PATH_KEY = "target.configFile";
+	public static final String TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY = "target.deployment.scheduling.enabled";
+	public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
+	public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
+	public static final String TARGET_CRAFTER_SEARCH_CONFIG_KEY = "target.crafterSearchEnabled";
+	public static final String CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.create";
+	public static final String INIT_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.init";
+	public static final String DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.delete";
+	public static final String DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.duplicate";
 
-    // Target lifecycle hooks configuration keys
-    public static final String HOOK_NAME_CONFIG_KEY = "hookName";
+	// Target lifecycle hooks configuration keys
+	public static final String HOOK_NAME_CONFIG_KEY = "hookName";
 
-    // Processor-specific Configuration Keys
+	// Processor-specific Configuration Keys
 
-    public static final String PROCESSOR_NAME_CONFIG_KEY = "processorName";
-    public static final String PROCESSOR_LABEL_CONFIG_KEY = "processorLabel";
-    public static final String PROCESSOR_JUMP_TO_CONFIG_KEY = "jumpTo";
-    public static final String PROCESSOR_INCLUDE_FILES_CONFIG_KEY = "includeFiles";
-    public static final String PROCESSOR_EXCLUDE_FILES_CONFIG_KEY = "excludeFiles";
-    public static final String PROCESSOR_ALWAYS_RUN_CONFIG_KEY = "alwaysRun";
+	public static final String PROCESSOR_NAME_CONFIG_KEY = "processorName";
+	public static final String PROCESSOR_LABEL_CONFIG_KEY = "processorLabel";
+	public static final String PROCESSOR_JUMP_TO_CONFIG_KEY = "jumpTo";
+	public static final String PROCESSOR_INCLUDE_FILES_CONFIG_KEY = "includeFiles";
+	public static final String PROCESSOR_EXCLUDE_FILES_CONFIG_KEY = "excludeFiles";
+	public static final String PROCESSOR_ALWAYS_RUN_CONFIG_KEY = "alwaysRun";
 
-    // Processor params
+	// Processor params
 
-    public static final String REPROCESS_ALL_FILES_PARAM_NAME = "reprocess_all_files";
-    public static final String LATEST_COMMIT_ID_PARAM_NAME = "latest_commit_id";
-    public static final String DEPLOYMENT_MODE_PARAM_NAME = "deployment_mode";
-    public static final String FROM_COMMIT_ID_PARAM_NAME = "from_commit_id";
+	public static final String REPROCESS_ALL_FILES_PARAM_NAME = "reprocess_all_files";
+	public static final String LATEST_COMMIT_ID_PARAM_NAME = "latest_commit_id";
+	public static final String DEPLOYMENT_MODE_PARAM_NAME = "deployment_mode";
+	public static final String FROM_COMMIT_ID_PARAM_NAME = "from_commit_id";
 
-    // Logging MDC Keys
+	// Logging MDC Keys
 
-    public static final String TARGET_ID_MDC_KEY = "targetId";
+	public static final String TARGET_ID_MDC_KEY = "targetId";
 
-    // Other constants
+	// Other constants
 
-    public static final String PROCESSED_COMMIT_FILE_EXTENSION = "commit";
+	public static final String PROCESSED_COMMIT_FILE_EXTENSION = "commit";
 
 }

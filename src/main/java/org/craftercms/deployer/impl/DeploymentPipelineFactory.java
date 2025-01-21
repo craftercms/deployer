@@ -30,20 +30,18 @@ import org.springframework.context.ApplicationContext;
  */
 public interface DeploymentPipelineFactory {
 
-    /**
-     * Creates a {@link DeploymentPipeline} based on the specified configuration
-     *
-     * @param configuration         the target's YAML configuration
-     * @param applicationContext    the target's application context
-     * @param pipelinePropertyName  the name of the pipeline property in the YAML configuration
-     *
-     * @return the deployment pipeline
-     *
-     * @throws ConfigurationException if a configuration related exception occurs
-     * @throws DeployerException if a general error occurs
-     */
-    DeploymentPipeline getPipeline(HierarchicalConfiguration<ImmutableNode> configuration,
-                                   ApplicationContext applicationContext, String pipelinePropertyName)
-            throws ConfigurationException, DeployerException;
+	/**
+	 * Creates a {@link DeploymentPipeline} based on the specified configuration
+	 *
+	 * @param configuration        the target's YAML configuration
+	 * @param applicationContext   the target's application context
+	 * @param pipelinePropertyName the name of the pipeline property in the YAML configuration
+	 * @return the deployment pipeline
+	 * @throws ConfigurationException if a configuration related exception occurs
+	 * @throws DeployerException      if a general error occurs
+	 */
+	DeploymentPipeline getPipeline(HierarchicalConfiguration<ImmutableNode> configuration,
+				       ApplicationContext applicationContext, String pipelinePropertyName)
+		throws ConfigurationException, DeployerException;
 
 }

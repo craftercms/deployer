@@ -58,268 +58,268 @@ import static org.craftercms.deployer.impl.DeploymentConstants.*;
  */
 public class GitDiffProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(GitDiffProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(GitDiffProcessor.class);
 
-    protected static final String INCLUDE_GIT_LOG_CONFIG_KEY = "includeGitLog";
+	protected static final String INCLUDE_GIT_LOG_CONFIG_KEY = "includeGitLog";
 
-    public static final String UPDATE_COMMIT_CONFIG_KEY = "updateCommitStore";
+	public static final String UPDATE_COMMIT_CONFIG_KEY = "updateCommitStore";
 
-    protected File localRepoFolder;
-    protected ProcessedCommitsStore processedCommitsStore;
+	protected File localRepoFolder;
+	protected ProcessedCommitsStore processedCommitsStore;
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    protected boolean includeGitLog;
+	protected boolean includeGitLog;
 
-    protected String blobFileExtension;
+	protected String blobFileExtension;
 
-    protected boolean updateCommitStore;
+	protected boolean updateCommitStore;
 
-    /**
-     * Sets the local filesystem folder the contains the deployed repository.
-     */
-    public void setLocalRepoFolder(File localRepoFolder) {
-        this.localRepoFolder = localRepoFolder;
-    }
+	/**
+	 * Sets the local filesystem folder the contains the deployed repository.
+	 */
+	public void setLocalRepoFolder(File localRepoFolder) {
+		this.localRepoFolder = localRepoFolder;
+	}
 
-    /**
-     * Sets the store for processed commits.
-     */
-    public void setProcessedCommitsStore(ProcessedCommitsStore processedCommitsStore) {
-        this.processedCommitsStore = processedCommitsStore;
-    }
+	/**
+	 * Sets the store for processed commits.
+	 */
+	public void setProcessedCommitsStore(ProcessedCommitsStore processedCommitsStore) {
+		this.processedCommitsStore = processedCommitsStore;
+	}
 
-    public void setBlobFileExtension(String blobFileExtension) {
-        this.blobFileExtension = blobFileExtension;
-    }
+	public void setBlobFileExtension(String blobFileExtension) {
+		this.blobFileExtension = blobFileExtension;
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        this.includeGitLog = ConfigUtils.getBooleanProperty(config, INCLUDE_GIT_LOG_CONFIG_KEY, false);
-        updateCommitStore = ConfigUtils.getBooleanProperty(config, UPDATE_COMMIT_CONFIG_KEY, true);
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		this.includeGitLog = ConfigUtils.getBooleanProperty(config, INCLUDE_GIT_LOG_CONFIG_KEY, false);
+		updateCommitStore = ConfigUtils.getBooleanProperty(config, UPDATE_COMMIT_CONFIG_KEY, true);
 
-        // use true as default for backward compatibility
-        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
-    }
+		// use true as default for backward compatibility
+		failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
+	}
 
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
-    @Override
-    public boolean supportsMode(Deployment.Mode mode) {
-        return mode == Deployment.Mode.PUBLISH || mode == Deployment.Mode.SEARCH_INDEX;
-    }
+	@Override
+	public boolean supportsMode(Deployment.Mode mode) {
+		return mode == Deployment.Mode.PUBLISH || mode == Deployment.Mode.SEARCH_INDEX;
+	}
 
-    @Override
-    protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
-        // Run if the deployment is running
-        return deployment.isRunning();
-    }
+	@Override
+	protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
+		// Run if the deployment is running
+		return deployment.isRunning();
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        boolean regularPublish = deployment.getMode() == Deployment.Mode.PUBLISH;
-        ObjectId fromCommitId = getFromCommitIdParam(deployment);
-        boolean reprocessAllFiles = getReprocessAllFilesParam(deployment);
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+		boolean regularPublish = deployment.getMode() == Deployment.Mode.PUBLISH;
+		ObjectId fromCommitId = getFromCommitIdParam(deployment);
+		boolean reprocessAllFiles = getReprocessAllFilesParam(deployment);
 
-        if (fromCommitId == null && reprocessAllFiles) {
-            if (regularPublish) {
-                processedCommitsStore.delete(targetId);
-            }
+		if (fromCommitId == null && reprocessAllFiles) {
+			if (regularPublish) {
+				processedCommitsStore.delete(targetId);
+			}
 
-            logger.info("All files from local repo {} will be reprocessed", localRepoFolder);
-        }
+			logger.info("All files from local repo {} will be reprocessed", localRepoFolder);
+		}
 
-        try (Git git = openLocalRepository()) {
-            ObjectId previousCommitId = null;
-            if (fromCommitId == null) {
-                if (!reprocessAllFiles) {
-                    previousCommitId = processedCommitsStore.load(targetId);
-                }
-            } else {
-                previousCommitId = fromCommitId;
-            }
-            ObjectId latestCommitId = getLatestCommitId(git);
+		try (Git git = openLocalRepository()) {
+			ObjectId previousCommitId = null;
+			if (fromCommitId == null) {
+				if (!reprocessAllFiles) {
+					previousCommitId = processedCommitsStore.load(targetId);
+				}
+			} else {
+				previousCommitId = fromCommitId;
+			}
+			ObjectId latestCommitId = getLatestCommitId(git);
 
-            ChangeSet changeSet = resolveChangeSetFromCommits(git, previousCommitId, latestCommitId);
+			ChangeSet changeSet = resolveChangeSetFromCommits(git, previousCommitId, latestCommitId);
 
-            if (changeSet != null) {
-                if (includeGitLog) {
-                    updateChangeDetails(changeSet, git, previousCommitId, latestCommitId);
-                }
-                execution.setStatusDetails("Changes detected and resolved successfully");
-            } else {
-                execution.setStatusDetails("No changes detected");
-            }
+			if (changeSet != null) {
+				if (includeGitLog) {
+					updateChangeDetails(changeSet, git, previousCommitId, latestCommitId);
+				}
+				execution.setStatusDetails("Changes detected and resolved successfully");
+			} else {
+				execution.setStatusDetails("No changes detected");
+			}
 
-            // Make the new commit id available for other processors
-            deployment.addParam(LATEST_COMMIT_ID_PARAM_NAME, latestCommitId);
+			// Make the new commit id available for other processors
+			deployment.addParam(LATEST_COMMIT_ID_PARAM_NAME, latestCommitId);
 
-            if (updateCommitStore && regularPublish) {
-                processedCommitsStore.store(targetId, latestCommitId);
-            }
+			if (updateCommitStore && regularPublish) {
+				processedCommitsStore.store(targetId, latestCommitId);
+			}
 
-            return changeSet;
-        }
-    }
+			return changeSet;
+		}
+	}
 
-    protected void updateChangeDetails(ChangeSet changeSet, Git git, ObjectId previousCommitId,
-                                       ObjectId latestCommitId) {
-        Map<String, UpdateDetail> changeDetails = new HashMap<>();
-        Map<String, String> changeLog = new HashMap<>();
+	protected void updateChangeDetails(ChangeSet changeSet, Git git, ObjectId previousCommitId,
+					   ObjectId latestCommitId) {
+		Map<String, UpdateDetail> changeDetails = new HashMap<>();
+		Map<String, String> changeLog = new HashMap<>();
 
-        try {
-            LogCommand logCmd = git.log();
-            if (previousCommitId != null && latestCommitId != null) {
-                logCmd.addRange(git.getRepository().parseCommit(previousCommitId),
-                    git.getRepository().parseCommit(latestCommitId));
-            }
+		try {
+			LogCommand logCmd = git.log();
+			if (previousCommitId != null && latestCommitId != null) {
+				logCmd.addRange(git.getRepository().parseCommit(previousCommitId),
+					git.getRepository().parseCommit(latestCommitId));
+			}
 
-            Iterable<RevCommit> log = logCmd.call();
-            for (RevCommit commit : log) {
-                UpdateDetail detail = new UpdateDetail();
-                detail.setAuthor(commit.getAuthorIdent().getName());
-                detail.setDate(Instant.ofEpochSecond(commit.getCommitTime()));
-                changeDetails.put(commit.getName(), detail);
+			Iterable<RevCommit> log = logCmd.call();
+			for (RevCommit commit : log) {
+				UpdateDetail detail = new UpdateDetail();
+				detail.setAuthor(commit.getAuthorIdent().getName());
+				detail.setDate(Instant.ofEpochSecond(commit.getCommitTime()));
+				changeDetails.put(commit.getName(), detail);
 
-                try (ObjectReader reader = git.getRepository().newObjectReader()) {
-                    RevCommit parent = commit.getParentCount() > 0? commit.getParent(0) : null;
-                    List<DiffEntry> diff = GitUtils.doDiff(git, reader, parent, commit);
+				try (ObjectReader reader = git.getRepository().newObjectReader()) {
+					RevCommit parent = commit.getParentCount() > 0 ? commit.getParent(0) : null;
+					List<DiffEntry> diff = GitUtils.doDiff(git, reader, parent, commit);
 
-                    diff.forEach(entry -> {
-                        if(entry.getChangeType() != DiffEntry.ChangeType.DELETE) {
-                            changeLog.putIfAbsent(removeEnd(entry.getNewPath(), blobFileExtension), commit.getName());
-                        }
-                    });
-                }
-            }
+					diff.forEach(entry -> {
+						if (entry.getChangeType() != DiffEntry.ChangeType.DELETE) {
+							changeLog.putIfAbsent(removeEnd(entry.getNewPath(), blobFileExtension), commit.getName());
+						}
+					});
+				}
+			}
 
-            changeSet.setUpdateDetails(changeDetails);
-            changeSet.setUpdateLog(changeLog);
-        } catch (Exception e) {
-            logger.error("Error getting git log for commits {} {}", previousCommitId, latestCommitId, e);
-        }
-    }
+			changeSet.setUpdateDetails(changeDetails);
+			changeSet.setUpdateLog(changeLog);
+		} catch (Exception e) {
+			logger.error("Error getting git log for commits {} {}", previousCommitId, latestCommitId, e);
+		}
+	}
 
-    protected Git openLocalRepository() throws DeployerException {
-        try {
-            logger.debug("Opening local Git repository at {}", localRepoFolder);
+	protected Git openLocalRepository() throws DeployerException {
+		try {
+			logger.debug("Opening local Git repository at {}", localRepoFolder);
 
-            return GitUtils.openRepository(localRepoFolder);
-        } catch (IOException e) {
-            throw new DeployerException("Failed to open Git repository at " + localRepoFolder, e);
-        }
-    }
+			return GitUtils.openRepository(localRepoFolder);
+		} catch (IOException e) {
+			throw new DeployerException("Failed to open Git repository at " + localRepoFolder, e);
+		}
+	}
 
-    protected ObjectId getLatestCommitId(Git git) throws DeployerException {
-        try {
-            return git.getRepository().resolve(Constants.HEAD);
-        } catch (IOException e) {
-            throw new DeployerException("Unable to retrieve HEAD commit ID", e);
-        }
-    }
+	protected ObjectId getLatestCommitId(Git git) throws DeployerException {
+		try {
+			return git.getRepository().resolve(Constants.HEAD);
+		} catch (IOException e) {
+			throw new DeployerException("Unable to retrieve HEAD commit ID", e);
+		}
+	}
 
-    protected ChangeSet resolveChangeSetFromCommits(Git git, ObjectId fromCommitId,
-                                                    ObjectId toCommitId) throws DeployerException {
-        String fromCommitIdStr = fromCommitId != null? fromCommitId.name(): "{empty}";
-        String toCommitIdStr = toCommitId != null? toCommitId.name(): "{empty}";
+	protected ChangeSet resolveChangeSetFromCommits(Git git, ObjectId fromCommitId,
+							ObjectId toCommitId) throws DeployerException {
+		String fromCommitIdStr = fromCommitId != null ? fromCommitId.name() : "{empty}";
+		String toCommitIdStr = toCommitId != null ? toCommitId.name() : "{empty}";
 
-        if (!Objects.equals(fromCommitId, toCommitId)) {
-            logger.info("Calculating change set from commits: {} -> {}", fromCommitIdStr, toCommitIdStr);
+		if (!Objects.equals(fromCommitId, toCommitId)) {
+			logger.info("Calculating change set from commits: {} -> {}", fromCommitIdStr, toCommitIdStr);
 
-            try (ObjectReader reader = git.getRepository().newObjectReader()) {
-                return processDiffEntries(GitUtils.doDiff(git, reader, fromCommitId, toCommitId));
-            } catch (IOException | GitAPIException e) {
-                throw new DeployerException("Failed to calculate change set from commits: " + fromCommitIdStr +
-                                            " -> " + toCommitIdStr, e);
-            }
-        } else {
-            logger.info("Commits are the same. No change set will be calculated");
+			try (ObjectReader reader = git.getRepository().newObjectReader()) {
+				return processDiffEntries(GitUtils.doDiff(git, reader, fromCommitId, toCommitId));
+			} catch (IOException | GitAPIException e) {
+				throw new DeployerException("Failed to calculate change set from commits: " + fromCommitIdStr +
+					" -> " + toCommitIdStr, e);
+			}
+		} else {
+			logger.info("Commits are the same. No change set will be calculated");
 
-            return null;
-        }
-    }
+			return null;
+		}
+	}
 
-    protected ChangeSet processDiffEntries(List<DiffEntry> diffEntries) {
-        List<String> createdFiles = new ArrayList<>();
-        List<String> updatedFiles = new ArrayList<>();
-        List<String> deletedFiles = new ArrayList<>();
-        String newPath;
-        String oldPath;
+	protected ChangeSet processDiffEntries(List<DiffEntry> diffEntries) {
+		List<String> createdFiles = new ArrayList<>();
+		List<String> updatedFiles = new ArrayList<>();
+		List<String> deletedFiles = new ArrayList<>();
+		String newPath;
+		String oldPath;
 
-        for (DiffEntry entry : diffEntries) {
-            switch (entry.getChangeType()) {
-                case MODIFY:
-                    newPath = asContentStoreUrl(entry.getNewPath());
+		for (DiffEntry entry : diffEntries) {
+			switch (entry.getChangeType()) {
+				case MODIFY:
+					newPath = asContentStoreUrl(entry.getNewPath());
 
-                    updatedFiles.add(newPath);
+					updatedFiles.add(newPath);
 
-                    logger.debug("Updated file: {}", newPath);
-                    break;
-                case DELETE:
-                    oldPath = asContentStoreUrl(entry.getOldPath());
+					logger.debug("Updated file: {}", newPath);
+					break;
+				case DELETE:
+					oldPath = asContentStoreUrl(entry.getOldPath());
 
-                    deletedFiles.add(oldPath);
+					deletedFiles.add(oldPath);
 
-                    logger.debug("Deleted file: {}", oldPath);
-                    break;
-                case RENAME:
-                    oldPath = asContentStoreUrl(entry.getOldPath());
-                    newPath = asContentStoreUrl(entry.getNewPath());
+					logger.debug("Deleted file: {}", oldPath);
+					break;
+				case RENAME:
+					oldPath = asContentStoreUrl(entry.getOldPath());
+					newPath = asContentStoreUrl(entry.getNewPath());
 
-                    deletedFiles.add(oldPath);
-                    createdFiles.add(newPath);
+					deletedFiles.add(oldPath);
+					createdFiles.add(newPath);
 
-                    logger.debug("Renamed file: {} -> {}", oldPath, newPath);
-                    break;
-                case COPY:
-                    oldPath = asContentStoreUrl(entry.getOldPath());
-                    newPath = asContentStoreUrl(entry.getNewPath());
+					logger.debug("Renamed file: {} -> {}", oldPath, newPath);
+					break;
+				case COPY:
+					oldPath = asContentStoreUrl(entry.getOldPath());
+					newPath = asContentStoreUrl(entry.getNewPath());
 
-                    createdFiles.add(newPath);
+					createdFiles.add(newPath);
 
-                    logger.debug("Copied file: {} -> {}", oldPath, newPath);
-                    break;
-                default: // ADD
-                    newPath = asContentStoreUrl(entry.getNewPath());
+					logger.debug("Copied file: {} -> {}", oldPath, newPath);
+					break;
+				default: // ADD
+					newPath = asContentStoreUrl(entry.getNewPath());
 
-                    createdFiles.add(newPath);
+					createdFiles.add(newPath);
 
-                    logger.debug("New file: {}", newPath);
-                    break;
-            }
-        }
+					logger.debug("New file: {}", newPath);
+					break;
+			}
+		}
 
-        return new ChangeSet(createdFiles, updatedFiles, deletedFiles);
-    }
+		return new ChangeSet(createdFiles, updatedFiles, deletedFiles);
+	}
 
-    protected String asContentStoreUrl(String path) {
-        return removeEnd(prependIfMissing(path, "/"), blobFileExtension);
-    }
+	protected String asContentStoreUrl(String path) {
+		return removeEnd(prependIfMissing(path, "/"), blobFileExtension);
+	}
 
-    protected boolean getReprocessAllFilesParam(Deployment deployment) {
-        Object value = deployment.getParam(REPROCESS_ALL_FILES_PARAM_NAME);
-        if (value != null) {
-            if (value instanceof Boolean) {
-                return (Boolean)value;
-            } else {
-                return BooleanUtils.toBoolean(value.toString());
-            }
-        } else {
-            return false;
-        }
-    }
+	protected boolean getReprocessAllFilesParam(Deployment deployment) {
+		Object value = deployment.getParam(REPROCESS_ALL_FILES_PARAM_NAME);
+		if (value != null) {
+			if (value instanceof Boolean) {
+				return (Boolean) value;
+			} else {
+				return BooleanUtils.toBoolean(value.toString());
+			}
+		} else {
+			return false;
+		}
+	}
 
-    protected ObjectId getFromCommitIdParam(Deployment deployment) {
-        ObjectId objectId = null;
-        Object value = deployment.getParam(FROM_COMMIT_ID_PARAM_NAME);
-        if (value != null) {
-            objectId = ObjectId.fromString((String) value);
-        }
-        return objectId;
-    }
+	protected ObjectId getFromCommitIdParam(Deployment deployment) {
+		ObjectId objectId = null;
+		Object value = deployment.getParam(FROM_COMMIT_ID_PARAM_NAME);
+		if (value != null) {
+			objectId = ObjectId.fromString((String) value);
+		}
+		return objectId;
+	}
 
 }

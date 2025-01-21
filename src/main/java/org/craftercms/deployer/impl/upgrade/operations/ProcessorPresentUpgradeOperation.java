@@ -28,20 +28,20 @@ import java.util.Map;
  */
 public abstract class ProcessorPresentUpgradeOperation extends AbstractProcessorUpgradeOperation {
 
-    @Override
-    protected void doExecute(Target target, Map<String, Object> targetConfig) throws Exception {
-        logger.debug("Looking for processor '{}' in pipeline for target '{}'", processorName, target.getId());
-        if (processorExists(targetConfig)) {
-            doExecuteInternal(target, targetConfig);
-        } else {
-            logger.info("Processor '{}' not found in pipeline for target '{}', operation will be skipped",
-                    processorName, target.getId());
-        }
-    }
+	@Override
+	protected void doExecute(Target target, Map<String, Object> targetConfig) throws Exception {
+		logger.debug("Looking for processor '{}' in pipeline for target '{}'", processorName, target.getId());
+		if (processorExists(targetConfig)) {
+			doExecuteInternal(target, targetConfig);
+		} else {
+			logger.info("Processor '{}' not found in pipeline for target '{}', operation will be skipped",
+				processorName, target.getId());
+		}
+	}
 
-    private boolean processorExists(Map<String, Object> targetConfig) {
-        return getPipeline(targetConfig).stream().anyMatch(processor ->
-                processor.get(CONFIG_KEY_PROCESSOR_NAME).toString().matches(processorName));
-    }
+	private boolean processorExists(Map<String, Object> targetConfig) {
+		return getPipeline(targetConfig).stream().anyMatch(processor ->
+			processor.get(CONFIG_KEY_PROCESSOR_NAME).toString().matches(processorName));
+	}
 
 }

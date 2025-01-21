@@ -56,67 +56,67 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  */
 public abstract class AbstractRemoteGitRepoAwareProcessor extends AbstractMainDeploymentProcessor {
 
-    protected static final String REMOTE_REPO_URL_CONFIG_KEY = "remoteRepo.url";
-    protected static final String REMOTE_REPO_BRANCH_CONFIG_KEY = "remoteRepo.branch";
-    protected static final String REMOTE_REPO_USERNAME_CONFIG_KEY = "remoteRepo.username";
-    protected static final String REMOTE_REPO_PASSWORD_CONFIG_KEY = "remoteRepo.password";
-    protected static final String REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY = "remoteRepo.ssh.privateKey.path";
-    protected static final String REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY = "remoteRepo.ssh.privateKey.passphrase";
+	protected static final String REMOTE_REPO_URL_CONFIG_KEY = "remoteRepo.url";
+	protected static final String REMOTE_REPO_BRANCH_CONFIG_KEY = "remoteRepo.branch";
+	protected static final String REMOTE_REPO_USERNAME_CONFIG_KEY = "remoteRepo.username";
+	protected static final String REMOTE_REPO_PASSWORD_CONFIG_KEY = "remoteRepo.password";
+	protected static final String REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY = "remoteRepo.ssh.privateKey.path";
+	protected static final String REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY = "remoteRepo.ssh.privateKey.passphrase";
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractRemoteGitRepoAwareProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractRemoteGitRepoAwareProcessor.class);
 
-    protected File localRepoFolder;
+	protected File localRepoFolder;
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    protected String remoteRepoUrl;
-    protected String remoteRepoBranch;
-    protected GitAuthenticationConfigurator authenticationConfigurator;
-    protected AuthConfiguratorFactory authConfiguratorFactory;
+	protected String remoteRepoUrl;
+	protected String remoteRepoBranch;
+	protected GitAuthenticationConfigurator authenticationConfigurator;
+	protected AuthConfiguratorFactory authConfiguratorFactory;
 
-    public AbstractRemoteGitRepoAwareProcessor(File localRepoFolder,
-                                               AuthConfiguratorFactory authConfiguratorFactory) {
-        this.localRepoFolder = localRepoFolder;
-        this.authConfiguratorFactory = authConfiguratorFactory;
-    }
+	public AbstractRemoteGitRepoAwareProcessor(File localRepoFolder,
+						   AuthConfiguratorFactory authConfiguratorFactory) {
+		this.localRepoFolder = localRepoFolder;
+		this.authConfiguratorFactory = authConfiguratorFactory;
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        remoteRepoUrl = getRequiredStringProperty(config, REMOTE_REPO_URL_CONFIG_KEY);
-        remoteRepoBranch = getStringProperty(config, REMOTE_REPO_BRANCH_CONFIG_KEY);
-        authenticationConfigurator = createAuthenticationConfigurator(config, remoteRepoUrl);
-    }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		remoteRepoUrl = getRequiredStringProperty(config, REMOTE_REPO_URL_CONFIG_KEY);
+		remoteRepoBranch = getStringProperty(config, REMOTE_REPO_BRANCH_CONFIG_KEY);
+		authenticationConfigurator = createAuthenticationConfigurator(config, remoteRepoUrl);
+	}
 
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
-    @Override
-    protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
-        // Run if the deployment is running, even if there are no changes
-        return deployment.isRunning();
-    }
+	@Override
+	protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
+		// Run if the deployment is running, even if there are no changes
+		return deployment.isRunning();
+	}
 
-    protected GitAuthenticationConfigurator createAuthenticationConfigurator(Configuration config,
-                                                                             String repoUrl) throws
-                                                                                             ConfigurationException {
-        return authConfiguratorFactory.forUrl(repoUrl)
-                .withUsername(getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY))
-                .withPassword(getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY))
-                .withPrivateKeyPath(getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY))
-                .withPrivateKeyPassphrase(getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY))
-                .build();
-    }
+	protected GitAuthenticationConfigurator createAuthenticationConfigurator(Configuration config,
+										 String repoUrl) throws
+		ConfigurationException {
+		return authConfiguratorFactory.forUrl(repoUrl)
+			.withUsername(getStringProperty(config, REMOTE_REPO_USERNAME_CONFIG_KEY))
+			.withPassword(getStringProperty(config, REMOTE_REPO_PASSWORD_CONFIG_KEY))
+			.withPrivateKeyPath(getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PATH_CONFIG_KEY))
+			.withPrivateKeyPassphrase(getStringProperty(config, REMOTE_REPO_SSH_PRV_KEY_PASSPHRASE_CONFIG_KEY))
+			.build();
+	}
 
-    protected Git openLocalRepository() throws DeployerException {
-        try {
-            logger.debug("Opening local Git repository at {}", localRepoFolder);
+	protected Git openLocalRepository() throws DeployerException {
+		try {
+			logger.debug("Opening local Git repository at {}", localRepoFolder);
 
-            return GitUtils.openRepository(localRepoFolder);
-        } catch (IOException e) {
-            throw new DeployerException("Failed to open Git repository at " + localRepoFolder, e);
-        }
-    }
+			return GitUtils.openRepository(localRepoFolder);
+		} catch (IOException e) {
+			throw new DeployerException("Failed to open Git repository at " + localRepoFolder, e);
+		}
+	}
 
 }

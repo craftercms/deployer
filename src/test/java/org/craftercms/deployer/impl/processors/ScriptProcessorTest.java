@@ -47,105 +47,105 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class ScriptProcessorTest {
 
-    public static final String UPDATED_FILE = "/site/website/about-us.xml";
+	public static final String UPDATED_FILE = "/site/website/about-us.xml";
 
-    @Mock
-    ApplicationContext applicationContext;
+	@Mock
+	ApplicationContext applicationContext;
 
-    @Mock
-    Target target;
+	@Mock
+	Target target;
 
-    private ScriptProcessor scriptProcessor;
+	private ScriptProcessor scriptProcessor;
 
-    @Before
-    public void setUp() throws IOException {
-        GroovyScriptEngine scriptEngine = setUpGroovyScriptEngine();
-        SandboxInterceptor sandboxInterceptor = setUpSandboxInterceptor();
+	@Before
+	public void setUp() throws IOException {
+		GroovyScriptEngine scriptEngine = setUpGroovyScriptEngine();
+		SandboxInterceptor sandboxInterceptor = setUpSandboxInterceptor();
 
-        scriptProcessor = new ScriptProcessor(scriptEngine, sandboxInterceptor);
-        scriptProcessor.setBeanName("testScriptProcessor");
-        scriptProcessor.setTargetId("test");
-        scriptProcessor.setApplicationContext(applicationContext);
-        scriptProcessor.failDeploymentOnFailure = true;
-    }
+		scriptProcessor = new ScriptProcessor(scriptEngine, sandboxInterceptor);
+		scriptProcessor.setBeanName("testScriptProcessor");
+		scriptProcessor.setTargetId("test");
+		scriptProcessor.setApplicationContext(applicationContext);
+		scriptProcessor.failDeploymentOnFailure = true;
+	}
 
-    protected GroovyScriptEngine setUpGroovyScriptEngine() throws IOException {
-        CompilerConfiguration compilerConfig = new CompilerConfiguration();
-        compilerConfig.addCompilationCustomizers(new SandboxTransformer());
-        return new GroovyScriptEngine("src/test/resources/processors/scripts",
-                new GroovyClassLoader(getClass().getClassLoader(), compilerConfig));
-    }
+	protected GroovyScriptEngine setUpGroovyScriptEngine() throws IOException {
+		CompilerConfiguration compilerConfig = new CompilerConfiguration();
+		compilerConfig.addCompilationCustomizers(new SandboxTransformer());
+		return new GroovyScriptEngine("src/test/resources/processors/scripts",
+			new GroovyClassLoader(getClass().getClassLoader(), compilerConfig));
+	}
 
-    protected SandboxInterceptor setUpSandboxInterceptor() throws IOException {
-        // Empty blacklist, we can test with the basic restrictions
-        return new SandboxInterceptor(new Blacklist(new StringReader("")));
-    }
+	protected SandboxInterceptor setUpSandboxInterceptor() throws IOException {
+		// Empty blacklist, we can test with the basic restrictions
+		return new SandboxInterceptor(new Blacklist(new StringReader("")));
+	}
 
-    @Test
-    public void changeSetIsUpdated() {
-        scriptProcessor.scriptPath = "test-changes.groovy";
+	@Test
+	public void changeSetIsUpdated() {
+		scriptProcessor.scriptPath = "test-changes.groovy";
 
-        when(applicationContext.getBean("testService")).thenReturn(singletonMap("updatedFile", UPDATED_FILE));
+		when(applicationContext.getBean("testService")).thenReturn(singletonMap("updatedFile", UPDATED_FILE));
 
-        Deployment deployment = new Deployment(target);
-        deployment.start();
+		Deployment deployment = new Deployment(target);
+		deployment.start();
 
-        ChangeSet changeSet = new ChangeSet();
-        changeSet.addCreatedFile("/site/website/index.xml");
-        deployment.setChangeSet(changeSet);
+		ChangeSet changeSet = new ChangeSet();
+		changeSet.addCreatedFile("/site/website/index.xml");
+		deployment.setChangeSet(changeSet);
 
-        scriptProcessor.execute(deployment);
+		scriptProcessor.execute(deployment);
 
-        assertFalse(deployment.getChangeSet().getUpdatedFiles().isEmpty());
-        assertTrue(deployment.getChangeSet().getUpdatedFiles().contains(UPDATED_FILE));
-    }
+		assertFalse(deployment.getChangeSet().getUpdatedFiles().isEmpty());
+		assertTrue(deployment.getChangeSet().getUpdatedFiles().contains(UPDATED_FILE));
+	}
 
-    @Test
-    public void scriptRunsInSandbox() {
-        scriptProcessor.scriptPath = "test-sandbox.groovy";
+	@Test
+	public void scriptRunsInSandbox() {
+		scriptProcessor.scriptPath = "test-sandbox.groovy";
 
-        Deployment deployment = new Deployment(target);
-        deployment.start();
+		Deployment deployment = new Deployment(target);
+		deployment.start();
 
-        ChangeSet changeSet = new ChangeSet();
-        changeSet.addCreatedFile("/site/website/index.xml");
-        deployment.setChangeSet(changeSet);
+		ChangeSet changeSet = new ChangeSet();
+		changeSet.addCreatedFile("/site/website/index.xml");
+		deployment.setChangeSet(changeSet);
 
-        scriptProcessor.execute(deployment);
+		scriptProcessor.execute(deployment);
 
-        assertEquals(Deployment.Status.FAILURE, deployment.getStatus());
-    }
+		assertEquals(Deployment.Status.FAILURE, deployment.getStatus());
+	}
 
-    @Test
-    public void incompatibleObjectIsReturned() {
-        scriptProcessor.scriptPath = "test-return.groovy";
+	@Test
+	public void incompatibleObjectIsReturned() {
+		scriptProcessor.scriptPath = "test-return.groovy";
 
-        Deployment deployment = new Deployment(target);
-        deployment.start();
+		Deployment deployment = new Deployment(target);
+		deployment.start();
 
-        ChangeSet changeSet = new ChangeSet();
-        changeSet.addCreatedFile("/site/website/index.xml");
-        deployment.setChangeSet(changeSet);
+		ChangeSet changeSet = new ChangeSet();
+		changeSet.addCreatedFile("/site/website/index.xml");
+		deployment.setChangeSet(changeSet);
 
-        scriptProcessor.execute(deployment);
+		scriptProcessor.execute(deployment);
 
-        assertEquals(Deployment.Status.FAILURE, deployment.getStatus());
-    }
+		assertEquals(Deployment.Status.FAILURE, deployment.getStatus());
+	}
 
-    @Test
-    public void nullIsReturned() {
-        scriptProcessor.scriptPath = "test-null.groovy";
+	@Test
+	public void nullIsReturned() {
+		scriptProcessor.scriptPath = "test-null.groovy";
 
-        Deployment deployment = new Deployment(target);
-        deployment.start();
+		Deployment deployment = new Deployment(target);
+		deployment.start();
 
-        ChangeSet changeSet = new ChangeSet();
-        changeSet.addCreatedFile("/site/website/index.xml");
-        deployment.setChangeSet(changeSet);
+		ChangeSet changeSet = new ChangeSet();
+		changeSet.addCreatedFile("/site/website/index.xml");
+		deployment.setChangeSet(changeSet);
 
-        scriptProcessor.execute(deployment);
+		scriptProcessor.execute(deployment);
 
-        assertNotEquals(Deployment.Status.FAILURE, deployment.getStatus());
-    }
+		assertNotEquals(Deployment.Status.FAILURE, deployment.getStatus());
+	}
 
 }

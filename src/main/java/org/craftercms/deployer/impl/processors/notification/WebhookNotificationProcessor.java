@@ -45,82 +45,82 @@ import java.io.IOException;
  * </ul>
  */
 public class WebhookNotificationProcessor extends NotificationProcessor<NotificationProcessor.NotificationMessage> {
-    private static final Logger logger = LoggerFactory.getLogger(WebhookNotificationProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(WebhookNotificationProcessor.class);
 
-    private static final String URL_CONFIG_KEY = "url";
-    private static final String METHOD_CONFIG_KEY = "method";
-    private static final String CONTENT_TYPE_CONFIG_KEY = "contentType";
-    private static final String DEPLOYMENT_JSON_MODEL_KEY = "deploymentJson";
+	private static final String URL_CONFIG_KEY = "url";
+	private static final String METHOD_CONFIG_KEY = "method";
+	private static final String CONTENT_TYPE_CONFIG_KEY = "contentType";
+	private static final String DEPLOYMENT_JSON_MODEL_KEY = "deploymentJson";
 
-    private String defaultMethod;
-    private String defaultContentType;
+	private String defaultMethod;
+	private String defaultContentType;
 
-    private String method;
-    private String url;
-    private String contentType;
-    private CloseableHttpClient httpClient;
+	private String method;
+	private String url;
+	private String contentType;
+	private CloseableHttpClient httpClient;
 
-    protected ObjectMapper objectMapper;
+	protected ObjectMapper objectMapper;
 
-    @Override
-    public void doInit(Configuration config) throws ConfigurationException, DeployerException {
-        super.doInit(config);
-        method = config.getString(METHOD_CONFIG_KEY, defaultMethod);
-        contentType = config.getString(CONTENT_TYPE_CONFIG_KEY, defaultContentType);
-        url = config.getString(URL_CONFIG_KEY);
+	@Override
+	public void doInit(Configuration config) throws ConfigurationException, DeployerException {
+		super.doInit(config);
+		method = config.getString(METHOD_CONFIG_KEY, defaultMethod);
+		contentType = config.getString(CONTENT_TYPE_CONFIG_KEY, defaultContentType);
+		url = config.getString(URL_CONFIG_KEY);
 
-        httpClient = HttpClients.createDefault();
-    }
+		httpClient = HttpClients.createDefault();
+	}
 
-    @Override
-    protected NotificationMessage doCreateMessage(Deployment deployment) {
-        NotificationMessage message = new NotificationMessage();
-        try {
-            String deploymentJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(deployment);
-            message.getModel().put(DEPLOYMENT_JSON_MODEL_KEY, deploymentJson);
-        } catch (JsonProcessingException e) {
-            logger.error("Failed to write deployment to JSON", e);
-        }
+	@Override
+	protected NotificationMessage doCreateMessage(Deployment deployment) {
+		NotificationMessage message = new NotificationMessage();
+		try {
+			String deploymentJson = objectMapper.writerWithDefaultPrettyPrinter().writeValueAsString(deployment);
+			message.getModel().put(DEPLOYMENT_JSON_MODEL_KEY, deploymentJson);
+		} catch (JsonProcessingException e) {
+			logger.error("Failed to write deployment to JSON", e);
+		}
 
-        return message;
-    }
+		return message;
+	}
 
-    @Override
-    protected void doNotify(NotificationProcessor.NotificationMessage message) throws DeployerException {
-        logger.info("Sending webhook notification to {} with method {}", url, method);
-        try {
-            HttpUriRequest request = createRequest(message);
-            try (CloseableHttpResponse response = httpClient.execute(request)) {
-                logger.info("Webhook notification sent with status {}", response.getStatusLine());
-            }
-        } catch (IOException e) {
-            logger.error("Error sending webhook notification", e);
-            throw new DeployerException(e);
-        }
-    }
+	@Override
+	protected void doNotify(NotificationProcessor.NotificationMessage message) throws DeployerException {
+		logger.info("Sending webhook notification to {} with method {}", url, method);
+		try {
+			HttpUriRequest request = createRequest(message);
+			try (CloseableHttpResponse response = httpClient.execute(request)) {
+				logger.info("Webhook notification sent with status {}", response.getStatusLine());
+			}
+		} catch (IOException e) {
+			logger.error("Error sending webhook notification", e);
+			throw new DeployerException(e);
+		}
+	}
 
-    /**
-     * Creates the HTTP request to send the notification.
-     *
-     * @param message The notification message.
-     */
-    private HttpUriRequest createRequest(NotificationProcessor.NotificationMessage message) throws DeployerException {
-        return RequestBuilder
-                .create(method)
-                .setUri(url)
-                .setEntity(new StringEntity(message.getBody(), ContentType.getByMimeType(contentType)))
-                .build();
-    }
+	/**
+	 * Creates the HTTP request to send the notification.
+	 *
+	 * @param message The notification message.
+	 */
+	private HttpUriRequest createRequest(NotificationProcessor.NotificationMessage message) throws DeployerException {
+		return RequestBuilder
+			.create(method)
+			.setUri(url)
+			.setEntity(new StringEntity(message.getBody(), ContentType.getByMimeType(contentType)))
+			.build();
+	}
 
-    public void setDefaultMethod(String defaultMethod) {
-        this.defaultMethod = defaultMethod;
-    }
+	public void setDefaultMethod(String defaultMethod) {
+		this.defaultMethod = defaultMethod;
+	}
 
-    public void setDefaultContentType(String defaultContentType) {
-        this.defaultContentType = defaultContentType;
-    }
+	public void setDefaultContentType(String defaultContentType) {
+		this.defaultContentType = defaultContentType;
+	}
 
-    public void setObjectMapper(ObjectMapper objectMapper) {
-        this.objectMapper = objectMapper;
-    }
+	public void setObjectMapper(ObjectMapper objectMapper) {
+		this.objectMapper = objectMapper;
+	}
 }

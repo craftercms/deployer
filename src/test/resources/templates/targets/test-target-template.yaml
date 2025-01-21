@@ -1,10 +1,10 @@
 target:
-  env: {{env}}
-  siteName: {{site_name}}
-  localRepoPath: {{site_name}}
-  randomParam: {{random_param}}
-  search:
-    indexIdFormat: '%s'
-  deployment:
-    pipeline:
-      - processorName: testProcessor
+    env: {{env}}
+    siteName: {{site_name}}
+    localRepoPath: {{site_name}}
+    randomParam: {{random_param}}
+    search:
+        indexIdFormat: '%s'
+    deployment:
+        pipeline:
+            -   processorName: testProcessor

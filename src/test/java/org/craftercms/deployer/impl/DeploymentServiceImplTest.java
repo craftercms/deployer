@@ -40,47 +40,47 @@ import static org.mockito.Mockito.when;
  */
 public class DeploymentServiceImplTest {
 
-    private DeploymentServiceImpl deploymentService;
-    private Target foobarTarget;
-    private Target barfooTarget;
+	private DeploymentServiceImpl deploymentService;
+	private Target foobarTarget;
+	private Target barfooTarget;
 
-    @Before
-    public void setUp() throws Exception {
-        deploymentService = new DeploymentServiceImpl(createTargetService());
-    }
+	@Before
+	public void setUp() throws Exception {
+		deploymentService = new DeploymentServiceImpl(createTargetService());
+	}
 
-    @Test
-    public void testDeployAllTargets() throws Exception {
-        List<Deployment> deployments = deploymentService.deployAllTargets(false, Collections.emptyMap());
+	@Test
+	public void testDeployAllTargets() throws Exception {
+		List<Deployment> deployments = deploymentService.deployAllTargets(false, Collections.emptyMap());
 
-        assertNotNull(deployments);
-        assertEquals(2, deployments.size());
+		assertNotNull(deployments);
+		assertEquals(2, deployments.size());
 
-        verify(foobarTarget).deploy(eq(false), any());
-        verify(barfooTarget).deploy(eq(false), any());
-    }
+		verify(foobarTarget).deploy(eq(false), any());
+		verify(barfooTarget).deploy(eq(false), any());
+	}
 
-    @Test
-    public void testDeployTarget() throws Exception {
-        Deployment deployment = deploymentService.deployTarget("test", "foobar", false, Collections.emptyMap());
+	@Test
+	public void testDeployTarget() throws Exception {
+		Deployment deployment = deploymentService.deployTarget("test", "foobar", false, Collections.emptyMap());
 
-        assertNotNull(deployment);
+		assertNotNull(deployment);
 
-        verify(foobarTarget).deploy(eq(false), any());
-    }
+		verify(foobarTarget).deploy(eq(false), any());
+	}
 
-    private TargetService createTargetService() throws Exception {
-        foobarTarget = mock(Target.class);
-        barfooTarget = mock(Target.class);
+	private TargetService createTargetService() throws Exception {
+		foobarTarget = mock(Target.class);
+		barfooTarget = mock(Target.class);
 
-        when(foobarTarget.deploy(eq(false), any())).thenReturn(mock(Deployment.class));
-        when(barfooTarget.deploy(eq(false), any())).thenReturn(mock(Deployment.class));
+		when(foobarTarget.deploy(eq(false), any())).thenReturn(mock(Deployment.class));
+		when(barfooTarget.deploy(eq(false), any())).thenReturn(mock(Deployment.class));
 
-        TargetService targetService = mock(TargetService.class);
-        when(targetService.getAllTargets()).thenReturn(Arrays.asList(foobarTarget, barfooTarget));
-        when(targetService.getTarget("test", "foobar")).thenReturn(foobarTarget);
+		TargetService targetService = mock(TargetService.class);
+		when(targetService.getAllTargets()).thenReturn(Arrays.asList(foobarTarget, barfooTarget));
+		when(targetService.getTarget("test", "foobar")).thenReturn(foobarTarget);
 
-        return targetService;
-    }
+		return targetService;
+	}
 
 }

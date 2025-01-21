@@ -34,118 +34,117 @@ import java.util.Map;
  */
 public interface Target {
 
-    String AUTHORING_ENV = "authoring";
+	String AUTHORING_ENV = "authoring";
 
-    enum Status {
-        CREATED,
-        INIT_IN_PROGRESS,
-        INIT_FAILED,
-        INIT_COMPLETED,
-        DELETE_IN_PROGRESS,
-        DELETED
-    }
+	enum Status {
+		CREATED,
+		INIT_IN_PROGRESS,
+		INIT_FAILED,
+		INIT_COMPLETED,
+		DELETE_IN_PROGRESS,
+		DELETED
+	}
 
-    /**
-     * Returns the ID of the target.
-     */
-    @JsonProperty("id")
-    String getId();
+	/**
+	 * Returns the ID of the target.
+	 */
+	@JsonProperty("id")
+	String getId();
 
-    /**
-     * Returns the environment of the target.
-     */
-    @JsonProperty("env")
-    String getEnv();
+	/**
+	 * Returns the environment of the target.
+	 */
+	@JsonProperty("env")
+	String getEnv();
 
-    /**
-     * Returns the site name of the target.
-     */
-    @JsonProperty("site_name")
-    String getSiteName();
+	/**
+	 * Returns the site name of the target.
+	 */
+	@JsonProperty("site_name")
+	String getSiteName();
 
-    /**
-     * Returns the load date of the target.
-     */
-    @JsonProperty("load_date")
-    ZonedDateTime getLoadDate();
+	/**
+	 * Returns the load date of the target.
+	 */
+	@JsonProperty("load_date")
+	ZonedDateTime getLoadDate();
 
-    /**
-     * Returns the status of the target
-     */
-    @JsonProperty("status")
-    Status getStatus();
+	/**
+	 * Returns the status of the target
+	 */
+	@JsonProperty("status")
+	Status getStatus();
 
-    /**
-     * Returns the YAML configuration file of the target.
-     */
-    @JsonIgnore
-    File getConfigurationFile();
+	/**
+	 * Returns the YAML configuration file of the target.
+	 */
+	@JsonIgnore
+	File getConfigurationFile();
 
-    /**
-     * Returns the configuration of the target.
-     */
-    @JsonIgnore
-    HierarchicalConfiguration<ImmutableNode> getConfiguration();
+	/**
+	 * Returns the configuration of the target.
+	 */
+	@JsonIgnore
+	HierarchicalConfiguration<ImmutableNode> getConfiguration();
 
-    /**
-     * Returns this target's Spring application context
-     */
-    @JsonIgnore
-    ConfigurableApplicationContext getApplicationContext();
+	/**
+	 * Returns this target's Spring application context
+	 */
+	@JsonIgnore
+	ConfigurableApplicationContext getApplicationContext();
 
-    /**
-     * Starts the initialization of the target (asynchronous operation). Called when the create target API is called
-     * or the target config is loaded.
-     */
-    void init();
+	/**
+	 * Starts the initialization of the target (asynchronous operation). Called when the create target API is called
+	 * or the target config is loaded.
+	 */
+	void init();
 
-    /**
-     * Starts a new deployment for the target (asynchronous operation if {@code waitTillDone} is false).
-     *
-     * @param waitTillDone  if the method should wait till the deployment is done or return immediately
-     * @param params        miscellaneous parameters that can be used by the processors.
-     *
-     * @return the deployment info
-     * @throws TargetNotReadyException if the target is not in {@link Status#INIT_COMPLETED}
-     */
-    Deployment deploy(boolean waitTillDone, Map<String, Object> params) throws TargetNotReadyException;
+	/**
+	 * Starts a new deployment for the target (asynchronous operation if {@code waitTillDone} is false).
+	 *
+	 * @param waitTillDone if the method should wait till the deployment is done or return immediately
+	 * @param params       miscellaneous parameters that can be used by the processors.
+	 * @return the deployment info
+	 * @throws TargetNotReadyException if the target is not in {@link Status#INIT_COMPLETED}
+	 */
+	Deployment deploy(boolean waitTillDone, Map<String, Object> params) throws TargetNotReadyException;
 
-    /**
-     * Returns the pending deployments.
-     */
-    @JsonIgnore
-    Collection<Deployment> getPendingDeployments();
+	/**
+	 * Returns the pending deployments.
+	 */
+	@JsonIgnore
+	Collection<Deployment> getPendingDeployments();
 
-    /**
-     * Returns the current deployment.
-     */
-    @JsonIgnore
-    Deployment getCurrentDeployment();
+	/**
+	 * Returns the current deployment.
+	 */
+	@JsonIgnore
+	Deployment getCurrentDeployment();
 
-    /**
-     * Returns all deployments (pending and current).
-     */
-    @JsonIgnore
-    Collection<Deployment> getAllDeployments();
+	/**
+	 * Returns all deployments (pending and current).
+	 */
+	@JsonIgnore
+	Collection<Deployment> getAllDeployments();
 
-    /**
-     * Performs a cleanup of the local repository.
-     */
-    void cleanRepo();
+	/**
+	 * Performs a cleanup of the local repository.
+	 */
+	void cleanRepo();
 
-    /**
-     * Closes the target, releases any open resources and stops any running threads associated to the target.
-     */
-    void close();
+	/**
+	 * Closes the target, releases any open resources and stops any running threads associated to the target.
+	 */
+	void close();
 
-    /**
-     * Deletes the target, executing any delete hooks. Calls {@link #close()} too.
-     */
-    void delete();
+	/**
+	 * Deletes the target, executing any delete hooks. Calls {@link #close()} too.
+	 */
+	void delete();
 
-    /**
-     * Deletes the git lock file is present in the local repository.
-     */
-    void unlock();
+	/**
+	 * Deletes the git lock file is present in the local repository.
+	 */
+	void unlock();
 
 }

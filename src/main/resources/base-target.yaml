@@ -3,304 +3,304 @@
 ####################################################
 
 target:
-  # The source site name when duplicating a target.
-  sourceSiteName: ''
-  # The local folder path where the target repository will be placed
-  localRepoPath: ${deployer.main.deployments.folderPath}/${target.env}/${target.siteName}
-  # The default datetime pattern that will be used
-  defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
-  # The default Engine URL
-  engineUrl: http://localhost:8080
-  engineManagementToken: ${deployer.main.management.engineAuthorizationToken}
-  studioUrl: http://localhost:8080/studio
-  studioManagementToken: ${deployer.main.management.studioAuthorizationToken}
-  deployment:
-    scheduling:
-      # If scheduling of target deployments is enabled
-      enabled: true
-      # The cron expression used for scheduling target deployments
-      cron: '0 * * * * *'
-    events:
-      # The folder where all files are stored locally
-      folderPath: ${deploymentEvents.dir}
-      # The pattern used to generate the name of the files
-      filePattern: '%s-deployment-events.properties'
-  translation:
-    # Indicates if the translation features should be enabled for the target
-    enable: false
-  search:
-    # The format used for the index id
-    indexIdFormat: '%s'
-    tika:
-      # Limit of chars to be parsed from binary files
-      limit: 100000
-    openSearch:
-      mappings:
-        # JSON file containing the settings for authoring indexes
-        authoring: 'classpath:crafter/opensearch/authoring-mapping.json'
-        # JSON file containing the settings for preview indexes
-        preview: 'classpath:crafter/opensearch/default-mapping.json'
-      authoring:
-        # Regex used to determine if an index is for authoring
-        pattern: '.+-authoring'
-      locale:
-        # Mapping of locale codes to OpenSearch language analyzers
-        mapping:
-          en.*: english
-          es.*: spanish
-          fr.*: french
-          de.*: german
-      # List of URLs for OpenSearch
-      urls:
-        - http://localhost:9201
-      # Default index settings
-      indexSettings:
-        - key: "index.mapping.total_fields.limit"
-          value : 3000
-        - key: "index.mapping.depth.limit"
-          value: 40
-      # Ignored (when copying an index) settings
-      ignoredSettings:
-        - "index.creation_date"
-        - "index.uuid"
-        - "index.version.created"
-        - "index.provided_name"
-        - "index.number_of_shards"
-        - "index.replication.type"
-        - "index.version.upgraded"
-      client:
-        # Number of slices to divide the reindex task. 0 means 'auto',
-        # so OpenSearch will automatically determine the number of slices to use
-        reindexSlices: 0
-        # Max time in seconds to wait for a reindex task to finish
-        reindexTimeoutSeconds: 300
-    indexing:
-      xml:
-        flattening:
-          # If XML flattening should be done when indexing XML
-          enabled: true
-          # The XPath Query for the include element
-          includeElementXPathQuery: //include
-          # The XPath Query for the node that indicates a particular include is disabled
-          disabledIncludeNodeXPathQuery: ../disableFlattening
-          # The regex used to detect pages during flattening and avoid there inclusion
-          pagesPathPattern: "^/?site/website/.*$"
-          # If the include tags should be removed when flattening. Don't set to true if you want pages/components
-          # to be re-reindex when one of their children is being updated
-          removeIncludeTags: false
-        merging:
-          # If XML merging should be done when indexing XML
-          enabled: true
-          inherits:
-            field: inheritsFrom_smv
-        # The regex patterns of the XML files that should be included for indexing
-        includePatterns:
-          - ^/?site/.+\.xml$
-        locale:
-          # The XPath to extract the locale from the descriptor
-          xpath: '*/localeCode'
-      # Configurations for fields during indexing
-      field:
-        name:
-          # The name for the unique id field
-          id: id
-          # The name for the root id field
-          rootId: rootId
-          # The name for the site field
-          site: crafterSite
-          # The name for the local id field
-          localId: localId
-          # The name for the content-type field
-          contentType: content-type
-          # The name for the file name field
-          fileName: file-name
-          publishedDate:
-            # The name for the publish date field (indexed as text)
-            name: crafterPublishedDate
-            # The alternate name for the publish date field (indexed as a date)
-            alt: crafterPublishedDate_dt
-          # The name for the internal name field
-          internalName: internalName
-        type:
-          html:
-            # The suffix used for fields containing HTML markup (only text will be indexed)
-            suffix: _html
-            # The suffix added for the copy of the field (will be indexed as a string including markup)
-            copy: _raw
-          dateTime:
-            # The suffix used for fields containing date time values
-            suffix: _dt
-            # The pattern used to parse the date time values
-            pattern: yyyy-MM-dd'T'HH:mm:ss.SSSZ
-          timeOnly:
-            # The suffix used for fields containing time values
-            suffix: _to
-            # The pattern used to parse the time values
-            pattern: HH:mm:ss
-
-      binary:
-        # The list of binary file mime types that should be indexed
-        supportedMimeTypes:
-          - application/pdf
-          - application/msword
-          - application/vnd.openxmlformats-officedocument.wordprocessingml.document
-          - application/vnd.ms-excel
-          - application/vnd.ms-powerpoint
-          - application/vnd.openxmlformats-officedocument.presentationml.presentation
-        # The regex path patterns for the metadata ("jacket") files of binary/document files
-        metadataPathPatterns:
-          - ^/?site/documents/.+\.xml$
-        # The regex path patterns for binary/document files that are store remotely
-        remoteBinaryPathPatterns: &remoteBinaryPathPatterns
-          # HTTP/HTTPS URLs are only indexed if they contain the protocol (http:// or https://). Protocol relative
-          # URLs (like //mydoc.pdf) are not supported since the protocol is unknown to the back-end indexer.
-          - ^(http:|https:)//.+$
-          - ^/remote-assets/.+$
-        # The regex path patterns for binary/document files that should be associated to just one metadata file and are
-        # dependant on that parent metadata file, so if the parent is deleted the binary should be deleted from the index
-        childBinaryPathPatterns: *remoteBinaryPathPatterns
-        # The XPaths of the binary references in the metadata files
-        referenceXPaths:
-          - //item/key
-          - //item/url
-        # Setting specific for authoring indexes
-        authoring:
-          # Xpath for the internal name field
-          internalName:
-            xpath: '*/internal-name'
-            includePatterns:
-              - ^/?site/.+$
-              - ^/?static-assets/.+$
-              - ^/?remote-assets/.+$
-              - ^/?scripts/.+$
-              - ^/?templates/.+$
-          contentType:
-            xpath: '*/content-type'
-          # Same as for delivery but include images and videos
-          supportedMimeTypes:
-            - application/pdf
-            - application/msword
-            - application/vnd.openxmlformats-officedocument.wordprocessingml.document
-            - application/vnd.ms-excel
-            - application/vnd.ms-powerpoint
-            - application/vnd.openxmlformats-officedocument.presentationml.presentation
-            - application/x-subrip
-            - image/*
-            - video/*
-            - audio/*
-            - text/x-freemarker
-            - text/x-groovy
-            - text/javascript
-            - text/css
-          # The regex path patterns for the metadata ("jacket") files of binary/document files
-          metadataPathPatterns:
-            - ^/?site/documents/.+\.xml$
-          binaryPathPatterns:
-            - ^/?static-assets/.+$
-            - ^/?remote-assets/.+$
-            - ^/?scripts/.+$
-            - ^/?templates/.+$
-          # Look into all XML descriptors to index all binary files referenced
-          binarySearchablePathPatterns:
-            - ^/?site/.+\.xml$
-          # Additional metadata such as contentLength, content-type specific metadata
-          metadataExtractorPathPatterns:
-            - ^/?site/.+$
-          excludePathPatterns:
-            - ^/?config/.*$
-          # Include all fields marked as remote resources (S3, Box, CMIS)
-          referenceXPaths:
-            - //item/key
-            - //item/url
-            - //*[@remote="true"]
-  notifications:
-    # For which status should the notifications be sent
-    status: SUCCESS
-    # The file to keep track of the last notification email datetime
-    defaultLastDateFilenameSuffix: -lastNotification
-    webhook:
-      # The character encoding
-      encoding: UTF-8
-      defaultMethod: post
-      defaultContentType: application/json
-      templates:
-        # The location (Spring URL) of  the webhook templates
-        location: classpath:templates/webhook
-        # The override location (Spring URL) of the webhook templates
-        overrideLocation: file:${deployer.main.config.folderPath}/templates/webhook
-        # The name of the default template
-        default: slack
-        # The suffix used to resolve the final name of a template
-        suffix: -template.ftl
-    mail:
-      server:
-        # The hostname of the mail server used to send notifications
-        host: localhost
-        # The port of the mail server used to send notifications
-        port: 25
-        # The username of the mail server used to send notifications
-        username: ''
-        # The password of the mail server used to send notifications
-        password: ''
-      # The mail protocol used on notifications
-      protocol: smtp
-      # The character encoding used on emails
-      encoding: UTF-8
-      # The JavaMail properties, empty by default
-      properties: []
-      templates:
-        # The location (Spring URL) of  the mail templates
-        location: classpath:templates/mail
-        # The override location (Spring URL) of the mail templates
-        overrideLocation: file:${deployer.main.config.folderPath}/templates/mail
-        # The name of the default mail template
-        default: default
-        # The suffix used to resolve the final name of a mail template
-        suffix: -mail-template.ftl
-      # The from field to use in the emails
-      from: noreply@example.com
-      # The subject field to use in the emails
-      subject: Deployment Report
-      # If emails should be HTML emails
-      html: true
-      # For which status should the notifications be sent
-      status: SUCCESS
-  config:
-    profiles:
-      aws:
-        # The path for the AWS configuration profile in the local repo
-        module: studio
-        path: aws/aws.xml
-      box:
-        # The path for the Box configuration profile in the local repo
-        module: studio
-        path: box/box.xml
-      webdav:
-        # The path for the WebDav configuration profile in the local repo
-        module: studio
-        path: webdav/webdav.xml
-  lifecycleHooks:
-    # The lifecycle hooks executed during a target create
-    create:
-      - hookName: createIndexLifecycleHook
-    # The lifecycle hooks executed during a target delete
-    delete:
-      - hookName: deleteIndexLifecycleHook
-    duplicate:
-      - hookName: duplicateIndexLifecycleHook
-      - hookName: duplicateProcessCommitsFileLifecycleHook
-  core:
-    cache:
-      # Indicates if the cache should be using while reading files from the repo
-      enabled: true
-      # Maximum number of items allowed in the cache
-      maxItems: 100
+    # The source site name when duplicating a target.
+    sourceSiteName: ''
+    # The local folder path where the target repository will be placed
+    localRepoPath: ${deployer.main.deployments.folderPath}/${target.env}/${target.siteName}
+    # The default datetime pattern that will be used
+    defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
+    # The default Engine URL
+    engineUrl: http://localhost:8080
+    engineManagementToken: ${deployer.main.management.engineAuthorizationToken}
+    studioUrl: http://localhost:8080/studio
+    studioManagementToken: ${deployer.main.management.studioAuthorizationToken}
+    deployment:
+        scheduling:
+            # If scheduling of target deployments is enabled
+            enabled: true
+            # The cron expression used for scheduling target deployments
+            cron: '0 * * * * *'
+        events:
+            # The folder where all files are stored locally
+            folderPath: ${deploymentEvents.dir}
+            # The pattern used to generate the name of the files
+            filePattern: '%s-deployment-events.properties'
+    translation:
+        # Indicates if the translation features should be enabled for the target
+        enable: false
+    search:
+        # The format used for the index id
+        indexIdFormat: '%s'
+        tika:
+            # Limit of chars to be parsed from binary files
+            limit: 100000
+        openSearch:
+            mappings:
+                # JSON file containing the settings for authoring indexes
+                authoring: 'classpath:crafter/opensearch/authoring-mapping.json'
+                # JSON file containing the settings for preview indexes
+                preview: 'classpath:crafter/opensearch/default-mapping.json'
+            authoring:
+                # Regex used to determine if an index is for authoring
+                pattern: '.+-authoring'
+            locale:
+                # Mapping of locale codes to OpenSearch language analyzers
+                mapping:
+                    en.*: english
+                    es.*: spanish
+                    fr.*: french
+                    de.*: german
+            # List of URLs for OpenSearch
+            urls:
+                - http://localhost:9201
+            # Default index settings
+            indexSettings:
+                -   key: "index.mapping.total_fields.limit"
+                    value: 3000
+                -   key: "index.mapping.depth.limit"
+                    value: 40
+            # Ignored (when copying an index) settings
+            ignoredSettings:
+                - "index.creation_date"
+                - "index.uuid"
+                - "index.version.created"
+                - "index.provided_name"
+                - "index.number_of_shards"
+                - "index.replication.type"
+                - "index.version.upgraded"
+            client:
+                # Number of slices to divide the reindex task. 0 means 'auto',
+                # so OpenSearch will automatically determine the number of slices to use
+                reindexSlices: 0
+                # Max time in seconds to wait for a reindex task to finish
+                reindexTimeoutSeconds: 300
+        indexing:
+            xml:
+                flattening:
+                    # If XML flattening should be done when indexing XML
+                    enabled: true
+                    # The XPath Query for the include element
+                    includeElementXPathQuery: //include
+                    # The XPath Query for the node that indicates a particular include is disabled
+                    disabledIncludeNodeXPathQuery: ../disableFlattening
+                    # The regex used to detect pages during flattening and avoid there inclusion
+                    pagesPathPattern: "^/?site/website/.*$"
+                    # If the include tags should be removed when flattening. Don't set to true if you want pages/components
+                    # to be re-reindex when one of their children is being updated
+                    removeIncludeTags: false
+                merging:
+                    # If XML merging should be done when indexing XML
+                    enabled: true
+                    inherits:
+                        field: inheritsFrom_smv
+                # The regex patterns of the XML files that should be included for indexing
+                includePatterns:
+                    - ^/?site/.+\.xml$
+                locale:
+                    # The XPath to extract the locale from the descriptor
+                    xpath: '*/localeCode'
+            # Configurations for fields during indexing
+            field:
+                name:
+                    # The name for the unique id field
+                    id: id
+                    # The name for the root id field
+                    rootId: rootId
+                    # The name for the site field
+                    site: crafterSite
+                    # The name for the local id field
+                    localId: localId
+                    # The name for the content-type field
+                    contentType: content-type
+                    # The name for the file name field
+                    fileName: file-name
+                    publishedDate:
+                        # The name for the publish date field (indexed as text)
+                        name: crafterPublishedDate
+                        # The alternate name for the publish date field (indexed as a date)
+                        alt: crafterPublishedDate_dt
+                    # The name for the internal name field
+                    internalName: internalName
+                type:
+                    html:
+                        # The suffix used for fields containing HTML markup (only text will be indexed)
+                        suffix: _html
+                        # The suffix added for the copy of the field (will be indexed as a string including markup)
+                        copy: _raw
+                    dateTime:
+                        # The suffix used for fields containing date time values
+                        suffix: _dt
+                        # The pattern used to parse the date time values
+                        pattern: yyyy-MM-dd'T'HH:mm:ss.SSSZ
+                    timeOnly:
+                        # The suffix used for fields containing time values
+                        suffix: _to
+                        # The pattern used to parse the time values
+                        pattern: HH:mm:ss
+            
+            binary:
+                # The list of binary file mime types that should be indexed
+                supportedMimeTypes:
+                    - application/pdf
+                    - application/msword
+                    - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+                    - application/vnd.ms-excel
+                    - application/vnd.ms-powerpoint
+                    - application/vnd.openxmlformats-officedocument.presentationml.presentation
+                # The regex path patterns for the metadata ("jacket") files of binary/document files
+                metadataPathPatterns:
+                    - ^/?site/documents/.+\.xml$
+                # The regex path patterns for binary/document files that are store remotely
+                remoteBinaryPathPatterns: &remoteBinaryPathPatterns
+                    # HTTP/HTTPS URLs are only indexed if they contain the protocol (http:// or https://). Protocol relative
+                    # URLs (like //mydoc.pdf) are not supported since the protocol is unknown to the back-end indexer.
+                    - ^(http:|https:)//.+$
+                    - ^/remote-assets/.+$
+                # The regex path patterns for binary/document files that should be associated to just one metadata file and are
+                # dependant on that parent metadata file, so if the parent is deleted the binary should be deleted from the index
+                childBinaryPathPatterns: *remoteBinaryPathPatterns
+                # The XPaths of the binary references in the metadata files
+                referenceXPaths:
+                    - //item/key
+                    - //item/url
+                # Setting specific for authoring indexes
+                authoring:
+                    # Xpath for the internal name field
+                    internalName:
+                        xpath: '*/internal-name'
+                        includePatterns:
+                            - ^/?site/.+$
+                            - ^/?static-assets/.+$
+                            - ^/?remote-assets/.+$
+                            - ^/?scripts/.+$
+                            - ^/?templates/.+$
+                    contentType:
+                        xpath: '*/content-type'
+                    # Same as for delivery but include images and videos
+                    supportedMimeTypes:
+                        - application/pdf
+                        - application/msword
+                        - application/vnd.openxmlformats-officedocument.wordprocessingml.document
+                        - application/vnd.ms-excel
+                        - application/vnd.ms-powerpoint
+                        - application/vnd.openxmlformats-officedocument.presentationml.presentation
+                        - application/x-subrip
+                        - image/*
+                        - video/*
+                        - audio/*
+                        - text/x-freemarker
+                        - text/x-groovy
+                        - text/javascript
+                        - text/css
+                    # The regex path patterns for the metadata ("jacket") files of binary/document files
+                    metadataPathPatterns:
+                        - ^/?site/documents/.+\.xml$
+                    binaryPathPatterns:
+                        - ^/?static-assets/.+$
+                        - ^/?remote-assets/.+$
+                        - ^/?scripts/.+$
+                        - ^/?templates/.+$
+                    # Look into all XML descriptors to index all binary files referenced
+                    binarySearchablePathPatterns:
+                        - ^/?site/.+\.xml$
+                    # Additional metadata such as contentLength, content-type specific metadata
+                    metadataExtractorPathPatterns:
+                        - ^/?site/.+$
+                    excludePathPatterns:
+                        - ^/?config/.*$
+                    # Include all fields marked as remote resources (S3, Box, CMIS)
+                    referenceXPaths:
+                        - //item/key
+                        - //item/url
+                        - //*[@remote="true"]
+    notifications:
+        # For which status should the notifications be sent
+        status: SUCCESS
+        # The file to keep track of the last notification email datetime
+        defaultLastDateFilenameSuffix: -lastNotification
+        webhook:
+            # The character encoding
+            encoding: UTF-8
+            defaultMethod: post
+            defaultContentType: application/json
+            templates:
+                # The location (Spring URL) of  the webhook templates
+                location: classpath:templates/webhook
+                # The override location (Spring URL) of the webhook templates
+                overrideLocation: file:${deployer.main.config.folderPath}/templates/webhook
+                # The name of the default template
+                default: slack
+                # The suffix used to resolve the final name of a template
+                suffix: -template.ftl
+        mail:
+            server:
+                # The hostname of the mail server used to send notifications
+                host: localhost
+                # The port of the mail server used to send notifications
+                port: 25
+                # The username of the mail server used to send notifications
+                username: ''
+                # The password of the mail server used to send notifications
+                password: ''
+            # The mail protocol used on notifications
+            protocol: smtp
+            # The character encoding used on emails
+            encoding: UTF-8
+            # The JavaMail properties, empty by default
+            properties: [ ]
+            templates:
+                # The location (Spring URL) of  the mail templates
+                location: classpath:templates/mail
+                # The override location (Spring URL) of the mail templates
+                overrideLocation: file:${deployer.main.config.folderPath}/templates/mail
+                # The name of the default mail template
+                default: default
+                # The suffix used to resolve the final name of a mail template
+                suffix: -mail-template.ftl
+            # The from field to use in the emails
+            from: noreply@example.com
+            # The subject field to use in the emails
+            subject: Deployment Report
+            # If emails should be HTML emails
+            html: true
+            # For which status should the notifications be sent
+            status: SUCCESS
+    config:
+        profiles:
+            aws:
+                # The path for the AWS configuration profile in the local repo
+                module: studio
+                path: aws/aws.xml
+            box:
+                # The path for the Box configuration profile in the local repo
+                module: studio
+                path: box/box.xml
+            webdav:
+                # The path for the WebDav configuration profile in the local repo
+                module: studio
+                path: webdav/webdav.xml
+    lifecycleHooks:
+        # The lifecycle hooks executed during a target create
+        create:
+            -   hookName: createIndexLifecycleHook
+        # The lifecycle hooks executed during a target delete
+        delete:
+            -   hookName: deleteIndexLifecycleHook
+        duplicate:
+            -   hookName: duplicateIndexLifecycleHook
+            -   hookName: duplicateProcessCommitsFileLifecycleHook
+    core:
+        cache:
+            # Indicates if the cache should be using while reading files from the repo
+            enabled: true
+            # Maximum number of items allowed in the cache
+            maxItems: 100
 
 # AWS specific configuraitons
 aws:
-  # Thread pool for S3 uploads
-  threads:
-    # The size of the thread pool
-    size: 10
-    # The max size of the thread pool
-    max: 15
+    # Thread pool for S3 uploads
+    threads:
+        # The size of the thread pool
+        size: 10
+        # The max size of the thread pool
+        max: 15

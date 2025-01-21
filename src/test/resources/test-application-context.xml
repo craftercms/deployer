@@ -16,22 +16,22 @@
   -->
 
 <beans xmlns="http://www.springframework.org/schema/beans"
-       xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
-       xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
+	   xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	   xsi:schemaLocation="http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd">
 
-    <bean id="crafter.configurationReader" class="org.craftercms.commons.config.EncryptionAwareConfigurationReader">
-        <constructor-arg>
-            <bean class="org.craftercms.commons.crypto.impl.NoOpTextEncryptor"/>
-        </constructor-arg>
-    </bean>
+		<bean id="crafter.configurationReader" class="org.craftercms.commons.config.EncryptionAwareConfigurationReader">
+				<constructor-arg>
+						<bean class="org.craftercms.commons.crypto.impl.NoOpTextEncryptor"/>
+				</constructor-arg>
+		</bean>
 
-	<bean id="crafter.configurationResolver" class="org.craftercms.commons.config.ConfigurationResolverImpl">
-		<constructor-arg value="test"/>
-		<constructor-arg value="/config/{module}"/>
-		<constructor-arg value="/config/{module}/env/{environment}"/>
-		<constructor-arg ref="crafter.configurationReader"/>
-	</bean>
+		<bean id="crafter.configurationResolver" class="org.craftercms.commons.config.ConfigurationResolverImpl">
+				<constructor-arg value="test"/>
+				<constructor-arg value="/config/{module}"/>
+				<constructor-arg value="/config/{module}/env/{environment}"/>
+				<constructor-arg ref="crafter.configurationReader"/>
+		</bean>
 
-    <import resource="classpath:crafter/core/core-context.xml"/>
+		<import resource="classpath:crafter/core/core-context.xml"/>
 
 </beans>

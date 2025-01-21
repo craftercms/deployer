@@ -35,39 +35,39 @@ import java.beans.ConstructorProperties;
  */
 public class OpenSearchServiceFactory extends AbstractOpenSearchFactory<OpenSearchService> {
 
-    /**
-     * The document builder
-     */
-    protected OpenSearchDocumentBuilder documentBuilder;
+	/**
+	 * The document builder
+	 */
+	protected OpenSearchDocumentBuilder documentBuilder;
 
-    /**
-     * The document parser
-     */
-    protected DocumentParser documentParser;
+	/**
+	 * The document parser
+	 */
+	protected DocumentParser documentParser;
 
-    @ConstructorProperties({"config", "documentBuilder", "documentParser"})
-    public OpenSearchServiceFactory(final OpenSearchConfig config,
-                                    final OpenSearchDocumentBuilder documentBuilder,
-                                    final DocumentParser documentParser) {
-        super(config);
-        this.documentBuilder = documentBuilder;
-        this.documentParser = documentParser;
-    }
+	@ConstructorProperties({"config", "documentBuilder", "documentParser"})
+	public OpenSearchServiceFactory(final OpenSearchConfig config,
+					final OpenSearchDocumentBuilder documentBuilder,
+					final DocumentParser documentParser) {
+		super(config);
+		this.documentBuilder = documentBuilder;
+		this.documentParser = documentParser;
+	}
 
-    @Override
-    public Class<?> getObjectType() {
-        return OpenSearchService.class;
-    }
+	@Override
+	public Class<?> getObjectType() {
+		return OpenSearchService.class;
+	}
 
-    @Override
-    protected OpenSearchService doCreateSingleInstance(final OpenSearchClient client) {
-        return new OpenSearchServiceImpl(documentBuilder, documentParser, client);
-    }
+	@Override
+	protected OpenSearchService doCreateSingleInstance(final OpenSearchClient client) {
+		return new OpenSearchServiceImpl(documentBuilder, documentParser, client);
+	}
 
-    @Override
-    protected OpenSearchService doCreateMultiInstance(final OpenSearchClient readClient,
-                                                      final OpenSearchClient[] writeClients) {
-        return new MultiOpenSearchServiceImpl(documentBuilder, documentParser, readClient, writeClients);
-    }
+	@Override
+	protected OpenSearchService doCreateMultiInstance(final OpenSearchClient readClient,
+							  final OpenSearchClient[] writeClients) {
+		return new MultiOpenSearchServiceImpl(documentBuilder, documentParser, readClient, writeClients);
+	}
 
 }

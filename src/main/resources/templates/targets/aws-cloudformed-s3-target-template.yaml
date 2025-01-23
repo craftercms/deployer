@@ -1,157 +1,157 @@
 version: '2.4'
 aws:
-    region: { { #if aws.region}}{{aws.region}}{{else}}''{{/if}}
-        accessKey: { { #if aws.default_access_key}}{{aws.default_access_key}}{{else}}''{{/if}}
-            secretKey: { { #if aws.default_secret_key}}{{aws.default_secret_key}}{{else}}''{{/if}}
-                cloudformation:
-                    namespace: {{aws.cloudformation.namespace } }
-                accessKey: { { #if aws.cloudformation.access_key}}{{aws.cloudformation.access_key}}{{else}}${aws.accessKey}{{/if}}
-                    secretKey: { { #if aws.cloudformation.secret_key}}{{aws.cloudformation.secret_key}}{{else}}${aws.secretKey}{{/if}}
-                        stackName: ${ aws.cloudformation.namespace }-site-{{site_name } }
-                        s3BucketName: ${ aws.cloudformation.namespace }-site-{{site_name } }
-                s3Url: s3://${ aws.cloudformation.s3BucketName }
-                deliveryLBDomainName: {{aws.cloudformation.deliveryLBDomainName } }
-            cloudfrontCertificateArn: { { #if aws.cloudformation.cloudfrontCertificateArn}}{{aws.cloudformation.cloudfrontCertificateArn}}{{else}}''{{/if}}
-                alternateCloudFrontDomainNames: { { #if aws.cloudformation.alternateCloudFrontDomainNames}}{{aws.cloudformation.alternateCloudFrontDomainNames}}{{else}}''{{/if}}
-                    disableCloudformationDelete: false
-                        disableS3BucketClear: false
-                        stackCapabilities: { { #if aws.cloudformation.stackCapabilities}}{{aws.cloudformation.stackCapabilities}}{{else}}''{{/if}}
-                          { { #if aws.threads}}
-                              threads:
-                                { { #if aws.threads.size}}size: {{aws.threads.size}}{{/if}}
-                                  { { #if aws.threads.max}}max: {{aws.threads.max}}{{/if}}
-                                    {{/if } }
-                                    target:
-                                        env: {{env } }
-                                  siteName: {{site_name } }
-                          { { #if source_target}}
-                              sourceSiteName: {{source_target.siteName } }
-                          {{/if } }
-                      { { #if local_repo_path}}
-                          localRepoPath: {{local_repo_path } }
-                        {{/if } }
-                  { { #if search_url}}
-                      search:
-                          openSearch:
-                              urls:
-                                  - {{search_url } }
-                                                    {{/if } }
-            lifecycleHooks:
-                create:
-                    -   hookName: createIndexLifecycleHook
-                    -   hookName: createCloudFormationLifecycleHook
-                        region: ${ aws.region }
-                        accessKey: ${ aws.cloudformation.accessKey }
-                        secretKey: ${ aws.cloudformation.secretKey }
-                        stackName: ${ aws.cloudformation.stackName }
-                        templateFilename: serverless-site-stack.yaml
-                        stackCapabilities: ${ aws.cloudformation.stackCapabilities }
-                        templateParams:
-                            SiteName: ${ target.siteName }
-                            S3BucketName: ${ aws.cloudformation.s3BucketName }
-                            DeliveryLBDomainName: ${ aws.cloudformation.deliveryLBDomainName }
-                            CloudFrontCertificateArn: ${ aws.cloudformation.cloudfrontCertificateArn }
-                            AlternateCloudFrontDomainNames: ${ aws.cloudformation.alternateCloudFrontDomainNames }
-              { { #if source_target}}
-                  duplicate:
-                      -   hookName: duplicateIndexLifecycleHook
-                      -   hookName: duplicateProcessCommitsFileLifecycleHook
-                      -   hookName: duplicateS3LifecycleHook
-                          region: ${ aws.region }
-                          accessKey: ${ aws.accessKey }
-                          secretKey: ${ aws.secretKey }
-                          url: {{aws.s3.url } }
-                endpoint: {{aws.s3.endpoint } }
+  region: {{#if aws.region}}{{aws.region}}{{else}}''{{/if}}
+  accessKey: {{#if aws.default_access_key}}{{aws.default_access_key}}{{else}}''{{/if}}
+  secretKey: {{#if aws.default_secret_key}}{{aws.default_secret_key}}{{else}}''{{/if}}
+  cloudformation:
+    namespace: {{aws.cloudformation.namespace}}
+    accessKey: {{#if aws.cloudformation.access_key}}{{aws.cloudformation.access_key}}{{else}}${aws.accessKey}{{/if}}
+    secretKey: {{#if aws.cloudformation.secret_key}}{{aws.cloudformation.secret_key}}{{else}}${aws.secretKey}{{/if}}
+    stackName: ${aws.cloudformation.namespace}-site-{{site_name}}
+    s3BucketName: ${aws.cloudformation.namespace}-site-{{site_name}}
+    s3Url: s3://${aws.cloudformation.s3BucketName}
+    deliveryLBDomainName: {{aws.cloudformation.deliveryLBDomainName}}
+    cloudfrontCertificateArn: {{#if aws.cloudformation.cloudfrontCertificateArn}}{{aws.cloudformation.cloudfrontCertificateArn}}{{else}}''{{/if}}
+    alternateCloudFrontDomainNames: {{#if aws.cloudformation.alternateCloudFrontDomainNames}}{{aws.cloudformation.alternateCloudFrontDomainNames}}{{else}}''{{/if}}
+    disableCloudformationDelete: false
+    disableS3BucketClear: false
+    stackCapabilities: {{#if aws.cloudformation.stackCapabilities}}{{aws.cloudformation.stackCapabilities}}{{else}}''{{/if}}
+  {{#if aws.threads}}
+  threads:
+    {{#if aws.threads.size}}size: {{aws.threads.size}}{{/if}}
+    {{#if aws.threads.max}}max: {{aws.threads.max}}{{/if}}
+  {{/if}}
+target:
+  env: {{env}}
+  siteName: {{site_name}}
+  {{#if source_target}}
+  sourceSiteName: {{source_target.siteName}}
+  {{/if}}
+  {{#if local_repo_path}}
+  localRepoPath: {{local_repo_path}}
+  {{/if}}
+  {{#if search_url}}
+  search:
+    openSearch:
+      urls:
+        - {{search_url}}
+  {{/if}}
+  lifecycleHooks:
+    create:
+      - hookName: createIndexLifecycleHook
+      - hookName: createCloudFormationLifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        stackName: ${aws.cloudformation.stackName}
+        templateFilename: serverless-site-stack.yaml
+        stackCapabilities: ${aws.cloudformation.stackCapabilities}
+        templateParams:
+          SiteName: ${target.siteName}
+          S3BucketName: ${aws.cloudformation.s3BucketName}
+          DeliveryLBDomainName: ${aws.cloudformation.deliveryLBDomainName}
+          CloudFrontCertificateArn: ${aws.cloudformation.cloudfrontCertificateArn}
+          AlternateCloudFrontDomainNames: ${aws.cloudformation.alternateCloudFrontDomainNames}
+    {{#if source_target}}
+    duplicate:
+      - hookName: duplicateIndexLifecycleHook
+      - hookName: duplicateProcessCommitsFileLifecycleHook
+      - hookName: duplicateS3LifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        url: {{aws.s3.url}}
+        endpoint: {{aws.s3.endpoint}}
         pathStyleAccess: {{aws.s3.path_style_access}}
         sourceConfig:
-            url: {{source.aws.s3.url}}
-            localRepoPath: {{source.local_repo_path}}
-        {{/if}}
-        init:
-            -   hookName: waitTillCloudFormationStackUsableLifecycleHook
-                region: ${aws.region}
-                accessKey: ${aws.cloudformation.accessKey}
-                secretKey: ${aws.cloudformation.secretKey}
-                stackName: ${aws.cloudformation.stackName}
-                outputMappings:
-                    CloudFrontDistributionId: aws.cloudformation.cloudfrontDistribution.id
-                    CloudFrontDistributionDomainName: aws.cloudformation.cloudfrontDistribution.domainName
-        delete:
-            -   hookName: deleteIndexLifecycleHook
-            -   hookName: clearS3BucketLifecycleHook
-                disabled: ${aws.cloudformation.disableS3BucketClear}
-                region: ${aws.region}
-                accessKey: ${aws.cloudformation.accessKey}
-                secretKey: ${aws.cloudformation.secretKey}
-                bucketName: ${aws.cloudformation.s3BucketName}
-            -   hookName: deleteCloudFormationLifecycleHook
-                disabled: ${aws.cloudformation.disableCloudformationDelete}
-                region: ${aws.region}
-                accessKey: ${aws.cloudformation.accessKey}
-                secretKey: ${aws.cloudformation.secretKey}
-                stackName: ${aws.cloudformation.stackName}
-            -   hookName: deleteLocalRepoFolderLifecycleHook
-    deployment:
-      { { #if disable_deploy_cron}}
-          scheduling:
-              enabled: false
-              {{/if } }
-        pipeline:
-            # -------------------- START OF MAIN PIPELINE --------------------
-            -   processorName: gitPullProcessor
-                remoteRepo:
-                    url: {{repo_url}}
-                    branch: { { #if repo_branch}}{{repo_branch}}{{else}}live{{/if}}
-                      { { #if repo_username}}
-                          username: {{repo_username } }
-                      {{/if } }
-                  { { #if repo_password}}
-                      password: {{repo_password } }
-                    {{/if}}
-                  { { #if ssh_private_key_path}}
-                      ssh:
-                          privateKey:
-                              path: {{ssh_private_key_path } }
-                  { { #if ssh_private_key_passphrase}}
-                      passphrase: {{ssh_private_key_passphrase } }
-                    {{/if}}
-                    {{/if}}
-            -   processorName: gitDiffProcessor
-            -   processorName: s3SyncProcessor
-                ignoreBlobs: { { #if ignore_blobs}}{{ignore_blobs}}{{else}}true{{/if}}
-                    region: ${ aws.region }
-                                accessKey: ${ aws.accessKey }
-                                secretKey: ${ aws.secretKey }
-                                url: ${ aws.cloudformation.s3Url }
-                                         -   processorName: cloudfrontInvalidationProcessor
-                                             includeFiles: [ '^/static-assets/.*$' ]
-                                             region: ${ aws.region }
-                                             accessKey: ${ aws.accessKey }
-                                             secretKey: ${ aws.secretKey }
-                                             distributions:
-                                                 - ${ aws.cloudformation.cloudfrontDistribution.id }
-                                         -   processorName: fileBasedDeploymentEventProcessor
-                                             includeFiles: [ "^/?config/.*$", "^/?scripts/.*$" ]
-                                             excludeFiles: [ '^/config/studio/content-types/.*$' ]
-                                             eventName: 'events.deployment.rebuildContext'
-                                         -   processorName: fileBasedDeploymentEventProcessor
-                                             eventName: 'events.deployment.clearCache'
-                                         -   processorName: fileBasedDeploymentEventProcessor
-                                             includeFiles: [ '^/config/studio/content-types/.*$' ]
-                                             eventName: 'events.deployment.rebuildGraphQL'
-                                         -   processorName: s3DeploymentEventsProcessor
-                                             region: ${ aws.region }
-                                             accessKey: ${ aws.accessKey }
-                                             secretKey: ${ aws.secretKey }
-                                             url: ${ aws.cloudformation.s3Url }
-                                         -   processorName: searchIndexingProcessor
-                                             excludeFiles: [ '^/sources/.*$' ]
-                                  # -------------------- END OF MAIN PIPELINE --------------------
-                                         -   processorName: fileOutputProcessor
-                      { { #if notification_addresses}}
-                            -   processorName: mailNotificationProcessor
-                                    to:
-                                      { { #list notification_addresses}}
-                                            - {{this } }
-                                          {{/list } }
-                                {{/if } }
+          url: {{source.aws.s3.url}}
+          localRepoPath: {{source.local_repo_path}}
+    {{/if}}
+    init:
+      - hookName: waitTillCloudFormationStackUsableLifecycleHook
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        stackName: ${aws.cloudformation.stackName}
+        outputMappings:
+          CloudFrontDistributionId: aws.cloudformation.cloudfrontDistribution.id
+          CloudFrontDistributionDomainName: aws.cloudformation.cloudfrontDistribution.domainName
+    delete:
+      - hookName: deleteIndexLifecycleHook
+      - hookName: clearS3BucketLifecycleHook
+        disabled: ${aws.cloudformation.disableS3BucketClear}
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        bucketName: ${aws.cloudformation.s3BucketName}
+      - hookName: deleteCloudFormationLifecycleHook
+        disabled: ${aws.cloudformation.disableCloudformationDelete}
+        region: ${aws.region}
+        accessKey: ${aws.cloudformation.accessKey}
+        secretKey: ${aws.cloudformation.secretKey}
+        stackName: ${aws.cloudformation.stackName}
+      - hookName: deleteLocalRepoFolderLifecycleHook
+  deployment:
+    {{#if disable_deploy_cron}}
+    scheduling:
+       enabled: false
+    {{/if}}
+    pipeline:
+      # -------------------- START OF MAIN PIPELINE --------------------
+      - processorName: gitPullProcessor
+        remoteRepo:
+          url: {{repo_url}}
+          branch: {{#if repo_branch}}{{repo_branch}}{{else}}live{{/if}}
+          {{#if repo_username}}
+          username: {{repo_username}}
+          {{/if}}
+          {{#if repo_password}}
+          password: {{repo_password}}
+          {{/if}}
+          {{#if ssh_private_key_path}}
+          ssh:
+            privateKey:
+              path: {{ssh_private_key_path}}
+              {{#if ssh_private_key_passphrase}}
+              passphrase: {{ssh_private_key_passphrase}}
+              {{/if}}
+          {{/if}}
+      - processorName: gitDiffProcessor
+      - processorName: s3SyncProcessor
+        ignoreBlobs: {{#if ignore_blobs}}{{ignore_blobs}}{{else}}true{{/if}}
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        url: ${aws.cloudformation.s3Url}
+      - processorName: cloudfrontInvalidationProcessor
+        includeFiles: ['^/static-assets/.*$']
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        distributions:
+          - ${aws.cloudformation.cloudfrontDistribution.id}
+      - processorName: fileBasedDeploymentEventProcessor
+        includeFiles: ["^/?config/.*$", "^/?scripts/.*$"]
+        excludeFiles: ['^/config/studio/content-types/.*$']
+        eventName: 'events.deployment.rebuildContext'
+      - processorName: fileBasedDeploymentEventProcessor
+        eventName: 'events.deployment.clearCache'
+      - processorName: fileBasedDeploymentEventProcessor
+        includeFiles: ['^/config/studio/content-types/.*$']
+        eventName: 'events.deployment.rebuildGraphQL'
+      - processorName: s3DeploymentEventsProcessor
+        region: ${aws.region}
+        accessKey: ${aws.accessKey}
+        secretKey: ${aws.secretKey}
+        url: ${aws.cloudformation.s3Url}
+      - processorName: searchIndexingProcessor
+        excludeFiles: ['^/sources/.*$']
+      # -------------------- END OF MAIN PIPELINE --------------------
+      - processorName: fileOutputProcessor
+      {{#if notification_addresses}}
+      - processorName: mailNotificationProcessor
+        to:
+          {{#list notification_addresses}}
+          - {{this}}
+          {{/list}}
+      {{/if}}

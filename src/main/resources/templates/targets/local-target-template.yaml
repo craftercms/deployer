@@ -1,35 +1,35 @@
 version: '2.4'
 target:
-    env: {{env}}
-    siteName: {{site_name}}
-  { { #if source_target}}
-      sourceSiteName: {{source_target.siteName } }
+  env: {{env}}
+  siteName: {{site_name}}
+  {{#if source_target}}
+  sourceSiteName: {{source_target.siteName}}
+  {{/if}}
+  localRepoPath: {{repo_url}}
+  search:
+    indexIdFormat: '%s-preview'
+  deployment:
+    {{#if disable_deploy_cron}}
+    scheduling:
+       enabled: false
     {{/if}}
-    localRepoPath: {{repo_url}}
-    search:
-        indexIdFormat: '%s-preview'
-    deployment:
-      { { #if disable_deploy_cron}}
-          scheduling:
-              enabled: false
-              {{/if } }
-        pipeline:
-            -   processorName: gitDiffProcessor
-            -   processorName: searchIndexingProcessor
-                excludeFiles: [ '^/sources/.*$' ]
-            -   processorName: httpMethodCallProcessor
-                method: GET
-                url: ${target.engineUrl}/api/1/site/cache/clear.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
-            -   processorName: httpMethodCallProcessor
-                includeFiles: [ "^/?config/studio/content-types.*$" ]
-                method: GET
-                url: ${target.engineUrl}/api/1/site/context/graphql/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
-            -   processorName: fileOutputProcessor
-                processorLabel: fileOutputProcessor
-          { { #if notification_addresses}}
-                -   processorName: mailNotificationProcessor
-                        to:
-                          { { #list notification_addresses}}
-                                - {{this } }
-                              {{/list } }
-            {{/if}}
+    pipeline:
+      - processorName: gitDiffProcessor
+      - processorName: searchIndexingProcessor
+        excludeFiles: ['^/sources/.*$']
+      - processorName: httpMethodCallProcessor
+        method: GET
+        url: ${target.engineUrl}/api/1/site/cache/clear.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
+      - processorName: httpMethodCallProcessor
+        includeFiles: ["^/?config/studio/content-types.*$"]
+        method: GET
+        url: ${target.engineUrl}/api/1/site/context/graphql/rebuild.json?crafterSite=${target.siteName}&token=${target.engineManagementToken}
+      - processorName: fileOutputProcessor
+        processorLabel: fileOutputProcessor
+      {{#if notification_addresses}}
+      - processorName: mailNotificationProcessor
+        to:
+          {{#list notification_addresses}}
+          - {{this}}
+          {{/list}}
+      {{/if}}

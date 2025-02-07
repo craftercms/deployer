@@ -208,7 +208,7 @@ target:
             - ^/?site/.+$
           excludePathPatterns:
             - ^/?config/.*$
-          # Include all fields marked as remote resources (S3, Box, CMIS)
+          # Include all fields marked as remote resources (S3)
           referenceXPaths:
             - //item/key
             - //item/url
@@ -271,10 +271,6 @@ target:
         # The path for the AWS configuration profile in the local repo
         module: studio
         path: aws/aws.xml
-      box:
-        # The path for the Box configuration profile in the local repo
-        module: studio
-        path: box/box.xml
       webdav:
         # The path for the WebDav configuration profile in the local repo
         module: studio

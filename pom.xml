@@ -161,16 +161,6 @@
 			<artifactId>ssooidc</artifactId>
 		</dependency>
 
-		<!-- overrides -->
-		<dependency>
-			<groupId>org.bitbucket.b_c</groupId>
-			<artifactId>jose4j</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.squareup.okio</groupId>
-			<artifactId>okio</artifactId>
-		</dependency>
-
 		<!-- WebDAV -->
 		<dependency>
 			<groupId>com.github.lookfirst</groupId>

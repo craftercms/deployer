@@ -1,7 +1,7 @@
 deployer
 ==========
 
-Crafter Deployer is the deployment agent for CrafterCMS. Read the docs for more information: http://craftercms.com/docs.
+Crafter Deployer is the deployment agent for CrafterCMS. Read the docs for more information: https://craftercms.com/docs/current/index.html.
 
 # Community
 ## Contributors

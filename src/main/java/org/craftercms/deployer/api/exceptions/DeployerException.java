@@ -24,27 +24,27 @@ import org.springframework.core.NestedExceptionUtils;
  */
 public class DeployerException extends Exception {
 
-    public DeployerException() {
-    }
+	public DeployerException() {
+	}
 
-    public DeployerException(Throwable cause) {
-        super(cause);
-    }
+	public DeployerException(Throwable cause) {
+		super(cause);
+	}
 
-    public DeployerException(String message) {
-        super(message);
-    }
+	public DeployerException(String message) {
+		super(message);
+	}
 
-    public DeployerException(String message, Throwable cause) {
-        super(message, cause);
-    }
+	public DeployerException(String message, Throwable cause) {
+		super(message, cause);
+	}
 
-    /**
-     * Return the detail message, including the message from the nested exception if there is one.
-     */
-    @Override
-    public String getMessage() {
-        return NestedExceptionUtils.buildMessage(super.getMessage(), getCause());
-    }
+	/**
+	 * Return the detail message, including the message from the nested exception if there is one.
+	 */
+	@Override
+	public String getMessage() {
+		return NestedExceptionUtils.buildMessage(super.getMessage(), getCause());
+	}
 
 }

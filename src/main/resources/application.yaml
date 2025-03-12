@@ -6,157 +6,160 @@
 ##                Server Properties               ##
 ####################################################
 server:
-  # The port number where the server will be listening
-  port: 9191
+    # The port number where the server will be listening
+    port: 9191
 
 ####################################################
 ##                Spring Properties               ##
 ####################################################
 spring:
-  main:
-    # Bean overriding became `false` by default in Spring Boot 2.1.0+
-    allow-bean-definition-overriding: true
-    # Circular references became `false` by default in Spring Boot 2.6.0
-    allow-circular-references: true
-  freemarker:
-    # If Spring should check its default template location (always false since we handle our own Freemarker templates)
-    checkTemplateLocation: false
+    main:
+        # Bean overriding became `false` by default in Spring Boot 2.1.0+
+        allow-bean-definition-overriding: true
+        # Circular references became `false` by default in Spring Boot 2.6.0
+        allow-circular-references: true
+    freemarker:
+        # If Spring should check its default template location (always false since we handle our own Freemarker templates)
+        checkTemplateLocation: false
 
 ####################################################
 ##               Deployer Properties              ##
 ####################################################
 deployer:
-  main:
-    # The base path where all files will be located
-    homePath: .
-    config:
-      # The base config folder path
-      folderPath: ${deployer.main.homePath}/config
-      environment:
-        # The active environment
-        active: default
-        # The path pattern for the default environment
-        basePath: /config/{module}
-        # The path pattern for a specific environment
-        envPath: /config/{module}/env/{environment}
-      # The max maxAliasesForCollections for yaml files
-      yamlMaxAliasesForCollections: 1
-    targets:
-      config:
-        # The folder path for target configuration files
-        folderPath: ${targets.dir}
-        baseYaml:
-          # The location (Spring URL) of the base YAML configuration for targets
-          location: classpath:base-target.yaml
-          # The override location (Spring URL) of the base YAML configuration for targets
-          overrideLocation: file:${deployer.main.config.folderPath}/base-target.yaml
-        baseContext:
-          # The location (Spring URL) of the base Spring context file for targets
-          location: classpath:base-target-context.xml
-          # The override location (Spring URL) of the base Spring context file for targets
-          overrideLocation: file:${deployer.main.config.folderPath}/base-target-context.xml
-        templates:
-          # The location (Spring URL) of the base folder where target YAML templates can be found. Target templates are used to create new targets.
-          location: classpath:templates/targets/
-          # The override location (Spring URL) of the base folder where target YAML templates can be found. Target templates are used to create new targets.
-          overrideLocation: file:${deployer.main.config.folderPath}/templates/targets/
-          # The encoding used to read the templates
-          encoding: UTF-8
-          # The name of the default template
-          default: default
-          # The suffix used to resolve the final name of a target template
-          suffix: -target-template.yaml
-        aws:
-          cloudformation:
-            # The location (Spring URL) of the base folder where AWS CloudFormation template files can be found (should end in /)
-            location: classpath:aws/cloudformation/
-            # The override location of the base folder where AWS CloudFormation template files can be found (should end in /)
-            overrideLocation: file:${deployer.main.config.folderPath}/aws/cloudformation/
-        blob:
-          file:
-            # Extension used for the blob files in the repository
-            extension: '.blob'
-          staging:
-            # Pattern used to detect targets for staging
-            pattern: '^(.+)-staging$'
-      scan:
-        scheduling:
-          # If scheduled scanning of new/updated targets should be enabled
-          enabled: true
-          # The cron expression used on scheduled scanning of new/updated targets.
-          cron: '0 * * * * *'
-      cleanup:
-        # If scheduled cleanup of targets should be enabled
-        enabled: true
-        # The cron expression used on scheduled cleanup of targets
-        cron: '0 0 3 ? * SUN'
-    deployments:
-      # The folder path where site deployments are placed
-      folderPath: ${deployments.dir}
-      output:
-        # The folder path where deployment output files are written to
-        folderPath: ${logs.dir}
-      processedCommits:
-        # The folder path where processed commit files are stored
-        folderPath: ${processedCommits.dir}
-      pool:
-        # Thread pool core size
-        size: 10
-        # Thread pool max size
-        max: 20
-        # Thread pool queue size
-        queue: 10
-        # Thread pool group name
-        name: deployments
-        # Thread pool worker prefix
-        prefix: deployment-
-      events:
-        # The folder where all files are stored locally
-        folderPath: ${deploymentEvents.dir}
-        # The pattern used to generate the name of the files
-        filePattern: '%s-deployment-events.properties'
-    taskScheduler:
-      # Thread pool size of the task scheduler
-      poolSize: 10
-    management:
-      # Deployer management authorization token
-      # Please update this per installation and provide this token to the status monitors.
-      authorizationToken: defaultManagementToken
-      # Engine management authorization token
-      # Please update this per installation and provide this token to the status monitors.
-      engineAuthorizationToken: defaultManagementToken
-      studioAuthorizationToken: defaultManagementToken
-    security:
-      encryption:
-        # The key used for encryption of configuration properties
-        key: zEtRii1jWUuUUB0W
-        # The salt used for encryption of configuration properties
-        salt: DgGN9xhq3GOn6zxg
-      ssh:
-        # The path of the folder used for the SSH configuration
-        config: ./ssh
-    upgrade:
-      configuration: 'classpath:upgrade/pipelines.yaml'
-      pipelines:
-        target:
-          name: target
-          defaultVersion: 1.0
-      operations:
-        elasticsearchIndexUpgrade:
-          enabled: true
-    scripting:
-      # List of relative paths to load scripts, separated by commas
-      classpath: 'processors/scripts'
-      sandbox:
-        # Indicates if the sandbox should be enabled for all targets
-        enabled: true
-        blacklist:
-          # Indicates if the blacklist should be enabled for all targets
-          # (this will have no effect if the sandbox is disabled)
-          enabled: true
-          # The location of the blacklist to use for all targets
-          # (this will have no effect if the sandbox is disabled)
-          path: 'classpath:groovy/blacklist'
-        whitelist:
-          # List of patterns for that is allowed to call as `staticMethod java.lang.System getenv java.lang.String` parameter (regexes separated by commas)
-          getenvRegex: crafter_.*
+    main:
+        # The base path where all files will be located
+        homePath: .
+        config:
+            # The base config folder path
+            folderPath: ${deployer.main.homePath}/config
+            environment:
+                # The active environment
+                active: default
+                # The path pattern for the default environment
+                basePath: /config/{module}
+                # The path pattern for a specific environment
+                envPath: /config/{module}/env/{environment}
+            # The max maxAliasesForCollections for yaml files
+            yamlMaxAliasesForCollections: 1
+        targets:
+            config:
+                # The folder path for target configuration files
+                folderPath: ${targets.dir}
+                baseYaml:
+                    # The location (Spring URL) of the base YAML configuration for targets
+                    location: classpath:base-target.yaml
+                    # The override location (Spring URL) of the base YAML configuration for targets
+                    overrideLocation: file:${deployer.main.config.folderPath}/base-target.yaml
+                baseContext:
+                    # The location (Spring URL) of the base Spring context file for targets
+                    location: classpath:base-target-context.xml
+                    # The override location (Spring URL) of the base Spring context file for targets
+                    overrideLocation: file:${deployer.main.config.folderPath}/base-target-context.xml
+                templates:
+                    # The location (Spring URL) of the base folder where target YAML templates can be found. Target templates are used to create new targets.
+                    location: classpath:templates/targets/
+                    # The override location (Spring URL) of the base folder where target YAML templates can be found. Target templates are used to create new targets.
+                    overrideLocation: file:${deployer.main.config.folderPath}/templates/targets/
+                    # The encoding used to read the templates
+                    encoding: UTF-8
+                    # The name of the default template
+                    default: default
+                    # The suffix used to resolve the final name of a target template
+                    suffix: -target-template.yaml
+                aws:
+                    cloudformation:
+                        # The location (Spring URL) of the base folder where AWS CloudFormation template files can be found (should end in /)
+                        location: classpath:aws/cloudformation/
+                        # The override location of the base folder where AWS CloudFormation template files can be found (should end in /)
+                        overrideLocation: file:${deployer.main.config.folderPath}/aws/cloudformation/
+                blob:
+                    file:
+                        # Extension used for the blob files in the repository
+                        extension: '.blob'
+                    staging:
+                        # Pattern used to detect targets for staging
+                        pattern: '^(.+)-staging$'
+            scan:
+                scheduling:
+                    # If scheduled scanning of new/updated targets should be enabled
+                    enabled: true
+                    # The cron expression used on scheduled scanning of new/updated targets.
+                    cron: '0 * * * * *'
+            cleanup:
+                # If scheduled cleanup of targets should be enabled
+                enabled: true
+                # The cron expression used on scheduled cleanup of targets
+                cron: '0 0 3 ? * SUN'
+        deployments:
+            # The folder path where site deployments are placed
+            folderPath: ${deployments.dir}
+            output:
+                # The folder path where deployment output files are written to
+                folderPath: ${logs.dir}
+            processedCommits:
+                # The folder path where processed commit files are stored
+                folderPath: ${processedCommits.dir}
+            processorStates:
+                # The directory to keep the target processors states
+                folderPath: ${processorsState.dir}
+            pool:
+                # Thread pool core size
+                size: 10
+                # Thread pool max size
+                max: 20
+                # Thread pool queue size
+                queue: 10
+                # Thread pool group name
+                name: deployments
+                # Thread pool worker prefix
+                prefix: deployment-
+            events:
+                # The folder where all files are stored locally
+                folderPath: ${deploymentEvents.dir}
+                # The pattern used to generate the name of the files
+                filePattern: '%s-deployment-events.properties'
+        taskScheduler:
+            # Thread pool size of the task scheduler
+            poolSize: 10
+        management:
+            # Deployer management authorization token
+            # Please update this per installation and provide this token to the status monitors.
+            authorizationToken: defaultManagementToken
+            # Engine management authorization token
+            # Please update this per installation and provide this token to the status monitors.
+            engineAuthorizationToken: defaultManagementToken
+            studioAuthorizationToken: defaultManagementToken
+        security:
+            encryption:
+                # The key used for encryption of configuration properties
+                key: zEtRii1jWUuUUB0W
+                # The salt used for encryption of configuration properties
+                salt: DgGN9xhq3GOn6zxg
+            ssh:
+                # The path of the folder used for the SSH configuration
+                config: ./ssh
+        upgrade:
+            configuration: 'classpath:upgrade/pipelines.yaml'
+            pipelines:
+                target:
+                    name: target
+                    defaultVersion: 1.0
+            operations:
+                elasticsearchIndexUpgrade:
+                    enabled: true
+        scripting:
+            # List of relative paths to load scripts, separated by commas
+            classpath: 'processors/scripts'
+            sandbox:
+                # Indicates if the sandbox should be enabled for all targets
+                enabled: true
+                blacklist:
+                    # Indicates if the blacklist should be enabled for all targets
+                    # (this will have no effect if the sandbox is disabled)
+                    enabled: true
+                    # The location of the blacklist to use for all targets
+                    # (this will have no effect if the sandbox is disabled)
+                    path: 'classpath:groovy/blacklist'
+                whitelist:
+                    # List of patterns for that is allowed to call as `staticMethod java.lang.System getenv java.lang.String` parameter (regexes separated by commas)
+                    getenvRegex: crafter_.*

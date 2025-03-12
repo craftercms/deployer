@@ -27,52 +27,53 @@ import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CO
 /**
  * Operation to remove a processor from the pipeline of the target
  */
-public class RemoveProcessorUpgradeOperation  extends AbstractProcessorUpgradeOperation {
-    /**
-     * The additional properties a processor must contain for removal
-     */
-    protected Map<String, String> processorConfiguration;
+public class RemoveProcessorUpgradeOperation extends AbstractProcessorUpgradeOperation {
+	/**
+	 * The additional properties a processor must contain for removal
+	 */
+	protected Map<String, String> processorConfiguration;
 
-    @Override
-    protected void doInit(HierarchicalConfiguration<?> config) throws ConfigurationException {
-        processorConfiguration = new HashMap<>();
-        for (HierarchicalConfiguration<?> additionConfig : config.configurationsAt(CONFIG_KEY_PROPERTIES)) {
-            var property = getRequiredStringProperty(additionConfig, CONFIG_KEY_PROPERTY);
-            if (additionConfig.containsKey(CONFIG_KEY_VALUE)) {
-                processorConfiguration.put(property, getRequiredStringProperty(additionConfig, CONFIG_KEY_VALUE));
-            } else if (additionConfig.containsKey(CONFIG_KEY_VALUES)) {
-                processorConfiguration.put(property, additionConfig.getList(CONFIG_KEY_VALUES).toString());
-            }
-        }
-    }
+	@Override
+	protected void doInit(HierarchicalConfiguration<?> config) throws ConfigurationException {
+		processorConfiguration = new HashMap<>();
+		for (HierarchicalConfiguration<?> additionConfig : config.configurationsAt(CONFIG_KEY_PROPERTIES)) {
+			var property = getRequiredStringProperty(additionConfig, CONFIG_KEY_PROPERTY);
+			if (additionConfig.containsKey(CONFIG_KEY_VALUE)) {
+				processorConfiguration.put(property, getRequiredStringProperty(additionConfig, CONFIG_KEY_VALUE));
+			} else if (additionConfig.containsKey(CONFIG_KEY_VALUES)) {
+				processorConfiguration.put(property, additionConfig.getList(CONFIG_KEY_VALUES).toString());
+			}
+		}
+	}
 
-    /**
-     * Check if the processor has all the required properties
-     * @param processorObj processor object
-     * @return true if all properties are the same, false otherwise
-     */
-    protected boolean hasAllProperties(Map<String, Object> processorObj) {
-        if (!processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processorName)) {
-            return false;
-        }
+	/**
+	 * Check if the processor has all the required properties
+	 *
+	 * @param processorObj processor object
+	 * @return true if all properties are the same, false otherwise
+	 */
+	protected boolean hasAllProperties(Map<String, Object> processorObj) {
+		if (!processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processorName)) {
+			return false;
+		}
 
-        for (String property : processorConfiguration.keySet()) {
-            if (!(processorObj.containsKey(property) &&
-                    processorObj.get(property).toString().equalsIgnoreCase(processorConfiguration.get(property)))) {
-                return false;
-            }
-        }
+		for (String property : processorConfiguration.keySet()) {
+			if (!(processorObj.containsKey(property) &&
+				processorObj.get(property).toString().equalsIgnoreCase(processorConfiguration.get(property)))) {
+				return false;
+			}
+		}
 
-        return true;
-    }
+		return true;
+	}
 
-    @Override
-    protected void doExecuteInternal(Target target, Map<String, Object> targetConfig) {
-        var pipeline = getPipeline(targetConfig);
-        var removeList = pipeline
-                .stream()
-                .filter(processor -> hasAllProperties(processor))
-                .toList();
-        pipeline.removeAll(removeList);
-    }
+	@Override
+	protected void doExecuteInternal(Target target, Map<String, Object> targetConfig) {
+		var pipeline = getPipeline(targetConfig);
+		var removeList = pipeline
+			.stream()
+			.filter(processor -> hasAllProperties(processor))
+			.toList();
+		pipeline.removeAll(removeList);
+	}
 }

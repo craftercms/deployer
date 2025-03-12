@@ -30,60 +30,60 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
  * @since 3.1.5
  */
 public abstract class AbstractOpenSearchFactory<T> extends AbstractFactoryBean<T>
-        implements BeanNameAware {
+	implements BeanNameAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(AbstractOpenSearchFactory.class);
+	private static final Logger logger = LoggerFactory.getLogger(AbstractOpenSearchFactory.class);
 
-    /**
-     * The name of the bean
-     */
-    protected String name;
+	/**
+	 * The name of the bean
+	 */
+	protected String name;
 
-    /**
-     * The OpenSearch configuration
-     */
-    protected OpenSearchConfig config;
+	/**
+	 * The OpenSearch configuration
+	 */
+	protected OpenSearchConfig config;
 
-    public AbstractOpenSearchFactory(final OpenSearchConfig config) {
-        this.config = config;
-    }
+	public AbstractOpenSearchFactory(final OpenSearchConfig config) {
+		this.config = config;
+	}
 
-    @Override
-    public void setBeanName(final String name) {
-        this.name = name;
-    }
+	@Override
+	public void setBeanName(final String name) {
+		this.name = name;
+	}
 
-    @Override
-    protected T createInstance() {
-        logger.debug("Creating instance for '{}'", name);
-        if (config.useSingleCluster()) {
-            logger.debug("Using a single cluster configuration for '{}'", name);
-            return doCreateSingleInstance(config.globalCluster.buildClient());
-        }
+	@Override
+	protected T createInstance() {
+		logger.debug("Creating instance for '{}'", name);
+		if (config.useSingleCluster()) {
+			logger.debug("Using a single cluster configuration for '{}'", name);
+			return doCreateSingleInstance(config.globalCluster.buildClient());
+		}
 
-        logger.debug("Using a multi-cluster configuration for '{}'", name);
-        OpenSearchClient readClient = config.readCluster.buildClient();
-        OpenSearchClient[] writeClients = config.writeClusters.stream()
-                .map(OpenSearchClusterConfig::buildClient)
-                .toArray(OpenSearchClient[]::new);
-        return doCreateMultiInstance(readClient, writeClients);
-    }
+		logger.debug("Using a multi-cluster configuration for '{}'", name);
+		OpenSearchClient readClient = config.readCluster.buildClient();
+		OpenSearchClient[] writeClients = config.writeClusters.stream()
+			.map(OpenSearchClusterConfig::buildClient)
+			.toArray(OpenSearchClient[]::new);
+		return doCreateMultiInstance(readClient, writeClients);
+	}
 
-    /**
-     * Creates a service instance for a single cluster
-     *
-     * @param client the OpenSearch client
-     * @return the service instance
-     */
-    protected abstract T doCreateSingleInstance(OpenSearchClient client);
+	/**
+	 * Creates a service instance for a single cluster
+	 *
+	 * @param client the OpenSearch client
+	 * @return the service instance
+	 */
+	protected abstract T doCreateSingleInstance(OpenSearchClient client);
 
-    /**
-     * Creates a service instance for a multiple cluster
-     *
-     * @param readClient   the OpenSearch client for read-related operations
-     * @param writeClients the OpenSearch clients for write-related operations
-     * @return the service instance
-     */
-    protected abstract T doCreateMultiInstance(OpenSearchClient readClient, OpenSearchClient[] writeClients);
+	/**
+	 * Creates a service instance for a multiple cluster
+	 *
+	 * @param readClient   the OpenSearch client for read-related operations
+	 * @param writeClients the OpenSearch clients for write-related operations
+	 * @return the service instance
+	 */
+	protected abstract T doCreateMultiInstance(OpenSearchClient readClient, OpenSearchClient[] writeClients);
 
 }

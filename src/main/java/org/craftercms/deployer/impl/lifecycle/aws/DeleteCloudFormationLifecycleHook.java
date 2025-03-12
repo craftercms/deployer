@@ -37,43 +37,43 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  */
 public class DeleteCloudFormationLifecycleHook extends AbstractLifecycleHook {
 
-    protected static final String CONFIG_KEY_STACK_NAME = "stackName";
+	protected static final String CONFIG_KEY_STACK_NAME = "stackName";
 
-    protected static final String[] STACK_STATUS_CODES_DELETED = {
-            "DELETE_COMPLETE",
-            "DELETE_FAILED",
-            "DELETE_IN_PROGRESS"
-    };
+	protected static final String[] STACK_STATUS_CODES_DELETED = {
+		"DELETE_COMPLETE",
+		"DELETE_FAILED",
+		"DELETE_IN_PROGRESS"
+	};
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    protected AwsClientBuilderConfigurer builderConfigurer;
-    protected String stackName;
+	protected AwsClientBuilderConfigurer builderConfigurer;
+	protected String stackName;
 
-    @Override
-    public void doInit(Configuration config) throws ConfigurationException {
-        builderConfigurer = new AwsClientBuilderConfigurer(config);
-        stackName = getRequiredStringProperty(config, CONFIG_KEY_STACK_NAME);
-    }
+	@Override
+	public void doInit(Configuration config) throws ConfigurationException {
+		builderConfigurer = new AwsClientBuilderConfigurer(config);
+		stackName = getRequiredStringProperty(config, CONFIG_KEY_STACK_NAME);
+	}
 
-    @Override
-    public void doExecute(Target target) throws DeployerException {
-        CloudFormationClient cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
-        Stack stack = AwsCloudFormationUtils.getStack(cloudFormation, stackName);
+	@Override
+	public void doExecute(Target target) throws DeployerException {
+		CloudFormationClient cloudFormation = AwsCloudFormationUtils.buildClient(builderConfigurer);
+		Stack stack = AwsCloudFormationUtils.getStack(cloudFormation, stackName);
 
-        if (stack != null && !ArrayUtils.contains(STACK_STATUS_CODES_DELETED, stack.stackStatus())) {
-            logger.info("Deleting CloudFormation stack '{}'", stackName);
+		if (stack != null && !ArrayUtils.contains(STACK_STATUS_CODES_DELETED, stack.stackStatus())) {
+			logger.info("Deleting CloudFormation stack '{}'", stackName);
 
-            try {
-                cloudFormation.deleteStack(DeleteStackRequest.builder().stackName(stackName).build());
+			try {
+				cloudFormation.deleteStack(DeleteStackRequest.builder().stackName(stackName).build());
 
-                logger.info("Deletion of CloudFormation stack '{}' started", stackName);
-            } catch (Exception e) {
-                throw new DeployerException("Error while deleting CloudFormation stack '" + stackName + "'", e);
-            }
-        } else {
-            logger.info("CloudFormation stack '{}' doesn't exist or has been deleted. Skipping delete...", stackName);
-        }
-    }
+				logger.info("Deletion of CloudFormation stack '{}' started", stackName);
+			} catch (Exception e) {
+				throw new DeployerException("Error while deleting CloudFormation stack '" + stackName + "'", e);
+			}
+		} else {
+			logger.info("CloudFormation stack '{}' doesn't exist or has been deleted. Skipping delete...", stackName);
+		}
+	}
 
 }

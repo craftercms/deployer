@@ -27,27 +27,28 @@ import org.springframework.stereotype.Component;
 
 /**
  * Triggers the scan for new/updated targets.
+ *
  * @author joseross
  */
 @Component
 @ConditionalOnProperty("deployer.main.targets.scan.scheduling.enabled")
 public class TargetScanTask {
 
-    private static final Logger logger = LoggerFactory.getLogger(TargetScanTask.class);
+	private static final Logger logger = LoggerFactory.getLogger(TargetScanTask.class);
 
-    @Autowired
-    protected TargetService targetService;
+	@Autowired
+	protected TargetService targetService;
 
-    /**
-     * Scans for new/updated targets.
-     */
-    @Scheduled(cron = "${deployer.main.targets.scan.scheduling.cron}")
-    public void scanTargets() {
-        try {
-            targetService.resolveTargets();
-        } catch (DeployerException e) {
-            logger.error("Scheduled target scan failed", e);
-        }
-    }
+	/**
+	 * Scans for new/updated targets.
+	 */
+	@Scheduled(cron = "${deployer.main.targets.scan.scheduling.cron}")
+	public void scanTargets() {
+		try {
+			targetService.resolveTargets();
+		} catch (DeployerException e) {
+			logger.error("Scheduled target scan failed", e);
+		}
+	}
 
 }

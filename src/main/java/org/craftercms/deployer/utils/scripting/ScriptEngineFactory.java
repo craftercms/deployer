@@ -32,34 +32,34 @@ import java.beans.ConstructorProperties;
  */
 public class ScriptEngineFactory extends AbstractFactoryBean<GroovyScriptEngine> {
 
-    /**
-     * List of relative paths to load scripts
-     */
-    protected String[] urls;
+	/**
+	 * List of relative paths to load scripts
+	 */
+	protected String[] urls;
 
-    /**
-     * Indicates if the sandbox should be enabled
-     */
-    protected boolean sandboxEnabled;
+	/**
+	 * Indicates if the sandbox should be enabled
+	 */
+	protected boolean sandboxEnabled;
 
-    @ConstructorProperties({"urls", "sandboxEnabled"})
-    public ScriptEngineFactory(String[] urls, boolean sandboxEnabled) {
-        this.urls = urls;
-        this.sandboxEnabled = sandboxEnabled;
-    }
+	@ConstructorProperties({"urls", "sandboxEnabled"})
+	public ScriptEngineFactory(String[] urls, boolean sandboxEnabled) {
+		this.urls = urls;
+		this.sandboxEnabled = sandboxEnabled;
+	}
 
-    @Override
-    public Class<?> getObjectType() {
-        return GroovyScriptEngine.class;
-    }
+	@Override
+	public Class<?> getObjectType() {
+		return GroovyScriptEngine.class;
+	}
 
-    @Override
-    protected GroovyScriptEngine createInstance() throws Exception {
-        CompilerConfiguration compilerConfig = new CompilerConfiguration();
-        if (sandboxEnabled) {
-            compilerConfig.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
-        }
-        return new GroovyScriptEngine(urls, new GroovyClassLoader(getClass().getClassLoader(), compilerConfig));
-    }
+	@Override
+	protected GroovyScriptEngine createInstance() throws Exception {
+		CompilerConfiguration compilerConfig = new CompilerConfiguration();
+		if (sandboxEnabled) {
+			compilerConfig.addCompilationCustomizers(new RejectASTTransformsCustomizer(), new SandboxTransformer());
+		}
+		return new GroovyScriptEngine(urls, new GroovyClassLoader(getClass().getClassLoader(), compilerConfig));
+	}
 
 }

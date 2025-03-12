@@ -33,51 +33,51 @@ import java.beans.ConstructorProperties;
  */
 public class OpenSearchAdminServiceFactory extends AbstractOpenSearchFactory<OpenSearchAdminService> {
 
-    /**
-     * Index mapping file for authoring indices
-     */
-    protected Resource authoringMapping;
+	/**
+	 * Index mapping file for authoring indices
+	 */
+	protected Resource authoringMapping;
 
-    /**
-     * Index mapping file for preview indices
-     */
-    protected Resource previewMapping;
+	/**
+	 * Index mapping file for preview indices
+	 */
+	protected Resource previewMapping;
 
-    protected String authoringNamePattern;
+	protected String authoringNamePattern;
 
-    @ConstructorProperties({"config", "authoringMapping", "previewMapping", "authoringNamePattern"})
-    public OpenSearchAdminServiceFactory(OpenSearchConfig config, Resource authoringMapping,
-                                         Resource previewMapping, String authoringNamePattern) {
-        super(config);
-        this.authoringMapping = authoringMapping;
-        this.previewMapping = previewMapping;
-        this.authoringNamePattern = authoringNamePattern;
-    }
+	@ConstructorProperties({"config", "authoringMapping", "previewMapping", "authoringNamePattern"})
+	public OpenSearchAdminServiceFactory(OpenSearchConfig config, Resource authoringMapping,
+					     Resource previewMapping, String authoringNamePattern) {
+		super(config);
+		this.authoringMapping = authoringMapping;
+		this.previewMapping = previewMapping;
+		this.authoringNamePattern = authoringNamePattern;
+	}
 
-    @Override
-    public Class<?> getObjectType() {
-        return OpenSearchAdminService.class;
-    }
+	@Override
+	public Class<?> getObjectType() {
+		return OpenSearchAdminService.class;
+	}
 
-    @Override
-    protected OpenSearchAdminService doCreateSingleInstance(final RestHighLevelClient client) {
-        OpenSearchAdminServiceImpl openSearchAdminService = new OpenSearchAdminServiceImpl(
-                authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(),
-                config.indexSettings, config.ignoredSettings, client);
-        openSearchAdminService.setReindexSlices(config.reindexSlices);
-        openSearchAdminService.setReindexTimeoutSeconds(config.reindexTimeoutSeconds);
-        return openSearchAdminService;
-    }
+	@Override
+	protected OpenSearchAdminService doCreateSingleInstance(final RestHighLevelClient client) {
+		OpenSearchAdminServiceImpl openSearchAdminService = new OpenSearchAdminServiceImpl(
+			authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(),
+			config.indexSettings, config.ignoredSettings, client);
+		openSearchAdminService.setReindexSlices(config.reindexSlices);
+		openSearchAdminService.setReindexTimeoutSeconds(config.reindexTimeoutSeconds);
+		return openSearchAdminService;
+	}
 
-    @Override
-    protected OpenSearchAdminService doCreateMultiInstance(final RestHighLevelClient readClient,
-                                                           final RestHighLevelClient[] writeClients) {
-        MultiOpenSearchAdminServiceImpl openSearchAdminService = new MultiOpenSearchAdminServiceImpl(
-                authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(), readClient,
-                config.indexSettings, config.ignoredSettings, writeClients);
-        openSearchAdminService.setReindexSlices(config.reindexSlices);
-        openSearchAdminService.setReindexTimeoutSeconds(config.reindexTimeoutSeconds);
-        return openSearchAdminService;
-    }
+	@Override
+	protected OpenSearchAdminService doCreateMultiInstance(final RestHighLevelClient readClient,
+							       final RestHighLevelClient[] writeClients) {
+		MultiOpenSearchAdminServiceImpl openSearchAdminService = new MultiOpenSearchAdminServiceImpl(
+			authoringMapping, previewMapping, authoringNamePattern, config.getLocaleMapping(), readClient,
+			config.indexSettings, config.ignoredSettings, writeClients);
+		openSearchAdminService.setReindexSlices(config.reindexSlices);
+		openSearchAdminService.setReindexTimeoutSeconds(config.reindexTimeoutSeconds);
+		return openSearchAdminService;
+	}
 
 }

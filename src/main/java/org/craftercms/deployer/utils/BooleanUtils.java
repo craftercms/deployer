@@ -22,28 +22,28 @@ package org.craftercms.deployer.utils;
  */
 public class BooleanUtils extends org.apache.commons.lang3.BooleanUtils {
 
-    /**
-     * Converts an object to boolean, according to the following logic:
-     *
-     * <ol>
-     *     <li>If it's null, {@code false} is returned.</li>
-     *     <li>If it's a Boolean, the same object is returned.</li>
-     *     <li>If it's any other object, the {@code toString()} value is converted to boolean.</li>
-     * </ol>
-     *
-     * @param obj
-     * @return boolean value
-     */
-    public static boolean toBoolean(Object obj) {
-        if (obj != null) {
-            if (obj instanceof Boolean) {
-                return (Boolean)obj;
-            } else {
-                return toBoolean(obj.toString());
-            }
-        } else {
-            return false;
-        }
-    }
+	/**
+	 * Converts an object to boolean, according to the following logic:
+	 *
+	 * <ol>
+	 *     <li>If it's null, {@code false} is returned.</li>
+	 *     <li>If it's a Boolean, the same object is returned.</li>
+	 *     <li>If it's any other object, the {@code toString()} value is converted to boolean.</li>
+	 * </ol>
+	 *
+	 * @param obj
+	 * @return boolean value
+	 */
+	public static boolean toBoolean(Object obj) {
+		if (obj != null) {
+			if (obj instanceof Boolean) {
+				return (Boolean) obj;
+			} else {
+				return toBoolean(obj.toString());
+			}
+		} else {
+			return false;
+		}
+	}
 
 }

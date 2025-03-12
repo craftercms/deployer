@@ -66,415 +66,417 @@ import static org.mockito.Mockito.*;
  * @author avasquez
  */
 public class TargetServiceImplTest {
-    private static final String RANDOM_PARAM_VARIABLE = "random_param";
-
-    private static final String ENVIRONMENT = "the-env";
-    private static final String SOURCE_SITE_NAME = "source-site";
-    private static final String EXISTING_SITE = "existing-site";
-    private static final String NON_EXISTING_SITE = "non-existing-site";
-    private static final String NEW_SITE_NAME = "new-site";
-    private static final String TEMPLATE_NAME = "test";
-    private static final String TEST_PARAM_1_VARIABLE = "test-param-1";
-    private static final String TEST_PARAM_VALUE_1 = "test-value-1";
-
-    private TargetServiceImpl targetService;
-    private File targetsFolder;
-    private List<TargetLifecycleHook> createHooks;
-    private Handlebars handlebars;
+	private static final String RANDOM_PARAM_VARIABLE = "random_param";
+
+	private static final String ENVIRONMENT = "the-env";
+	private static final String SOURCE_SITE_NAME = "source-site";
+	private static final String EXISTING_SITE = "existing-site";
+	private static final String NON_EXISTING_SITE = "non-existing-site";
+	private static final String NEW_SITE_NAME = "new-site";
+	private static final String TEMPLATE_NAME = "test";
+	private static final String TEST_PARAM_1_VARIABLE = "test-param-1";
+	private static final String TEST_PARAM_VALUE_1 = "test-value-1";
+
+	private TargetServiceImpl targetService;
+	private File targetsFolder;
+	private List<TargetLifecycleHook> createHooks;
+	private Handlebars handlebars;
+
+	private final ArgumentMatcher<Target> matchesNewTarget = (Target target) -> matches(target, NEW_SITE_NAME, ENVIRONMENT);
+
+	private static boolean matches(final Target target, final String siteName, final String env) {
+		assertEquals(siteName, target.getSiteName());
+		assertEquals(env, target.getEnv());
+		return true;
+	}
 
-    private final ArgumentMatcher<Target> matchesNewTarget = (Target target) -> matches(target, NEW_SITE_NAME, ENVIRONMENT);
+	@Before
+	public void setUp() throws Exception {
+		targetsFolder = createTargetsFolder();
 
-    private static boolean matches(final Target target, final String siteName, final String env) {
-        assertEquals(siteName, target.getSiteName());
-        assertEquals(env, target.getEnv());
-        return true;
-    }
+		DeploymentPipelineFactory deploymentPipelineFactory = createDeploymentPipelineFactory();
+		TaskScheduler taskScheduler = createTaskScheduler();
+		ExecutorService taskExecutor = createTaskExecutor();
+		ProcessedCommitsStore processedCommitsStore = createProcessedCommitsStore();
+		ProcessorStateStore processorStateStore = mock(ProcessorStateStore.class);
+		TargetLifecycleHooksResolver targetLifecycleHooksResolver = createTargetLifecycleHooksResolver();
 
-    @Before
-    public void setUp() throws Exception {
-        targetsFolder = createTargetsFolder();
+		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
+		factory.registerSingleton("deploymentPipelineFactory", deploymentPipelineFactory);
+		factory.registerSingleton("taskScheduler", taskScheduler);
+		factory.registerSingleton("taskExecutor", taskExecutor);
+		factory.registerSingleton("processedCommitsStore", processedCommitsStore);
+		factory.registerSingleton("targetLifecycleHooksResolver", targetLifecycleHooksResolver);
 
-        DeploymentPipelineFactory deploymentPipelineFactory = createDeploymentPipelineFactory();
-        TaskScheduler taskScheduler = createTaskScheduler();
-        ExecutorService taskExecutor = createTaskExecutor();
-        ProcessedCommitsStore processedCommitsStore = createProcessedCommitsStore();
-        TargetLifecycleHooksResolver targetLifecycleHooksResolver = createTargetLifecycleHooksResolver();
+		GenericApplicationContext context = new GenericApplicationContext(factory);
+		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
+		reader.loadBeanDefinitions(new ClassPathResource("test-application-context.xml"));
+		context.refresh();
 
-        DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
-        factory.registerSingleton("deploymentPipelineFactory", deploymentPipelineFactory);
-        factory.registerSingleton("taskScheduler", taskScheduler);
-        factory.registerSingleton("taskExecutor", taskExecutor);
-        factory.registerSingleton("processedCommitsStore", processedCommitsStore);
-        factory.registerSingleton("targetLifecycleHooksResolver", targetLifecycleHooksResolver);
+		targetService = new TargetServiceImpl(
+			targetsFolder,
+			new ClassPathResource("test-base-target.yaml"),
+			new ClassPathResource("test-base-target-override.yaml"),
+			new ClassPathResource("test-base-target-context.xml"),
+			new ClassPathResource("test-base-target-context-override.xml"),
+			"test",
+			createHandlebars(),
+			context,
+			deploymentPipelineFactory,
+			taskScheduler,
+			taskExecutor,
+			processedCommitsStore,
+			processorStateStore,
+			targetLifecycleHooksResolver,
+			createConfigurationReader(),
+			createUpgradeManager());
+	}
 
-        GenericApplicationContext context = new GenericApplicationContext(factory);
-        XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);
-        reader.loadBeanDefinitions(new ClassPathResource("test-application-context.xml"));
-        context.refresh();
+	@After
+	public void tearDown() throws Exception {
+		FileUtils.forceDelete(targetsFolder);
+	}
 
-        targetService = new TargetServiceImpl(
-            targetsFolder,
-            new ClassPathResource("test-base-target.yaml"),
-            new ClassPathResource("test-base-target-override.yaml"),
-            new ClassPathResource("test-base-target-context.xml"),
-            new ClassPathResource("test-base-target-context-override.xml"),
-            "test",
-            createHandlebars(),
-            context,
-            deploymentPipelineFactory,
-            taskScheduler,
-            taskExecutor,
-            processedCommitsStore,
-            targetLifecycleHooksResolver,
-            createConfigurationReader(),
-            createUpgradeManager());
-    }
+	@Test
+	public void testResolveTargets() throws Exception {
+		List<Target> targets = targetService.resolveTargets();
 
-    @After
-    public void tearDown() throws Exception {
-        FileUtils.forceDelete(targetsFolder);
-    }
+		assertEquals(1, targets.size());
 
-    @Test
-    public void testResolveTargets() throws Exception {
-        List<Target> targets = targetService.resolveTargets();
+		Target target = targets.get(0);
 
-        assertEquals(1, targets.size());
+		assertEquals("test", target.getEnv());
+		assertEquals("foobar", target.getSiteName());
+		assertEquals("foobar-test", target.getId());
+	}
 
-        Target target = targets.get(0);
+	@Test
+	public void testResolveTargetsNoConfigModified() throws Exception {
+		List<Target> targets = targetService.resolveTargets();
 
-        assertEquals("test", target.getEnv());
-        assertEquals("foobar", target.getSiteName());
-        assertEquals("foobar-test", target.getId());
-    }
+		assertEquals(1, targets.size());
 
-    @Test
-    public void testResolveTargetsNoConfigModified() throws Exception {
-        List<Target> targets = targetService.resolveTargets();
+		Target target1 = targets.get(0);
 
-        assertEquals(1, targets.size());
+		Thread.sleep(100);
 
-        Target target1 = targets.get(0);
+		targets = targetService.resolveTargets();
 
-        Thread.sleep(100);
+		assertEquals(1, targets.size());
 
-        targets = targetService.resolveTargets();
+		Target target2 = targets.get(0);
 
-        assertEquals(1, targets.size());
+		assertEquals(target1.getLoadDate(), target2.getLoadDate());
+	}
 
-        Target target2 = targets.get(0);
+	@Test
+	public void testResolveTargetsYamlModified() throws Exception {
+		List<Target> targets = targetService.resolveTargets();
 
-        assertEquals(target1.getLoadDate(), target2.getLoadDate());
-    }
+		assertEquals(1, targets.size());
 
-    @Test
-    public void testResolveTargetsYamlModified() throws Exception {
-        List<Target> targets = targetService.resolveTargets();
+		Target target1 = targets.get(0);
 
-        assertEquals(1, targets.size());
+		Thread.sleep(1000);
 
-        Target target1 = targets.get(0);
+		FileUtils.touch(new File(targetsFolder, "foobar-test.yaml"));
 
-        Thread.sleep(1000);
+		targets = targetService.resolveTargets();
 
-        FileUtils.touch(new File(targetsFolder, "foobar-test.yaml"));
+		assertEquals(1, targets.size());
 
-        targets = targetService.resolveTargets();
+		Target target2 = targets.get(0);
 
-        assertEquals(1, targets.size());
+		assertNotEquals(target1.getLoadDate(), target2.getLoadDate());
+	}
 
-        Target target2 = targets.get(0);
+	@Test
+	public void testResolveTargetsContextModified() throws Exception {
+		List<Target> targets = targetService.resolveTargets();
 
-        assertNotEquals(target1.getLoadDate(), target2.getLoadDate());
-    }
+		assertEquals(1, targets.size());
 
-    @Test
-    public void testResolveTargetsContextModified() throws Exception {
-        List<Target> targets = targetService.resolveTargets();
+		Target target1 = targets.get(0);
 
-        assertEquals(1, targets.size());
+		Thread.sleep(1000);
 
-        Target target1 = targets.get(0);
+		FileUtils.touch(new File(targetsFolder, "foobar-test-context.xml"));
 
-        Thread.sleep(1000);
+		targets = targetService.resolveTargets();
 
-        FileUtils.touch(new File(targetsFolder, "foobar-test-context.xml"));
+		assertEquals(1, targets.size());
 
-        targets = targetService.resolveTargets();
+		Target target2 = targets.get(0);
 
-        assertEquals(1, targets.size());
+		assertNotEquals(target1.getLoadDate(), target2.getLoadDate());
+	}
 
-        Target target2 = targets.get(0);
+	@Test
+	public void testGetTarget() throws Exception {
+		List<Target> targets = targetService.resolveTargets();
 
-        assertNotEquals(target1.getLoadDate(), target2.getLoadDate());
-    }
+		assertEquals(1, targets.size());
 
-    @Test
-    public void testGetTarget() throws Exception {
-        List<Target> targets = targetService.resolveTargets();
+		Target target1 = targets.get(0);
 
-        assertEquals(1, targets.size());
+		Target target2 = targetService.getTarget(target1.getEnv(), target1.getSiteName());
 
-        Target target1 = targets.get(0);
+		assertNotNull(target2);
+		assertEquals(target1, target2);
+	}
 
-        Target target2 = targetService.getTarget(target1.getEnv(), target1.getSiteName());
+	@Test
+	public void testGetAllTargets() throws Exception {
+		List<Target> targets1 = targetService.resolveTargets();
 
-        assertNotNull(target2);
-        assertEquals(target1, target2);
-    }
+		assertEquals(1, targets1.size());
 
-    @Test
-    public void testGetAllTargets() throws Exception {
-        List<Target> targets1 = targetService.resolveTargets();
+		List<Target> targets2 = targetService.getAllTargets();
 
-        assertEquals(1, targets1.size());
+		assertEquals(targets1, targets2);
+	}
 
-        List<Target> targets2 = targetService.getAllTargets();
+	@Test
+	public void testCreateTarget() throws Exception {
+		String env = "test";
+		String siteName = "barfoo";
+		String randomParam = RandomStringUtils.randomAlphanumeric(8);
+		Map<String, Object> params = Collections.singletonMap(RANDOM_PARAM_VARIABLE, randomParam);
 
-        assertEquals(targets1, targets2);
-    }
+		Target target = targetService.createTarget(env, siteName, true, "test", params);
 
-    @Test
-    public void testCreateTarget() throws Exception {
-        String env = "test";
-        String siteName = "barfoo";
-        String randomParam = RandomStringUtils.randomAlphanumeric(8);
-        Map<String, Object> params = Collections.singletonMap(RANDOM_PARAM_VARIABLE, randomParam);
+		assertNotNull(target);
+		assertEquals(env, target.getConfiguration().getString(DeploymentConstants.TARGET_ENV_CONFIG_KEY));
+		assertEquals(siteName, target.getConfiguration().getString(DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY));
+		assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
+		verify(createHooks.get(0)).execute(target);
+	}
 
-        Target target = targetService.createTarget(env, siteName, true, "test", params);
+	@Test
+	public void testInitHooksOnCreateTarget() throws Exception {
+		String env = "test";
+		String siteName = "barfoo";
+		String randomParam = RandomStringUtils.randomAlphanumeric(8);
+		Map<String, Object> params = Collections.singletonMap(RANDOM_PARAM_VARIABLE, randomParam);
 
-        assertNotNull(target);
-        assertEquals(env, target.getConfiguration().getString(DeploymentConstants.TARGET_ENV_CONFIG_KEY));
-        assertEquals(siteName, target.getConfiguration().getString(DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY));
-        assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
-        verify(createHooks.get(0)).execute(target);
-    }
+		TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+		TargetImpl mockTarget = mock(TargetImpl.class);
+		doAnswer(invocationOnMock -> {
+			TargetImpl target = (TargetImpl) invocationOnMock.callRealMethod();
+			return spy(target);
+		}).when(targetServiceSpy).buildTarget(any(), any());
+		TargetImpl target = (TargetImpl) targetServiceSpy.createTarget(env, siteName, true, "test", params);
 
-    @Test
-    public void testInitHooksOnCreateTarget() throws Exception {
-        String env = "test";
-        String siteName = "barfoo";
-        String randomParam = RandomStringUtils.randomAlphanumeric(8);
-        Map<String, Object> params = Collections.singletonMap(RANDOM_PARAM_VARIABLE, randomParam);
+		assertNotNull(target);
+		assertEquals(env, target.getConfiguration().getString(DeploymentConstants.TARGET_ENV_CONFIG_KEY));
+		assertEquals(siteName, target.getConfiguration().getString(DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY));
+		assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
+		verify(target).executeCreateHooks();
 
-        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
-        TargetImpl mockTarget = mock(TargetImpl.class);
-        doAnswer(invocationOnMock -> {
-            TargetImpl target = (TargetImpl) invocationOnMock.callRealMethod();
-            return spy(target);
-        }).when(targetServiceSpy).buildTarget(any(), any());
-        TargetImpl target = (TargetImpl) targetServiceSpy.createTarget(env, siteName, true, "test", params);
+		InOrder inOrder = inOrder(targetServiceSpy, target);
+		ArgumentMatcher<Target> matchesTarget = t -> matches(t, siteName, env);
+		inOrder.verify(target).executeCreateHooks();
+		inOrder.verify(targetServiceSpy).startInit(argThat(matchesTarget));
+		verify(target, never()).executeDuplicateHooks();
+	}
 
-        assertNotNull(target);
-        assertEquals(env, target.getConfiguration().getString(DeploymentConstants.TARGET_ENV_CONFIG_KEY));
-        assertEquals(siteName, target.getConfiguration().getString(DeploymentConstants.TARGET_SITE_NAME_CONFIG_KEY));
-        assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
-        verify(target).executeCreateHooks();
+	@Test
+	public void testDeleteTarget() throws Exception {
+		List<Target> targets = targetService.resolveTargets();
 
-        InOrder inOrder = inOrder(targetServiceSpy, target);
-        ArgumentMatcher<Target> matchesTarget = t -> matches(t, siteName, env);
-        inOrder.verify(target).executeCreateHooks();
-        inOrder.verify(targetServiceSpy).startInit(argThat(matchesTarget));
-        verify(target, never()).executeDuplicateHooks();
-    }
+		assertEquals(1, targets.size());
 
-    @Test
-    public void testDeleteTarget() throws Exception {
-        List<Target> targets = targetService.resolveTargets();
+		targetService.deleteTarget("test", "foobar");
 
-        assertEquals(1, targets.size());
+		targets = targetService.resolveTargets();
 
-        targetService.deleteTarget("test", "foobar");
+		assertEquals(0, targets.size());
+	}
 
-        targets = targetService.resolveTargets();
+	@Test
+	public void testDuplicateNonExistingTarget() throws TargetServiceException {
+		TargetService targetServiceSpy = Mockito.spy(targetService);
+		doReturn(false).when(targetServiceSpy).targetExists(ENVIRONMENT, NON_EXISTING_SITE);
+		assertThrows(TargetNotFoundException.class,
+			() -> targetServiceSpy.duplicateTarget(ENVIRONMENT, NON_EXISTING_SITE, NEW_SITE_NAME, false, "test", emptyMap()));
+	}
 
-        assertEquals(0, targets.size());
-    }
+	@Test
+	public void testDuplicateAlreadyExistingTarget() throws TargetServiceException {
+		TargetService targetServiceSpy = Mockito.spy(targetService);
+		when(targetServiceSpy.targetExists(ENVIRONMENT, EXISTING_SITE)).thenReturn(true);
 
-    @Test
-    public void testDuplicateNonExistingTarget() throws TargetServiceException {
-        TargetService targetServiceSpy = Mockito.spy(targetService);
-        doReturn(false).when(targetServiceSpy).targetExists(ENVIRONMENT, NON_EXISTING_SITE);
-        assertThrows(TargetNotFoundException.class,
-                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, NON_EXISTING_SITE, NEW_SITE_NAME, false, "test", emptyMap()));
-    }
+		assertThrows(TargetAlreadyExistsException.class,
+			() -> targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, EXISTING_SITE, false, "test", emptyMap()));
+	}
 
-    @Test
-    public void testDuplicateAlreadyExistingTarget() throws TargetServiceException {
-        TargetService targetServiceSpy = Mockito.spy(targetService);
-        when(targetServiceSpy.targetExists(ENVIRONMENT, EXISTING_SITE)).thenReturn(true);
+	@Test
+	public void testDuplicateTarget() throws Exception {
+		ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
 
-        assertThrows(TargetAlreadyExistsException.class,
-                () -> targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, EXISTING_SITE, false, "test", emptyMap()));
-    }
+		TargetImpl mockSourceTarget = mock(TargetImpl.class);
+		when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
-    @Test
-    public void testDuplicateTarget() throws Exception {
-        ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
+		when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
 
-        TargetImpl mockSourceTarget = mock(TargetImpl.class);
-        when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+		TargetImpl mockNewTarget = mock(TargetImpl.class);
+		when(mockNewTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, NEW_SITE_NAME));
 
-        when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
+		TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+		doReturn(mockNewTarget).when(targetServiceSpy).buildTarget(any(), any());
+		doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
-        TargetImpl mockNewTarget = mock(TargetImpl.class);
-        when(mockNewTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, NEW_SITE_NAME));
+		when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
 
-        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
-        doReturn(mockNewTarget).when(targetServiceSpy).buildTarget(any(), any());
-        doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+		targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
 
-        when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
+		verify(mockNewTarget).executeDuplicateHooks();
+	}
 
-        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
+	@Test
+	public void testInitHooksOnDuplicateTarget() throws Exception {
+		ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
 
-        verify(mockNewTarget).executeDuplicateHooks();
-    }
+		Target mockSourceTarget = mock(Target.class);
+		when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
-    @Test
-    public void testInitHooksOnDuplicateTarget() throws Exception {
-        ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
+		when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
 
-        Target mockSourceTarget = mock(Target.class);
-        when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+		TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+		TargetImpl mockNewTarget = mock(TargetImpl.class);
+		doReturn(NEW_SITE_NAME).when(mockNewTarget).getSiteName();
+		doReturn(ENVIRONMENT).when(mockNewTarget).getEnv();
+		doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+		doReturn(mockNewTarget).when(targetServiceSpy).buildTarget(any(), any());
 
-        when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
+		when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
 
-        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
-        TargetImpl mockNewTarget = mock(TargetImpl.class);
-        doReturn(NEW_SITE_NAME).when(mockNewTarget).getSiteName();
-        doReturn(ENVIRONMENT).when(mockNewTarget).getEnv();
-        doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
-        doReturn(mockNewTarget).when(targetServiceSpy).buildTarget(any(), any());
+		targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
 
-        when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
+		InOrder inOrder = inOrder(targetServiceSpy, mockNewTarget);
 
-        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
+		inOrder.verify(mockNewTarget).executeDuplicateHooks();
+		inOrder.verify(targetServiceSpy).startInit(argThat(matchesNewTarget));
+		verify(mockNewTarget, never()).executeCreateHooks();
+	}
 
-        InOrder inOrder = inOrder(targetServiceSpy, mockNewTarget);
+	@Test
+	public void testDuplicateHooksOnDuplicateTarget() throws Exception {
+		ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
 
-        inOrder.verify(mockNewTarget).executeDuplicateHooks();
-        inOrder.verify(targetServiceSpy).startInit(argThat(matchesNewTarget));
-        verify(mockNewTarget, never()).executeCreateHooks();
-    }
+		Target mockSourceTarget = mock(Target.class);
+		when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
-    @Test
-    public void testDuplicateHooksOnDuplicateTarget() throws Exception {
-        ObjectId theProcessedCommit = ObjectId.fromString("1234567890123456789012345678901234567890");
+		when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
 
-        Target mockSourceTarget = mock(Target.class);
-        when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+		TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+		TargetImpl mockNewTarget = mock(TargetImpl.class);
+		doReturn(emptyList()).when(mockNewTarget).getDuplicateHooks();
+		doCallRealMethod().when(mockNewTarget).executeDuplicateHooks();
+		doReturn(NEW_SITE_NAME).when(mockNewTarget).getSiteName();
+		doReturn(ENVIRONMENT).when(mockNewTarget).getEnv();
+		doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+		doReturn(mockNewTarget).when(targetServiceSpy).buildTarget(any(), any());
 
-        when(targetService.processedCommitsStore.load(mockSourceTarget.getId())).thenReturn(theProcessedCommit);
+		when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
 
-        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
-        TargetImpl mockNewTarget = mock(TargetImpl.class);
-        doReturn(emptyList()).when(mockNewTarget).getDuplicateHooks();
-        doCallRealMethod().when(mockNewTarget).executeDuplicateHooks();
-        doReturn(NEW_SITE_NAME).when(mockNewTarget).getSiteName();
-        doReturn(ENVIRONMENT).when(mockNewTarget).getEnv();
-        doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
-        doReturn(mockNewTarget).when(targetServiceSpy).buildTarget(any(), any());
+		targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
 
-        when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
+		InOrder inOrder = inOrder(targetServiceSpy, mockNewTarget);
 
-        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, "test", new HashMap<>());
+		inOrder.verify(mockNewTarget).executeDuplicateHooks();
+		inOrder.verify(mockNewTarget).getDuplicateHooks();
+		inOrder.verify(targetServiceSpy).startInit(argThat(matchesNewTarget));
+		verify(mockNewTarget, never()).executeCreateHooks();
+	}
 
-        InOrder inOrder = inOrder(targetServiceSpy, mockNewTarget);
+	@Test
+	public void testDuplicateTargetPassTemplateParams() throws Exception {
+		Target mockSourceTarget = mock(Target.class);
+		when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
-        inOrder.verify(mockNewTarget).executeDuplicateHooks();
-        inOrder.verify(mockNewTarget).getDuplicateHooks();
-        inOrder.verify(targetServiceSpy).startInit(argThat(matchesNewTarget));
-        verify(mockNewTarget, never()).executeCreateHooks();
-    }
+		TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
+		doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
 
-    @Test
-    public void testDuplicateTargetPassTemplateParams() throws Exception {
-        Target mockSourceTarget = mock(Target.class);
-        when(mockSourceTarget.getId()).thenReturn(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+		when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
 
-        TargetServiceImpl targetServiceSpy = Mockito.spy(targetService);
-        doReturn(mockSourceTarget).when(targetServiceSpy).findLoadedTargetById(TargetImpl.getId(ENVIRONMENT, SOURCE_SITE_NAME));
+		Map<String, Object> templateParams = new HashMap<>();
 
-        when(targetServiceSpy.targetExists(ENVIRONMENT, NEW_SITE_NAME)).thenReturn(false);
+		String randomParam = RandomStringUtils.randomAlphanumeric(8);
+		templateParams.put(RANDOM_PARAM_VARIABLE, randomParam);
+		templateParams.put(TEST_PARAM_1_VARIABLE, TEST_PARAM_VALUE_1);
+		targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, TEMPLATE_NAME, templateParams);
 
-        Map<String, Object> templateParams = new HashMap<>();
+		Target target = targetServiceSpy.getTarget(ENVIRONMENT, NEW_SITE_NAME);
+		assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
 
-        String randomParam = RandomStringUtils.randomAlphanumeric(8);
-        templateParams.put(RANDOM_PARAM_VARIABLE, randomParam);
-        templateParams.put(TEST_PARAM_1_VARIABLE, TEST_PARAM_VALUE_1);
-        targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, NEW_SITE_NAME, false, TEMPLATE_NAME, templateParams);
+		verify(handlebars).compile(TEMPLATE_NAME);
+		verify(targetServiceSpy).processConfigTemplate(eq(TEMPLATE_NAME), argThat(params -> {
+			if (params instanceof Map) {
+				Map<String, Object> map = (Map<String, Object>) params;
+				return TEST_PARAM_VALUE_1.equals(map.get(TEST_PARAM_1_VARIABLE));
+			}
+			return false;
+		}), any());
+	}
 
-        Target target = targetServiceSpy.getTarget(ENVIRONMENT, NEW_SITE_NAME);
-        assertEquals(randomParam, target.getConfiguration().getString("target.randomParam"));
+	private File createTargetsFolder() throws IOException {
+		File tempTargetsFolder = Files.createTempDirectory("targets").toFile();
+		File classpathTargetsFolder = new ClassPathResource("targets").getFile();
 
-        verify(handlebars).compile(TEMPLATE_NAME);
-        verify(targetServiceSpy).processConfigTemplate(eq(TEMPLATE_NAME), argThat(params -> {
-            if (params instanceof Map) {
-                Map<String, Object> map = (Map<String, Object>) params;
-                return TEST_PARAM_VALUE_1.equals(map.get(TEST_PARAM_1_VARIABLE));
-            }
-            return false;
-        }), any());
-    }
+		FileUtils.copyDirectory(classpathTargetsFolder, tempTargetsFolder);
 
-    private File createTargetsFolder() throws IOException {
-        File tempTargetsFolder = Files.createTempDirectory("targets").toFile();
-        File classpathTargetsFolder = new ClassPathResource("targets").getFile();
+		return tempTargetsFolder;
+	}
 
-        FileUtils.copyDirectory(classpathTargetsFolder, tempTargetsFolder);
+	private DeploymentPipelineFactory createDeploymentPipelineFactory() throws ConfigurationException,
+		DeployerException {
+		DeploymentPipelineFactory pipelineFactory = mock(DeploymentPipelineFactory.class);
+		when(pipelineFactory.getPipeline(any(), any(), anyString())).thenReturn(mock(DeploymentPipeline.class));
 
-        return tempTargetsFolder;
-    }
+		return pipelineFactory;
+	}
 
-    private DeploymentPipelineFactory createDeploymentPipelineFactory() throws ConfigurationException,
-                                                                               DeployerException {
-        DeploymentPipelineFactory pipelineFactory = mock(DeploymentPipelineFactory.class);
-        when(pipelineFactory.getPipeline(any(), any(), anyString())).thenReturn(mock(DeploymentPipeline.class));
+	private TaskScheduler createTaskScheduler() {
+		return mock(TaskScheduler.class);
+	}
 
-        return pipelineFactory;
-    }
+	private ExecutorService createTaskExecutor() {
+		return mock(ExecutorService.class);
+	}
 
-    private TaskScheduler createTaskScheduler() {
-        return mock(TaskScheduler.class);
-    }
+	private ProcessedCommitsStore createProcessedCommitsStore() {
+		return mock(ProcessedCommitsStore.class);
+	}
 
-    private ExecutorService createTaskExecutor() {
-        return mock(ExecutorService.class);
-    }
+	private TargetLifecycleHooksResolver createTargetLifecycleHooksResolver() throws ConfigurationException,
+		DeployerException {
+		createHooks = Collections.singletonList(mock(TargetLifecycleHook.class));
 
-    private ProcessedCommitsStore createProcessedCommitsStore() {
-        return mock(ProcessedCommitsStore.class);
-    }
+		TargetLifecycleHooksResolver resolver = mock(TargetLifecycleHooksResolver.class);
+		when(resolver.getHooks(any(), any(), eq(CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY))).thenReturn(createHooks);
 
-    private TargetLifecycleHooksResolver createTargetLifecycleHooksResolver() throws ConfigurationException,
-                                                                                     DeployerException {
-        createHooks = Collections.singletonList(mock(TargetLifecycleHook.class));
+		return resolver;
+	}
 
-        TargetLifecycleHooksResolver resolver = mock(TargetLifecycleHooksResolver.class);
-        when(resolver.getHooks(any(), any(), eq(CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY))).thenReturn(createHooks);
+	private EncryptionAwareConfigurationReader createConfigurationReader() {
+		return new EncryptionAwareConfigurationReader(new NoOpTextEncryptor());
+	}
 
-        return resolver;
-    }
+	@SuppressWarnings("unchecked")
+	private UpgradeManager<Target> createUpgradeManager() {
+		return mock(UpgradeManager.class);
+	}
 
-    private EncryptionAwareConfigurationReader createConfigurationReader() {
-        return new EncryptionAwareConfigurationReader(new NoOpTextEncryptor());
-    }
+	private Handlebars createHandlebars() {
+		SpringTemplateLoader templateLoader = new SpringTemplateLoader(new DefaultResourceLoader());
+		templateLoader.setPrefix("classpath:templates/targets");
+		templateLoader.setSuffix("-target-template.yaml");
 
-    @SuppressWarnings("unchecked")
-    private UpgradeManager<Target> createUpgradeManager() {
-        return mock(UpgradeManager.class);
-    }
+		handlebars = spy(new Handlebars(templateLoader));
+		handlebars.prettyPrint(true);
 
-    private Handlebars createHandlebars() {
-        SpringTemplateLoader templateLoader = new SpringTemplateLoader(new DefaultResourceLoader());
-        templateLoader.setPrefix("classpath:templates/targets");
-        templateLoader.setSuffix("-target-template.yaml");
-
-        handlebars = spy(new Handlebars(templateLoader));
-        handlebars.prettyPrint(true);
-
-        return handlebars;
-    }
+		return handlebars;
+	}
 
 }

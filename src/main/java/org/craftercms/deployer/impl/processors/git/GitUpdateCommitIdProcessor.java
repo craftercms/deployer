@@ -39,33 +39,33 @@ import static org.craftercms.deployer.impl.DeploymentConstants.LATEST_COMMIT_ID_
  */
 public class GitUpdateCommitIdProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(GitUpdateCommitIdProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(GitUpdateCommitIdProcessor.class);
 
-    protected ProcessedCommitsStore processedCommitsStore;
+	protected ProcessedCommitsStore processedCommitsStore;
 
-    @ConstructorProperties({"processedCommitsStore"})
-    public GitUpdateCommitIdProcessor(ProcessedCommitsStore processedCommitsStore) {
-        this.processedCommitsStore = processedCommitsStore;
-    }
+	@ConstructorProperties({"processedCommitsStore"})
+	public GitUpdateCommitIdProcessor(ProcessedCommitsStore processedCommitsStore) {
+		this.processedCommitsStore = processedCommitsStore;
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution, ChangeSet filteredChangeSet,
-                                      ChangeSet originalChangeSet) throws DeployerException {
-        ObjectId commitId = (ObjectId) deployment.getParam(LATEST_COMMIT_ID_PARAM_NAME);
-        if (commitId != null) {
-            logger.info("Updating processed commit to {}", commitId.name());
-            processedCommitsStore.store(targetId, commitId);
-        }
-        return null;
-    }
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution, ChangeSet filteredChangeSet,
+					  ChangeSet originalChangeSet) throws DeployerException {
+		ObjectId commitId = (ObjectId) deployment.getParam(LATEST_COMMIT_ID_PARAM_NAME);
+		if (commitId != null) {
+			logger.info("Updating processed commit to {}", commitId.name());
+			processedCommitsStore.store(targetId, commitId);
+		}
+		return null;
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
-        // do nothing
-    }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
+		// do nothing
+	}
 
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // do nothing
-    }
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// do nothing
+	}
 }

@@ -30,97 +30,89 @@ import java.util.Map;
 public interface TargetService {
 
 
-    /**
-     * Returns true if the target associated to the env and site name exists.
-     *
-     * @param env       the target's environment (e.g. dev)
-     * @param siteName  the target's site name (e.g. mysite)
-     *
-     * @return true if the target exists, false otherwise
-     * @throws TargetServiceException if a general error occurs
-     */
-    boolean targetExists(String env, String siteName) throws TargetServiceException;
+	/**
+	 * Returns true if the target associated to the env and site name exists.
+	 *
+	 * @param env      the target's environment (e.g. dev)
+	 * @param siteName the target's site name (e.g. mysite)
+	 * @return true if the target exists, false otherwise
+	 * @throws TargetServiceException if a general error occurs
+	 */
+	boolean targetExists(String env, String siteName) throws TargetServiceException;
 
-    /**
-     * Creates a new target with it's own configuration. Creating a target also triggers its create lifecycle hooks.
-     *
-     * @param env               the target's environment (e.g. dev)
-     * @param siteName          the target's site name (e.g. mysite)
-     * @param replace           indicates that if there's a target with the same name, the target config should be
-     *                          replaced.
-     * @param templateName      the name of the template used to create the target configuration (can be null).
-     * @param templateParams    the parameters that the template needs.
-     *
-     * @return the created target
-     *
-     * @throws TargetAlreadyExistsException if the target for the specified env and site name already exists
-     * @throws TargetServiceException if a general error occurs
-     */
-    Target createTarget(String env, String siteName, boolean replace, String templateName,
-                        Map<String, Object> templateParams) throws TargetAlreadyExistsException, TargetServiceException;
+	/**
+	 * Creates a new target with it's own configuration. Creating a target also triggers its create lifecycle hooks.
+	 *
+	 * @param env            the target's environment (e.g. dev)
+	 * @param siteName       the target's site name (e.g. mysite)
+	 * @param replace        indicates that if there's a target with the same name, the target config should be
+	 *                       replaced.
+	 * @param templateName   the name of the template used to create the target configuration (can be null).
+	 * @param templateParams the parameters that the template needs.
+	 * @return the created target
+	 * @throws TargetAlreadyExistsException if the target for the specified env and site name already exists
+	 * @throws TargetServiceException       if a general error occurs
+	 */
+	Target createTarget(String env, String siteName, boolean replace, String templateName,
+			    Map<String, Object> templateParams) throws TargetAlreadyExistsException, TargetServiceException;
 
-    /**
-     * Deletes a target with the given ID. Deleting the target also triggers its delete lifecycle hooks.
-     *
-     * @param env       the target's environment (e.g. dev)
-     * @param siteName  the target's site name (e.g. mysite)
-     *
-     * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
-     * @throws TargetServiceException if a general error occurs
-     */
-    void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
+	/**
+	 * Deletes a target with the given ID. Deleting the target also triggers its delete lifecycle hooks.
+	 *
+	 * @param env      the target's environment (e.g. dev)
+	 * @param siteName the target's site name (e.g. mysite)
+	 * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
+	 * @throws TargetServiceException  if a general error occurs
+	 */
+	void deleteTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
 
-    /**
-     * Scans for target configurations, loading targets with new/modified configuration and unloading targets with
-     * no configuration. This method triggers no lifecycle hooks.
-     *
-     * @return existing targets, after being loaded
-     *
-     * @throws TargetServiceException if a general error occurs
-     */
-    List<Target> resolveTargets() throws TargetServiceException;
+	/**
+	 * Scans for target configurations, loading targets with new/modified configuration and unloading targets with
+	 * no configuration. This method triggers no lifecycle hooks.
+	 *
+	 * @return existing targets, after being loaded
+	 * @throws TargetServiceException if a general error occurs
+	 */
+	List<Target> resolveTargets() throws TargetServiceException;
 
-    /**
-     * Returns all targets.
-     *
-     * @return the list of targets
-     *
-     * @throws TargetServiceException if a general error occurs
-     */
-    List<Target> getAllTargets() throws TargetServiceException;
+	/**
+	 * Returns all targets.
+	 *
+	 * @return the list of targets
+	 * @throws TargetServiceException if a general error occurs
+	 */
+	List<Target> getAllTargets() throws TargetServiceException;
 
-    /**
-     * Returns the current target with the given ID
-     *
-     * @param env       the target's environment (e.g. dev)
-     * @param siteName  the target's site name (e.g. mysite) 
-     *
-     * @return the target info
-     *
-     * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
-     * @throws TargetServiceException if a general error occurs
-     */
-    Target getTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
+	/**
+	 * Returns the current target with the given ID
+	 *
+	 * @param env      the target's environment (e.g. dev)
+	 * @param siteName the target's site name (e.g. mysite)
+	 * @return the target info
+	 * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
+	 * @throws TargetServiceException  if a general error occurs
+	 */
+	Target getTarget(String env, String siteName) throws TargetNotFoundException, TargetServiceException;
 
-    /**
-     * Recreates the underlying OpenSearch index for a given target
-     * @param env       the target's environment (e.g. dev)
-     * @param siteName  the target's site name (e.g. mysite)
-     *
-     * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
-     */
-    void recreateIndex(String env, String siteName) throws TargetNotFoundException;
+	/**
+	 * Recreates the underlying OpenSearch index for a given target
+	 *
+	 * @param env      the target's environment (e.g. dev)
+	 * @param siteName the target's site name (e.g. mysite)
+	 * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
+	 */
+	void recreateIndex(String env, String siteName) throws TargetNotFoundException;
 
-    /**
-     * Duplicates a target.
-     *
-     * @param env            the target's environment (e.g. dev)
-     * @param sourceSiteName site name of the target to duplicate
-     * @param siteName       site name for the new target
-     * @param replace        replace the target if it already exists
-     *                       (if false and the target already exists, an exception will be thrown)
-     * @param templateName   the name of the template used to create the target configuration
-     * @param templateParams the parameters that the template needs
-     */
-    void duplicateTarget(String env, String sourceSiteName, String siteName, boolean replace, String templateName, Map<String, Object> templateParams) throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException;
+	/**
+	 * Duplicates a target.
+	 *
+	 * @param env            the target's environment (e.g. dev)
+	 * @param sourceSiteName site name of the target to duplicate
+	 * @param siteName       site name for the new target
+	 * @param replace        replace the target if it already exists
+	 *                       (if false and the target already exists, an exception will be thrown)
+	 * @param templateName   the name of the template used to create the target configuration
+	 * @param templateParams the parameters that the template needs
+	 */
+	void duplicateTarget(String env, String sourceSiteName, String siteName, boolean replace, String templateName, Map<String, Object> templateParams) throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException;
 }

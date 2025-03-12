@@ -34,35 +34,35 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  */
 public class TestDeploymentProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(TestDeploymentProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(TestDeploymentProcessor.class);
 
-    private String text;
+	private String text;
 
-    public String getText() {
-        return text;
-    }
+	public String getText() {
+		return text;
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        text = getStringProperty(config, "text");
-    }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		text = getStringProperty(config, "text");
+	}
 
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) {
-        logger.info("Test deployment processor running");
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) {
+		logger.info("Test deployment processor running");
 
-        return filteredChangeSet;
-    }
+		return filteredChangeSet;
+	}
 
-    @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return true;
-    }
+	@Override
+	protected boolean failDeploymentOnProcessorFailure() {
+		return true;
+	}
 
 }

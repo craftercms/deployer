@@ -29,32 +29,32 @@ import java.lang.reflect.Array;
  */
 public class ListHelper implements Helper<Object> {
 
-    public static final String NAME = "list";
-    public static final ListHelper INSTANCE = new ListHelper();
+	public static final String NAME = "list";
+	public static final ListHelper INSTANCE = new ListHelper();
 
-    @Override
-    public Object apply(Object context, Options options) throws IOException {
-        if (context instanceof Iterable) {
-            StringBuilder ret = new StringBuilder();
-            Iterable iterable = (Iterable)context;
+	@Override
+	public Object apply(Object context, Options options) throws IOException {
+		if (context instanceof Iterable) {
+			StringBuilder ret = new StringBuilder();
+			Iterable iterable = (Iterable) context;
 
-            for (Object elem : iterable) {
-                ret.append(options.fn(elem));
-            }
+			for (Object elem : iterable) {
+				ret.append(options.fn(elem));
+			}
 
-            return ret.toString();
-        } else if (context.getClass().isArray()) {
-            StringBuilder ret = new StringBuilder();
-            int length = Array.getLength(context);
+			return ret.toString();
+		} else if (context.getClass().isArray()) {
+			StringBuilder ret = new StringBuilder();
+			int length = Array.getLength(context);
 
-            for (int i = 0; i < length; i++) {
-                ret.append(options.fn(Array.get(context, i)));
-            }
+			for (int i = 0; i < length; i++) {
+				ret.append(options.fn(Array.get(context, i)));
+			}
 
-            return ret.toString();
-        } else {
-            return options.fn(context);
-        }
-    }
+			return ret.toString();
+		} else {
+			return options.fn(context);
+		}
+	}
 
 }

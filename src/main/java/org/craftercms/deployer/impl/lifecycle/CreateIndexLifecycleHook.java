@@ -30,20 +30,20 @@ import java.beans.ConstructorProperties;
  */
 public class CreateIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
 
-    @ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService"})
-    public CreateIndexLifecycleHook(String siteName, String indexIdFormat, OpenSearchAdminService searchAdminService) {
-        super(siteName, indexIdFormat, searchAdminService);
-    }
+	@ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService"})
+	public CreateIndexLifecycleHook(String siteName, String indexIdFormat, OpenSearchAdminService searchAdminService) {
+		super(siteName, indexIdFormat, searchAdminService);
+	}
 
-    @Override
-    public void doExecute(Target target) throws DeployerException {
-        try {
-            logger.info("Creating OpenSearch index for target '{}'", target.getId());
+	@Override
+	public void doExecute(Target target) throws DeployerException {
+		try {
+			logger.info("Creating OpenSearch index for target '{}'", target.getId());
 
-            searchAdminService.createIndex(indexId);
-        } catch (SearchException e) {
-            throw new DeployerException("Error creating index for target '" + target.getId() + "'", e);
-        }
-    }
+			searchAdminService.createIndex(indexId);
+		} catch (SearchException e) {
+			throw new DeployerException("Error creating index for target '" + target.getId() + "'", e);
+		}
+	}
 
 }

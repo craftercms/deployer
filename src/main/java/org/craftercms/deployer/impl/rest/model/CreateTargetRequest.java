@@ -25,6 +25,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 
 import jakarta.validation.constraints.NotEmpty;
 import jakarta.validation.constraints.Size;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -36,38 +37,38 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  */
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class CreateTargetRequest {
-    @NotEmpty
-    @ValidSiteId(message = "Value is not a valid environment name")
-    private String env;
-    @NotEmpty
-    @ValidSiteId
-    private String siteName;
+	@NotEmpty
+	@ValidSiteId(message = "Value is not a valid environment name")
+	private String env;
+	@NotEmpty
+	@ValidSiteId
+	private String siteName;
 
-    public String getSiteName() {
-        return siteName;
-    }
+	public String getSiteName() {
+		return siteName;
+	}
 
-    public void setSiteName(String siteName) {
-        this.siteName = siteName;
-    }
+	public void setSiteName(String siteName) {
+		this.siteName = siteName;
+	}
 
-    @JsonUnwrapped
-    private TargetTemplateParams targetTemplateParams;
+	@JsonUnwrapped
+	private TargetTemplateParams targetTemplateParams;
 
-    public String getEnv() {
-        return env;
-    }
+	public String getEnv() {
+		return env;
+	}
 
-    public void setEnv(String env) {
-        this.env = env;
-    }
+	public void setEnv(String env) {
+		this.env = env;
+	}
 
-    public TargetTemplateParams getTargetTemplateParams() {
-        return targetTemplateParams;
-    }
+	public TargetTemplateParams getTargetTemplateParams() {
+		return targetTemplateParams;
+	}
 
-    public void setTargetTemplateParams(TargetTemplateParams targetTemplateParams) {
-        this.targetTemplateParams = targetTemplateParams;
-    }
+	public void setTargetTemplateParams(TargetTemplateParams targetTemplateParams) {
+		this.targetTemplateParams = targetTemplateParams;
+	}
 
 }

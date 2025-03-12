@@ -33,6 +33,8 @@ import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.commons.git.utils.AuthConfiguratorFactory;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.events.DeploymentEventsStore;
+import org.craftercms.deployer.impl.ProcessorStateStore;
+import org.craftercms.deployer.impl.ProcessorStateStoreImpl;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
 import org.craftercms.deployer.impl.events.FileBasedDeploymentEventsStore;
@@ -72,7 +74,7 @@ import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCAT
 @SpringBootApplication
 @EnableScheduling
 @ImportResource(CORE_APP_CONTEXT_LOCATION)
-public class DeployerApplication implements WebMvcConfigurer  {
+public class DeployerApplication implements WebMvcConfigurer {
 
 	public static final String CORE_APP_CONTEXT_LOCATION = "classpath:crafter/core/core-context.xml";
 
@@ -88,6 +90,8 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	private String targetConfigTemplatesEncoding;
 	@Value("${deployer.main.deployments.processedCommits.folderPath}")
 	private File processedCommitsFolder;
+	@Value("${deployer.main.deployments.processorStates.folderPath}")
+	private File processorsStateFolder;
 
 	@Value("${deployer.main.deployments.pool.size}")
 	private int deploymentPoolSize;
@@ -116,6 +120,14 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	}
 
 	@Bean
+	public ProcessorStateStore processorStateStore() {
+		ProcessorStateStoreImpl store = new ProcessorStateStoreImpl();
+		store.setStoreFolder(processorsStateFolder);
+
+		return store;
+	}
+
+	@Bean
 	@Primary
 	public ObjectMapper objectMapper(Jackson2ObjectMapperBuilder builder) {
 		ObjectMapper objectMapper = builder.createXmlMapper(false).build();
@@ -128,7 +140,7 @@ public class DeployerApplication implements WebMvcConfigurer  {
 		return builder.build();
 	}
 
-	@Bean(destroyMethod="shutdown")
+	@Bean(destroyMethod = "shutdown")
 	public ThreadPoolTaskScheduler taskScheduler() {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.setPoolSize(taskSchedulerPoolSize);
@@ -172,36 +184,36 @@ public class DeployerApplication implements WebMvcConfigurer  {
 
 	@Bean("crafter.textEncryptor")
 	public TextEncryptor textEncryptor(@Value("${deployer.main.security.encryption.key}") String key,
-                                       @Value("${deployer.main.security.encryption.salt}") String salt)
+					   @Value("${deployer.main.security.encryption.salt}") String salt)
 		throws CryptoException {
 		return new PbkAesTextEncryptor(key, salt);
 	}
 
 	@Bean("crafter.configurationReader")
 	public EncryptionAwareConfigurationReader configurationReader(@Autowired TextEncryptor textEncryptor,
-																  @Value("${deployer.main.config.yamlMaxAliasesForCollections}") int yamlMaxAliasesForCollections) {
+								      @Value("${deployer.main.config.yamlMaxAliasesForCollections}") int yamlMaxAliasesForCollections) {
 		return new EncryptionAwareConfigurationReader(textEncryptor, yamlMaxAliasesForCollections);
 	}
 
 	@Bean("crafter.publishingTargetResolver")
-    public PublishingTargetResolver publishingTargetResolver(
-			@Value("${deployer.main.targets.config.blob.staging.pattern}") String stagingNamePattern) {
-	    return new TargetAwarePublishingTargetResolver(stagingNamePattern);
-    }
+	public PublishingTargetResolver publishingTargetResolver(
+		@Value("${deployer.main.targets.config.blob.staging.pattern}") String stagingNamePattern) {
+		return new TargetAwarePublishingTargetResolver(stagingNamePattern);
+	}
 
-    @Bean("crafter.configurationResolver")
-    public ConfigurationResolver configurationResolver(
-            @Value("${deployer.main.config.environment.active}") String environment,
-            @Value("${deployer.main.config.environment.basePath}") String basePath,
-            @Value("${deployer.main.config.environment.envPath}") String envPath,
-            @Autowired EncryptionAwareConfigurationReader configurationReader) {
-	    return new ConfigurationResolverImpl(environment, basePath, envPath, configurationReader);
-    }
+	@Bean("crafter.configurationResolver")
+	public ConfigurationResolver configurationResolver(
+		@Value("${deployer.main.config.environment.active}") String environment,
+		@Value("${deployer.main.config.environment.basePath}") String basePath,
+		@Value("${deployer.main.config.environment.envPath}") String envPath,
+		@Autowired EncryptionAwareConfigurationReader configurationReader) {
+		return new ConfigurationResolverImpl(environment, basePath, envPath, configurationReader);
+	}
 
-    @Bean
-    public DeploymentEventsStore<Properties, Path> deploymentEventsStore(
-    		@Value("${deployer.main.deployments.events.folderPath}") String folderPath,
-			@Value("${deployer.main.deployments.events.filePattern}") String filePattern) {
+	@Bean
+	public DeploymentEventsStore<Properties, Path> deploymentEventsStore(
+		@Value("${deployer.main.deployments.events.folderPath}") String folderPath,
+		@Value("${deployer.main.deployments.events.filePattern}") String filePattern) {
 		return new FileBasedDeploymentEventsStore(folderPath, filePattern);
 	}
 
@@ -212,7 +224,7 @@ public class DeployerApplication implements WebMvcConfigurer  {
 
 	@Bean
 	public AuthConfiguratorFactory gitAuthenticationConfiguratorFactory(
-			@Value("${deployer.main.security.ssh.config}") File sshConfig) {
+		@Value("${deployer.main.security.ssh.config}") File sshConfig) {
 		return new AuthConfiguratorFactory(sshConfig);
 	}
 

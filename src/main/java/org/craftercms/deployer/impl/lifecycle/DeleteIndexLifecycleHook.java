@@ -30,20 +30,20 @@ import java.beans.ConstructorProperties;
  */
 public class DeleteIndexLifecycleHook extends AbstractIndexAwareLifecycleHook {
 
-    @ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService"})
-    public DeleteIndexLifecycleHook(String siteName, String indexIdFormat, OpenSearchAdminService searchAdminService) {
-        super(siteName, indexIdFormat, searchAdminService);
-    }
+	@ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService"})
+	public DeleteIndexLifecycleHook(String siteName, String indexIdFormat, OpenSearchAdminService searchAdminService) {
+		super(siteName, indexIdFormat, searchAdminService);
+	}
 
-    @Override
-    public void doExecute(Target target) throws DeployerException {
-        try {
-            logger.info("Deleting OpenSearch index for target '{}'", target.getId());
+	@Override
+	public void doExecute(Target target) throws DeployerException {
+		try {
+			logger.info("Deleting OpenSearch index for target '{}'", target.getId());
 
-            searchAdminService.deleteIndexes(indexId);
-        } catch (SearchException e) {
-            throw new DeployerException("Error deleting index for target " + target.getId(), e);
-        }
-    }
+			searchAdminService.deleteIndexes(indexId);
+		} catch (SearchException e) {
+			throw new DeployerException("Error deleting index for target " + target.getId(), e);
+		}
+	}
 
 }

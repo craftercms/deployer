@@ -30,34 +30,34 @@ import java.beans.ConstructorProperties;
  * from a source site to a target site.
  */
 public class DuplicateProcessedCommitsHook extends AbstractLifecycleHook {
-    private final String siteName;
-    private final String sourceSiteName;
-    private final String env;
-    private final ProcessedCommitsStore processedCommitsStore;
+	private final String siteName;
+	private final String sourceSiteName;
+	private final String env;
+	private final ProcessedCommitsStore processedCommitsStore;
 
-    @ConstructorProperties({"siteName", "sourceSiteName", "env", "processedCommitsStore"})
-    public DuplicateProcessedCommitsHook(final String siteName, final String sourceSiteName, final String env, final ProcessedCommitsStore processedCommitsStore) {
-        this.siteName = siteName;
-        this.sourceSiteName = sourceSiteName;
-        this.env = env;
-        this.processedCommitsStore = processedCommitsStore;
-    }
+	@ConstructorProperties({"siteName", "sourceSiteName", "env", "processedCommitsStore"})
+	public DuplicateProcessedCommitsHook(final String siteName, final String sourceSiteName, final String env, final ProcessedCommitsStore processedCommitsStore) {
+		this.siteName = siteName;
+		this.sourceSiteName = sourceSiteName;
+		this.env = env;
+		this.processedCommitsStore = processedCommitsStore;
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
-    }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
+	}
 
-    @Override
-    protected void doExecute(Target target) throws DeployerException {
-        logger.info("Starting processed-commits file duplicate from site '{}' to site '{}'", sourceSiteName, siteName);
-        String srcTargetId = TargetImpl.getId(env, sourceSiteName);
-        String newTargetId = TargetImpl.getId(env, siteName);
-        ObjectId processedCommit = processedCommitsStore.load(srcTargetId);
-        if (processedCommit != null) {
-            processedCommitsStore.store(newTargetId, processedCommit);
-            logger.info("Completed processed-commits file duplicate from site '{}' to site '{}'", sourceSiteName, siteName);
-        } else {
-            logger.info("No processed-commits file found for site '{}' env '{}'", sourceSiteName, env);
-        }
-    }
+	@Override
+	protected void doExecute(Target target) throws DeployerException {
+		logger.info("Starting processed-commits file duplicate from site '{}' to site '{}'", sourceSiteName, siteName);
+		String srcTargetId = TargetImpl.getId(env, sourceSiteName);
+		String newTargetId = TargetImpl.getId(env, siteName);
+		ObjectId processedCommit = processedCommitsStore.load(srcTargetId);
+		if (processedCommit != null) {
+			processedCommitsStore.store(newTargetId, processedCommit);
+			logger.info("Completed processed-commits file duplicate from site '{}' to site '{}'", sourceSiteName, siteName);
+		} else {
+			logger.info("No processed-commits file found for site '{}' env '{}'", sourceSiteName, env);
+		}
+	}
 }

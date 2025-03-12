@@ -42,49 +42,49 @@ import static org.junit.Assert.assertNotNull;
 @RunWith(SpringJUnit4ClassRunner.class)
 public class DeploymentPipelineFactoryImplTest {
 
-    private DeploymentPipelineFactoryImpl deploymentPipelineFactory;
-    private HierarchicalConfiguration config;
-    private ApplicationContext applicationContext;
+	private DeploymentPipelineFactoryImpl deploymentPipelineFactory;
+	private HierarchicalConfiguration config;
+	private ApplicationContext applicationContext;
 
-    @Before
-    public void setUp() throws Exception {
-        deploymentPipelineFactory = new DeploymentPipelineFactoryImpl();
-        config = createConfiguration();
-        applicationContext = createApplicationContext();
-    }
+	@Before
+	public void setUp() throws Exception {
+		deploymentPipelineFactory = new DeploymentPipelineFactoryImpl();
+		config = createConfiguration();
+		applicationContext = createApplicationContext();
+	}
 
-    @Test
-    public void testGetPipeline() throws Exception {
-        DeploymentPipeline pipeline = deploymentPipelineFactory.getPipeline(config, applicationContext,
-                                                                            TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
+	@Test
+	public void testGetPipeline() throws Exception {
+		DeploymentPipeline pipeline = deploymentPipelineFactory.getPipeline(config, applicationContext,
+			TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
 
-        assertNotNull(pipeline);
+		assertNotNull(pipeline);
 
-        List<DeploymentProcessor> processors = pipeline.getProcessors();
+		List<DeploymentProcessor> processors = pipeline.getProcessors();
 
-        assertEquals(1, processors.size());
-        assertEquals("This is a test", ((TestDeploymentProcessor) processors.get(0)).getText());
-    }
+		assertEquals(1, processors.size());
+		assertEquals("This is a test", ((TestDeploymentProcessor) processors.get(0)).getText());
+	}
 
-    private HierarchicalConfiguration createConfiguration() throws Exception {
-        ClassPathResource yamlResource = new ClassPathResource("targets/foobar-test.yaml");
-        YamlConfiguration yamlConfig = new YamlConfiguration();
+	private HierarchicalConfiguration createConfiguration() throws Exception {
+		ClassPathResource yamlResource = new ClassPathResource("targets/foobar-test.yaml");
+		YamlConfiguration yamlConfig = new YamlConfiguration();
 
-        yamlConfig.read(new FileReader(yamlResource.getFile()));
-        yamlConfig.setProperty(TARGET_ID_CONFIG_KEY, "foobar-test");
+		yamlConfig.read(new FileReader(yamlResource.getFile()));
+		yamlConfig.setProperty(TARGET_ID_CONFIG_KEY, "foobar-test");
 
-        return yamlConfig;
-    }
+		return yamlConfig;
+	}
 
-    private ApplicationContext createApplicationContext() {
-        PropertySource yamlPropertySource = new ApacheCommonsConfiguration2PropertySource("yamlPropertySource", config);
-        ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
-            new String[] { "targets/foobar-test-context.xml" }, false);
+	private ApplicationContext createApplicationContext() {
+		PropertySource yamlPropertySource = new ApacheCommonsConfiguration2PropertySource("yamlPropertySource", config);
+		ClassPathXmlApplicationContext applicationContext = new ClassPathXmlApplicationContext(
+			new String[]{"targets/foobar-test-context.xml"}, false);
 
-        applicationContext.getEnvironment().getPropertySources().addFirst(yamlPropertySource);
-        applicationContext.refresh();
+		applicationContext.getEnvironment().getPropertySources().addFirst(yamlPropertySource);
+		applicationContext.refresh();
 
-        return applicationContext;
-    }
+		return applicationContext;
+	}
 
 }

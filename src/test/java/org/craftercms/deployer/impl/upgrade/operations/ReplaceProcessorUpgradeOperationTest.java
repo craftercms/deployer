@@ -44,54 +44,54 @@ import static org.mockito.Mockito.when;
 @RunWith(MockitoJUnitRunner.class)
 public class ReplaceProcessorUpgradeOperationTest {
 
-    private static final String PROCESSOR = "myProcessor";
+	private static final String PROCESSOR = "myProcessor";
 
-    private static final String NEW_PROCESSOR = "myNewProcessor";
+	private static final String NEW_PROCESSOR = "myNewProcessor";
 
-    private Map<String, Object> targetConfig;
+	private Map<String, Object> targetConfig;
 
-    @Mock
-    private Target target;
+	@Mock
+	private Target target;
 
-    @InjectMocks
-    private ReplaceProcessorUpgradeOperation processor;
+	@InjectMocks
+	private ReplaceProcessorUpgradeOperation processor;
 
-    @Before
-    public void setUp() throws ConfigurationException, IOException, org.apache.commons.configuration2.ex.ConfigurationException {
-        YamlConfiguration config = new YamlConfiguration();
-        Resource configFile = new ClassPathResource("upgrade/replaceProcessor/config.yaml");
-        try (InputStream is = configFile.getInputStream()) {
-            config.read(is);
-        }
+	@Before
+	public void setUp() throws ConfigurationException, IOException, org.apache.commons.configuration2.ex.ConfigurationException {
+		YamlConfiguration config = new YamlConfiguration();
+		Resource configFile = new ClassPathResource("upgrade/replaceProcessor/config.yaml");
+		try (InputStream is = configFile.getInputStream()) {
+			config.read(is);
+		}
 
-        Yaml yaml = new Yaml();
-        Resource resource = new ClassPathResource("upgrade/replaceProcessor/target.yaml");
-        try(InputStream is = resource.getInputStream()) {
-            targetConfig = yaml.load(is);
-        }
+		Yaml yaml = new Yaml();
+		Resource resource = new ClassPathResource("upgrade/replaceProcessor/target.yaml");
+		try (InputStream is = resource.getInputStream()) {
+			targetConfig = yaml.load(is);
+		}
 
-        when(target.getEnv()).thenReturn("preview");
+		when(target.getEnv()).thenReturn("preview");
 
-        processor.init(null, null, config);
-    }
+		processor.init(null, null, config);
+	}
 
-    @Test
-    public void test() throws Exception {
-        processor.doExecute(target, targetConfig);
+	@Test
+	public void test() throws Exception {
+		processor.doExecute(target, targetConfig);
 
-        assertEquals("instances that do not match shouldn't be replaced", 2, countProcessor(targetConfig, PROCESSOR));
-        assertEquals("one processor should be replaced", 1, countProcessor(targetConfig, NEW_PROCESSOR));
-        assertEquals("other processors shouldn't be replaced", 1, countProcessor(targetConfig, "otherProcessor"));
-    }
+		assertEquals("instances that do not match shouldn't be replaced", 2, countProcessor(targetConfig, PROCESSOR));
+		assertEquals("one processor should be replaced", 1, countProcessor(targetConfig, NEW_PROCESSOR));
+		assertEquals("other processors shouldn't be replaced", 1, countProcessor(targetConfig, "otherProcessor"));
+	}
 
-    @SuppressWarnings("unchecked")
-    private long countProcessor(Map<String, Object> targetConfig, String processor) {
-        Map<String, Object> targetObj = (Map<String, Object>)targetConfig.get(CONFIG_KEY_TARGET);
-        Map<String, Object> deploymentObj = (Map<String, Object>)targetObj.get(CONFIG_KEY_DEPLOYMENT);
-        List<Map<String, Object>> pipelineObj = (List<Map<String, Object>>)deploymentObj.get(CONFIG_KEY_PIPELINE);
-        return pipelineObj.stream()
-                .filter(processorObj -> processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processor))
-                .count();
-    }
+	@SuppressWarnings("unchecked")
+	private long countProcessor(Map<String, Object> targetConfig, String processor) {
+		Map<String, Object> targetObj = (Map<String, Object>) targetConfig.get(CONFIG_KEY_TARGET);
+		Map<String, Object> deploymentObj = (Map<String, Object>) targetObj.get(CONFIG_KEY_DEPLOYMENT);
+		List<Map<String, Object>> pipelineObj = (List<Map<String, Object>>) deploymentObj.get(CONFIG_KEY_PIPELINE);
+		return pipelineObj.stream()
+			.filter(processorObj -> processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processor))
+			.count();
+	}
 
 }

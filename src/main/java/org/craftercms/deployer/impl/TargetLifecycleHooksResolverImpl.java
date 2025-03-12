@@ -42,36 +42,36 @@ import static org.craftercms.deployer.impl.DeploymentConstants.HOOK_NAME_CONFIG_
 @Component("targetLifecycleHooksResolver")
 public class TargetLifecycleHooksResolverImpl implements TargetLifecycleHooksResolver {
 
-    private static final Logger logger = LoggerFactory.getLogger(TargetLifecycleHooksResolverImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(TargetLifecycleHooksResolverImpl.class);
 
-    @Override
-    public List<TargetLifecycleHook> getHooks(HierarchicalConfiguration<ImmutableNode> configuration,
-                                              ApplicationContext applicationContext, String lifecycleHooksPropertyName)
-            throws ConfigurationException, DeployerException {
-        List<HierarchicalConfiguration<ImmutableNode>> hookConfigs = getConfigurationsAt(configuration,
-                                                                                         lifecycleHooksPropertyName);
-        List<TargetLifecycleHook> hooks = new ArrayList<>();
+	@Override
+	public List<TargetLifecycleHook> getHooks(HierarchicalConfiguration<ImmutableNode> configuration,
+						  ApplicationContext applicationContext, String lifecycleHooksPropertyName)
+		throws ConfigurationException, DeployerException {
+		List<HierarchicalConfiguration<ImmutableNode>> hookConfigs = getConfigurationsAt(configuration,
+			lifecycleHooksPropertyName);
+		List<TargetLifecycleHook> hooks = new ArrayList<>();
 
-        if (CollectionUtils.isNotEmpty(hookConfigs)) {
-            for (HierarchicalConfiguration hookConfig : hookConfigs) {
-                String hookName = getRequiredStringProperty(hookConfig, HOOK_NAME_CONFIG_KEY);
+		if (CollectionUtils.isNotEmpty(hookConfigs)) {
+			for (HierarchicalConfiguration hookConfig : hookConfigs) {
+				String hookName = getRequiredStringProperty(hookConfig, HOOK_NAME_CONFIG_KEY);
 
-                logger.debug("Initializing target lifecycle hook '{}'", hookName);
+				logger.debug("Initializing target lifecycle hook '{}'", hookName);
 
-                try {
-                    TargetLifecycleHook hook = applicationContext.getBean(hookName, TargetLifecycleHook.class);
-                    hook.init(hookConfig);
+				try {
+					TargetLifecycleHook hook = applicationContext.getBean(hookName, TargetLifecycleHook.class);
+					hook.init(hookConfig);
 
-                    hooks.add(hook);
-                } catch (NoSuchBeanDefinitionException e) {
-                    throw new DeployerException("No target lifecycle hook bean found with name '" + hookName + "'", e);
-                } catch (Exception e) {
-                    throw new DeployerException("Failed to initialize target lifecycle hook '" + hookName + "'", e);
-                }
-            }
-        }
+					hooks.add(hook);
+				} catch (NoSuchBeanDefinitionException e) {
+					throw new DeployerException("No target lifecycle hook bean found with name '" + hookName + "'", e);
+				} catch (Exception e) {
+					throw new DeployerException("Failed to initialize target lifecycle hook '" + hookName + "'", e);
+				}
+			}
+		}
 
-        return hooks;
-    }
+		return hooks;
+	}
 
 }

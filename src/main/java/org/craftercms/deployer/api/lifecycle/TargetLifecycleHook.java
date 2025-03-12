@@ -32,12 +32,12 @@ import org.craftercms.deployer.utils.beans.InitializableByConfigBean;
  */
 public interface TargetLifecycleHook extends InitializableByConfigBean {
 
-    /**
-     * Execute the hook.
-     *
-     * @param target the target associated to the hook
-     * @throws DeployerException if there's an exception on execution
-     */
-    void execute(Target target) throws DeployerException;
+	/**
+	 * Execute the hook.
+	 *
+	 * @param target the target associated to the hook
+	 * @throws DeployerException if there's an exception on execution
+	 */
+	void execute(Target target) throws DeployerException;
 
 }

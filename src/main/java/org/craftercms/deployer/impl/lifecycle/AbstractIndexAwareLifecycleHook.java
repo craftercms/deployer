@@ -32,30 +32,30 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  */
 public abstract class AbstractIndexAwareLifecycleHook extends AbstractLifecycleHook {
 
-    protected static final String INDEX_ID_CONFIG_KEY = "indexId";
+	protected static final String INDEX_ID_CONFIG_KEY = "indexId";
 
-    protected final String siteName;
-    protected final String indexIdFormat;
-    protected final OpenSearchAdminService searchAdminService;
+	protected final String siteName;
+	protected final String indexIdFormat;
+	protected final OpenSearchAdminService searchAdminService;
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    protected String indexId;
+	protected String indexId;
 
-    @ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService"})
-    public AbstractIndexAwareLifecycleHook(final String siteName, final String indexIdFormat,
-                                           final OpenSearchAdminService searchAdminService) {
-        this.siteName = siteName;
-        this.indexIdFormat = indexIdFormat;
-        this.searchAdminService = searchAdminService;
-    }
+	@ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService"})
+	public AbstractIndexAwareLifecycleHook(final String siteName, final String indexIdFormat,
+					       final OpenSearchAdminService searchAdminService) {
+		this.siteName = siteName;
+		this.indexIdFormat = indexIdFormat;
+		this.searchAdminService = searchAdminService;
+	}
 
-    @Override
-    public void doInit(Configuration config) throws ConfigurationException {
-        indexId = getStringProperty(config, INDEX_ID_CONFIG_KEY);
-        if (StringUtils.isEmpty(indexId)) {
-            indexId = String.format(indexIdFormat, siteName);
-        }
-    }
+	@Override
+	public void doInit(Configuration config) throws ConfigurationException {
+		indexId = getStringProperty(config, INDEX_ID_CONFIG_KEY);
+		if (StringUtils.isEmpty(indexId)) {
+			indexId = String.format(indexIdFormat, siteName);
+		}
+	}
 
 }

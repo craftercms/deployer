@@ -23,18 +23,19 @@ import org.springframework.web.bind.annotation.RestController;
 
 /**
  * Simple Rest Controller that monitors Deployer.
+ *
  * @author Carlos Ortiz.
  */
 @RestController
 @RequestMapping(MonitorController.BASE_URL)
 public class MonitorController extends MonitoringRestControllerBase {
 
-    /**
-     * Base ULR for monitoring services.
-     */
-    public static final String BASE_URL = "/api/1";
+	/**
+	 * Base ULR for monitoring services.
+	 */
+	public static final String BASE_URL = "/api/1";
 
-    public MonitorController(@Value("${deployer.main.management.authorizationToken}") final String configuredToken) {
-        super(configuredToken);
-    }
+	public MonitorController(@Value("${deployer.main.management.authorizationToken}") final String configuredToken) {
+		super(configuredToken);
+	}
 }

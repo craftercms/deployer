@@ -35,27 +35,27 @@ import org.springframework.stereotype.Component;
 @Component
 public class DeployerUpgradeManager extends AbstractUpgradeManager<Target> {
 
-    protected UpgradePipelineFactory<Target> targetPipelineFactory;
+	protected UpgradePipelineFactory<Target> targetPipelineFactory;
 
-    @Autowired
-    public DeployerUpgradeManager(final UpgradePipelineFactory<Target> targetPipelineFactory) {
-        this.targetPipelineFactory = targetPipelineFactory;
-    }
+	@Autowired
+	public DeployerUpgradeManager(final UpgradePipelineFactory<Target> targetPipelineFactory) {
+		this.targetPipelineFactory = targetPipelineFactory;
+	}
 
-    @Override
-    protected List<Target> doGetTargets() {
-        // Returns an empty list because all targets are upgraded when loaded, no extra steps needed
-        return Collections.emptyList();
-    }
+	@Override
+	protected List<Target> doGetTargets() {
+		// Returns an empty list because all targets are upgraded when loaded, no extra steps needed
+		return Collections.emptyList();
+	}
 
-    @Override
-    protected void doUpgrade(final UpgradeContext<Target> context) throws Exception {
-        executePipeline(context, targetPipelineFactory);
-    }
+	@Override
+	protected void doUpgrade(final UpgradeContext<Target> context) throws Exception {
+		executePipeline(context, targetPipelineFactory);
+	}
 
-    @Override
-    protected UpgradeContext<Target> createUpgradeContext(Target target) {
-        return new TargetUpgradeContext(target);
-    }
+	@Override
+	protected UpgradeContext<Target> createUpgradeContext(Target target) {
+		return new TargetUpgradeContext(target);
+	}
 
 }

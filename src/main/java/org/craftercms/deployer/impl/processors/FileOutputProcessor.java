@@ -38,84 +38,84 @@ import java.io.IOException;
  */
 public class FileOutputProcessor extends AbstractPostDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileOutputProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(FileOutputProcessor.class);
 
-    protected static final String[] HEADERS = {
-            "mode", "status", "duration", "start", "end", "created_files", "updated_files", "deleted_files"
-    };
+	protected static final String[] HEADERS = {
+		"mode", "status", "duration", "start", "end", "created_files", "updated_files", "deleted_files"
+	};
 
-    protected File outputFolder;
+	protected File outputFolder;
 
-    /**
-     * Sets the output folder where the deployments results will be written to.
-     */
-    public void setOutputFolder(File outputFolder) {
-        this.outputFolder = outputFolder;
-    }
+	/**
+	 * Sets the output folder where the deployments results will be written to.
+	 */
+	public void setOutputFolder(File outputFolder) {
+		this.outputFolder = outputFolder;
+	}
 
-    @Override
-    public void doInit(Configuration config) throws DeployerException {
-        if (!outputFolder.exists()) {
-            try {
-                FileUtils.forceMkdir(outputFolder);
-            } catch (IOException e) {
-                throw new DeployerException("Failed to create output folder " + outputFolder, e);
-            }
-        }
-    }
+	@Override
+	public void doInit(Configuration config) throws DeployerException {
+		if (!outputFolder.exists()) {
+			try {
+				FileUtils.forceMkdir(outputFolder);
+			} catch (IOException e) {
+				throw new DeployerException("Failed to create output folder " + outputFolder, e);
+			}
+		}
+	}
 
-    @Override
-    protected void doDestroy() {
-        // Do nothing
-    }
+	@Override
+	protected void doDestroy() {
+		// Do nothing
+	}
 
-    @Override
-    public boolean supportsMode(Deployment.Mode mode) {
-        // the output file should be always generated
-        return true;
-    }
+	@Override
+	public boolean supportsMode(Deployment.Mode mode) {
+		// the output file should be always generated
+		return true;
+	}
 
-    @Override
-    protected ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
-                                      ChangeSet originalChangeSet) throws DeployerException {
-        File outputFile = getOutputFile(deployment);
-        try (FileWriter fileWriter = new FileWriter(outputFile, true)) {
-            // Use a file printer to append to the full history in the FS
-            CSVPrinter filePrinter;
-            if(outputFile.exists() && outputFile.length() > 0) {
-                filePrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
-            } else {
-                filePrinter = new CSVPrinter(fileWriter, CSVFormat.Builder.create().setHeader(HEADERS).build());
-            }
-            appendDeployment(filePrinter, deployment);
-        } catch (IOException e) {
-            throw new DeployerException("Error while writing deployment output file " + outputFile, e);
-        }
+	@Override
+	protected ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
+					  ChangeSet originalChangeSet) throws DeployerException {
+		File outputFile = getOutputFile(deployment);
+		try (FileWriter fileWriter = new FileWriter(outputFile, true)) {
+			// Use a file printer to append to the full history in the FS
+			CSVPrinter filePrinter;
+			if (outputFile.exists() && outputFile.length() > 0) {
+				filePrinter = new CSVPrinter(fileWriter, CSVFormat.DEFAULT);
+			} else {
+				filePrinter = new CSVPrinter(fileWriter, CSVFormat.Builder.create().setHeader(HEADERS).build());
+			}
+			appendDeployment(filePrinter, deployment);
+		} catch (IOException e) {
+			throw new DeployerException("Error while writing deployment output file " + outputFile, e);
+		}
 
-        logger.info("Successfully wrote deployment output to {}", outputFile);
+		logger.info("Successfully wrote deployment output to {}", outputFile);
 
-        return null;
-    }
+		return null;
+	}
 
-    protected void appendDeployment(CSVPrinter printer, Deployment deployment) throws IOException {
-        ChangeSet changeSet = deployment.getChangeSet();
-        printer.printRecord(
-                deployment.getMode(),
-                deployment.getStatus(),
-                deployment.getDuration(),
-                deployment.getStart().toInstant(),
-                deployment.getEnd().toInstant(),
-                ListUtils.emptyIfNull(changeSet.getCreatedFiles()),
-                ListUtils.emptyIfNull(changeSet.getUpdatedFiles()),
-                ListUtils.emptyIfNull(changeSet.getDeletedFiles())
-        );
-    }
+	protected void appendDeployment(CSVPrinter printer, Deployment deployment) throws IOException {
+		ChangeSet changeSet = deployment.getChangeSet();
+		printer.printRecord(
+			deployment.getMode(),
+			deployment.getStatus(),
+			deployment.getDuration(),
+			deployment.getStart().toInstant(),
+			deployment.getEnd().toInstant(),
+			ListUtils.emptyIfNull(changeSet.getCreatedFiles()),
+			ListUtils.emptyIfNull(changeSet.getUpdatedFiles()),
+			ListUtils.emptyIfNull(changeSet.getDeletedFiles())
+		);
+	}
 
-    protected File getOutputFile(Deployment deployment) {
-        String targetId = deployment.getTarget().getId();
-        String outputFilename = targetId + "-deployments.csv";
+	protected File getOutputFile(Deployment deployment) {
+		String targetId = deployment.getTarget().getId();
+		String outputFilename = targetId + "-deployments.csv";
 
-        return new File(outputFolder, outputFilename);
-    }
+		return new File(outputFolder, outputFilename);
+	}
 
 }

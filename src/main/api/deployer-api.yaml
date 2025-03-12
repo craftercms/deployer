@@ -134,7 +134,7 @@ paths:
       security: []
       tags:
         - target
-      summary: Get a Crafter Deployer target.
+      summary: Get all Crafter Deployer targets.
       operationId: getAllTargets
       responses:
         '200':
@@ -166,6 +166,38 @@ paths:
         - target
       summary: Delete a Crafter Deployer target.
       operationId: deleteTarget
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example:
+            env: dev
+        - name: site_name
+          in: path
+          description: The target’s project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example:
+            site_name: editorial
+      responses:
+        '204':
+          description: NO CONTENT
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/target/delete-if-exists/{env}/{site_name}:
+    post:
+      security: []
+      tags:
+        - target
+      summary: Delete a Crafter Deployer target if it exists.
+      operationId: deleteTargetIfExists
       parameters:
         - name: env
           in: path
@@ -268,6 +300,274 @@ paths:
       responses:
         '202':
           $ref: '#/components/responses/Accepted'
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/target/deployments/get-pending/{env}/{site_name}:
+    get:
+      security: []
+      tags:
+        - target
+      summary: Get the pending deployments for a target.
+      operationId: getPendingDeployments
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example:
+            env: dev
+        - name: site_name
+          in: path
+          description: The target’s project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example:
+            site_name: editorial
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deployment'
+              example:
+                [
+                  {
+                    "mode": "PUBLISH",
+                    "status": null,
+                    "running": false,
+                    "duration": null,
+                    "start": null,
+                    "end": null,
+                    "target": {
+                      "env": "preview",
+                      "site_name": "ed",
+                      "load_date": "2025-03-10T11:44:03.613404-04:00",
+                      "status": "INIT_COMPLETED",
+                      "id": "ed-preview"
+                    },
+                    "changeSet": {
+                      "created_files": [],
+                      "updated_files": [],
+                      "deleted_files": []
+                    },
+                    "processorExecutions": []
+                  },
+                  {
+                    "mode": "PUBLISH",
+                    "status": null,
+                    "running": false,
+                    "duration": null,
+                    "start": null,
+                    "end": null,
+                    "target": {
+                      "env": "preview",
+                      "site_name": "ed",
+                      "load_date": "2025-03-10T11:44:03.613404-04:00",
+                      "status": "INIT_COMPLETED",
+                      "id": "ed-preview"
+                    },
+                    "changeSet": {
+                      "created_files": [],
+                      "updated_files": [],
+                      "deleted_files": []
+                    },
+                    "processorExecutions": []
+                  },
+                ]
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/target/deployments/get-current/{env}/{site_name}:
+    get:
+      security: []
+      tags:
+        - target
+      summary: Get the current deployment for a target.
+      operationId: getCurrentDeployments
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example:
+            env: dev
+        - name: site_name
+          in: path
+          description: The target’s project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example:
+            site_name: editorial
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Deployment'
+              example:
+                {
+                  "mode": "PUBLISH",
+                  "status": null,
+                  "running": true,
+                  "duration": null,
+                  "start": "2025-03-11T17:07:00.006221-04:00",
+                  "end": null,
+                  "target": {
+                    "env": "default",
+                    "site_name": "ed",
+                    "load_date": "2025-03-11T17:00:09.935316-04:00",
+                    "status": "INIT_COMPLETED",
+                    "id": "ed-default"
+                  },
+                  "changeSet": {
+                    "created_files": [
+                      "/site/website/articles/2023/2/10-tips-to-get-in-shape/index.xml",
+                      "/site/website/articles/2023/2/top-romantic-valentine-movies/index.xml",
+                      "/site/website/articles/2023/3/5-popular-diets-for-women/index.xml",
+                      "/site/website/articles/2023/3/top-clubs-in-virginia/index.xml",
+                      "/site/website/articles/2023/jan/men-styles-for-winter/index.xml",
+                      "/site/website/articles/2023/jan/women-styles-for-winter/index.xml"
+                    ],
+                    "updated_files": [],
+                    "deleted_files": []
+                  },
+                  "processorExecutions": [
+                    {
+                      "processor_name": "gitPullProcessor",
+                      "start": "2025-03-11T17:07:00.006486-04:00",
+                      "end": "2025-03-11T17:07:00.241206-04:00",
+                      "status": "SUCCESS",
+                      "status_details": "Changes successfully pulled from remote repo /Users/craftercms/crafter-authoring/data/repos/sites/ed/published into local repo /Users/craftercms/crafter-delivery/data/repos/sites/ed (merge result with status Fast-forward)",
+                      "running": false
+                    },
+                    {
+                      "processor_name": "gitDiffProcessor",
+                      "start": "2025-03-11T17:07:00.241546-04:00",
+                      "end": "2025-03-11T17:07:00.254525-04:00",
+                      "status": "SUCCESS",
+                      "status_details": "Changes detected and resolved successfully",
+                      "running": false
+                    },
+                    {
+                      "processor_name": "searchIndexingProcessor",
+                      "start": "2025-03-11T17:07:00.255056-04:00",
+                      "end": null,
+                      "status": null,
+                      "status_details": {
+                        "successful_updates": [
+                          "/site/website/articles/2023/2/10-tips-to-get-in-shape/index.xml",
+                          "/site/website/articles/2023/2/top-romantic-valentine-movies/index.xml",
+                          "/site/website/articles/2023/3/5-popular-diets-for-women/index.xml"
+                        ],
+                        "successful_deletes": [],
+                        "failed_updates": [],
+                        "failed_deletes": [],
+                        "successful_updates_and_deletes": 3,
+                        "attempted_updates_and_deletes": 3,
+                        "failed_updates_and_deletes": 0
+                      },
+                      "running": true
+                    }
+                  ]
+                }
+        '404':
+          $ref: '#/components/responses/NotFound'
+        '500':
+          $ref: '#/components/responses/InternalServerError'
+
+  /api/1/target/deployments/get-all/{env}/{site_name}:
+    get:
+      security: []
+      tags:
+        - target
+      summary: Get the current and pending deployments for a target.
+      operationId: getAllDeployments
+      parameters:
+        - name: env
+          in: path
+          description: The target’s environment (e.g. dev).
+          required: true
+          schema:
+            type: string
+          example:
+            env: dev
+        - name: site_name
+          in: path
+          description: The target’s project/site name (e.g. editorial).
+          required: true
+          schema:
+            type: string
+          example:
+            site_name: editorial
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: '#/components/schemas/Deployment'
+              example:
+                [
+                  {
+                    "mode": "PUBLISH",
+                    "status": null,
+                    "running": false,
+                    "duration": null,
+                    "start": null,
+                    "end": null,
+                    "target": {
+                      "env": "preview",
+                      "site_name": "ed",
+                      "load_date": "2025-03-10T11:44:03.613404-04:00",
+                      "status": "INIT_COMPLETED",
+                      "id": "ed-preview"
+                    },
+                    "changeSet": {
+                      "created_files": [],
+                      "updated_files": [],
+                      "deleted_files": []
+                    },
+                    "processorExecutions": []
+                  },
+                  {
+                    "mode": "PUBLISH",
+                    "status": null,
+                    "running": false,
+                    "duration": null,
+                    "start": null,
+                    "end": null,
+                    "target": {
+                      "env": "preview",
+                      "site_name": "ed",
+                      "load_date": "2025-03-10T11:44:03.613404-04:00",
+                      "status": "INIT_COMPLETED",
+                      "id": "ed-preview"
+                    },
+                    "changeSet": {
+                      "created_files": [],
+                      "updated_files": [],
+                      "deleted_files": []
+                    },
+                    "processorExecutions": []
+                  },
+                ]
         '404':
           $ref: '#/components/responses/NotFound'
         '500':
@@ -575,6 +875,48 @@ components:
           type: string
         status:
           type: string
+
+    Deployment:
+      type: object
+      properties:
+        mode:
+          type: string
+        status:
+          type: string
+        running:
+          type: boolean
+        duration:
+          type: string
+        start:
+          type: string
+          format: date-time
+        end:
+          type: string
+          format: date-time
+        target:
+          $ref: '#/components/schemas/Targets'
+        changeSet:
+          $ref: '#/components/schemas/ChangeSet'
+        processorExecutions:
+          type: array
+          items:
+            type: string
+
+    ChangeSet:
+      type: object
+      properties:
+        created_files:
+          type: array
+          items:
+            type: string
+        updated_files:
+          type: array
+          items:
+            type: string
+        deleted_files:
+          type: array
+          items:
+            type: string
 
     DuplicateTargetRequest:
       allOf:

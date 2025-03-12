@@ -17,7 +17,7 @@ externalDocs:
     url: 'https://craftercms.com/docs/current/reference/modules/deployer/index.html'
 tags:
     - name: target
-      description: Target management  operations
+      description: Target management operations
     - name: monitoring
       description: Monitoring operations
 
@@ -29,7 +29,7 @@ paths:
             tags:
                 - target
             summary: Create a Crafter Deployer target
-            description: "Target creation is based on templates. The deployer comes with two out of the box: remote and local. The remote template creates targets that pull changes from a remote Git repository, making it ideal to create targets for delivery environments. The local template instead generates targets that use a local Git repo and the last processed commit to infer the changes, without executing a pull, so it’s used mostly to create targets for authoring environments. <br><br> If a target already exists and <b><i>replace</i></b> is true, then the new target will replace the existing one. If <b><i>replace</i></b> is false and the target exists, a 409 is returned."
+            description: "Target creation is based on templates. The deployer comes with two out of the box: remote and local. The remote template creates targets that pull changes from a remote Git repository, making it ideal to create targets for delivery environments. The local template instead generates targets that use a local Git repo and the last processed commit to infer the changes, without executing a pull, so it's used mostly to create targets for authoring environments. <br><br> If a target already exists and <b><i>replace</i></b> is true, then the new target will replace the existing one. If <b><i>replace</i></b> is false and the target exists, a 409 is returned."
             operationId: createTarget
             requestBody:
                 description: Create target request body
@@ -98,7 +98,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -106,7 +106,7 @@ paths:
                       env: dev
                 - name: site_name
                   in: path
-                  description: The target’s project/site name (e.g. editorial).
+                  description: The target's project/site name (e.g. editorial).
                   required: true
                   schema:
                       type: string
@@ -170,7 +170,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -178,7 +178,7 @@ paths:
                       env: dev
                 - name: site_name
                   in: path
-                  description: The target’s project/site name (e.g. editorial).
+                  description: The target's project/site name (e.g. editorial).
                   required: true
                   schema:
                       type: string
@@ -202,7 +202,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -210,7 +210,7 @@ paths:
                       env: dev
                 - name: site_name
                   in: path
-                  description: The target’s project/site name (e.g. editorial).
+                  description: The target's project/site name (e.g. editorial).
                   required: true
                   schema:
                       type: string
@@ -234,7 +234,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -242,7 +242,7 @@ paths:
                       env: dev
                 - name: site_name
                   in: path
-                  description: The target’s project/site name (e.g. editorial).
+                  description: The target's project/site name (e.g. editorial).
                   required: true
                   schema:
                       type: string
@@ -316,7 +316,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -324,7 +324,7 @@ paths:
                       env: dev
                 - name: site_name
                   in: path
-                  description: The target’s project/site name (e.g. editorial).
+                  description: The target's project/site name (e.g. editorial).
                   required: true
                   schema:
                       type: string
@@ -399,7 +399,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -407,7 +407,7 @@ paths:
                       env: dev
                 - name: site_name
                   in: path
-                  description: The target’s project/site name (e.g. editorial).
+                  description: The target's project/site name (e.g. editorial).
                   required: true
                   schema:
                       type: string
@@ -501,7 +501,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -509,7 +509,7 @@ paths:
                       env: dev
                 - name: site_name
                   in: path
-                  description: The target’s project/site name (e.g. editorial).
+                  description: The target's project/site name (e.g. editorial).
                   required: true
                   schema:
                       type: string
@@ -519,56 +519,56 @@ paths:
                 '200':
                     description: OK
                     content:
-                    application/json:
-                        schema:
-                            type: array
-                            items:
-                                $ref: '#/components/schemas/Deployment'
-                        example:
-                            [
-                                {
-                                    "mode": "PUBLISH",
-                                    "status": null,
-                                    "running": false,
-                                    "duration": null,
-                                    "start": null,
-                                    "end": null,
-                                    "target": {
-                                        "env": "preview",
-                                        "site_name": "ed",
-                                        "load_date": "2025-03-10T11:44:03.613404-04:00",
-                                        "status": "INIT_COMPLETED",
-                                        "id": "ed-preview"
+                        application/json:
+                            schema:
+                                type: array
+                                items:
+                                    $ref: '#/components/schemas/Deployment'
+                            example:
+                                [
+                                    {
+                                        "mode": "PUBLISH",
+                                        "status": null,
+                                        "running": false,
+                                        "duration": null,
+                                        "start": null,
+                                        "end": null,
+                                        "target": {
+                                            "env": "preview",
+                                            "site_name": "ed",
+                                            "load_date": "2025-03-10T11:44:03.613404-04:00",
+                                            "status": "INIT_COMPLETED",
+                                            "id": "ed-preview"
+                                        },
+                                        "changeSet": {
+                                            "created_files": [],
+                                            "updated_files": [],
+                                            "deleted_files": []
+                                        },
+                                        "processorExecutions": []
                                     },
-                                    "changeSet": {
-                                        "created_files": [],
-                                        "updated_files": [],
-                                        "deleted_files": []
+                                    {
+                                        "mode": "PUBLISH",
+                                        "status": null,
+                                        "running": false,
+                                        "duration": null,
+                                        "start": null,
+                                        "end": null,
+                                        "target": {
+                                            "env": "preview",
+                                            "site_name": "ed",
+                                            "load_date": "2025-03-10T11:44:03.613404-04:00",
+                                            "status": "INIT_COMPLETED",
+                                            "id": "ed-preview"
+                                        },
+                                        "changeSet": {
+                                            "created_files": [],
+                                            "updated_files": [],
+                                            "deleted_files": []
+                                        },
+                                        "processorExecutions": []
                                     },
-                                    "processorExecutions": []
-                                },
-                                {
-                                    "mode": "PUBLISH",
-                                    "status": null,
-                                    "running": false,
-                                    "duration": null,
-                                    "start": null,
-                                    "end": null,
-                                    "target": {
-                                        "env": "preview",
-                                        "site_name": "ed",
-                                        "load_date": "2025-03-10T11:44:03.613404-04:00",
-                                        "status": "INIT_COMPLETED",
-                                        "id": "ed-preview"
-                                    },
-                                    "changeSet": {
-                                        "created_files": [],
-                                        "updated_files": [],
-                                        "deleted_files": []
-                                    },
-                                    "processorExecutions": []
-                                },
-                            ]
+                                ]
                 '404':
                     $ref: '#/components/responses/NotFound'
                 '500':
@@ -584,7 +584,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -592,7 +592,7 @@ paths:
                       env: dev
                 - name: site_name
                   in: path
-                  description: The target’s project/site name (e.g. editorial).
+                  description: The target's project/site name (e.g. editorial).
                   required: true
                   schema:
                       type: string
@@ -627,7 +627,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -635,7 +635,7 @@ paths:
                       env: dev
                 - name: site_name
                   in: path
-                  description: The target’s project/site name (e.g. editorial).
+                  description: The target's project/site name (e.g. editorial).
                   required: true
                   schema:
                       type: string
@@ -669,7 +669,7 @@ paths:
             parameters:
                 - name: env
                   in: path
-                  description: The target’s environment (e.g. dev).
+                  description: The target's environment (e.g. dev).
                   required: true
                   schema:
                       type: string
@@ -877,6 +877,48 @@ components:
                 status:
                     type: string
 
+        Deployment:
+            type: object
+            properties:
+                mode:
+                    type: string
+                status:
+                    type: string
+                running:
+                    type: boolean
+                duration:
+                    type: string
+                start:
+                    type: string
+                    format: date-time
+                end:
+                    type: string
+                    format: date-time
+                target:
+                    $ref: '#/components/schemas/Targets'
+                changeSet:
+                    $ref: '#/components/schemas/ChangeSet'
+                processorExecutions:
+                    type: array
+                    items:
+                        type: string
+
+        ChangeSet:
+            type: object
+            properties:
+                created_files:
+                    type: array
+                    items:
+                        type: string
+                updated_files:
+                    type: array
+                    items:
+                        type: string
+                deleted_files:
+                    type: array
+                    items:
+                        type: string
+
         DuplicateTargetRequest:
             allOf:
                 - $ref: '#/components/schemas/CreateTargetRequest'
@@ -891,10 +933,10 @@ components:
             properties:
                 env:
                     type: string
-                    description: "The target’s environment (e.g. dev)."
+                    description: "The target's environment (e.g. dev)."
                 site_name:
                     type: string
-                    description: "The target’s project/site name (e.g. my-editorial)."
+                    description: "The target's project/site name (e.g. my-editorial)."
                 replace:
                     type: boolean
                     description: "Replace the existing target."

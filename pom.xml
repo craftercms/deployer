@@ -127,12 +127,8 @@
 
 		<!-- Handlebars -->
 		<dependency>
-			<groupId>com.github.jknack</groupId>
+			<groupId>org.mvnpm</groupId>
 			<artifactId>handlebars</artifactId>
-		</dependency>
-		<dependency>
-			<groupId>com.github.jknack</groupId>
-			<artifactId>handlebars-springmvc</artifactId>
 		</dependency>
 
 		<!-- AWS -->

@@ -9,6 +9,7 @@ target:
     localRepoPath: ${deployer.main.deployments.folderPath}/${target.env}/${target.siteName}
     # The default datetime pattern that will be used
     defaultDateTimePattern: MM/dd/yyyy hh:mm:ss.SSS a z
+    defaultDurationPattern: HH:mm:ss.SSS
     # The default Engine URL
     engineUrl: http://localhost:8080
     engineManagementToken: ${deployer.main.management.engineAuthorizationToken}
@@ -221,7 +222,7 @@ target:
         webhook:
             # The character encoding
             encoding: UTF-8
-            defaultMethod: post
+            defaultMethod: POST
             defaultContentType: application/json
             templates:
                 # The location (Spring URL) of  the webhook templates
@@ -285,6 +286,10 @@ target:
         duplicate:
             -   hookName: duplicateIndexLifecycleHook
             -   hookName: duplicateProcessCommitsFileLifecycleHook
+    runtimeWarningThreshold:
+        # The threshold in seconds to warn about long-running deployments
+        seconds: 3600
+    eventListeners: []
     core:
         cache:
             # Indicates if the cache should be using while reading files from the repo
@@ -292,7 +297,7 @@ target:
             # Maximum number of items allowed in the cache
             maxItems: 100
 
-# AWS specific configuraitons
+# AWS specific configurations
 aws:
     # Thread pool for S3 uploads
     threads:

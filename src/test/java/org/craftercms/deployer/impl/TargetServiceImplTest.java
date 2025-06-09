@@ -31,6 +31,7 @@ import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
+import org.craftercms.deployer.api.target.event.TargetEventListenerResolver;
 import org.eclipse.jgit.lib.ObjectId;
 import org.junit.After;
 import org.junit.Before;
@@ -100,6 +101,7 @@ public class TargetServiceImplTest {
 		ProcessedCommitsStore processedCommitsStore = createProcessedCommitsStore();
 		ProcessorStateStore processorStateStore = mock(ProcessorStateStore.class);
 		TargetLifecycleHooksResolver targetLifecycleHooksResolver = createTargetLifecycleHooksResolver();
+		TargetEventListenerResolver targetEventListenerResolver = mock(TargetEventListenerResolver.class);
 
 		DefaultListableBeanFactory factory = new DefaultListableBeanFactory();
 		factory.registerSingleton("deploymentPipelineFactory", deploymentPipelineFactory);
@@ -107,6 +109,7 @@ public class TargetServiceImplTest {
 		factory.registerSingleton("taskExecutor", taskExecutor);
 		factory.registerSingleton("processedCommitsStore", processedCommitsStore);
 		factory.registerSingleton("targetLifecycleHooksResolver", targetLifecycleHooksResolver);
+		factory.registerSingleton("targetEventListenerResolver", targetEventListenerResolver);
 
 		GenericApplicationContext context = new GenericApplicationContext(factory);
 		XmlBeanDefinitionReader reader = new XmlBeanDefinitionReader(context);

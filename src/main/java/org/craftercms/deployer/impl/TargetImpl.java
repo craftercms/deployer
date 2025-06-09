@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -27,6 +27,9 @@ import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
+import org.craftercms.deployer.api.target.event.TargetEvent;
+import org.craftercms.deployer.api.target.event.TargetEventListener;
+import org.craftercms.deployer.api.target.event.TargetEventListenerResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -46,6 +49,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Default implementation of {@link Target}.
@@ -54,313 +58,345 @@ import static org.craftercms.deployer.impl.DeploymentConstants.*;
  */
 public class TargetImpl implements Target {
 
-    private static final Logger logger = LoggerFactory.getLogger(TargetImpl.class);
-
-    private static final ThreadLocal<Target> threadLocal = new InheritableThreadLocal<>();
-
-    public static final String TARGET_ID_FORMAT = "%s-%s";
-
-    protected final ZonedDateTime loadDate;
-    protected final String env;
-    protected final String siteName;
-    protected final String localRepoPath;
-    protected final File configurationFile;
-    protected final HierarchicalConfiguration<ImmutableNode> configuration;
-    protected final ConfigurableApplicationContext applicationContext;
-    protected final ExecutorService executor;
-    protected final TaskScheduler scheduler;
-    protected final TargetLifecycleHooksResolver targetLifecycleHooksResolver;
-    protected final DeploymentPipelineFactory deploymentPipelineFactory;
-
-    protected volatile Status status;
-    protected DeploymentPipeline deploymentPipeline;
-    protected ScheduledFuture<?> scheduledDeploymentFuture;
-    protected final Queue<Deployment> pendingDeployments;
-    protected volatile Deployment currentDeployment;
-    protected final Lock deploymentLock;
-
-    public static void setCurrent(Target target) {
-        threadLocal.set(target);
-    }
-
-    public static Target getCurrent() {
-        return threadLocal.get();
-    }
-
-    public static void clear() {
-        threadLocal.set(null);
-    }
-
-    public static String getId(String env, String siteName) {
-        return String.format(TARGET_ID_FORMAT, siteName, env);
-    }
-
-    public TargetImpl(
-            @Value("${target.env}") String env,
-            @Value("${target.siteName}") String siteName,
-            @Value("${target.localRepoPath}") String localRepoPath,
-            @Value("${target.configFile}") File configurationFile,
-            @Autowired HierarchicalConfiguration<ImmutableNode> configuration,
-            @Autowired ConfigurableApplicationContext applicationContext,
-            @Autowired ExecutorService executor,
-            @Autowired TaskScheduler scheduler,
-            @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
-            @Autowired DeploymentPipelineFactory deploymentPipelineFactory) {
-        this.loadDate = ZonedDateTime.now();
-        this.env = env;
-        this.siteName = siteName;
-        this.localRepoPath = localRepoPath;
-        this.configurationFile = configurationFile;
-        this.configuration = configuration;
-        this.applicationContext = applicationContext;
-        this.executor = executor;
-        this.scheduler = scheduler;
-        this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
-        this.deploymentPipelineFactory = deploymentPipelineFactory;
-        this.status = Status.CREATED;
-        this.pendingDeployments = new ConcurrentLinkedQueue<>();
-        this.deploymentLock = new ReentrantLock();
-    }
-
-    @Override
-    public String getEnv() {
-        return env;
-    }
-
-    @Override
-    public String getSiteName() {
-        return siteName;
-    }
-
-    @Override
-    public String getId() {
-        return getId(env, siteName);
-    }
-
-    @Override
-    public ZonedDateTime getLoadDate() {
-        return loadDate;
-    }
-
-    @Override
-    public Status getStatus() {
-        return status;
-    }
-
-    @Override
-    public File getConfigurationFile() {
-        return configurationFile;
-    }
-
-    @Override
-    public HierarchicalConfiguration<ImmutableNode> getConfiguration() {
-        return configuration;
-    }
-
-    @Override
-    public ConfigurableApplicationContext getApplicationContext() {
-        return applicationContext;
-    }
-
-    public void init() {
-        MDC.put(TARGET_ID_MDC_KEY, getId());
-
-        status = Status.INIT_IN_PROGRESS;
-
-        try {
-            logger.info("Executing init hooks for target '{}'", getId());
-
-            executeHooks(getInitHooks());
-
-            logger.info("Creating deployment pipeline for target '{}'", getId());
-
-            deploymentPipeline = deploymentPipelineFactory.getPipeline(configuration, applicationContext,
-                                                                       TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
-
-            logger.info("Checking if deployments need to be scheduled for target '{}'", getId());
-
-            scheduleDeployments();
-
-            status = Status.INIT_COMPLETED;
-        } catch (Exception e) {
-            status = Status.INIT_FAILED;
-
-            logger.error("Failed to init target '" + getId() + "'", e);
-        }
-
-        MDC.remove(TARGET_ID_MDC_KEY);
-    }
-
-    void executeCreateHooks() throws ConfigurationException, DeployerException {
-        logger.info("Executing create hooks for target '{}'", getId());
-        executeHooks(getCreateHooks());
-        logger.info("Create hooks executed for target '{}'", getId());
-    }
-
-    void executeDuplicateHooks() throws Exception {
-        logger.info("Executing duplicate hooks for target '{}'", getId());
-        executeHooks(getDuplicateHooks());
-        logger.info("Duplicate hooks executed for target '{}'", getId());
-    }
-
-    private void executeHooks(final Collection<TargetLifecycleHook> hooks) throws DeployerException {
-        for (TargetLifecycleHook hook : hooks) {
-            hook.execute(this);
-        }
-    }
-
-    @Override
-    public Deployment deploy(boolean waitTillDone, Map<String, Object> params) throws TargetNotReadyException {
-        if (status == Status.INIT_COMPLETED) {
-            Deployment deployment = new Deployment(this, params);
-            pendingDeployments.add(deployment);
-
-            Future<?> future = executor.submit(new DeploymentTask());
-            if (waitTillDone) {
-                logger.debug("Waiting for deployment completion...");
-
-                try {
-                    future.get();
-                } catch (InterruptedException | ExecutionException e) {
-                    logger.error("Unable to wait for deployment completion", e);
-                }
-            }
-
-            return deployment;
-        } else {
-            throw new TargetNotReadyException("The target is not ready yet for deployments (status " + status + ")");
-        }
-    }
-
-    @Override
-    public Collection<Deployment> getPendingDeployments() {
-        return new ArrayList<>(pendingDeployments);
-    }
-
-    @Override
-    public Deployment getCurrentDeployment() {
-        return currentDeployment;
-    }
-
-    @Override
-    public Collection<Deployment> getAllDeployments() {
-        Collection<Deployment> deployments = new ArrayList<>();
-        Deployment currentDeployment = getCurrentDeployment();
-        Collection<Deployment> pendingDeployments = getPendingDeployments();
-
-        if (currentDeployment != null) {
-            deployments.add(currentDeployment);
-        }
-        if (CollectionUtils.isNotEmpty(pendingDeployments)) {
-            deployments.addAll(pendingDeployments);
-        }
-
-        return deployments;
-    }
-
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void cleanRepo() {
-        MDC.put(TARGET_ID_MDC_KEY, getId());
-
-        try {
-            logger.info("Cleaning up repo for target {}", getId());
-            GitUtils.cleanup(localRepoPath);
-        } catch (Exception e) {
-            logger.warn("Error cleaning up repo for target {}", getId());
-        }
-
-        MDC.remove(TARGET_ID_MDC_KEY);
-    }
-
-    @Override
-    public void close() {
-        MDC.put(TARGET_ID_MDC_KEY, getId());
-
-        try {
-            logger.info("Closing target '{}'...", getId());
-            logger.info("Stopping current and pending deployments for target '{}'", getId());
-
-            stopDeployments();
-
-            logger.info("Releasing resources for target '{}'", getId());
-
-            if (scheduledDeploymentFuture != null) {
-                scheduledDeploymentFuture.cancel(true);
-            }
-
-            if (deploymentPipeline != null) {
-                deploymentPipeline.destroy();
-            }
-
-            if (applicationContext != null) {
-                applicationContext.close();
-            }
-        } catch (Exception e) {
-            logger.error("Failed to close '" + getId() + "'", e);
-        }
-
-        MDC.remove(TARGET_ID_MDC_KEY);
-    }
-
-    @Override
-    public void delete() {
-        MDC.put(TARGET_ID_MDC_KEY, getId());
-
-        status = Status.DELETE_IN_PROGRESS;
-
-        try {
-            logger.info("Deleting target '{}'...", getId());
-            logger.info("Stopping current and pending deployments for target '{}'", getId());
-
-            stopDeployments();
-
-            logger.info("Executing delete hooks for target '{}'", getId());
-
-            executeHooks(getDeleteHooks());
-
-            logger.info("Releasing resources for target '{}'", getId());
-
-            if (scheduledDeploymentFuture != null) {
-                scheduledDeploymentFuture.cancel(true);
-            }
-
-            if (deploymentPipeline != null) {
-                deploymentPipeline.destroy();
-            }
-
-            if (applicationContext != null) {
-                applicationContext.close();
-            }
-        } catch (Exception e) {
-            logger.error("Failed deleting target '" + getId() + "'", e);
-        } finally {
-            status = Status.DELETED;
-        }
-
-        MDC.remove(TARGET_ID_MDC_KEY);
-    }
-
-    @Override
-    public void unlock() {
-        MDC.put(TARGET_ID_MDC_KEY, getId());
-
-        try {
-            if (GitUtils.isRepositoryLocked(localRepoPath)) {
-                GitUtils.unlock(localRepoPath);
-            }
-        } catch (Exception e) {
-            logger.warn("Error unlocking repo for target {}", getId());
-        }
-
-        MDC.remove(TARGET_ID_MDC_KEY);
-    }
-
-    protected Collection<TargetLifecycleHook> getCreateHooks() throws ConfigurationException, DeployerException {
-        return getHooksFromConfig(CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
-    }
+	private static final Logger logger = LoggerFactory.getLogger(TargetImpl.class);
+
+	private static final ThreadLocal<Target> threadLocal = new InheritableThreadLocal<>();
+
+	public static final String TARGET_ID_FORMAT = "%s-%s";
+
+	protected final ZonedDateTime loadDate;
+	protected final String env;
+	protected final String siteName;
+	protected final String localRepoPath;
+	protected final File configurationFile;
+	protected final long runtimeThresholdSeconds;
+	protected final HierarchicalConfiguration<ImmutableNode> configuration;
+	protected final ConfigurableApplicationContext applicationContext;
+	protected final ExecutorService executor;
+	protected final TaskScheduler scheduler;
+	protected final TargetLifecycleHooksResolver targetLifecycleHooksResolver;
+	protected final DeploymentPipelineFactory deploymentPipelineFactory;
+	protected final TargetEventListenerResolver targetEventListenerResolver;
+
+	protected volatile Status status;
+	protected DeploymentPipeline deploymentPipeline;
+	protected ScheduledFuture<?> scheduledDeploymentFuture;
+	protected final Queue<Deployment> pendingDeployments;
+	protected volatile Deployment currentDeployment;
+	protected final Lock deploymentLock;
+	protected Map<String, List<TargetEventListener>> eventListeners;
+
+	public static void setCurrent(Target target) {
+		threadLocal.set(target);
+	}
+
+	public static Target getCurrent() {
+		return threadLocal.get();
+	}
+
+	public static void clear() {
+		threadLocal.set(null);
+	}
+
+	public static String getId(String env, String siteName) {
+		return String.format(TARGET_ID_FORMAT, siteName, env);
+	}
+
+	public TargetImpl(
+			@Value("${target.env}") String env,
+			@Value("${target.siteName}") String siteName,
+			@Value("${target.localRepoPath}") String localRepoPath,
+			@Value("${target.configFile}") File configurationFile,
+			@Value("${target.runtimeWarningThreshold.seconds}") long runtimeThresholdSeconds,
+			@Autowired TargetEventListenerResolver targetEventListenerResolver,
+			@Autowired HierarchicalConfiguration<ImmutableNode> configuration,
+			@Autowired ConfigurableApplicationContext applicationContext,
+			@Autowired ExecutorService executor,
+			@Autowired TaskScheduler scheduler,
+			@Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
+			@Autowired DeploymentPipelineFactory deploymentPipelineFactory) {
+		this.loadDate = ZonedDateTime.now();
+		this.env = env;
+		this.siteName = siteName;
+		this.localRepoPath = localRepoPath;
+		this.configurationFile = configurationFile;
+		this.runtimeThresholdSeconds = runtimeThresholdSeconds;
+		this.targetEventListenerResolver = targetEventListenerResolver;
+		this.configuration = configuration;
+		this.applicationContext = applicationContext;
+		this.executor = executor;
+		this.scheduler = scheduler;
+		this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
+		this.deploymentPipelineFactory = deploymentPipelineFactory;
+		this.status = Status.CREATED;
+		this.pendingDeployments = new ConcurrentLinkedQueue<>();
+		this.deploymentLock = new ReentrantLock();
+	}
+
+	@Override
+	public String getEnv() {
+		return env;
+	}
+
+	@Override
+	public String getSiteName() {
+		return siteName;
+	}
+
+	@Override
+	public String getId() {
+		return getId(env, siteName);
+	}
+
+	@Override
+	public ZonedDateTime getLoadDate() {
+		return loadDate;
+	}
+
+	@Override
+	public Status getStatus() {
+		return status;
+	}
+
+	@Override
+	public File getConfigurationFile() {
+		return configurationFile;
+	}
+
+	@Override
+	public long getRuntimeWarningThreshold() {
+		return runtimeThresholdSeconds;
+	}
+
+	@Override
+	public HierarchicalConfiguration<ImmutableNode> getConfiguration() {
+		return configuration;
+	}
+
+	@Override
+	public ConfigurableApplicationContext getApplicationContext() {
+		return applicationContext;
+	}
+
+	public void init() {
+		MDC.put(TARGET_ID_MDC_KEY, getId());
+
+		status = Status.INIT_IN_PROGRESS;
+
+		try {
+			logger.info("Executing init hooks for target '{}'", getId());
+			executeHooks(getInitHooks());
+
+			logger.info("Creating deployment pipeline for target '{}'", getId());
+			deploymentPipeline = deploymentPipelineFactory.getPipeline(configuration, applicationContext,
+					TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
+
+			logger.info("Loading event listeners for target '{}'", getId());
+			eventListeners = targetEventListenerResolver.getListeners(configuration, applicationContext, TARGET_EVENT_LISTENERS_KEY);
+
+			logger.info("Checking if deployments need to be scheduled for target '{}'", getId());
+
+			scheduleDeployments();
+
+			status = Status.INIT_COMPLETED;
+		} catch (Exception e) {
+			status = Status.INIT_FAILED;
+
+			logger.error("Failed to init target '{}'", getId(), e);
+		}
+
+		MDC.remove(TARGET_ID_MDC_KEY);
+	}
+
+	void executeCreateHooks() throws ConfigurationException, DeployerException {
+		logger.info("Executing create hooks for target '{}'", getId());
+		executeHooks(getCreateHooks());
+		logger.info("Create hooks executed for target '{}'", getId());
+	}
+
+	void executeDuplicateHooks() throws Exception {
+		logger.info("Executing duplicate hooks for target '{}'", getId());
+		executeHooks(getDuplicateHooks());
+		logger.info("Duplicate hooks executed for target '{}'", getId());
+	}
+
+	private void executeHooks(final Collection<TargetLifecycleHook> hooks) throws DeployerException {
+		for (TargetLifecycleHook hook : hooks) {
+			hook.execute(this);
+		}
+	}
+
+	@Override
+	public Deployment deploy(boolean waitTillDone, Map<String, Object> params) throws TargetNotReadyException {
+		if (status == Status.INIT_COMPLETED) {
+			Deployment deployment = new Deployment(this, params);
+			pendingDeployments.add(deployment);
+
+			Future<?> future = executor.submit(new DeploymentTask());
+			if (waitTillDone) {
+				logger.debug("Waiting for deployment completion...");
+
+				try {
+					future.get();
+				} catch (InterruptedException | ExecutionException e) {
+					logger.error("Unable to wait for deployment completion", e);
+				}
+			}
+
+			return deployment;
+		} else {
+			throw new TargetNotReadyException("The target is not ready yet for deployments (status " + status + ")");
+		}
+	}
+
+	@Override
+	public Collection<Deployment> getPendingDeployments() {
+		return new ArrayList<>(pendingDeployments);
+	}
+
+	@Override
+	public Deployment getCurrentDeployment() {
+		return currentDeployment;
+	}
+
+	@Override
+	public Collection<Deployment> getAllDeployments() {
+		Collection<Deployment> deployments = new ArrayList<>();
+		Deployment currentDeployment = getCurrentDeployment();
+		Collection<Deployment> pendingDeployments = getPendingDeployments();
+
+		if (currentDeployment != null) {
+			deployments.add(currentDeployment);
+		}
+		if (CollectionUtils.isNotEmpty(pendingDeployments)) {
+			deployments.addAll(pendingDeployments);
+		}
+
+		return deployments;
+	}
+
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void cleanRepo() {
+		MDC.put(TARGET_ID_MDC_KEY, getId());
+
+		try {
+			logger.info("Cleaning up repo for target {}", getId());
+			GitUtils.cleanup(localRepoPath);
+		} catch (Exception e) {
+			logger.warn("Error cleaning up repo for target {}", getId());
+		}
+
+		MDC.remove(TARGET_ID_MDC_KEY);
+	}
+
+	@Override
+	public void close() {
+		MDC.put(TARGET_ID_MDC_KEY, getId());
+
+		try {
+			logger.info("Closing target '{}'...", getId());
+			logger.info("Stopping current and pending deployments for target '{}'", getId());
+
+			stopDeployments();
+
+			logger.info("Releasing resources for target '{}'", getId());
+
+			if (scheduledDeploymentFuture != null) {
+				scheduledDeploymentFuture.cancel(true);
+			}
+
+			if (deploymentPipeline != null) {
+				deploymentPipeline.destroy();
+			}
+
+			if (applicationContext != null) {
+				applicationContext.close();
+			}
+		} catch (Exception e) {
+			logger.error("Failed to close '" + getId() + "'", e);
+		}
+
+		MDC.remove(TARGET_ID_MDC_KEY);
+	}
+
+	@Override
+	public void delete() {
+		MDC.put(TARGET_ID_MDC_KEY, getId());
+
+		status = Status.DELETE_IN_PROGRESS;
+
+		try {
+			logger.info("Deleting target '{}'...", getId());
+			logger.info("Stopping current and pending deployments for target '{}'", getId());
+
+			stopDeployments();
+
+			logger.info("Executing delete hooks for target '{}'", getId());
+
+			executeHooks(getDeleteHooks());
+
+			logger.info("Releasing resources for target '{}'", getId());
+
+			if (scheduledDeploymentFuture != null) {
+				scheduledDeploymentFuture.cancel(true);
+			}
+
+			if (deploymentPipeline != null) {
+				deploymentPipeline.destroy();
+			}
+
+			if (applicationContext != null) {
+				applicationContext.close();
+			}
+		} catch (Exception e) {
+			logger.error("Failed deleting target '" + getId() + "'", e);
+		} finally {
+			status = Status.DELETED;
+		}
+
+		MDC.remove(TARGET_ID_MDC_KEY);
+	}
+
+	@Override
+	public void unlock() {
+		MDC.put(TARGET_ID_MDC_KEY, getId());
+
+		try {
+			if (GitUtils.isRepositoryLocked(localRepoPath)) {
+				GitUtils.unlock(localRepoPath);
+			}
+		} catch (Exception e) {
+			logger.warn("Error unlocking repo for target {}", getId());
+		}
+
+		MDC.remove(TARGET_ID_MDC_KEY);
+	}
+
+	@Override
+	public void handleEvent(TargetEvent<?> event) {
+		logger.info("Handling event '{}' for target '{}'", event.eventType(), getId());
+		Collection<TargetEventListener> eventHandlers = eventListeners.get(event.eventType());
+		if (isEmpty(eventHandlers)) {
+			logger.info("No event handlers found for event '{}' for target '{}'", event.eventType(), getId());
+			return;
+		}
+		eventHandlers.forEach(
+				handler -> {
+					try {
+						handler.handle(event);
+					} catch (Exception e) {
+						logger.error("Error handling event '{}' for target '{}'", event.eventType(), getId(), e);
+					}
+				}
+		);
+	}
+
+	protected Collection<TargetLifecycleHook> getCreateHooks() throws ConfigurationException, DeployerException {
+		return getHooksFromConfig(CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);
+	}
 
     protected Collection<TargetLifecycleHook> getDuplicateHooks() throws ConfigurationException, DeployerException {
         return getHooksFromConfig(DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY);

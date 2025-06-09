@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -23,23 +23,31 @@ package org.craftercms.deployer.impl;
 public abstract class DeploymentConstants {
 
     // Target-specific Configuration Keys
+	public static final String TARGET_ENV_CONFIG_KEY = "target.env";
+	public static final String TARGET_SITE_NAME_CONFIG_KEY = "target.siteName";
+	public static final String TARGET_ID_CONFIG_KEY = "target.id";
+	public static final String TARGET_CONFIG_PATH_KEY = "target.configFile";
+	public static final String TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY = "target.deployment.scheduling.enabled";
+	public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
+	public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
+	public static final String CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.create";
+	public static final String INIT_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.init";
+	public static final String DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.delete";
+	public static final String DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.duplicate";
 
-    public static final String TARGET_ENV_CONFIG_KEY = "target.env";
-    public static final String TARGET_SITE_NAME_CONFIG_KEY = "target.siteName";
-    public static final String TARGET_LOCAL_REPO_CONFIG_KEY = "target.localRepoPath";
-    public static final String TARGET_ID_CONFIG_KEY = "target.id";
-    public static final String TARGET_CONFIG_PATH_KEY = "target.configFile";
-    public static final String TARGET_SCHEDULED_DEPLOYMENT_ENABLED_CONFIG_KEY = "target.deployment.scheduling.enabled";
-    public static final String TARGET_SCHEDULED_DEPLOYMENT_CRON_CONFIG_KEY = "target.deployment.scheduling.cron";
-    public static final String TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY = "target.deployment.pipeline";
-    public static final String TARGET_CRAFTER_SEARCH_CONFIG_KEY = "target.crafterSearchEnabled";
-    public static final String CREATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.create";
-    public static final String INIT_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.init";
-    public static final String DELETE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.delete";
-    public static final String DUPLICATE_TARGET_LIFECYCLE_HOOKS_CONFIG_KEY = "target.lifecycleHooks.duplicate";
+	public static final String TARGET_EVENT_LISTENERS_KEY = "target.eventListeners";
+	public static final String TARGET_EVENT_LISTENER_NAME = "name";
+	public static final String TARGET_EVENT_LISTENER_EVENT_NAME = "eventName";
+	public static final String TARGET_EVENT_LISTENER_LISTENERS = "listeners";
+	public static final String TARGET_EVENT_LISTENER_TEMPLATE_NAME = "templateName";
+	public static final String TARGET_EVENT_LISTENER_SENDER = "sender";
 
-    // Target lifecycle hooks configuration keys
-    public static final String HOOK_NAME_CONFIG_KEY = "hookName";
+	public static final String DATETIME_PATTERN_CONFIG_KEY = "dateTimePattern";
+	public static final String DURATION_PATTERN_CONFIG_KEY = "durationPattern";
+	public static final String SERVER_NAME_CONFIG_KEY = "serverName";
+
+	// Target lifecycle hooks configuration keys
+	public static final String HOOK_NAME_CONFIG_KEY = "hookName";
 
     // Processor-specific Configuration Keys
 

@@ -118,6 +118,10 @@ deployer:
         folderPath: ${deploymentEvents.dir}
         # The pattern used to generate the name of the files
         filePattern: '%s-deployment-events.properties'
+      # Configuration for the deployment supervisor
+      supervisor:
+        enabled: true
+        cron: '* */10 * * * ?'
     taskScheduler:
       # Thread pool size of the task scheduler
       poolSize: 10

@@ -1,0 +1,4 @@
+target:
+    runtimeWarningThreshold:
+        # The threshold in seconds to warn about long-running deployments
+        seconds: 3600

@@ -224,6 +224,8 @@ target:
             encoding: UTF-8
             defaultMethod: POST
             defaultContentType: application/json
+            # The timeout in milliseconds for the webhook requests
+            timeout: 30000
             templates:
                 # The location (Spring URL) of  the webhook templates
                 location: classpath:templates/webhook

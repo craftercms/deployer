@@ -16,7 +16,9 @@
 package org.craftercms.deployer.impl.notification;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
+import jakarta.annotation.PreDestroy;
 import org.apache.commons.configuration2.Configuration;
+import org.apache.http.client.config.RequestConfig;
 import org.apache.http.client.methods.CloseableHttpResponse;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.client.methods.RequestBuilder;
@@ -31,6 +33,9 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.util.Set;
+
+import static org.apache.commons.lang3.StringUtils.isEmpty;
 
 /**
  * {@link NotificationSender} implementation that sends a webhook notification.
@@ -46,6 +51,8 @@ import java.io.IOException;
 public class WebhookSender extends NotificationSender<NotificationSender<?>.NotificationMessage> {
 	private static final Logger logger = LoggerFactory.getLogger(WebhookSender.class);
 
+	private static final Set<String> VALID_METHODS = Set.of("GET", "POST", "PUT", "PATCH", "DELETE");
+
 	private static final String URL_CONFIG_KEY = "url";
 	private static final String METHOD_CONFIG_KEY = "method";
 	private static final String CONTENT_TYPE_CONFIG_KEY = "contentType";
@@ -53,20 +60,44 @@ public class WebhookSender extends NotificationSender<NotificationSender<?>.Noti
 
 	private String defaultMethod;
 	private String defaultContentType;
+	private int timeout;
 
 	private String method;
 	private String url;
 	private String contentType;
 	private CloseableHttpClient httpClient;
+	private RequestConfig requestConfig;
 
 	@Override
 	public void init(Configuration config) throws ConfigurationException, DeployerException {
 		super.init(config);
 		method = config.getString(METHOD_CONFIG_KEY, defaultMethod);
+		if (isEmpty(method)) {
+			logger.error("HTTP method is required for WebhookSender");
+			throw new ConfigurationException("HTTP method is required for WebhookSender");
+		}
+
+		method = method.toUpperCase();
+		if (!VALID_METHODS.contains(method)) {
+			logger.error("Invalid HTTP method '{}' specified for WebhookSender. Valid methods are: {}", method, VALID_METHODS);
+			throw new ConfigurationException("Invalid HTTP method specified for WebhookSender: " + method);
+		}
 		contentType = config.getString(CONTENT_TYPE_CONFIG_KEY, defaultContentType);
 		url = config.getString(URL_CONFIG_KEY);
 
 		httpClient = HttpClients.createDefault();
+		requestConfig = RequestConfig.custom()
+				.setConnectTimeout(timeout)
+				.setSocketTimeout(timeout)
+				.build();
+
+	}
+
+	@PreDestroy
+	public void destroy() throws IOException {
+		if (httpClient != null) {
+			httpClient.close();
+		}
 	}
 
 	@Override
@@ -101,10 +132,11 @@ public class WebhookSender extends NotificationSender<NotificationSender<?>.Noti
 	 *
 	 * @param message The notification message.
 	 */
-	private HttpUriRequest createRequest(NotificationSender.NotificationMessage message) throws DeployerException {
+	private HttpUriRequest createRequest(NotificationSender<?>.NotificationMessage message) throws DeployerException {
 		return RequestBuilder
 				.create(method)
 				.setUri(url)
+				.setConfig(requestConfig)
 				.setEntity(new StringEntity(message.getBody(), ContentType.getByMimeType(contentType)))
 				.build();
 	}
@@ -119,4 +151,8 @@ public class WebhookSender extends NotificationSender<NotificationSender<?>.Noti
 		this.defaultContentType = defaultContentType;
 	}
 
+	@SuppressWarnings("unused")
+	public void setTimeout(int timeout) {
+		this.timeout = timeout;
+	}
 }

@@ -52,6 +52,10 @@ public class NotificationEventListener implements TargetEventListener {
 	public void init(Configuration config, ApplicationContext applicationContext) throws ConfigurationException, DeployerException {
 		templateName = getRequiredStringProperty(config, TARGET_EVENT_LISTENER_TEMPLATE_NAME);
 
+		if (StringUtils.isEmpty(templateName)) {
+			throw new ConfigurationException("The '" + TARGET_EVENT_LISTENER_TEMPLATE_NAME + "' property is required for NotificationEventListener");
+		}
+
 		serverName = getStringProperty(config, SERVER_NAME_CONFIG_KEY);
 		if (StringUtils.isEmpty(serverName)) {
 			try {

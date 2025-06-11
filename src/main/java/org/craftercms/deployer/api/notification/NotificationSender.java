@@ -181,6 +181,9 @@ public abstract class NotificationSender<M extends NotificationSender<?>.Notific
 	 */
 	protected String processTemplate(String templateName, Map<String, Object> templateModel) throws DeployerException {
 		logger.debug("Processing notification template '{}'", templateName);
+		if (StringUtils.isEmpty(templateName)) {
+			throw new DeployerException("Template name cannot be empty");
+		}
 		try {
 			String fullTemplateName = templatePrefix + templateName + templateSuffix;
 			Template template = freeMarkerConfig.getTemplate(fullTemplateName, templateEncoding);

@@ -45,9 +45,6 @@ public class NotificationEventListener implements TargetEventListener {
 	protected String templateName;
 	protected String serverName;
 
-	public NotificationEventListener() {
-	}
-
 	@Override
 	public void init(Configuration config, ApplicationContext applicationContext) throws ConfigurationException, DeployerException {
 		templateName = getRequiredStringProperty(config, TARGET_EVENT_LISTENER_TEMPLATE_NAME);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,8 +15,6 @@
  */
 package org.craftercms.deployer.impl.processors.notification;
 
-import freemarker.template.Template;
-import freemarker.template.TemplateException;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
@@ -24,13 +22,13 @@ import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
+import org.craftercms.deployer.api.notification.NotificationSender;
 import org.craftercms.deployer.impl.ProcessorStateStore;
 import org.craftercms.deployer.impl.processors.AbstractPostDeploymentProcessor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
-import java.io.StringWriter;
 import java.net.InetAddress;
 import java.net.UnknownHostException;
 import java.time.format.DateTimeFormatter;
@@ -42,9 +40,9 @@ import static org.craftercms.commons.config.ConfigUtils.getIntegerProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 
 /**
- * Abstract processor that sends notifications based on the deployment status and the failed processors.
+ * Processor that sends notifications based on the deployment status and the failed processors.
  * <p>
- * A {@link MailNotificationProcessor} instance can be configured with the following YAML properties:
+ * A {@link NotificationProcessor} instance can be configured with the following YAML properties:
  *
  * <ul>
  *     <li><strong>templateName:</strong> The name of the Freemarker template used for email creation.</li>
@@ -55,14 +53,10 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  *     <li><strong>lastDateFilenameSuffix:</strong> The suffix to use when creating the last notification date file.</li>
  *     <li><strong>dateTimePattern:</strong> The date time pattern to use when specifying a date in the message.</li>
  * </ul>
- *
- * @param <T> Type of the message to send. Must extend {@link NotificationMessage}
  */
-public abstract class NotificationProcessor<T extends NotificationProcessor.NotificationMessage> extends AbstractPostDeploymentProcessor {
+public class NotificationProcessor extends AbstractPostDeploymentProcessor {
 
 	private static final Logger logger = LoggerFactory.getLogger(NotificationProcessor.class);
-
-	public static final String DEFAULT_ENCODING = "UTF-8";
 
 	public static final String PROCESSOR_MATCH_PATTERNS_CONFIG_KEY = "failedProcessors";
 	public static final String MUTE_PERIOD_MINUTES_CONFIG_KEY = "mutePeriodMinutes";
@@ -84,11 +78,7 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 	private String defaultTemplateName;
 	private String defaultDateTimePattern;
 	private ProcessorStateStore processorStateStore;
-
-	private freemarker.template.Configuration freeMarkerConfig;
-	private String templatePrefix = "";
-	private String templateSuffix = "";
-	private String templateEncoding = DEFAULT_ENCODING;
+	protected NotificationSender<?> notificationSender;
 
 	// Config properties (populated on init)
 	protected String templateName;
@@ -98,7 +88,7 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 	protected int mutePeriodMinutes;
 	private String lastDateFilenameSuffix;
 	protected DateTimeFormatter dateTimeFormatter;
-	private String fullTemplateName;
+
 
 	@Override
 	public void doInit(Configuration config) throws ConfigurationException, DeployerException {
@@ -113,7 +103,6 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 		lastDateFilenameSuffix = getStringProperty(config, LAST_DATETIME_FILE_SUFFIX_CONFIG_KEY, defaultLastDateFilenameSuffix);
 
 		templateName = getStringProperty(config, TEMPLATE_NAME_CONFIG_KEY, defaultTemplateName);
-		fullTemplateName = templatePrefix + templateName + templateSuffix;
 
 		serverName = getStringProperty(config, SERVER_NAME_CONFIG_KEY);
 		if (StringUtils.isEmpty(serverName)) {
@@ -125,6 +114,8 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 		}
 		String dateTimePattern = getStringProperty(config, DATETIME_PATTERN_CONFIG_KEY, defaultDateTimePattern);
 		dateTimeFormatter = DateTimeFormatter.ofPattern(dateTimePattern);
+
+		notificationSender.init(config);
 	}
 
 	@Override
@@ -148,11 +139,11 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 
 	@Override
 	protected ChangeSet doPostProcess(Deployment deployment, ChangeSet filteredChangeSet,
-					  ChangeSet originalChangeSet) throws DeployerException {
+									  ChangeSet originalChangeSet) throws DeployerException {
 		Deployment.Status status = deployment.getStatus();
 		if (!matchesStatusCondition(deployment)) {
 			logger.info("Skipping notification because status '{}' does not match the condition '{}'",
-				status, statusCondition);
+					status, statusCondition);
 			return null;
 		}
 
@@ -168,33 +159,11 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 			return null;
 		}
 
-		doNotify(createMessage(deployment));
+		notificationSender.sendMessage(templateName, deployment, getModel(deployment));
 
 		storeNotificationDate(failedProcessor);
 		return null;
 	}
-
-	protected T createMessage(Deployment deployment) {
-		T message = doCreateMessage(deployment);
-		populateModel(deployment, message);
-		return message;
-	}
-
-	/**
-	 * Creates the notification message to send.
-	 *
-	 * @param deployment the deployment object
-	 * @return the notification message
-	 */
-	protected abstract T doCreateMessage(Deployment deployment);
-
-	/**
-	 * Sends the notification message.
-	 *
-	 * @param message the notification message
-	 * @throws DeployerException if an error occurs while sending the notification
-	 */
-	protected abstract void doNotify(T message) throws DeployerException;
 
 	/**
 	 * Stores the current date as the last notification date for the given processor.
@@ -256,41 +225,19 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 	}
 
 	/**
-	 * Populates the model with the deployment information.
+	 * Get the model with the deployment information.
 	 *
 	 * @param deployment the deployment object
-	 * @param message    the notification message
 	 */
-	protected void populateModel(Deployment deployment, T message) {
-		Map<String, Object> templateModel = message.getModel();
+	protected Map<String, Object> getModel(Deployment deployment) {
+		Map<String, Object> templateModel = new HashMap<>();
 		templateModel.put(SERVER_NAME_MODEL_KEY, serverName);
 		templateModel.put(TARGET_ID_MODEL_KEY, deployment.getTarget().getId());
 		templateModel.put(START_MODEL_KEY, deployment.getStart().format(dateTimeFormatter));
 		templateModel.put(END_MODEL_KEY, deployment.getEnd().format(dateTimeFormatter));
 		templateModel.put(STATUS_MODEL_KEY, deployment.getStatus());
 		templateModel.put(DEPLOYMENT_MODEL_KEY, deployment);
-	}
-
-	/**
-	 * Processes the notification template with the given model.
-	 *
-	 * @param templateModel the model to use for processing the template
-	 * @return the template output
-	 * @throws DeployerException if an error occurs while loading or processing the template
-	 */
-	protected String processTemplate(Map<String, Object> templateModel) throws DeployerException {
-		logger.debug("Processing notification template '{}'", templateName);
-
-		try {
-			Template template = freeMarkerConfig.getTemplate(fullTemplateName, templateEncoding);
-			StringWriter out = new StringWriter();
-
-			template.process(templateModel, out);
-
-			return out.toString();
-		} catch (IOException | TemplateException e) {
-			throw new DeployerException(e);
-		}
+		return templateModel;
 	}
 
 	/**
@@ -298,7 +245,7 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 	 */
 	private boolean matchFailedProcessor(final String failedProcessor) {
 		return failedProcessorsPattern == null ||
-			failedProcessorsPattern.matcher(failedProcessor).matches();
+				failedProcessorsPattern.matcher(failedProcessor).matches();
 	}
 
 	/**
@@ -306,9 +253,9 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 	 */
 	private String getFailedProcessor(Deployment deployment) {
 		return deployment.getProcessorExecutions().stream()
-			.filter(ex -> ex.getStatus() == Deployment.Status.FAILURE)
-			.map(ProcessorExecution::getProcessorName)
-			.findFirst().orElse(null);
+				.filter(ex -> ex.getStatus() == Deployment.Status.FAILURE)
+				.map(ProcessorExecution::getProcessorName)
+				.findFirst().orElse(null);
 	}
 
 	/**
@@ -323,40 +270,34 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 		return false;
 	}
 
+	@SuppressWarnings("unused")
 	public void setDefaultDateTimePattern(String defaultDateTimePattern) {
 		this.defaultDateTimePattern = defaultDateTimePattern;
 	}
 
+	@SuppressWarnings("unused")
 	public void setDefaultLastDateFilenameSuffix(String defaultLastDateFilenameSuffix) {
 		this.defaultLastDateFilenameSuffix = defaultLastDateFilenameSuffix;
 	}
 
+	@SuppressWarnings("unused")
 	public void setDefaultStatusCondition(String defaultStatusCondition) {
 		this.defaultStatusCondition = defaultStatusCondition;
 	}
 
+	@SuppressWarnings("unused")
 	public void setDefaultTemplateName(String defaultTemplateName) {
 		this.defaultTemplateName = defaultTemplateName;
 	}
 
-	public void setFreeMarkerConfig(freemarker.template.Configuration freeMarkerConfig) {
-		this.freeMarkerConfig = freeMarkerConfig;
-	}
-
-	public void setTemplatePrefix(String templatePrefix) {
-		this.templatePrefix = templatePrefix;
-	}
-
-	public void setTemplateSuffix(String templateSuffix) {
-		this.templateSuffix = templateSuffix;
-	}
-
-	public void setTemplateEncoding(String templateEncoding) {
-		this.templateEncoding = templateEncoding;
-	}
-
+	@SuppressWarnings("unused")
 	public void setProcessorStateStore(ProcessorStateStore processorStateStore) {
 		this.processorStateStore = processorStateStore;
+	}
+
+	@SuppressWarnings("unused")
+	public void setNotificationSender(NotificationSender<?> notificationSender) {
+		this.notificationSender = notificationSender;
 	}
 
 	/**
@@ -383,21 +324,5 @@ public abstract class NotificationProcessor<T extends NotificationProcessor.Noti
 		 * Notifications will be sent for deployments in which the general status indicates failure.
 		 */
 		ON_TOTAL_FAILURE
-	}
-
-	/**
-	 * Base class for notification messages.
-	 * {@link NotificationProcessor} implementations may extend this class to provide custom messages.
-	 */
-	public class NotificationMessage {
-		private final Map<String, Object> model = new HashMap<>();
-
-		public Map<String, Object> getModel() {
-			return model;
-		}
-
-		public String getBody() throws DeployerException {
-			return processTemplate(getModel());
-		}
 	}
 }

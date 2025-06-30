@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -27,6 +27,9 @@ import org.craftercms.deployer.api.Target;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
 import org.craftercms.deployer.api.lifecycle.TargetLifecycleHook;
+import org.craftercms.deployer.api.target.event.TargetEvent;
+import org.craftercms.deployer.api.target.event.TargetEventListener;
+import org.craftercms.deployer.api.target.event.TargetEventListenerResolver;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.slf4j.MDC;
@@ -46,6 +49,7 @@ import java.util.concurrent.locks.ReentrantLock;
 import static org.craftercms.commons.config.ConfigUtils.getBooleanProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
 import static org.craftercms.deployer.impl.DeploymentConstants.*;
+import static org.springframework.util.CollectionUtils.isEmpty;
 
 /**
  * Default implementation of {@link Target}.
@@ -65,12 +69,14 @@ public class TargetImpl implements Target {
 	protected final String siteName;
 	protected final String localRepoPath;
 	protected final File configurationFile;
+	protected final long runtimeThresholdSeconds;
 	protected final HierarchicalConfiguration<ImmutableNode> configuration;
 	protected final ConfigurableApplicationContext applicationContext;
 	protected final ExecutorService executor;
 	protected final TaskScheduler scheduler;
 	protected final TargetLifecycleHooksResolver targetLifecycleHooksResolver;
 	protected final DeploymentPipelineFactory deploymentPipelineFactory;
+	protected final TargetEventListenerResolver targetEventListenerResolver;
 
 	protected volatile Status status;
 	protected DeploymentPipeline deploymentPipeline;
@@ -78,6 +84,7 @@ public class TargetImpl implements Target {
 	protected final Queue<Deployment> pendingDeployments;
 	protected volatile Deployment currentDeployment;
 	protected final Lock deploymentLock;
+	protected Map<String, List<TargetEventListener>> eventListeners;
 
 	public static void setCurrent(Target target) {
 		threadLocal.set(target);
@@ -96,21 +103,25 @@ public class TargetImpl implements Target {
 	}
 
 	public TargetImpl(
-		@Value("${target.env}") String env,
-		@Value("${target.siteName}") String siteName,
-		@Value("${target.localRepoPath}") String localRepoPath,
-		@Value("${target.configFile}") File configurationFile,
-		@Autowired HierarchicalConfiguration<ImmutableNode> configuration,
-		@Autowired ConfigurableApplicationContext applicationContext,
-		@Autowired ExecutorService executor,
-		@Autowired TaskScheduler scheduler,
-		@Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
-		@Autowired DeploymentPipelineFactory deploymentPipelineFactory) {
+			@Value("${target.env}") String env,
+			@Value("${target.siteName}") String siteName,
+			@Value("${target.localRepoPath}") String localRepoPath,
+			@Value("${target.configFile}") File configurationFile,
+			@Value("${target.runtimeWarningThreshold.seconds}") long runtimeThresholdSeconds,
+			@Autowired TargetEventListenerResolver targetEventListenerResolver,
+			@Autowired HierarchicalConfiguration<ImmutableNode> configuration,
+			@Autowired ConfigurableApplicationContext applicationContext,
+			@Autowired ExecutorService executor,
+			@Autowired TaskScheduler scheduler,
+			@Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
+			@Autowired DeploymentPipelineFactory deploymentPipelineFactory) {
 		this.loadDate = ZonedDateTime.now();
 		this.env = env;
 		this.siteName = siteName;
 		this.localRepoPath = localRepoPath;
 		this.configurationFile = configurationFile;
+		this.runtimeThresholdSeconds = runtimeThresholdSeconds;
+		this.targetEventListenerResolver = targetEventListenerResolver;
 		this.configuration = configuration;
 		this.applicationContext = applicationContext;
 		this.executor = executor;
@@ -153,6 +164,11 @@ public class TargetImpl implements Target {
 	}
 
 	@Override
+	public long getRuntimeWarningThreshold() {
+		return runtimeThresholdSeconds;
+	}
+
+	@Override
 	public HierarchicalConfiguration<ImmutableNode> getConfiguration() {
 		return configuration;
 	}
@@ -169,13 +185,14 @@ public class TargetImpl implements Target {
 
 		try {
 			logger.info("Executing init hooks for target '{}'", getId());
-
 			executeHooks(getInitHooks());
 
 			logger.info("Creating deployment pipeline for target '{}'", getId());
-
 			deploymentPipeline = deploymentPipelineFactory.getPipeline(configuration, applicationContext,
-				TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
+					TARGET_DEPLOYMENT_PIPELINE_CONFIG_KEY);
+
+			logger.info("Loading event listeners for target '{}'", getId());
+			eventListeners = targetEventListenerResolver.getListeners(configuration, applicationContext, TARGET_EVENT_LISTENERS_KEY);
 
 			logger.info("Checking if deployments need to be scheduled for target '{}'", getId());
 
@@ -185,7 +202,7 @@ public class TargetImpl implements Target {
 		} catch (Exception e) {
 			status = Status.INIT_FAILED;
 
-			logger.error("Failed to init target '" + getId() + "'", e);
+			logger.error("Failed to init target '{}'", getId(), e);
 		}
 
 		MDC.remove(TARGET_ID_MDC_KEY);
@@ -356,6 +373,25 @@ public class TargetImpl implements Target {
 		}
 
 		MDC.remove(TARGET_ID_MDC_KEY);
+	}
+
+	@Override
+	public void handleEvent(TargetEvent<?> event) {
+		logger.info("Handling event '{}' for target '{}'", event.eventType(), getId());
+		Collection<TargetEventListener> eventHandlers = eventListeners.get(event.eventType());
+		if (isEmpty(eventHandlers)) {
+			logger.info("No event handlers found for event '{}' for target '{}'", event.eventType(), getId());
+			return;
+		}
+		eventHandlers.forEach(
+				handler -> {
+					try {
+						handler.handle(event);
+					} catch (Exception e) {
+						logger.error("Error handling event '{}' for target '{}'", event.eventType(), getId(), e);
+					}
+				}
+		);
 	}
 
 	protected Collection<TargetLifecycleHook> getCreateHooks() throws ConfigurationException, DeployerException {

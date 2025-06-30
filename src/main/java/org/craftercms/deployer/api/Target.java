@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -20,6 +20,7 @@ import com.fasterxml.jackson.annotation.JsonProperty;
 import org.apache.commons.configuration2.HierarchicalConfiguration;
 import org.apache.commons.configuration2.tree.ImmutableNode;
 import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
+import org.craftercms.deployer.api.target.event.TargetEvent;
 import org.springframework.context.ConfigurableApplicationContext;
 
 import java.io.File;
@@ -80,6 +81,14 @@ public interface Target {
      */
     @JsonIgnore
     File getConfigurationFile();
+
+	/**
+	 * Return the runtime warning threshold in seconds.
+	 * This is the maximum time a deployment can run before a warning is triggered.
+	 *
+	 * @return the runtime threshold in seconds
+	 */
+	long getRuntimeWarningThreshold();
 
     /**
      * Returns the configuration of the target.
@@ -148,4 +157,9 @@ public interface Target {
      */
     void unlock();
 
+	/**
+	 * Call the appropriate event listeners for the given event type.
+	 * @param event  the target event to handle
+	 */
+	void handleEvent(TargetEvent<?> event);
 }

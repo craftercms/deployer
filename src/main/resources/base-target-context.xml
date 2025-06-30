@@ -181,30 +181,45 @@
                   value="${target.notifications.defaultLastDateFilenameSuffix}"/>
     </bean>
 
-    <bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.notification.MailNotificationProcessor"
-          parent="baseNotificationProcessor">
-        <property name="defaultTemplateName" value="${target.notifications.mail.templates.default}"/>
-        <property name="freeMarkerConfig" ref="mailFreemarkerConfig"/>
-        <property name="templateEncoding" value="${target.notifications.mail.encoding}"/>
-        <property name="templateSuffix" value="${target.notifications.mail.templates.suffix}"/>
-        <property name="emailFactory" ref="emailFactory"/>
-        <property name="objectMapper" ref="objectMapper"/>
-        <property name="defaultFrom" value="${target.notifications.mail.from}"/>
-        <property name="defaultSubject" value="${target.notifications.mail.subject}"/>
-        <property name="defaultHtml" value="${target.notifications.mail.html}"/>
-    </bean>
+	<bean id="mailNotificationProcessor" class="org.craftercms.deployer.impl.processors.notification.NotificationProcessor"
+	      parent="baseNotificationProcessor">
+		<property name="defaultTemplateName" value="${target.notifications.mail.templates.default}"/>
+		<property name="notificationSender" ref="emailNotificationSender"/>
+	</bean>
 
-    <bean id="webhookNotificationProcessor"
-          class="org.craftercms.deployer.impl.processors.notification.WebhookNotificationProcessor"
-          parent="baseNotificationProcessor">
-        <property name="defaultTemplateName" value="${target.notifications.webhook.templates.default}"/>
-        <property name="freeMarkerConfig" ref="webhookFreemarkerConfig"/>
-        <property name="templateEncoding" value="${target.notifications.webhook.encoding}"/>
-        <property name="templateSuffix" value="${target.notifications.webhook.templates.suffix}"/>
-        <property name="defaultMethod" value="${target.notifications.webhook.defaultMethod}"/>
-        <property name="defaultContentType" value="${target.notifications.webhook.defaultContentType}"/>
-        <property name="objectMapper" ref="objectMapper"/>
-    </bean>
+	<bean id="webhookNotificationProcessor"
+	      class="org.craftercms.deployer.impl.processors.notification.NotificationProcessor"
+	      parent="baseNotificationProcessor">
+		<property name="defaultTemplateName" value="${target.notifications.webhook.templates.default}"/>
+		<property name="notificationSender" ref="webhookNotificationSender"/>
+	</bean>
+
+	<bean id="notificationSenderBase" abstract="true">
+		<property name="defaultDateTimePattern" value="${target.defaultDateTimePattern}"/>
+		<property name="defaultDurationPattern" value="${target.defaultDurationPattern}"/>
+		<property name="objectMapper" ref="objectMapper"/>
+	</bean>
+
+	<bean id="emailNotificationSender" class="org.craftercms.deployer.impl.notification.EmailSender" parent="notificationSenderBase" scope="prototype">
+		<property name="emailFactory" ref="emailFactory"/>
+		<property name="defaultFrom" value="${target.notifications.mail.from}"/>
+		<property name="defaultSubject" value="${target.notifications.mail.subject}"/>
+		<property name="defaultHtml" value="${target.notifications.mail.html}"/>
+		<property name="freeMarkerConfig" ref="mailFreemarkerConfig"/>
+		<property name="templateEncoding" value="${target.notifications.mail.encoding}"/>
+		<property name="templateSuffix" value="${target.notifications.mail.templates.suffix}"/>
+	</bean>
+
+	<bean id="webhookNotificationSender" class="org.craftercms.deployer.impl.notification.WebhookSender" parent="notificationSenderBase" scope="prototype">
+		<property name="freeMarkerConfig" ref="webhookFreemarkerConfig"/>
+		<property name="templateEncoding" value="${target.notifications.webhook.encoding}"/>
+		<property name="templateSuffix" value="${target.notifications.webhook.templates.suffix}"/>
+		<property name="defaultMethod" value="${target.notifications.webhook.defaultMethod}"/>
+		<property name="defaultContentType" value="${target.notifications.webhook.defaultContentType}"/>
+	</bean>
+
+	<bean id="notificationEventListener" class="org.craftercms.deployer.impl.target.event.NotificationEventListener" scope="prototype">
+	</bean>
 
     <!-- Configuration Profiles -->
 

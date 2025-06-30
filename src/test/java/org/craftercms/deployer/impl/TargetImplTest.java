@@ -26,6 +26,7 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.DeploymentPipeline;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
+import org.craftercms.deployer.api.target.event.TargetEventListenerResolver;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -45,13 +46,14 @@ public class TargetImplTest {
     private volatile int count;
     private TargetImpl target;
 
-    @Before
-    public void setUp() throws Exception {
-        count = 0;
-        target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, null, null, createConfig(), null,
-            Executors.newSingleThreadExecutor(), null, createTargetLifecycleHooksResolver(),
-            createDeploymentPipelineFactory());
-    }
+	@Before
+	public void setUp() throws Exception {
+		count = 0;
+		target = new TargetImpl(TEST_ENV, TEST_SITE_NAME, null, null, 60, mock(TargetEventListenerResolver.class),
+				createConfig(), null,
+			Executors.newSingleThreadExecutor(), null, createTargetLifecycleHooksResolver(),
+			createDeploymentPipelineFactory());
+	}
 
     @Test
     public void testDeploy() throws Exception {

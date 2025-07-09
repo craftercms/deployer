@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -70,6 +70,7 @@ import static java.lang.String.format;
 import static org.apache.commons.collections.CollectionUtils.isEmpty;
 import static org.apache.commons.collections4.CollectionUtils.isNotEmpty;
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
+import static org.craftercms.deployer.api.Target.INDEX_ID_FORMAT_CONFIG_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.*;
 
 /**
@@ -282,11 +283,14 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 	}
 
 	@Override
-	public void recreateIndex(String env, String siteName) throws TargetNotFoundException {
+	public void recreateIndex (String env, String siteName) throws TargetNotFoundException, ConfigurationException {
 		Target target = getTarget(env, siteName);
 		ApplicationContext appContext = target.getApplicationContext();
 		OpenSearchAdminService adminService = appContext.getBean(OpenSearchAdminService.class);
-		adminService.recreateIndex(target.getId());
+
+		String indexIdFormat = getRequiredStringProperty(target.getConfiguration(), INDEX_ID_FORMAT_CONFIG_KEY);
+		String indexName = String.format(indexIdFormat, siteName);
+		adminService.recreateIndex(indexName);
 	}
 
 	@Override

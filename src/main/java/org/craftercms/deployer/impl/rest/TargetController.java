@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -16,6 +16,7 @@
 package org.craftercms.deployer.impl.rest;
 
 import org.apache.commons.lang3.StringUtils;
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.commons.exceptions.InvalidManagementTokenException;
 import org.craftercms.commons.rest.RestServiceUtils;
 import org.craftercms.commons.rest.Result;
@@ -333,7 +334,7 @@ public class TargetController {
                                                 @ValidateSecurePathParam @PathVariable(ENV_PATH_VAR_NAME) String env,
                                                 @NotBlank @EsapiValidatedParam(type = SITE_ID) @PathVariable(SITE_NAME_PATH_VAR_NAME) String siteName,
                                                 @RequestParam String token)
-            throws DeployerException, InvalidManagementTokenException {
+			throws DeployerException, InvalidManagementTokenException, ConfigurationException {
         validateToken(token);
         targetService.recreateIndex(env, siteName);
 

@@ -15,6 +15,7 @@
  */
 package org.craftercms.deployer.api;
 
+import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
 import org.craftercms.deployer.api.exceptions.TargetServiceException;
@@ -109,7 +110,7 @@ public interface TargetService {
      *
      * @throws TargetNotFoundException if the target for the specified env and site name doesn't exist
      */
-    void recreateIndex(String env, String siteName) throws TargetNotFoundException;
+    void recreateIndex(String env, String siteName) throws TargetNotFoundException, ConfigurationException;
 
     /**
      * Duplicates a target.

@@ -34,6 +34,7 @@ import java.util.Map;
  * @author avasquez
  */
 public interface Target {
+    String INDEX_ID_FORMAT_CONFIG_KEY = "target.search.indexIdFormat";
 
 	String AUTHORING_ENV = "authoring";
 

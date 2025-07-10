@@ -123,6 +123,7 @@ public class TargetServiceImplTest {
             new ClassPathResource("test-base-target-context.xml"),
             new ClassPathResource("test-base-target-context-override.xml"),
             "test",
+            10,
             createHandlebars(),
             context,
             deploymentPipelineFactory,

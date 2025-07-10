@@ -42,6 +42,8 @@ deployer:
             # The max maxAliasesForCollections for yaml files
             yamlMaxAliasesForCollections: 1
         targets:
+            # Maximum number of retries to initialize targets
+            maxInitRetries: 10
             config:
                 # The folder path for target configuration files
                 folderPath: ${targets.dir}

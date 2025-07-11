@@ -139,6 +139,15 @@ public interface Target {
     Collection<Deployment> getAllDeployments();
 
     /**
+     * Returns the number of retry attempts left for the current deployment.
+     * This is used to retry deployments a maximum number of attempts
+     * if they fail to init after creation
+     *
+     * @return the number of retry attempts left
+     */
+    int getInitRetryAttempts();
+
+    /**
      * Performs a cleanup of the local repository.
      */
     void cleanRepo();

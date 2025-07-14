@@ -82,210 +82,210 @@ import static org.craftercms.deployer.impl.DeploymentConstants.*;
 @Component("targetService")
 @DependsOn("crafter.cacheStoreAdapter")
 public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent>,
-        InitializingBean, DisposableBean {
+		InitializingBean, DisposableBean {
 
-    private static final Logger logger = LoggerFactory.getLogger(TargetServiceImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(TargetServiceImpl.class);
 
-    public static final String YAML_FILE_EXTENSION = "yaml";
-    public static final String APPLICATION_CONTEXT_FILENAME_FORMAT = "%s-context.xml";
-    public static final String CONFIG_PROPERTY_SOURCE_NAME = "targetConfig";
-    public static final String CONFIG_BEAN_NAME = "targetConfig";
+	public static final String YAML_FILE_EXTENSION = "yaml";
+	public static final String APPLICATION_CONTEXT_FILENAME_FORMAT = "%s-context.xml";
+	public static final String CONFIG_PROPERTY_SOURCE_NAME = "targetConfig";
+	public static final String CONFIG_BEAN_NAME = "targetConfig";
 
-    public static final String TARGET_ENV_MODEL_KEY = "env";
-    public static final String TARGET_SITE_NAME_MODEL_KEY = "site_name";
-    public static final String TARGET_SOURCE_TARGET_MODEL_KEY = "source_target";
-    public static final String TARGET_ID_MODEL_KEY = "target_id";
+	public static final String TARGET_ENV_MODEL_KEY = "env";
+	public static final String TARGET_SITE_NAME_MODEL_KEY = "site_name";
+	public static final String TARGET_SOURCE_TARGET_MODEL_KEY = "source_target";
+	public static final String TARGET_ID_MODEL_KEY = "target_id";
 
-    protected final File targetConfigFolder;
-    protected final Resource baseTargetYamlConfigResource;
-    protected final Resource baseTargetYamlConfigOverrideResource;
-    protected final Resource baseTargetContextResource;
-    protected final Resource baseTargetContextOverrideResource;
-    protected final String defaultTargetConfigTemplateName;
-    protected final Handlebars targetConfigTemplateEngine;
-    protected final ApplicationContext mainApplicationContext;
-    protected final DeploymentPipelineFactory deploymentPipelineFactory;
-    protected final TaskScheduler taskScheduler;
-    protected final ExecutorService taskExecutor;
-    protected final ProcessedCommitsStore processedCommitsStore;
-    protected final ProcessorStateStore processorStateStore;
-    protected final TargetLifecycleHooksResolver targetLifecycleHooksResolver;
-    protected final EncryptionAwareConfigurationReader configurationReader;
-    protected final UpgradeManager<Target> upgradeManager;
-    protected final Set<Target> currentTargets;
-    protected final int maxTargetInitRetryAttempts;
+	protected final File targetConfigFolder;
+	protected final Resource baseTargetYamlConfigResource;
+	protected final Resource baseTargetYamlConfigOverrideResource;
+	protected final Resource baseTargetContextResource;
+	protected final Resource baseTargetContextOverrideResource;
+	protected final String defaultTargetConfigTemplateName;
+	protected final Handlebars targetConfigTemplateEngine;
+	protected final ApplicationContext mainApplicationContext;
+	protected final DeploymentPipelineFactory deploymentPipelineFactory;
+	protected final TaskScheduler taskScheduler;
+	protected final ExecutorService taskExecutor;
+	protected final ProcessedCommitsStore processedCommitsStore;
+	protected final ProcessorStateStore processorStateStore;
+	protected final TargetLifecycleHooksResolver targetLifecycleHooksResolver;
+	protected final EncryptionAwareConfigurationReader configurationReader;
+	protected final UpgradeManager<Target> upgradeManager;
+	protected final Set<Target> currentTargets;
+	protected final int maxTargetInitRetryAttempts;
 
-    public TargetServiceImpl(
-            @Value("${deployer.main.targets.config.folderPath}") File targetConfigFolder,
-            @Value("${deployer.main.targets.config.baseYaml.location}") Resource baseTargetYamlConfigResource,
-            @Value("${deployer.main.targets.config.baseYaml.overrideLocation}") Resource baseTargetYamlConfigOverrideResource,
-            @Value("${deployer.main.targets.config.baseContext.location}") Resource baseTargetContextResource,
-            @Value("${deployer.main.targets.config.baseContext.overrideLocation}") Resource baseTargetContextOverrideResource,
-            @Value("${deployer.main.targets.config.templates.default}") String defaultTargetConfigTemplateName,
-            @Value("${deployer.main.targets.maxInitRetries}") int maxTargetInitRetryAttempts,
-            @Autowired Handlebars targetConfigTemplateEngine,
-            @Autowired ApplicationContext mainApplicationContext,
-            @Autowired DeploymentPipelineFactory deploymentPipelineFactory,
-            @Autowired TaskScheduler taskScheduler,
-            @Autowired ExecutorService taskExecutor,
-            @Autowired ProcessedCommitsStore processedCommitsStore,
-            @Autowired ProcessorStateStore processorStateStore,
-            @Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
-            @Autowired EncryptionAwareConfigurationReader configurationReader,
-            @Autowired UpgradeManager<Target> upgradeManager) {
-        this.targetConfigFolder = targetConfigFolder;
-        this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
-        this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
-        this.baseTargetContextResource = baseTargetContextResource;
-        this.baseTargetContextOverrideResource = baseTargetContextOverrideResource;
-        this.defaultTargetConfigTemplateName = defaultTargetConfigTemplateName;
-        this.targetConfigTemplateEngine = targetConfigTemplateEngine;
-        this.mainApplicationContext = mainApplicationContext;
-        this.deploymentPipelineFactory = deploymentPipelineFactory;
-        this.taskScheduler = taskScheduler;
-        this.taskExecutor = taskExecutor;
-        this.processedCommitsStore = processedCommitsStore;
-        this.processorStateStore = processorStateStore;
-        this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
-        this.configurationReader = configurationReader;
-        this.upgradeManager = upgradeManager;
-        this.currentTargets = new CopyOnWriteArraySet<>();
-        this.maxTargetInitRetryAttempts = maxTargetInitRetryAttempts;
-    }
+	public TargetServiceImpl(
+			@Value("${deployer.main.targets.config.folderPath}") File targetConfigFolder,
+			@Value("${deployer.main.targets.config.baseYaml.location}") Resource baseTargetYamlConfigResource,
+			@Value("${deployer.main.targets.config.baseYaml.overrideLocation}") Resource baseTargetYamlConfigOverrideResource,
+			@Value("${deployer.main.targets.config.baseContext.location}") Resource baseTargetContextResource,
+			@Value("${deployer.main.targets.config.baseContext.overrideLocation}") Resource baseTargetContextOverrideResource,
+			@Value("${deployer.main.targets.config.templates.default}") String defaultTargetConfigTemplateName,
+			@Value("${deployer.main.targets.maxInitRetries}") int maxTargetInitRetryAttempts,
+			@Autowired Handlebars targetConfigTemplateEngine,
+			@Autowired ApplicationContext mainApplicationContext,
+			@Autowired DeploymentPipelineFactory deploymentPipelineFactory,
+			@Autowired TaskScheduler taskScheduler,
+			@Autowired ExecutorService taskExecutor,
+			@Autowired ProcessedCommitsStore processedCommitsStore,
+			@Autowired ProcessorStateStore processorStateStore,
+			@Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
+			@Autowired EncryptionAwareConfigurationReader configurationReader,
+			@Autowired UpgradeManager<Target> upgradeManager) {
+		this.targetConfigFolder = targetConfigFolder;
+		this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
+		this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
+		this.baseTargetContextResource = baseTargetContextResource;
+		this.baseTargetContextOverrideResource = baseTargetContextOverrideResource;
+		this.defaultTargetConfigTemplateName = defaultTargetConfigTemplateName;
+		this.targetConfigTemplateEngine = targetConfigTemplateEngine;
+		this.mainApplicationContext = mainApplicationContext;
+		this.deploymentPipelineFactory = deploymentPipelineFactory;
+		this.taskScheduler = taskScheduler;
+		this.taskExecutor = taskExecutor;
+		this.processedCommitsStore = processedCommitsStore;
+		this.processorStateStore = processorStateStore;
+		this.targetLifecycleHooksResolver = targetLifecycleHooksResolver;
+		this.configurationReader = configurationReader;
+		this.upgradeManager = upgradeManager;
+		this.currentTargets = new CopyOnWriteArraySet<>();
+		this.maxTargetInitRetryAttempts = maxTargetInitRetryAttempts;
+	}
 
-    public void afterPropertiesSet() throws DeployerException {
-        if (targetConfigFolder.exists()) {
-            return;
-        }
-        logger.info("Target config folder '{}' doesn't exist. Creating it", targetConfigFolder);
+	public void afterPropertiesSet() throws DeployerException {
+		if (targetConfigFolder.exists()) {
+			return;
+		}
+		logger.info("Target config folder '{}' doesn't exist. Creating it", targetConfigFolder);
 
-        try {
-            FileUtils.forceMkdir(targetConfigFolder);
-        } catch (IOException e) {
-            throw new DeployerException(format("Failed to create target config folder at '%s'", targetConfigFolder));
-        }
-    }
+		try {
+			FileUtils.forceMkdir(targetConfigFolder);
+		} catch (IOException e) {
+			throw new DeployerException(format("Failed to create target config folder at '%s'", targetConfigFolder));
+		}
+	}
 
-    @Override
-    public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
-        // Load all existing targets on startup
-        try {
-            List<Target> targets = resolveTargets();
-            if (CollectionUtils.isEmpty(targets)) {
-                logger.warn("No config files found under '{}'", targetConfigFolder.getAbsolutePath());
-            } else {
-                // check if there are any targets that need to be unlocked
-                targets.forEach(Target::unlock);
-            }
-        } catch (DeployerException e) {
-            logger.error("Error while loading targets on startup", e);
-        }
-    }
+	@Override
+	public void onApplicationEvent(@NonNull ApplicationReadyEvent event) {
+		// Load all existing targets on startup
+		try {
+			List<Target> targets = resolveTargets();
+			if (CollectionUtils.isEmpty(targets)) {
+				logger.warn("No config files found under '{}'", targetConfigFolder.getAbsolutePath());
+			} else {
+				// check if there are any targets that need to be unlocked
+				targets.forEach(Target::unlock);
+			}
+		} catch (DeployerException e) {
+			logger.error("Error while loading targets on startup", e);
+		}
+	}
 
-    @Override
-    public void destroy() {
-        logger.info("Closing all targets...");
+	@Override
+	public void destroy() {
+		logger.info("Closing all targets...");
 
-        if (isNotEmpty(currentTargets)) {
-            currentTargets.forEach(Target::close);
-        }
-    }
+		if (isNotEmpty(currentTargets)) {
+			currentTargets.forEach(Target::close);
+		}
+	}
 
-    @Override
-    public List<Target> getAllTargets() {
-        return new ArrayList<>(currentTargets);
-    }
+	@Override
+	public List<Target> getAllTargets() {
+		return new ArrayList<>(currentTargets);
+	}
 
-    @Override
-    public boolean targetExists(String env, String siteName) {
-        String id = TargetImpl.getId(env, siteName);
+	@Override
+	public boolean targetExists(String env, String siteName) {
+		String id = TargetImpl.getId(env, siteName);
 
-        return findLoadedTargetById(id) != null;
-    }
+		return findLoadedTargetById(id) != null;
+	}
 
-    @Override
-    public Target getTarget(String env, String siteName) throws TargetNotFoundException {
-        String id = TargetImpl.getId(env, siteName);
-        Target target = findLoadedTargetById(id);
+	@Override
+	public Target getTarget(String env, String siteName) throws TargetNotFoundException {
+		String id = TargetImpl.getId(env, siteName);
+		Target target = findLoadedTargetById(id);
 
-        if (target != null) {
-            return target;
-        }
-        throw new TargetNotFoundException(id, env, siteName);
-    }
+		if (target != null) {
+			return target;
+		}
+		throw new TargetNotFoundException(id, env, siteName);
+	}
 
-    @Override
-    public synchronized List<Target> resolveTargets() throws TargetServiceException {
-        Collection<File> configFiles = getTargetConfigFiles();
-        List<Target> targets = new ArrayList<>();
+	@Override
+	public synchronized List<Target> resolveTargets() throws TargetServiceException {
+		Collection<File> configFiles = getTargetConfigFiles();
+		List<Target> targets = new ArrayList<>();
 
-        if (!isNotEmpty(configFiles)) {
-            return targets;
-        }
-        closeTargetsWithNoConfigFile(configFiles);
+		if (!isNotEmpty(configFiles)) {
+			return targets;
+		}
+		closeTargetsWithNoConfigFile(configFiles);
 
-        for (File file : configFiles) {
-            Target target = resolveTargetFromConfigFile(file, LoadMode.LOAD);
-            targets.add(target);
-        }
+		for (File file : configFiles) {
+			Target target = resolveTargetFromConfigFile(file, LoadMode.LOAD);
+			targets.add(target);
+		}
 
-        return targets;
-    }
+		return targets;
+	}
 
-    @Override
-    public synchronized Target createTarget(String env, String siteName, boolean replace, String templateName,
-                                            Map<String, Object> templateParams)
-            throws TargetAlreadyExistsException,
-            TargetServiceException {
-        String id = TargetImpl.getId(env, siteName);
-        File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
+	@Override
+	public synchronized Target createTarget(String env, String siteName, boolean replace, String templateName,
+											Map<String, Object> templateParams)
+			throws TargetAlreadyExistsException,
+			TargetServiceException {
+		String id = TargetImpl.getId(env, siteName);
+		File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
 
-        if (!replace && configFile.exists()) {
-            throw new TargetAlreadyExistsException(id, env, siteName);
-        }
-        createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
+		if (!replace && configFile.exists()) {
+			throw new TargetAlreadyExistsException(id, env, siteName);
+		}
+		createConfigFromTemplate(env, siteName, id, templateName, templateParams, configFile);
 
-        return resolveTargetFromConfigFile(configFile, LoadMode.CREATE);
-    }
+		return resolveTargetFromConfigFile(configFile, LoadMode.CREATE);
+	}
 
-    @Override
-    public synchronized void deleteTarget(String env, String siteName) throws TargetNotFoundException,
-            TargetServiceException {
-        Target target = getTarget(env, siteName);
-        String id = target.getId();
+	@Override
+	public synchronized void deleteTarget(String env, String siteName) throws TargetNotFoundException,
+			TargetServiceException {
+		Target target = getTarget(env, siteName);
+		String id = target.getId();
 
-        logger.info("Removing loaded target '{}'", id);
+		logger.info("Removing loaded target '{}'", id);
 
-        currentTargets.remove(target);
+		currentTargets.remove(target);
 
-        target.delete();
+		target.delete();
 
-        cleanupTarget(id, target.getConfigurationFile());
-    }
+		cleanupTarget(id, target.getConfigurationFile());
+	}
 
-    private void cleanupTarget(String targetId, File configFile) throws TargetServiceException {
-        try {
-            processedCommitsStore.delete(targetId);
-        } catch (DeployerException e) {
-            throw new TargetServiceException(format("Error while deleting processed commit from store for target '%s'", targetId), e);
-        }
-        if (configFile.exists()) {
-            logger.info("Deleting target configuration file at '{}'", configFile);
+	private void cleanupTarget(String targetId, File configFile) throws TargetServiceException {
+		try {
+			processedCommitsStore.delete(targetId);
+		} catch (DeployerException e) {
+			throw new TargetServiceException(format("Error while deleting processed commit from store for target '%s'", targetId), e);
+		}
+		if (configFile.exists()) {
+			logger.info("Deleting target configuration file at '{}'", configFile);
 
-            FileUtils.deleteQuietly(configFile);
-        }
+			FileUtils.deleteQuietly(configFile);
+		}
 
-        File contextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT,
-                configFile.getName()));
-        if (contextFile.exists()) {
-            logger.info("Deleting target context file at '{}'", contextFile);
+		File contextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT,
+				configFile.getName()));
+		if (contextFile.exists()) {
+			logger.info("Deleting target context file at '{}'", contextFile);
 
-            FileUtils.deleteQuietly(contextFile);
-        }
-        processorStateStore.delete(targetId);
-    }
+			FileUtils.deleteQuietly(contextFile);
+		}
+		processorStateStore.delete(targetId);
+	}
 
-    @Override
+	@Override
 	public void recreateIndex(String env, String siteName) throws TargetNotFoundException, ConfigurationException {
 		Target target = getTarget(env, siteName);
 		ApplicationContext appContext = target.getApplicationContext();

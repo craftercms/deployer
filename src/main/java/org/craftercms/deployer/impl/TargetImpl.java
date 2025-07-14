@@ -515,8 +515,8 @@ public class TargetImpl implements Target {
 		TargetImpl target = (TargetImpl) o;
 
 		return env.equals(target.env) &&
-			siteName.equals(target.siteName) &&
-			configurationFile.equals(target.configurationFile);
+				siteName.equals(target.siteName) &&
+				configurationFile.equals(target.configurationFile);
 	}
 
 	@Override
@@ -527,10 +527,10 @@ public class TargetImpl implements Target {
 	@Override
 	public String toString() {
 		return "TargetImpl{" +
-			"env='" + env + '\'' +
-			", siteName='" + siteName + '\'' +
-			", configurationFile=" +
-			configurationFile + '}';
+				"env='" + env + '\'' +
+				", siteName='" + siteName + '\'' +
+				", configurationFile=" +
+				configurationFile + '}';
 	}
 
 }

@@ -34,7 +34,7 @@ import java.util.Map;
  * @author avasquez
  */
 public interface Target {
-    String INDEX_ID_FORMAT_CONFIG_KEY = "target.search.indexIdFormat";
+	String INDEX_ID_FORMAT_CONFIG_KEY = "target.search.indexIdFormat";
 
 	String AUTHORING_ENV = "authoring";
 
@@ -159,7 +159,8 @@ public interface Target {
 
 	/**
 	 * Call the appropriate event listeners for the given event type.
-	 * @param event  the target event to handle
+	 *
+	 * @param event the target event to handle
 	 */
 	void handleEvent(TargetEvent<?> event);
 }

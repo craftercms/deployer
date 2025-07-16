@@ -82,7 +82,7 @@ import static org.craftercms.deployer.impl.DeploymentConstants.*;
 @Component("targetService")
 @DependsOn("crafter.cacheStoreAdapter")
 public class TargetServiceImpl implements TargetService, ApplicationListener<ApplicationReadyEvent>,
-	InitializingBean, DisposableBean {
+		InitializingBean, DisposableBean {
 
 	private static final Logger logger = LoggerFactory.getLogger(TargetServiceImpl.class);
 
@@ -115,22 +115,22 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 	protected final Set<Target> currentTargets;
 
 	public TargetServiceImpl(
-		@Value("${deployer.main.targets.config.folderPath}") File targetConfigFolder,
-		@Value("${deployer.main.targets.config.baseYaml.location}") Resource baseTargetYamlConfigResource,
-		@Value("${deployer.main.targets.config.baseYaml.overrideLocation}") Resource baseTargetYamlConfigOverrideResource,
-		@Value("${deployer.main.targets.config.baseContext.location}") Resource baseTargetContextResource,
-		@Value("${deployer.main.targets.config.baseContext.overrideLocation}") Resource baseTargetContextOverrideResource,
-		@Value("${deployer.main.targets.config.templates.default}") String defaultTargetConfigTemplateName,
-		@Autowired Handlebars targetConfigTemplateEngine,
-		@Autowired ApplicationContext mainApplicationContext,
-		@Autowired DeploymentPipelineFactory deploymentPipelineFactory,
-		@Autowired TaskScheduler taskScheduler,
-		@Autowired ExecutorService taskExecutor,
-		@Autowired ProcessedCommitsStore processedCommitsStore,
-		@Autowired ProcessorStateStore processorStateStore,
-		@Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
-		@Autowired EncryptionAwareConfigurationReader configurationReader,
-		@Autowired UpgradeManager<Target> upgradeManager) {
+			@Value("${deployer.main.targets.config.folderPath}") File targetConfigFolder,
+			@Value("${deployer.main.targets.config.baseYaml.location}") Resource baseTargetYamlConfigResource,
+			@Value("${deployer.main.targets.config.baseYaml.overrideLocation}") Resource baseTargetYamlConfigOverrideResource,
+			@Value("${deployer.main.targets.config.baseContext.location}") Resource baseTargetContextResource,
+			@Value("${deployer.main.targets.config.baseContext.overrideLocation}") Resource baseTargetContextOverrideResource,
+			@Value("${deployer.main.targets.config.templates.default}") String defaultTargetConfigTemplateName,
+			@Autowired Handlebars targetConfigTemplateEngine,
+			@Autowired ApplicationContext mainApplicationContext,
+			@Autowired DeploymentPipelineFactory deploymentPipelineFactory,
+			@Autowired TaskScheduler taskScheduler,
+			@Autowired ExecutorService taskExecutor,
+			@Autowired ProcessedCommitsStore processedCommitsStore,
+			@Autowired ProcessorStateStore processorStateStore,
+			@Autowired TargetLifecycleHooksResolver targetLifecycleHooksResolver,
+			@Autowired EncryptionAwareConfigurationReader configurationReader,
+			@Autowired UpgradeManager<Target> upgradeManager) {
 		this.targetConfigFolder = targetConfigFolder;
 		this.baseTargetYamlConfigResource = baseTargetYamlConfigResource;
 		this.baseTargetYamlConfigOverrideResource = baseTargetYamlConfigOverrideResource;
@@ -231,9 +231,9 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
 	@Override
 	public synchronized Target createTarget(String env, String siteName, boolean replace, String templateName,
-						Map<String, Object> templateParams)
-		throws TargetAlreadyExistsException,
-		TargetServiceException {
+											Map<String, Object> templateParams)
+			throws TargetAlreadyExistsException,
+			TargetServiceException {
 		String id = TargetImpl.getId(env, siteName);
 		File configFile = new File(targetConfigFolder, id + "." + YAML_FILE_EXTENSION);
 
@@ -247,7 +247,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
 	@Override
 	public synchronized void deleteTarget(String env, String siteName) throws TargetNotFoundException,
-		TargetServiceException {
+			TargetServiceException {
 		Target target = getTarget(env, siteName);
 		String id = target.getId();
 
@@ -273,7 +273,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 		}
 
 		File contextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT,
-			configFile.getName()));
+				configFile.getName()));
 		if (contextFile.exists()) {
 			logger.info("Deleting target context file at '{}'", contextFile);
 
@@ -283,7 +283,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 	}
 
 	@Override
-	public void recreateIndex (String env, String siteName) throws TargetNotFoundException, ConfigurationException {
+	public void recreateIndex(String env, String siteName) throws TargetNotFoundException, ConfigurationException {
 		Target target = getTarget(env, siteName);
 		ApplicationContext appContext = target.getApplicationContext();
 		OpenSearchAdminService adminService = appContext.getBean(OpenSearchAdminService.class);
@@ -295,8 +295,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 
 	@Override
 	public synchronized void duplicateTarget(final String env, final String sourceSiteName, final String siteName,
-						 boolean replace, String templateName, Map<String, Object> templateParams)
-		throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException {
+											 boolean replace, String templateName, Map<String, Object> templateParams)
+			throws TargetNotFoundException, TargetAlreadyExistsException, TargetServiceException {
 		if (!replace && targetExists(env, siteName)) {
 			throw new TargetAlreadyExistsException(siteName, env, siteName);
 		}
@@ -339,7 +339,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 				return false;
 			}
 			logger.info("Config file '{}' doesn't exist anymore for target '{}'. Closing target...",
-				configFile, target.getId());
+					configFile, target.getId());
 
 			target.close();
 
@@ -361,7 +361,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 			// Refresh if the files have been modified.
 			if (yamlLastModified >= targetLoadedDate || contextLastModified >= targetLoadedDate) {
 				logger.info("Configuration files haven been updated for '{}'. The target will be reloaded.",
-					target.getId());
+						target.getId());
 
 				target.close();
 
@@ -445,20 +445,20 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 			logger.debug("Loading base target YAML config override at {}", baseTargetYamlConfigOverrideResource);
 
 			combinedConfig.addConfiguration(
-				configurationReader.readYamlConfiguration(baseTargetYamlConfigOverrideResource));
+					configurationReader.readYamlConfiguration(baseTargetYamlConfigOverrideResource));
 		}
 		if (baseTargetYamlConfigResource.exists()) {
 			logger.debug("Loading base target YAML config at {}", baseTargetYamlConfigResource);
 
 			combinedConfig.addConfiguration(
-				configurationReader.readYamlConfiguration(baseTargetYamlConfigResource));
+					configurationReader.readYamlConfiguration(baseTargetYamlConfigResource));
 		}
 
 		return combinedConfig;
 	}
 
 	protected ConfigurableApplicationContext loadApplicationContext(HierarchicalConfiguration config,
-									File contextFile) throws ConfigurationException {
+																	File contextFile) throws ConfigurationException {
 		GenericApplicationContext context = new GenericApplicationContext(mainApplicationContext);
 
 		MutablePropertySources propertySources = context.getEnvironment().getPropertySources();
@@ -476,7 +476,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 				reader.loadBeanDefinitions(baseTargetContextResource);
 			} catch (Exception e) {
 				throw new ConfigurationException(format("Failed to load application context at '%s'", baseTargetContextResource),
-					e);
+						e);
 			}
 		}
 		if (baseTargetContextOverrideResource.exists()) {
@@ -504,8 +504,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 	}
 
 	protected void createConfigFromTemplate(String env, String siteName, String targetId, String templateName,
-						Map<String, Object> templateParameters,
-						File configFile) throws TargetServiceException {
+											Map<String, Object> templateParameters,
+											File configFile) throws TargetServiceException {
 		if (StringUtils.isEmpty(templateName)) {
 			templateName = defaultTargetConfigTemplateName;
 		}
@@ -535,7 +535,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 	}
 
 	protected void processConfigTemplate(String templateName, Object templateModel, Writer out)
-		throws TargetServiceException {
+			throws TargetServiceException {
 		MissingValueHelper helper = MissingValueHelper.INSTANCE;
 
 		try {
@@ -559,9 +559,9 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 			return null;
 		}
 		return currentTargets.stream()
-			.filter(target -> target.getConfigurationFile().equals(configFile))
-			.findFirst()
-			.orElse(null);
+				.filter(target -> target.getConfigurationFile().equals(configFile))
+				.findFirst()
+				.orElse(null);
 	}
 
 	protected Target findLoadedTargetById(String id) {
@@ -569,9 +569,9 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 			return null;
 		}
 		return currentTargets.stream()
-			.filter(target -> target.getId().equals(id))
-			.findFirst()
-			.orElse(null);
+				.filter(target -> target.getId().equals(id))
+				.findFirst()
+				.orElse(null);
 	}
 
 	protected void startInit(Target target) {
@@ -585,8 +585,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 			String filename = file.getName();
 
 			return !filename.equals(baseTargetYamlConfigResource.getFilename()) &&
-				!filename.equals(baseTargetYamlConfigOverrideResource.getFilename()) &&
-				filename.endsWith(YAML_FILE_EXTENSION);
+					!filename.equals(baseTargetYamlConfigOverrideResource.getFilename()) &&
+					filename.endsWith(YAML_FILE_EXTENSION);
 		}
 	}
 

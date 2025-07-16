@@ -82,9 +82,10 @@ public class TargetDeploymentRuntimeSupervisor {
 		long runtimeThreshold = target.getRuntimeWarningThreshold();
 
 		if (runtime >= runtimeThreshold) {
+			long runtimeMillis = start.until(now, ChronoUnit.MILLIS);
 			logger.error("Deployment for target {} has been running for {} seconds, which reaches the threshold of {} seconds",
 					target.getId(), runtime, runtimeThreshold);
-			target.handleEvent(new DeploymentRuntimeWarningEvent(target, currentDeployment, runtime));
+			target.handleEvent(new DeploymentRuntimeWarningEvent(target, currentDeployment, runtimeMillis));
 		} else {
 			logger.debug("Deployment for target {} is running within the acceptable threshold of {} seconds",
 					target.getId(), runtimeThreshold);

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -117,22 +117,23 @@ public class TargetServiceImplTest {
 		context.refresh();
 
 		targetService = new TargetServiceImpl(
-			targetsFolder,
-			new ClassPathResource("test-base-target.yaml"),
-			new ClassPathResource("test-base-target-override.yaml"),
-			new ClassPathResource("test-base-target-context.xml"),
-			new ClassPathResource("test-base-target-context-override.xml"),
-			"test",
-			createHandlebars(),
-			context,
-			deploymentPipelineFactory,
-			taskScheduler,
-			taskExecutor,
-			processedCommitsStore,
-			processorStateStore,
-			targetLifecycleHooksResolver,
-			createConfigurationReader(),
-			createUpgradeManager());
+				targetsFolder,
+				new ClassPathResource("test-base-target.yaml"),
+				new ClassPathResource("test-base-target-override.yaml"),
+				new ClassPathResource("test-base-target-context.xml"),
+				new ClassPathResource("test-base-target-context-override.xml"),
+				"test",
+				10,
+				createHandlebars(),
+				context,
+				deploymentPipelineFactory,
+				taskScheduler,
+				taskExecutor,
+				processedCommitsStore,
+				processorStateStore,
+				targetLifecycleHooksResolver,
+				createConfigurationReader(),
+				createUpgradeManager());
 	}
 
 	@After
@@ -301,7 +302,7 @@ public class TargetServiceImplTest {
 		TargetService targetServiceSpy = Mockito.spy(targetService);
 		doReturn(false).when(targetServiceSpy).targetExists(ENVIRONMENT, NON_EXISTING_SITE);
 		assertThrows(TargetNotFoundException.class,
-			() -> targetServiceSpy.duplicateTarget(ENVIRONMENT, NON_EXISTING_SITE, NEW_SITE_NAME, false, "test", emptyMap()));
+				() -> targetServiceSpy.duplicateTarget(ENVIRONMENT, NON_EXISTING_SITE, NEW_SITE_NAME, false, "test", emptyMap()));
 	}
 
 	@Test
@@ -310,7 +311,7 @@ public class TargetServiceImplTest {
 		when(targetServiceSpy.targetExists(ENVIRONMENT, EXISTING_SITE)).thenReturn(true);
 
 		assertThrows(TargetAlreadyExistsException.class,
-			() -> targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, EXISTING_SITE, false, "test", emptyMap()));
+				() -> targetServiceSpy.duplicateTarget(ENVIRONMENT, SOURCE_SITE_NAME, EXISTING_SITE, false, "test", emptyMap()));
 	}
 
 	@Test
@@ -433,7 +434,7 @@ public class TargetServiceImplTest {
 	}
 
 	private DeploymentPipelineFactory createDeploymentPipelineFactory() throws ConfigurationException,
-		DeployerException {
+			DeployerException {
 		DeploymentPipelineFactory pipelineFactory = mock(DeploymentPipelineFactory.class);
 		when(pipelineFactory.getPipeline(any(), any(), anyString())).thenReturn(mock(DeploymentPipeline.class));
 
@@ -453,7 +454,7 @@ public class TargetServiceImplTest {
 	}
 
 	private TargetLifecycleHooksResolver createTargetLifecycleHooksResolver() throws ConfigurationException,
-		DeployerException {
+			DeployerException {
 		createHooks = Collections.singletonList(mock(TargetLifecycleHook.class));
 
 		TargetLifecycleHooksResolver resolver = mock(TargetLifecycleHooksResolver.class);

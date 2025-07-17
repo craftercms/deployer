@@ -85,6 +85,7 @@ public class TargetImpl implements Target {
 	protected volatile Deployment currentDeployment;
 	protected final Lock deploymentLock;
 	protected Map<String, List<TargetEventListener>> eventListeners;
+	private int initRetryAttempts;
 
 	public static void setCurrent(Target target) {
 		threadLocal.set(target);
@@ -201,6 +202,7 @@ public class TargetImpl implements Target {
 			status = Status.INIT_COMPLETED;
 		} catch (Exception e) {
 			status = Status.INIT_FAILED;
+			initRetryAttempts--;
 
 			logger.error("Failed to init target '{}'", getId(), e);
 		}
@@ -273,6 +275,11 @@ public class TargetImpl implements Target {
 		}
 
 		return deployments;
+	}
+
+	@Override
+	public int getInitRetryAttempts() {
+		return initRetryAttempts;
 	}
 
 	/**
@@ -531,6 +538,10 @@ public class TargetImpl implements Target {
 				", siteName='" + siteName + '\'' +
 				", configurationFile=" +
 				configurationFile + '}';
+	}
+
+	public void setInitRetryAttempts(int initRetryAttempts) {
+		this.initRetryAttempts = initRetryAttempts;
 	}
 
 }

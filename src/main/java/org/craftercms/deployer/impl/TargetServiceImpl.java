@@ -113,6 +113,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 	protected final EncryptionAwareConfigurationReader configurationReader;
 	protected final UpgradeManager<Target> upgradeManager;
 	protected final Set<Target> currentTargets;
+	protected final int maxTargetInitRetryAttempts;
 
 	public TargetServiceImpl(
 			@Value("${deployer.main.targets.config.folderPath}") File targetConfigFolder,
@@ -121,6 +122,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 			@Value("${deployer.main.targets.config.baseContext.location}") Resource baseTargetContextResource,
 			@Value("${deployer.main.targets.config.baseContext.overrideLocation}") Resource baseTargetContextOverrideResource,
 			@Value("${deployer.main.targets.config.templates.default}") String defaultTargetConfigTemplateName,
+			@Value("${deployer.main.targets.maxInitRetries}") int maxTargetInitRetryAttempts,
 			@Autowired Handlebars targetConfigTemplateEngine,
 			@Autowired ApplicationContext mainApplicationContext,
 			@Autowired DeploymentPipelineFactory deploymentPipelineFactory,
@@ -148,6 +150,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 		this.configurationReader = configurationReader;
 		this.upgradeManager = upgradeManager;
 		this.currentTargets = new CopyOnWriteArraySet<>();
+		this.maxTargetInitRetryAttempts = maxTargetInitRetryAttempts;
 	}
 
 	public void afterPropertiesSet() throws DeployerException {
@@ -351,32 +354,41 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 		String baseName = FilenameUtils.getBaseName(configFile.getName());
 		File contextFile = new File(targetConfigFolder, format(APPLICATION_CONTEXT_FILENAME_FORMAT, baseName));
 		Target target = findLoadedTargetByConfigFile(configFile);
+		int targetInitRetryAttempts;
 
 		if (target != null) {
 			// Check if the YAML config file or the app context file have changed since target load.
 			long yamlLastModified = configFile.exists() ? configFile.lastModified() : 0;
 			long contextLastModified = contextFile.exists() ? contextFile.lastModified() : 0;
 			long targetLoadedDate = target.getLoadDate().toInstant().toEpochMilli();
+			targetInitRetryAttempts = target.getInitRetryAttempts();
 
 			// Refresh if the files have been modified.
 			if (yamlLastModified >= targetLoadedDate || contextLastModified >= targetLoadedDate) {
 				logger.info("Configuration files haven been updated for '{}'. The target will be reloaded.",
 						target.getId());
-
 				target.close();
-
 				currentTargets.remove(target);
-
 				target = null;
+			} else if (target.getStatus() == Target.Status.INIT_FAILED) {
+				if (targetInitRetryAttempts > 0) {
+					logger.info("Target '{}' is in INIT_FAILED state. Reloading target. {} attempts left", target.getId(), targetInitRetryAttempts);
+					target.close();
+					currentTargets.remove(target);
+					target = null;
+				} else {
+					logger.error("Target '{}' is in INIT_FAILED state and has no retry attempts left. Not reloading target.", target.getId());
+				}
 			}
 		} else {
+			targetInitRetryAttempts = maxTargetInitRetryAttempts;
 			logger.info("No loaded target found for configuration file {}", configFile);
 		}
 
 		if (target == null) {
 			logger.info("Loading target for configuration file {}", configFile);
 
-			target = loadTarget(configFile, contextFile, loadMode);
+			target = loadTarget(configFile, contextFile, loadMode, targetInitRetryAttempts);
 			currentTargets.add(target);
 		}
 
@@ -398,7 +410,8 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 		return context.getBean(TargetImpl.class);
 	}
 
-	protected Target loadTarget(File configFile, File contextFile, LoadMode loadMode) throws TargetServiceException {
+	protected Target loadTarget(File configFile, File contextFile, LoadMode loadMode, int retryAttempts)
+			throws TargetServiceException {
 		try {
 			// Create the target temporarily to run upgrades
 			TargetImpl target = buildTarget(configFile, contextFile);
@@ -413,6 +426,7 @@ public class TargetServiceImpl implements TargetService, ApplicationListener<App
 				case DUPLICATE -> target.executeDuplicateHooks();
 			}
 
+			target.setInitRetryAttempts(retryAttempts);
 			startInit(target);
 
 

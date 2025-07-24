@@ -19,8 +19,8 @@ package org.craftercms.deployer.impl.target.event;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.notification.NotificationSender;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.api.notification.NotificationSender;
 import org.craftercms.deployer.api.target.event.TargetEvent;
 import org.craftercms.deployer.api.target.event.TargetEventListener;
 import org.springframework.context.ApplicationContext;
@@ -31,14 +31,16 @@ import java.util.Map;
 
 import static org.craftercms.commons.config.ConfigUtils.getRequiredStringProperty;
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
-import static org.craftercms.deployer.api.notification.NotificationSender.EVENT_MODEL_KEY;
-import static org.craftercms.deployer.api.notification.NotificationSender.TARGET_MODEL_KEY;
 import static org.craftercms.deployer.impl.DeploymentConstants.*;
 
 /**
  * Abstract base class for {@link TargetEventListener} that send notifications
  */
 public class NotificationEventListener implements TargetEventListener {
+
+	public static final String EVENT_MODEL_KEY = "event";
+	public static final String TARGET_MODEL_KEY = "target";
+
 	private NotificationSender<?> notificationSender;
 
 	// Config properties (populated on init)
@@ -73,6 +75,10 @@ public class NotificationEventListener implements TargetEventListener {
 				EVENT_MODEL_KEY, event,
 				TARGET_MODEL_KEY, event.target()
 		);
-		notificationSender.sendMessage(templateName, event.payload(), model);
+		try {
+			notificationSender.sendMessage(templateName, event.payload(), model);
+		} catch (Exception e) {
+			throw new DeployerException("Error sending notification for event: " + event, e);
+		}
 	}
 }

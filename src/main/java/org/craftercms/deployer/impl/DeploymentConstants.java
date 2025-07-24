@@ -42,8 +42,6 @@ public abstract class DeploymentConstants {
 	public static final String TARGET_EVENT_LISTENER_TEMPLATE_NAME = "templateName";
 	public static final String TARGET_EVENT_LISTENER_SENDER = "sender";
 
-	public static final String DATETIME_PATTERN_CONFIG_KEY = "dateTimePattern";
-	public static final String DURATION_PATTERN_CONFIG_KEY = "durationPattern";
 	public static final String SERVER_NAME_CONFIG_KEY = "serverName";
 
 	// Target lifecycle hooks configuration keys

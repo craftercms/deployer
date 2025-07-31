@@ -18,11 +18,11 @@ package org.craftercms.deployer.impl.processors.notification;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.notification.NotificationSender;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
-import org.craftercms.deployer.api.notification.NotificationSender;
 import org.craftercms.deployer.impl.ProcessorStateStore;
 import org.craftercms.deployer.impl.processors.AbstractPostDeploymentProcessor;
 import org.slf4j.Logger;
@@ -89,7 +89,6 @@ public class NotificationProcessor extends AbstractPostDeploymentProcessor {
 	private String lastDateFilenameSuffix;
 	protected DateTimeFormatter dateTimeFormatter;
 
-
 	@Override
 	public void doInit(Configuration config) throws ConfigurationException, DeployerException {
 		statusCondition = StatusCondition.valueOf(getStringProperty(config, STATUS_CONDITION_CONFIG_KEY, defaultStatusCondition));
@@ -120,7 +119,11 @@ public class NotificationProcessor extends AbstractPostDeploymentProcessor {
 
 	@Override
 	protected void doDestroy() {
-		// Do nothing
+		try {
+			notificationSender.close();
+		} catch (Exception e) {
+			logger.error("Error while closing notification sender", e);
+		}
 	}
 
 	/**
@@ -159,7 +162,11 @@ public class NotificationProcessor extends AbstractPostDeploymentProcessor {
 			return null;
 		}
 
-		notificationSender.sendMessage(templateName, deployment, getModel(deployment));
+		try {
+			notificationSender.sendMessage(templateName, deployment, getModel(deployment));
+		} catch (Exception e) {
+			throw new DeployerException("Failed to send notification for deployment", e);
+		}
 
 		storeNotificationDate(failedProcessor);
 		return null;

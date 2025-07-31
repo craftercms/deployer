@@ -87,7 +87,7 @@
 			]
 		}
 	]
-	<#if deploymentJson??>
+	<#if payloadJson??>
 	,
     "attachments": [
         {
@@ -103,7 +103,7 @@
                     "type": "section",
                     "text": {
                         "type": "plain_text",
-                        "text": "${deploymentJson?json_string}"
+                        "text": "${payloadJson?json_string}"
                     }
                 }
             ]

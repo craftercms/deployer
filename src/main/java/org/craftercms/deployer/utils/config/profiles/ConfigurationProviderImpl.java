@@ -33,31 +33,31 @@ import java.util.Map;
  */
 public class ConfigurationProviderImpl implements ConfigurationProvider {
 
-    protected ObjectFactory<Context> contextFactory;
+	protected ObjectFactory<Context> contextFactory;
 
-    protected ContentStoreService contentStoreService;
+	protected ContentStoreService contentStoreService;
 
-    protected String siteName;
+	protected String siteName;
 
-    @ConstructorProperties({"contextFactory", "contentStoreService", "siteName"})
-    public ConfigurationProviderImpl(ObjectFactory<Context> contextFactory, ContentStoreService contentStoreService, String siteName) {
-        this.contextFactory = contextFactory;
-        this.contentStoreService = contentStoreService;
-        this.siteName = siteName;
-    }
+	@ConstructorProperties({"contextFactory", "contentStoreService", "siteName"})
+	public ConfigurationProviderImpl(ObjectFactory<Context> contextFactory, ContentStoreService contentStoreService, String siteName) {
+		this.contextFactory = contextFactory;
+		this.contentStoreService = contentStoreService;
+		this.siteName = siteName;
+	}
 
-    @Override
-    public boolean configExists(String path) {
-        return contentStoreService.exists(contextFactory.getObject(), path);
-    }
+	@Override
+	public boolean configExists(String path) {
+		return contentStoreService.exists(contextFactory.getObject(), path);
+	}
 
-    @Override
-    public InputStream getConfig(String path) throws IOException {
-        return contentStoreService.getContent(contextFactory.getObject(), path).getInputStream();
-    }
+	@Override
+	public InputStream getConfig(String path) throws IOException {
+		return contentStoreService.getContent(contextFactory.getObject(), path).getInputStream();
+	}
 
-    @Override
-    public Map<String, String> getLookupVariables() {
-        return contextFactory.getObject().getConfigLookupVariables();
-    }
+	@Override
+	public Map<String, String> getLookupVariables() {
+		return contextFactory.getObject().getConfigLookupVariables();
+	}
 }

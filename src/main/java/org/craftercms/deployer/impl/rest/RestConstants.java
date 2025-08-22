@@ -22,20 +22,20 @@ package org.craftercms.deployer.impl.rest;
  */
 public class RestConstants {
 
-    /**
-     * Environment path variable name.
-     */
-    public static final String ENV_PATH_VAR_NAME = "env";
-    /**
-     * Site name path variable name.
-     */
-    public static final String SITE_NAME_PATH_VAR_NAME = "site_name";
-    /**
-     * Request param that indicates if request shouldn't finish until the deployment is done.
-     */
-    public static final String WAIT_TILL_DONE_PARAM_NAME = "wait_till_done";
+	/**
+	 * Environment path variable name.
+	 */
+	public static final String ENV_PATH_VAR_NAME = "env";
+	/**
+	 * Site name path variable name.
+	 */
+	public static final String SITE_NAME_PATH_VAR_NAME = "site_name";
+	/**
+	 * Request param that indicates if request shouldn't finish until the deployment is done.
+	 */
+	public static final String WAIT_TILL_DONE_PARAM_NAME = "wait_till_done";
 
-    private RestConstants() {
-    }
+	private RestConstants() {
+	}
 
 }

@@ -31,29 +31,29 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  */
 public class RemovePropertyUpgradeOperation extends ConditionalEnvUpgradeOperation {
 
-    public static final String CONFIG_KEY_PROPERTY_NAME = "property";
+	public static final String CONFIG_KEY_PROPERTY_NAME = "property";
 
-    /**
-     * The name of the property
-     */
-    protected String propertyName;
+	/**
+	 * The name of the property
+	 */
+	protected String propertyName;
 
-    @Override
-    protected void doInit(HierarchicalConfiguration<?> config) throws ConfigurationException {
-        propertyName = getRequiredStringProperty(config, CONFIG_KEY_PROPERTY_NAME);
-    }
+	@Override
+	protected void doInit(HierarchicalConfiguration<?> config) throws ConfigurationException {
+		propertyName = getRequiredStringProperty(config, CONFIG_KEY_PROPERTY_NAME);
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    protected void doExecuteInternal(Target target, Map<String, Object> targetConfig) {
-        Map<String, Object> currentMap = targetConfig;
-        String[] names = propertyName.split("\\.");
-        if (names.length > 1) {
-            for (int i = 0; i < names.length - 1; i++) {
-                currentMap = (Map<String, Object>) currentMap.get(names[i]);
-            }
-        }
-        currentMap.remove(names[names.length - 1]);
-    }
+	@Override
+	@SuppressWarnings("unchecked")
+	protected void doExecuteInternal(Target target, Map<String, Object> targetConfig) {
+		Map<String, Object> currentMap = targetConfig;
+		String[] names = propertyName.split("\\.");
+		if (names.length > 1) {
+			for (int i = 0; i < names.length - 1; i++) {
+				currentMap = (Map<String, Object>) currentMap.get(names[i]);
+			}
+		}
+		currentMap.remove(names[names.length - 1]);
+	}
 
 }

@@ -1,10 +1,10 @@
 target:
-  env: test
-  siteName: foobar
-  localRepoPath: foobar
-  search:
-    indexIdFormat: '%s'
-  deployment:
-    pipeline:
-      - processorName: testProcessor
-        text: This is a test
+    env: test
+    siteName: foobar
+    localRepoPath: foobar
+    search:
+        indexIdFormat: '%s'
+    deployment:
+        pipeline:
+            -   processorName: testProcessor
+                text: This is a test

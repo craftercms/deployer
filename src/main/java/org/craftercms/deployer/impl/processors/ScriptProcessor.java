@@ -46,82 +46,82 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  */
 public class ScriptProcessor extends AbstractMainDeploymentProcessor implements ApplicationContextAware {
 
-    private static final Logger logger = LoggerFactory.getLogger(ScriptProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(ScriptProcessor.class);
 
-    public static final String CONFIG_KEY_SCRIPT_PATH = "scriptPath";
+	public static final String CONFIG_KEY_SCRIPT_PATH = "scriptPath";
 
-    public static final String SCRIPT_VAR_LOGGER = "logger";
-    public static final String SCRIPT_VAR_APP_CTX = "applicationContext";
-    public static final String SCRIPT_VAR_DEPLOYMENT = "deployment";
-    public static final String SCRIPT_VAR_EXECUTION = "execution";
-    public static final String SCRIPT_VAR_FILTERED_CHANGE_SET = "filteredChangeSet";
-    public static final String SCRIPT_VAR_ORIGINAL_CHANGE_SET = "originalChangeSet";
+	public static final String SCRIPT_VAR_LOGGER = "logger";
+	public static final String SCRIPT_VAR_APP_CTX = "applicationContext";
+	public static final String SCRIPT_VAR_DEPLOYMENT = "deployment";
+	public static final String SCRIPT_VAR_EXECUTION = "execution";
+	public static final String SCRIPT_VAR_FILTERED_CHANGE_SET = "filteredChangeSet";
+	public static final String SCRIPT_VAR_ORIGINAL_CHANGE_SET = "originalChangeSet";
 
-    protected ApplicationContext applicationContext;
+	protected ApplicationContext applicationContext;
 
-    protected final GroovyScriptEngine scriptEngine;
+	protected final GroovyScriptEngine scriptEngine;
 
-    protected final SandboxInterceptor sandboxInterceptor;
+	protected final SandboxInterceptor sandboxInterceptor;
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    /**
-     * The relative path of the script to execute
-     */
-    protected String scriptPath;
+	/**
+	 * The relative path of the script to execute
+	 */
+	protected String scriptPath;
 
-    @ConstructorProperties({"scriptEngine", "sandboxInterceptor"})
-    public ScriptProcessor(GroovyScriptEngine scriptEngine, SandboxInterceptor sandboxInterceptor) {
-        this.scriptEngine = scriptEngine;
-        this.sandboxInterceptor = sandboxInterceptor;
-    }
+	@ConstructorProperties({"scriptEngine", "sandboxInterceptor"})
+	public ScriptProcessor(GroovyScriptEngine scriptEngine, SandboxInterceptor sandboxInterceptor) {
+		this.scriptEngine = scriptEngine;
+		this.sandboxInterceptor = sandboxInterceptor;
+	}
 
-    public void setApplicationContext(ApplicationContext applicationContext) {
-        this.applicationContext = applicationContext;
-    }
+	public void setApplicationContext(ApplicationContext applicationContext) {
+		this.applicationContext = applicationContext;
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        scriptPath = getRequiredStringProperty(config, CONFIG_KEY_SCRIPT_PATH);
-    }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		scriptPath = getRequiredStringProperty(config, CONFIG_KEY_SCRIPT_PATH);
+	}
 
-    @Override
-    protected void doDestroy() {
-        // do nothing
-    }
+	@Override
+	protected void doDestroy() {
+		// do nothing
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution, ChangeSet filteredChangeSet,
-                                      ChangeSet originalChangeSet) throws DeployerException {
-        if (sandboxInterceptor != null) {
-            sandboxInterceptor.register();
-        }
-        try {
-            Binding binding = new Binding();
-            binding.setVariable(SCRIPT_VAR_LOGGER, logger);
-            binding.setVariable(SCRIPT_VAR_APP_CTX, applicationContext);
-            binding.setVariable(SCRIPT_VAR_DEPLOYMENT, deployment);
-            binding.setVariable(SCRIPT_VAR_EXECUTION, execution);
-            binding.setVariable(SCRIPT_VAR_FILTERED_CHANGE_SET, filteredChangeSet);
-            binding.setVariable(SCRIPT_VAR_ORIGINAL_CHANGE_SET, originalChangeSet);
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution, ChangeSet filteredChangeSet,
+					  ChangeSet originalChangeSet) throws DeployerException {
+		if (sandboxInterceptor != null) {
+			sandboxInterceptor.register();
+		}
+		try {
+			Binding binding = new Binding();
+			binding.setVariable(SCRIPT_VAR_LOGGER, logger);
+			binding.setVariable(SCRIPT_VAR_APP_CTX, applicationContext);
+			binding.setVariable(SCRIPT_VAR_DEPLOYMENT, deployment);
+			binding.setVariable(SCRIPT_VAR_EXECUTION, execution);
+			binding.setVariable(SCRIPT_VAR_FILTERED_CHANGE_SET, filteredChangeSet);
+			binding.setVariable(SCRIPT_VAR_ORIGINAL_CHANGE_SET, originalChangeSet);
 
-            logger.info("Starting execution of script {}", scriptPath);
-            Object result = scriptEngine.run(scriptPath, binding);
-            logger.info("Completed execution of script {}", scriptPath);
+			logger.info("Starting execution of script {}", scriptPath);
+			Object result = scriptEngine.run(scriptPath, binding);
+			logger.info("Completed execution of script {}", scriptPath);
 
-            if (result != null &&!ChangeSet.class.isAssignableFrom(result.getClass())) {
-                throw new DeployerException("Incompatible type " + result.getClass().getName() +
-                        " returned by script " + scriptPath);
-            }
+			if (result != null && !ChangeSet.class.isAssignableFrom(result.getClass())) {
+				throw new DeployerException("Incompatible type " + result.getClass().getName() +
+					" returned by script " + scriptPath);
+			}
 
-            return (ChangeSet) result;
-        } catch (Throwable e) {
-            throw new DeployerException("Error executing script " + scriptPath, e);
-        } finally {
-            if (sandboxInterceptor != null) {
-                sandboxInterceptor.unregister();
-            }
-        }
-    }
+			return (ChangeSet) result;
+		} catch (Throwable e) {
+			throw new DeployerException("Error executing script " + scriptPath, e);
+		} finally {
+			if (sandboxInterceptor != null) {
+				sandboxInterceptor.unregister();
+			}
+		}
+	}
 
 }

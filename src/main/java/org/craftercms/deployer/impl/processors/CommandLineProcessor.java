@@ -62,98 +62,98 @@ import static org.craftercms.commons.config.ConfigUtils.*;
  */
 public class CommandLineProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(CommandLineProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(CommandLineProcessor.class);
 
-    public static final String OPERATION_CREATE = "CREATE";
-    public static final String OPERATION_UPDATE = "UPDATE";
-    public static final String OPERATION_DELETE = "DELETE";
+	public static final String OPERATION_CREATE = "CREATE";
+	public static final String OPERATION_UPDATE = "UPDATE";
+	public static final String OPERATION_DELETE = "DELETE";
 
-    protected static final String WORKING_DIR_CONFIG_KEY = "workingDir";
-    protected static final String COMMAND_CONFIG_KEY = "command";
-    protected static final String PROCESS_TIMEOUT_SECS_CONFIG_KEY = "processTimeoutSecs";
-    protected static final String INCLUDE_CHANGES_CONFIG_KEY = "includeChanges";
+	protected static final String WORKING_DIR_CONFIG_KEY = "workingDir";
+	protected static final String COMMAND_CONFIG_KEY = "command";
+	protected static final String PROCESS_TIMEOUT_SECS_CONFIG_KEY = "processTimeoutSecs";
+	protected static final String INCLUDE_CHANGES_CONFIG_KEY = "includeChanges";
 
-    protected static final long DEFAULT_PROCESS_TIMEOUT_SECS = 30;
+	protected static final long DEFAULT_PROCESS_TIMEOUT_SECS = 30;
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    private String workingDir;
-    private String command;
-    private long processTimeoutSecs;
-    private boolean includeChanges;
+	private String workingDir;
+	private String command;
+	private long processTimeoutSecs;
+	private boolean includeChanges;
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        workingDir = getStringProperty(config, WORKING_DIR_CONFIG_KEY);
-        command = getRequiredStringProperty(config, COMMAND_CONFIG_KEY);
-        processTimeoutSecs = getLongProperty(config, PROCESS_TIMEOUT_SECS_CONFIG_KEY, DEFAULT_PROCESS_TIMEOUT_SECS);
-        includeChanges = config.getBoolean(INCLUDE_CHANGES_CONFIG_KEY, false);
-    }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		workingDir = getStringProperty(config, WORKING_DIR_CONFIG_KEY);
+		command = getRequiredStringProperty(config, COMMAND_CONFIG_KEY);
+		processTimeoutSecs = getLongProperty(config, PROCESS_TIMEOUT_SECS_CONFIG_KEY, DEFAULT_PROCESS_TIMEOUT_SECS);
+		includeChanges = config.getBoolean(INCLUDE_CHANGES_CONFIG_KEY, false);
+	}
 
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
 
-        if (includeChanges) {
-            String site = deployment.getTarget().getSiteName();
-            processFiles(site, OPERATION_CREATE, filteredChangeSet.getCreatedFiles());
-            processFiles(site, OPERATION_UPDATE, filteredChangeSet.getUpdatedFiles());
-            processFiles(site, OPERATION_DELETE, filteredChangeSet.getDeletedFiles());
-        } else {
-            executeProcess(EMPTY, EMPTY, EMPTY);
-        }
+		if (includeChanges) {
+			String site = deployment.getTarget().getSiteName();
+			processFiles(site, OPERATION_CREATE, filteredChangeSet.getCreatedFiles());
+			processFiles(site, OPERATION_UPDATE, filteredChangeSet.getUpdatedFiles());
+			processFiles(site, OPERATION_DELETE, filteredChangeSet.getDeletedFiles());
+		} else {
+			executeProcess(EMPTY, EMPTY, EMPTY);
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    protected void processFiles(String site, String operation, List<String> files) throws DeployerException {
-        for (String file : files) {
-            executeProcess(site, operation, file);
-        }
-    }
+	protected void processFiles(String site, String operation, List<String> files) throws DeployerException {
+		for (String file : files) {
+			executeProcess(site, operation, file);
+		}
+	}
 
-    protected void executeProcess(String site, String operation, String file) throws DeployerException {
-        List<String> fullCommand = new LinkedList<>();
+	protected void executeProcess(String site, String operation, String file) throws DeployerException {
+		List<String> fullCommand = new LinkedList<>();
 
-        Collections.addAll(fullCommand, command.split("\\s"));
+		Collections.addAll(fullCommand, command.split("\\s"));
 
-        if (isNoneEmpty(site, operation, file)) {
-            fullCommand.add(site);
-            fullCommand.add(operation);
-            fullCommand.add(file);
-        }
+		if (isNoneEmpty(site, operation, file)) {
+			fullCommand.add(site);
+			fullCommand.add(operation);
+			fullCommand.add(file);
+		}
 
-        ProcessBuilder processBuilder = new ProcessBuilder(fullCommand);
+		ProcessBuilder processBuilder = new ProcessBuilder(fullCommand);
 
-        if (StringUtils.isNotEmpty(workingDir)) {
-            processBuilder.directory(new File(workingDir));
-        }
+		if (StringUtils.isNotEmpty(workingDir)) {
+			processBuilder.directory(new File(workingDir));
+		}
 
-        processBuilder.redirectErrorStream(true);
+		processBuilder.redirectErrorStream(true);
 
-        logger.info("Executing command: {}", command);
+		logger.info("Executing command: {}", command);
 
-        try {
-            Process process = processBuilder.start();
-            process.waitFor(processTimeoutSecs, TimeUnit.SECONDS);
+		try {
+			Process process = processBuilder.start();
+			process.waitFor(processTimeoutSecs, TimeUnit.SECONDS);
 
-            try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
-                String str;
-                while ((str = reader.readLine()) != null) {
-                    logger.info("PROCESS OUTPUT: {}", str);
-                }
-            }
+			try (BufferedReader reader = new BufferedReader(new InputStreamReader(process.getInputStream()))) {
+				String str;
+				while ((str = reader.readLine()) != null) {
+					logger.info("PROCESS OUTPUT: {}", str);
+				}
+			}
 
-            logger.info("Process finished with exit code {}", process.exitValue());
-        } catch (IOException | InterruptedException e) {
-            throw new DeployerException("Error while executing command", e);
-        }
+			logger.info("Process finished with exit code {}", process.exitValue());
+		} catch (IOException | InterruptedException e) {
+			throw new DeployerException("Error while executing command", e);
+		}
 
-    }
+	}
 
 }

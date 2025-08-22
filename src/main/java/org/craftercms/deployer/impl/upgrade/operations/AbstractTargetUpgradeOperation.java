@@ -39,59 +39,59 @@ import java.util.Map;
  */
 public abstract class AbstractTargetUpgradeOperation extends AbstractUpgradeOperation<Target> {
 
-    public static final String CONFIG_KEY_PROCESSOR = "processor";
-    public static final String CONFIG_KEY_REPLACE = "replace";
-    public static final String CONFIG_KEY_REMOVE = "remove";
-    public static final String CONFIG_KEY_PROPERTIES = "properties";
-    public static final String CONFIG_KEY_PROPERTY = "property";
-    public static final String CONFIG_KEY_PATTERN = "pattern";
-    public static final String CONFIG_KEY_EXPRESSION = "expression";
-    public static final String CONFIG_KEY_ADD = "add";
-    public static final String CONFIG_KEY_VALUE = "value";
-    public static final String CONFIG_KEY_VALUES = "values";
+	public static final String CONFIG_KEY_PROCESSOR = "processor";
+	public static final String CONFIG_KEY_REPLACE = "replace";
+	public static final String CONFIG_KEY_REMOVE = "remove";
+	public static final String CONFIG_KEY_PROPERTIES = "properties";
+	public static final String CONFIG_KEY_PROPERTY = "property";
+	public static final String CONFIG_KEY_PATTERN = "pattern";
+	public static final String CONFIG_KEY_EXPRESSION = "expression";
+	public static final String CONFIG_KEY_ADD = "add";
+	public static final String CONFIG_KEY_VALUE = "value";
+	public static final String CONFIG_KEY_VALUES = "values";
 
-    public static final String CONFIG_KEY_TARGET = "target";
-    public static final String CONFIG_KEY_DEPLOYMENT = "deployment";
-    public static final String CONFIG_KEY_PIPELINE = "pipeline";
-    public static final String CONFIG_KEY_PROCESSOR_NAME = "processorName";
-    public static final String CONFIG_KEY_LIFECYCLE_HOOKS = "lifecycleHooks";
-    public static final String CONFIG_KEY_HOOK_NAME = "hookName";
+	public static final String CONFIG_KEY_TARGET = "target";
+	public static final String CONFIG_KEY_DEPLOYMENT = "deployment";
+	public static final String CONFIG_KEY_PIPELINE = "pipeline";
+	public static final String CONFIG_KEY_PROCESSOR_NAME = "processorName";
+	public static final String CONFIG_KEY_LIFECYCLE_HOOKS = "lifecycleHooks";
+	public static final String CONFIG_KEY_HOOK_NAME = "hookName";
 
-    protected Yaml yaml;
+	protected Yaml yaml;
 
-    public AbstractTargetUpgradeOperation() {
-        DumperOptions options = new DumperOptions();
-        options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
-        options.setPrettyFlow(true);
-        yaml = new Yaml(new DisableClassLoadingConstructor(new LoaderOptions()), new Representer(options), options);
-    }
+	public AbstractTargetUpgradeOperation() {
+		DumperOptions options = new DumperOptions();
+		options.setDefaultFlowStyle(DumperOptions.FlowStyle.BLOCK);
+		options.setPrettyFlow(true);
+		yaml = new Yaml(new DisableClassLoadingConstructor(new LoaderOptions()), new Representer(options), options);
+	}
 
-    @SuppressWarnings("unchecked")
-    protected List<Map<String, Object>> getPipeline(Map<String, Object> targetConfig) {
-        Map<String, Object> targetObj = (Map<String, Object>)targetConfig.get(CONFIG_KEY_TARGET);
-        Map<String, Object> deploymentObj = (Map<String, Object>)targetObj.get(CONFIG_KEY_DEPLOYMENT);
-        return (List<Map<String, Object>>)deploymentObj.get(CONFIG_KEY_PIPELINE);
-    }
+	@SuppressWarnings("unchecked")
+	protected List<Map<String, Object>> getPipeline(Map<String, Object> targetConfig) {
+		Map<String, Object> targetObj = (Map<String, Object>) targetConfig.get(CONFIG_KEY_TARGET);
+		Map<String, Object> deploymentObj = (Map<String, Object>) targetObj.get(CONFIG_KEY_DEPLOYMENT);
+		return (List<Map<String, Object>>) deploymentObj.get(CONFIG_KEY_PIPELINE);
+	}
 
-    @Override
-    protected void doExecute(UpgradeContext<Target> context) throws Exception {
-        var target = context.getTarget();
-        Path file = target.getConfigurationFile().toPath();
-        Map<String, Object> targetConfig;
+	@Override
+	protected void doExecute(UpgradeContext<Target> context) throws Exception {
+		var target = context.getTarget();
+		Path file = target.getConfigurationFile().toPath();
+		Map<String, Object> targetConfig;
 
-        logger.debug("Loading target configuration for {}", target.getId());
-        try (InputStream is = Files.newInputStream(file)) {
-            targetConfig = yaml.load(is);
-        }
+		logger.debug("Loading target configuration for {}", target.getId());
+		try (InputStream is = Files.newInputStream(file)) {
+			targetConfig = yaml.load(is);
+		}
 
-        doExecute(target, targetConfig);
+		doExecute(target, targetConfig);
 
-        logger.debug("Writing target configuration for {}", target.getId());
-        try (Writer writer = Files.newBufferedWriter(file)) {
-            yaml.dump(targetConfig, writer);
-        }
-    }
+		logger.debug("Writing target configuration for {}", target.getId());
+		try (Writer writer = Files.newBufferedWriter(file)) {
+			yaml.dump(targetConfig, writer);
+		}
+	}
 
-    protected abstract void doExecute(Target target, Map<String, Object> targetConfig) throws Exception;
+	protected abstract void doExecute(Target target, Map<String, Object> targetConfig) throws Exception;
 
 }

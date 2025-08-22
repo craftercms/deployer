@@ -28,28 +28,29 @@ import org.springframework.stereotype.Component;
 
 /**
  * Triggers the cleanup of all target repositories.
+ *
  * @author joseross
  */
 @Component
 @ConditionalOnProperty("deployer.main.targets.cleanup.enabled")
 public class TargetCleanupTask {
 
-    private static final Logger logger = LoggerFactory.getLogger(TargetCleanupTask.class);
+	private static final Logger logger = LoggerFactory.getLogger(TargetCleanupTask.class);
 
-    @Autowired
-    protected TargetService targetService;
+	@Autowired
+	protected TargetService targetService;
 
-    /**
-     * Performs a cleanup on all loaded targets.
-     */
-    @Scheduled(cron = "${deployer.main.targets.cleanup.cron}")
-    public void cleanupAllTargets() {
-        try {
-            logger.info("Starting cleanup for all targets");
-            targetService.getAllTargets().forEach(Target::cleanRepo);
-        } catch (TargetServiceException e) {
-            logger.error("Error getting loaded targets", e);
-        }
-    }
+	/**
+	 * Performs a cleanup on all loaded targets.
+	 */
+	@Scheduled(cron = "${deployer.main.targets.cleanup.cron}")
+	public void cleanupAllTargets() {
+		try {
+			logger.info("Starting cleanup for all targets");
+			targetService.getAllTargets().forEach(Target::cleanRepo);
+		} catch (TargetServiceException e) {
+			logger.error("Error getting loaded targets", e);
+		}
+	}
 
 }

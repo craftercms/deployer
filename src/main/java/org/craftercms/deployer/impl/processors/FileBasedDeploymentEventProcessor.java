@@ -40,52 +40,52 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  */
 public class FileBasedDeploymentEventProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(FileBasedDeploymentEventProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(FileBasedDeploymentEventProcessor.class);
 
-    protected static final String CONFIG_KEY_EVENT_NAME = "eventName";
+	protected static final String CONFIG_KEY_EVENT_NAME = "eventName";
 
-    protected DeploymentEventsStore<Properties, Path> store;
+	protected DeploymentEventsStore<Properties, Path> store;
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    /**
-     * URL of the deployment events file, relative to the local git repo.
-     */
-    protected String deploymentEventsFileUrl;
-    /**
-     * Name of the event to trigger when this processor runs.
-     */
-    protected String eventName;
+	/**
+	 * URL of the deployment events file, relative to the local git repo.
+	 */
+	protected String deploymentEventsFileUrl;
+	/**
+	 * Name of the event to trigger when this processor runs.
+	 */
+	protected String eventName;
 
-    @ConstructorProperties({"store"})
-    public FileBasedDeploymentEventProcessor(DeploymentEventsStore<Properties, Path> store) {
-        this.store = store;
-    }
+	@ConstructorProperties({"store"})
+	public FileBasedDeploymentEventProcessor(DeploymentEventsStore<Properties, Path> store) {
+		this.store = store;
+	}
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
-        eventName = getRequiredStringProperty(config, CONFIG_KEY_EVENT_NAME);
-    }
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException, DeployerException {
+		eventName = getRequiredStringProperty(config, CONFIG_KEY_EVENT_NAME);
+	}
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        Target target = deployment.getTarget();
-        Properties deploymentEvents = store.loadDeploymentEvents(target);
-        String now = Instant.now().toString();
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+		Target target = deployment.getTarget();
+		Properties deploymentEvents = store.loadDeploymentEvents(target);
+		String now = Instant.now().toString();
 
-        deploymentEvents.setProperty(eventName, now);
+		deploymentEvents.setProperty(eventName, now);
 
-        store.saveDeploymentEvents(target, deploymentEvents);
+		store.saveDeploymentEvents(target, deploymentEvents);
 
-        logger.info("Event {}={} saved to {}", eventName, now, store.getSource(target));
+		logger.info("Event {}={} saved to {}", eventName, now, store.getSource(target));
 
-        return null;
-    }
+		return null;
+	}
 
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
 }

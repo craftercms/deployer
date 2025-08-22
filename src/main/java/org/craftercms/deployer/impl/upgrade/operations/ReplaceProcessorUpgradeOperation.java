@@ -32,58 +32,58 @@ import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSOR_NAME_CO
  */
 public class ReplaceProcessorUpgradeOperation extends AbstractProcessorUpgradeOperation {
 
-    public static final String CONFIG_KEY_CONDITIONS = "conditions";
+	public static final String CONFIG_KEY_CONDITIONS = "conditions";
 
-    public static final String CONFIG_KEY_NEW_PROCESSOR = "newProcessor";
+	public static final String CONFIG_KEY_NEW_PROCESSOR = "newProcessor";
 
-    public static final String CONFIG_KEY_DELETE_PROPERTIES = "deleteProperties";
-    protected Map<String, String> conditions;
+	public static final String CONFIG_KEY_DELETE_PROPERTIES = "deleteProperties";
+	protected Map<String, String> conditions;
 
-    protected String newProcessorName;
+	protected String newProcessorName;
 
-    protected List<String> deleteProperties;
+	protected List<String> deleteProperties;
 
-    @Override
-    @SuppressWarnings("rawtypes,unchecked")
-    protected void doInit(HierarchicalConfiguration config) throws ConfigurationException {
-        conditions = new HashMap<>();
-        List<HierarchicalConfiguration> conditionConfig = config.configurationsAt(CONFIG_KEY_CONDITIONS);
-        if (!conditionConfig.isEmpty()) {
-            Iterator<String> it = conditionConfig.get(0).getKeys();
-            while (it.hasNext()) {
-                String key = it.next();
-                conditions.put(key, conditionConfig.get(0).getString(key));
-            }
-        }
+	@Override
+	@SuppressWarnings("rawtypes,unchecked")
+	protected void doInit(HierarchicalConfiguration config) throws ConfigurationException {
+		conditions = new HashMap<>();
+		List<HierarchicalConfiguration> conditionConfig = config.configurationsAt(CONFIG_KEY_CONDITIONS);
+		if (!conditionConfig.isEmpty()) {
+			Iterator<String> it = conditionConfig.get(0).getKeys();
+			while (it.hasNext()) {
+				String key = it.next();
+				conditions.put(key, conditionConfig.get(0).getString(key));
+			}
+		}
 
-        newProcessorName = getRequiredStringProperty(config, CONFIG_KEY_NEW_PROCESSOR);
+		newProcessorName = getRequiredStringProperty(config, CONFIG_KEY_NEW_PROCESSOR);
 
-        deleteProperties = config.getList(String.class, CONFIG_KEY_DELETE_PROPERTIES, Collections.emptyList());
-    }
+		deleteProperties = config.getList(String.class, CONFIG_KEY_DELETE_PROPERTIES, Collections.emptyList());
+	}
 
-    protected boolean matchesAllConditions(Map<String, Object> processorObj) {
-        if (processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processorName)) {
-            for(String property : conditions.keySet()) {
-                if (!(processorObj.containsKey(property) &&
-                        processorObj.get(property).toString().matches(conditions.get(property)))) {
-                    return false;
-                }
-            }
-            return true;
-        } else {
-            return false;
-        }
-    }
+	protected boolean matchesAllConditions(Map<String, Object> processorObj) {
+		if (processorObj.get(PROCESSOR_NAME_CONFIG_KEY).equals(processorName)) {
+			for (String property : conditions.keySet()) {
+				if (!(processorObj.containsKey(property) &&
+					processorObj.get(property).toString().matches(conditions.get(property)))) {
+					return false;
+				}
+			}
+			return true;
+		} else {
+			return false;
+		}
+	}
 
-    @Override
-    protected void doExecuteInternal(Target target, Map<String, Object> targetConfig) {
-        List<Map<String, Object>> pipelineObj = getPipeline(targetConfig);
-        for(Map<String, Object> processorObj : pipelineObj) {
-            if (matchesAllConditions(processorObj)) {
-                processorObj.put(PROCESSOR_NAME_CONFIG_KEY, newProcessorName);
-                deleteProperties.forEach(processorObj::remove);
-            }
-        }
-    }
+	@Override
+	protected void doExecuteInternal(Target target, Map<String, Object> targetConfig) {
+		List<Map<String, Object>> pipelineObj = getPipeline(targetConfig);
+		for (Map<String, Object> processorObj : pipelineObj) {
+			if (matchesAllConditions(processorObj)) {
+				processorObj.put(PROCESSOR_NAME_CONFIG_KEY, newProcessorName);
+				deleteProperties.forEach(processorObj::remove);
+			}
+		}
+	}
 
 }

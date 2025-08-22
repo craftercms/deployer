@@ -35,58 +35,58 @@ import static org.junit.Assert.*;
  */
 public class ProcessedCommitStoreImplTest {
 
-    private static final ObjectId OBJECT_ID = ObjectId.fromString("ca33348b3f4a3dc6ed05acd25e349a30dfbe7108");
+	private static final ObjectId OBJECT_ID = ObjectId.fromString("ca33348b3f4a3dc6ed05acd25e349a30dfbe7108");
 
-    private ProcessedCommitsStoreImpl processedCommitsStore;
-    private File processedCommitsFolder;
+	private ProcessedCommitsStoreImpl processedCommitsStore;
+	private File processedCommitsFolder;
 
-    @Before
-    public void setUp() throws Exception {
-        processedCommitsFolder = createProcessedCommitsFolder();
+	@Before
+	public void setUp() throws Exception {
+		processedCommitsFolder = createProcessedCommitsFolder();
 
-        processedCommitsStore = new ProcessedCommitsStoreImpl();
-        processedCommitsStore.setStoreFolder(processedCommitsFolder);
-    }
+		processedCommitsStore = new ProcessedCommitsStoreImpl();
+		processedCommitsStore.setStoreFolder(processedCommitsFolder);
+	}
 
-    @After
-    public void tearDown() throws Exception {
-        FileUtils.forceDelete(processedCommitsFolder);
-    }
+	@After
+	public void tearDown() throws Exception {
+		FileUtils.forceDelete(processedCommitsFolder);
+	}
 
-    @Test
-    public void testLoad() throws Exception {
-        ObjectId objectId = processedCommitsStore.load("foobar-test");
+	@Test
+	public void testLoad() throws Exception {
+		ObjectId objectId = processedCommitsStore.load("foobar-test");
 
-        assertNotNull(objectId);
-        assertEquals(OBJECT_ID, objectId);
-    }
+		assertNotNull(objectId);
+		assertEquals(OBJECT_ID, objectId);
+	}
 
-    @Test
-    public void testStore() throws Exception {
-        processedCommitsStore.store("barfoo-test", OBJECT_ID);
+	@Test
+	public void testStore() throws Exception {
+		processedCommitsStore.store("barfoo-test", OBJECT_ID);
 
-        File barfooTestCommitFile = new File(processedCommitsFolder, "barfoo-test.commit");
+		File barfooTestCommitFile = new File(processedCommitsFolder, "barfoo-test.commit");
 
-        assertTrue(barfooTestCommitFile.exists());
-        assertEquals(OBJECT_ID, ObjectId.fromString(FileUtils.readFileToString(barfooTestCommitFile, "UTF-8").trim()));
-    }
+		assertTrue(barfooTestCommitFile.exists());
+		assertEquals(OBJECT_ID, ObjectId.fromString(FileUtils.readFileToString(barfooTestCommitFile, "UTF-8").trim()));
+	}
 
-    @Test
-    public void testDelete() throws Exception {
-        processedCommitsStore.delete("foobar-test");
+	@Test
+	public void testDelete() throws Exception {
+		processedCommitsStore.delete("foobar-test");
 
-        File foobarTestFile = new File(processedCommitsFolder, "foobar-test.commit");
+		File foobarTestFile = new File(processedCommitsFolder, "foobar-test.commit");
 
-        assertFalse(foobarTestFile.exists());
-    }
+		assertFalse(foobarTestFile.exists());
+	}
 
-    private File createProcessedCommitsFolder() throws IOException {
-        File tempProcessedCommitsFolder = Files.createTempDirectory("processed-commits").toFile();
-        File classpathProcessedCommitsFolder = new ClassPathResource("processed-commits").getFile();
+	private File createProcessedCommitsFolder() throws IOException {
+		File tempProcessedCommitsFolder = Files.createTempDirectory("processed-commits").toFile();
+		File classpathProcessedCommitsFolder = new ClassPathResource("processed-commits").getFile();
 
-        FileUtils.copyDirectory(classpathProcessedCommitsFolder, tempProcessedCommitsFolder);
+		FileUtils.copyDirectory(classpathProcessedCommitsFolder, tempProcessedCommitsFolder);
 
-        return tempProcessedCommitsFolder;
-    }
+		return tempProcessedCommitsFolder;
+	}
 
 }

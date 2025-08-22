@@ -33,114 +33,114 @@ import org.craftercms.search.batch.AbstractUpdateDetailProvider;
 @JsonIgnoreProperties({"updateDetails", "updateLog"})
 public class ChangeSet extends AbstractUpdateDetailProvider {
 
-    protected List<String> createdFiles;
-    protected List<String> updatedFiles;
-    protected List<String> deletedFiles;
+	protected List<String> createdFiles;
+	protected List<String> updatedFiles;
+	protected List<String> deletedFiles;
 
-    public ChangeSet() {
-        this.createdFiles = new ArrayList<>();
-        this.updatedFiles = new ArrayList<>();
-        this.deletedFiles = new ArrayList<>();
-    }
+	public ChangeSet() {
+		this.createdFiles = new ArrayList<>();
+		this.updatedFiles = new ArrayList<>();
+		this.deletedFiles = new ArrayList<>();
+	}
 
-    public ChangeSet(List<String> createdFiles, List<String> updatedFiles, List<String> deletedFiles) {
-        this.createdFiles = createdFiles;
-        this.updatedFiles = updatedFiles;
-        this.deletedFiles = deletedFiles;
-    }
+	public ChangeSet(List<String> createdFiles, List<String> updatedFiles, List<String> deletedFiles) {
+		this.createdFiles = createdFiles;
+		this.updatedFiles = updatedFiles;
+		this.deletedFiles = deletedFiles;
+	}
 
-    /**
-     * Returns the list of created files.
-     */
-    @JsonProperty("created_files")
-    public List<String> getCreatedFiles() {
-        return createdFiles;
-    }
+	/**
+	 * Returns the list of created files.
+	 */
+	@JsonProperty("created_files")
+	public List<String> getCreatedFiles() {
+		return createdFiles;
+	}
 
-    /**
-     * Adds a file to the list of created files if it's not in the list
-     * 
-     * @param file the file to add
-     */
-    public void addCreatedFile(String file) {
-        if (!createdFiles.contains(file)) {
-            createdFiles.add(file);
-        }
-    }
+	/**
+	 * Adds a file to the list of created files if it's not in the list
+	 *
+	 * @param file the file to add
+	 */
+	public void addCreatedFile(String file) {
+		if (!createdFiles.contains(file)) {
+			createdFiles.add(file);
+		}
+	}
 
-    /**
-     * Removes a file from the list of created files.
-     * 
-     * @param file the file to remove
-     */
-    public void removeCreatedFile(String file) {
-        createdFiles.remove(file);
-    }
+	/**
+	 * Removes a file from the list of created files.
+	 *
+	 * @param file the file to remove
+	 */
+	public void removeCreatedFile(String file) {
+		createdFiles.remove(file);
+	}
 
-    /**
-     * Returns the list of updated files.
-     */
-    @JsonProperty("updated_files")
-    public List<String> getUpdatedFiles() {
-        return updatedFiles;
-    }
+	/**
+	 * Returns the list of updated files.
+	 */
+	@JsonProperty("updated_files")
+	public List<String> getUpdatedFiles() {
+		return updatedFiles;
+	}
 
-    /**
-     * Adds a file to the list of updated files if it's not in the list
-     *
-     * @param file the file to add
-     */
-    public void addUpdatedFile(String file) {
-        if (!updatedFiles.contains(file)) {
-            updatedFiles.add(file);
-        }
-    }
+	/**
+	 * Adds a file to the list of updated files if it's not in the list
+	 *
+	 * @param file the file to add
+	 */
+	public void addUpdatedFile(String file) {
+		if (!updatedFiles.contains(file)) {
+			updatedFiles.add(file);
+		}
+	}
 
-    /**
-     * Removes a file from the list of updated files.
-     *
-     * @param file the file to remove
-     */
-    public void removeUpdatedFile(String file) {
-        updatedFiles.remove(file);
-    }    
+	/**
+	 * Removes a file from the list of updated files.
+	 *
+	 * @param file the file to remove
+	 */
+	public void removeUpdatedFile(String file) {
+		updatedFiles.remove(file);
+	}
 
-    /**
-     * Returns the list of deleted files.
-     */
-    @JsonProperty("deleted_files")
-    public List<String> getDeletedFiles() {
-        return deletedFiles;
-    }
+	/**
+	 * Returns the list of deleted files.
+	 */
+	@JsonProperty("deleted_files")
+	public List<String> getDeletedFiles() {
+		return deletedFiles;
+	}
 
-    /**
-     * Adds a file to the list of deleted files if it's not in the list
-     *
-     * @param file the file to add
-     */
-    public void addDeletedFile(String file) {
-        if (!deletedFiles.contains(file)) {
-            deletedFiles.add(file);
-        }
-    }
+	/**
+	 * Adds a file to the list of deleted files if it's not in the list
+	 *
+	 * @param file the file to add
+	 */
+	public void addDeletedFile(String file) {
+		if (!deletedFiles.contains(file)) {
+			deletedFiles.add(file);
+		}
+	}
 
-    /**
-     * Removes a file from the list of deleted files.
-     *
-     * @param file the file to remove
-     */
-    public void removeDeletedFile(String file) {
-        deletedFiles.remove(file);
-    }    
+	/**
+	 * Removes a file from the list of deleted files.
+	 *
+	 * @param file the file to remove
+	 */
+	public void removeDeletedFile(String file) {
+		deletedFiles.remove(file);
+	}
 
-    /**
-     * Returns true if there are not created, updated or deleted files.
-     */
-    @JsonIgnore
-    public boolean isEmpty() {
-        return CollectionUtils.isEmpty(createdFiles) &&
-               CollectionUtils.isEmpty(updatedFiles) &&
-               CollectionUtils.isEmpty(deletedFiles);
-    }
+	/**
+	 * Returns true if there are not created, updated or deleted files.
+	 */
+	@JsonIgnore
+	public boolean isEmpty() {
+		return CollectionUtils.isEmpty(createdFiles) &&
+			CollectionUtils.isEmpty(updatedFiles) &&
+			CollectionUtils.isEmpty(deletedFiles);
+	}
 
 }

@@ -34,14 +34,14 @@ import java.util.List;
  */
 public class TargetUpgradePipelineFactory extends DefaultUpgradePipelineFactoryImpl<Target> {
 
-    public TargetUpgradePipelineFactory(String pipelineName, UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider,
-                                        VersionProvider<Target> versionProvider) {
-        super(pipelineName, configurationProvider, versionProvider);
-    }
+	public TargetUpgradePipelineFactory(String pipelineName, UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider,
+					    VersionProvider<Target> versionProvider) {
+		super(pipelineName, configurationProvider, versionProvider);
+	}
 
-    @Override
-    protected UpgradePipeline<Target> createPipeline(String name, List<UpgradeOperation<Target>> upgradeOperations) {
-        return new TargetUpgradePipeline(name, upgradeOperations);
-    }
+	@Override
+	protected UpgradePipeline<Target> createPipeline(String name, List<UpgradeOperation<Target>> upgradeOperations) {
+		return new TargetUpgradePipeline(name, upgradeOperations);
+	}
 
 }

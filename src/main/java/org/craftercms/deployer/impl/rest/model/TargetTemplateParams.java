@@ -26,6 +26,7 @@ import org.craftercms.commons.validation.annotations.param.ValidateSecurePathPar
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
+
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -38,103 +39,103 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class TargetTemplateParams {
 
-    @NotBlank
-    @Size(max = 50)
-    @ValidateNoTagsParam
-    @ValidateSecurePathParam
-    private String templateName = "remote";
-    @ValidateNoTagsParam
-    private String repoUrl;
-    @ValidateNoTagsParam
-    @ValidateSecurePathParam
-    private String repoBranch;
-    @ValidUsername
-    private String repoUsername;
-    @ValidateNoTagsParam
-    @ValidateSecurePathParam
-    private String sshPrivateKeyPath;
-    @ValidateNoTagsParam
-    private String engineUrl;
-    private boolean replace;
-    private List<@NotBlank @EsapiValidatedParam(type = EMAIL) String> notificationAddresses;
-    @JsonUnwrapped
-    private final Map<String, Object> extraParams;
+	@NotBlank
+	@Size(max = 50)
+	@ValidateNoTagsParam
+	@ValidateSecurePathParam
+	private String templateName = "remote";
+	@ValidateNoTagsParam
+	private String repoUrl;
+	@ValidateNoTagsParam
+	@ValidateSecurePathParam
+	private String repoBranch;
+	@ValidUsername
+	private String repoUsername;
+	@ValidateNoTagsParam
+	@ValidateSecurePathParam
+	private String sshPrivateKeyPath;
+	@ValidateNoTagsParam
+	private String engineUrl;
+	private boolean replace;
+	private List<@NotBlank @EsapiValidatedParam(type = EMAIL) String> notificationAddresses;
+	@JsonUnwrapped
+	private final Map<String, Object> extraParams;
 
-    public TargetTemplateParams() {
-        this.extraParams = new HashMap<>();
-    }
+	public TargetTemplateParams() {
+		this.extraParams = new HashMap<>();
+	}
 
-    public String getTemplateName() {
-        return templateName;
-    }
+	public String getTemplateName() {
+		return templateName;
+	}
 
-    public void setTemplateName(String templateName) {
-        this.templateName = templateName;
-    }
+	public void setTemplateName(String templateName) {
+		this.templateName = templateName;
+	}
 
-    public String getRepoUrl() {
-        return repoUrl;
-    }
+	public String getRepoUrl() {
+		return repoUrl;
+	}
 
-    public void setRepoUrl(String repoUrl) {
-        this.repoUrl = repoUrl;
-    }
+	public void setRepoUrl(String repoUrl) {
+		this.repoUrl = repoUrl;
+	}
 
-    public String getRepoBranch() {
-        return repoBranch;
-    }
+	public String getRepoBranch() {
+		return repoBranch;
+	}
 
-    public void setRepoBranch(String repoBranch) {
-        this.repoBranch = repoBranch;
-    }
+	public void setRepoBranch(String repoBranch) {
+		this.repoBranch = repoBranch;
+	}
 
-    public String getRepoUsername() {
-        return repoUsername;
-    }
+	public String getRepoUsername() {
+		return repoUsername;
+	}
 
-    public void setRepoUsername(String repoUsername) {
-        this.repoUsername = repoUsername;
-    }
+	public void setRepoUsername(String repoUsername) {
+		this.repoUsername = repoUsername;
+	}
 
-    public String getSshPrivateKeyPath() {
-        return sshPrivateKeyPath;
-    }
+	public String getSshPrivateKeyPath() {
+		return sshPrivateKeyPath;
+	}
 
-    public void setSshPrivateKeyPath(String sshPrivateKeyPath) {
-        this.sshPrivateKeyPath = sshPrivateKeyPath;
-    }
+	public void setSshPrivateKeyPath(String sshPrivateKeyPath) {
+		this.sshPrivateKeyPath = sshPrivateKeyPath;
+	}
 
-    public String getEngineUrl() {
-        return engineUrl;
-    }
+	public String getEngineUrl() {
+		return engineUrl;
+	}
 
-    public void setEngineUrl(String engineUrl) {
-        this.engineUrl = engineUrl;
-    }
+	public void setEngineUrl(String engineUrl) {
+		this.engineUrl = engineUrl;
+	}
 
-    public List<String> getNotificationAddresses() {
-        return notificationAddresses;
-    }
+	public List<String> getNotificationAddresses() {
+		return notificationAddresses;
+	}
 
-    public void setNotificationAddresses(List<String> notificationAddresses) {
-        this.notificationAddresses = notificationAddresses;
-    }
+	public void setNotificationAddresses(List<String> notificationAddresses) {
+		this.notificationAddresses = notificationAddresses;
+	}
 
-    public boolean isReplace() {
-        return replace;
-    }
+	public boolean isReplace() {
+		return replace;
+	}
 
-    public void setReplace(boolean replace) {
-        this.replace = replace;
-    }
+	public void setReplace(boolean replace) {
+		this.replace = replace;
+	}
 
-    @JsonAnySetter
-    public Map<String, Object> getExtraParams() {
-        return extraParams;
-    }
+	@JsonAnySetter
+	public Map<String, Object> getExtraParams() {
+		return extraParams;
+	}
 
-    @JsonAnySetter
-    public void addExtraParam(String key, Object value) {
-        this.extraParams.put(key, value);
-    }
+	@JsonAnySetter
+	public void addExtraParam(String key, Object value) {
+		this.extraParams.put(key, value);
+	}
 }

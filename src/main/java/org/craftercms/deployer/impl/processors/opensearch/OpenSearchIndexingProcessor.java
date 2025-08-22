@@ -34,101 +34,101 @@ import java.util.List;
  */
 public class OpenSearchIndexingProcessor extends AbstractSearchIndexingProcessor {
 
-    private static final String DEFAULT_LOCAL_ID_FIELD_NAME = "localId";
+	private static final String DEFAULT_LOCAL_ID_FIELD_NAME = "localId";
 
-    private static final String DEFAULT_INHERITS_FROM_FIELD_NAME = "inheritsFrom_smv";
+	private static final String DEFAULT_INHERITS_FROM_FIELD_NAME = "inheritsFrom_smv";
 
-    private static final String DEFAULT_INCLUDED_DESCRIPTORS_FIELD_NAME = "includedDescriptors";
+	private static final String DEFAULT_INCLUDED_DESCRIPTORS_FIELD_NAME = "includedDescriptors";
 
-    private static final String DEFAULT_METADATA_PATH_FIELD_NAME = "metadataPath";
+	private static final String DEFAULT_METADATA_PATH_FIELD_NAME = "metadataPath";
 
-    protected String localIdFieldName = DEFAULT_LOCAL_ID_FIELD_NAME;
+	protected String localIdFieldName = DEFAULT_LOCAL_ID_FIELD_NAME;
 
-    protected String inheritsFromFieldName = DEFAULT_INHERITS_FROM_FIELD_NAME;
+	protected String inheritsFromFieldName = DEFAULT_INHERITS_FROM_FIELD_NAME;
 
-    protected String includedDescriptorsFieldName = DEFAULT_INCLUDED_DESCRIPTORS_FIELD_NAME;
+	protected String includedDescriptorsFieldName = DEFAULT_INCLUDED_DESCRIPTORS_FIELD_NAME;
 
-    protected String metadataPathFieldName = DEFAULT_METADATA_PATH_FIELD_NAME;
+	protected String metadataPathFieldName = DEFAULT_METADATA_PATH_FIELD_NAME;
 
-    protected OpenSearchService searchService;
+	protected OpenSearchService searchService;
 
-    protected OpenSearchAdminService searchAdminService;
+	protected OpenSearchAdminService searchAdminService;
 
-    @ConstructorProperties({"searchService", "searchAdminService"})
-    public OpenSearchIndexingProcessor(OpenSearchService searchService,
-                                       OpenSearchAdminService searchAdminService) {
-        this.searchService = searchService;
-        this.searchAdminService = searchAdminService;
-    }
+	@ConstructorProperties({"searchService", "searchAdminService"})
+	public OpenSearchIndexingProcessor(OpenSearchService searchService,
+					   OpenSearchAdminService searchAdminService) {
+		this.searchService = searchService;
+		this.searchAdminService = searchAdminService;
+	}
 
-    @Override
-    protected void doCreateIndexIfMissing() {
-        if (!searchAdminService.indexExists(indexId)) {
-            searchAdminService.createIndex(indexId);
-        }
-    }
+	@Override
+	protected void doCreateIndexIfMissing() {
+		if (!searchAdminService.indexExists(indexId)) {
+			searchAdminService.createIndex(indexId);
+		}
+	}
 
-    @Override
-    protected void doCommit(final String indexId) {
-        try {
-            searchService.refresh(indexId);
-        } catch (Exception e) {
-            throw new SearchException(indexId, "Error committing changes", e);
-        }
-    }
+	@Override
+	protected void doCommit(final String indexId) {
+		try {
+			searchService.refresh(indexId);
+		} catch (Exception e) {
+			throw new SearchException(indexId, "Error committing changes", e);
+		}
+	}
 
-    @Override
-    protected List<String> getItemsThatInheritDescriptor(final String indexId, final String descriptorPath) {
-        try {
-            Query query = Query.of(q -> q
-                    .bool(b -> b
-                            .filter(f -> f
-                                    .match(m -> m
-                                            .field(inheritsFromFieldName)
-                                            .query(v -> v
-                                                    .stringValue(descriptorPath)
-                                            )
-                                    )
-                            )
-                            .mustNot(n -> n
-                                    .exists(e -> e
-                                            .field(metadataPathFieldName)
-                                    )
-                            )
-                    )
-            );
-            return searchService.searchField(indexId, localIdFieldName, query);
-        } catch (OpenSearchException e) {
-            throw new SearchException(indexId,
-                    "Error executing search of descriptors inheriting from " + descriptorPath, e);
-        }
-    }
+	@Override
+	protected List<String> getItemsThatInheritDescriptor(final String indexId, final String descriptorPath) {
+		try {
+			Query query = Query.of(q -> q
+				.bool(b -> b
+					.filter(f -> f
+						.match(m -> m
+							.field(inheritsFromFieldName)
+							.query(v -> v
+								.stringValue(descriptorPath)
+							)
+						)
+					)
+					.mustNot(n -> n
+						.exists(e -> e
+							.field(metadataPathFieldName)
+						)
+					)
+				)
+			);
+			return searchService.searchField(indexId, localIdFieldName, query);
+		} catch (OpenSearchException e) {
+			throw new SearchException(indexId,
+				"Error executing search of descriptors inheriting from " + descriptorPath, e);
+		}
+	}
 
-    @Override
-    protected List<String> getItemsThatIncludeComponent(final String indexId, final String componentPath) {
-        try {
-            Query query = Query.of(q -> q
-                    .bool(b -> b
-                            .filter(f -> f
-                                    .match(m -> m
-                                            .field(includedDescriptorsFieldName)
-                                            .query(v -> v
-                                                    .stringValue(componentPath)
-                                            )
-                                    )
-                            )
-                            .mustNot(n -> n
-                                    .exists(e -> e
-                                            .field(metadataPathFieldName)
-                                    )
-                            )
-                    )
-            );
-            return searchService.searchField(indexId, localIdFieldName, query);
-        } catch (OpenSearchException e) {
-            throw new SearchException(indexId,
-                    "Error executing search of descriptors that include component " + componentPath, e);
-        }
-    }
+	@Override
+	protected List<String> getItemsThatIncludeComponent(final String indexId, final String componentPath) {
+		try {
+			Query query = Query.of(q -> q
+				.bool(b -> b
+					.filter(f -> f
+						.match(m -> m
+							.field(includedDescriptorsFieldName)
+							.query(v -> v
+								.stringValue(componentPath)
+							)
+						)
+					)
+					.mustNot(n -> n
+						.exists(e -> e
+							.field(metadataPathFieldName)
+						)
+					)
+				)
+			);
+			return searchService.searchField(indexId, localIdFieldName, query);
+		} catch (OpenSearchException e) {
+			throw new SearchException(indexId,
+				"Error executing search of descriptors that include component " + componentPath, e);
+		}
+	}
 
 }

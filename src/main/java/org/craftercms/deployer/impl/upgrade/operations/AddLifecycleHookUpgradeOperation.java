@@ -36,36 +36,36 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  */
 public class AddLifecycleHookUpgradeOperation extends ProcessorPresentUpgradeOperation {
 
-    public static final String CONFIG_KEY_HOOK_TYPE = "hookType";
+	public static final String CONFIG_KEY_HOOK_TYPE = "hookType";
 
-    protected String hookType;
-    protected String hookName;
+	protected String hookType;
+	protected String hookName;
 
-    @Override
-    protected void doInit(HierarchicalConfiguration<?> config) throws ConfigurationException {
-        hookType = getRequiredStringProperty(config, CONFIG_KEY_HOOK_TYPE);
-        hookName = getRequiredStringProperty(config, CONFIG_KEY_HOOK_NAME);
-    }
+	@Override
+	protected void doInit(HierarchicalConfiguration<?> config) throws ConfigurationException {
+		hookType = getRequiredStringProperty(config, CONFIG_KEY_HOOK_TYPE);
+		hookName = getRequiredStringProperty(config, CONFIG_KEY_HOOK_NAME);
+	}
 
-    @Override
-    @SuppressWarnings("unchecked")
-    protected void doExecuteInternal(Target target, Map<String, Object> targetConfig) {
-        Map<String, Object> targetObj = (Map<String, Object>) targetConfig.get(CONFIG_KEY_TARGET);
-        Map<String, Object> lifecycle = (Map<String, Object>) targetObj.get(CONFIG_KEY_LIFECYCLE_HOOKS);
-        if (lifecycle == null) {
-            lifecycle = new HashMap<>();
-            targetObj.put(CONFIG_KEY_LIFECYCLE_HOOKS, lifecycle);
-        }
-        List<Map<String, Object>> hooks = (List<Map<String, Object>>) lifecycle.get(hookType);
-        if (hooks == null) {
-            hooks = new LinkedList<>();
-            lifecycle.put(hookType, hooks);
-        }
-        if (hooks.stream().noneMatch(hook -> StringUtils.equals(hookName, hook.get(CONFIG_KEY_HOOK_NAME).toString()))) {
-            hooks.add(singletonMap(CONFIG_KEY_HOOK_NAME, hookName));
-        } else {
-            logger.info("Target '{}' already has lifecycle hook '{}.{}'", target.getId(), hookType, hookName);
-        }
-    }
+	@Override
+	@SuppressWarnings("unchecked")
+	protected void doExecuteInternal(Target target, Map<String, Object> targetConfig) {
+		Map<String, Object> targetObj = (Map<String, Object>) targetConfig.get(CONFIG_KEY_TARGET);
+		Map<String, Object> lifecycle = (Map<String, Object>) targetObj.get(CONFIG_KEY_LIFECYCLE_HOOKS);
+		if (lifecycle == null) {
+			lifecycle = new HashMap<>();
+			targetObj.put(CONFIG_KEY_LIFECYCLE_HOOKS, lifecycle);
+		}
+		List<Map<String, Object>> hooks = (List<Map<String, Object>>) lifecycle.get(hookType);
+		if (hooks == null) {
+			hooks = new LinkedList<>();
+			lifecycle.put(hookType, hooks);
+		}
+		if (hooks.stream().noneMatch(hook -> StringUtils.equals(hookName, hook.get(CONFIG_KEY_HOOK_NAME).toString()))) {
+			hooks.add(singletonMap(CONFIG_KEY_HOOK_NAME, hookName));
+		} else {
+			logger.info("Target '{}' already has lifecycle hook '{}.{}'", target.getId(), hookType, hookName);
+		}
+	}
 
 }

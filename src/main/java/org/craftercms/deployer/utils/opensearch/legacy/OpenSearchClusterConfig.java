@@ -30,79 +30,79 @@ import static org.craftercms.search.opensearch.spring.RestHighLevelClientFactory
  */
 public class OpenSearchClusterConfig {
 
-    public static final String CONFIG_KEY_URLS = "urls";
+	public static final String CONFIG_KEY_URLS = "urls";
 
-    public static final String CONFIG_KEY_USERNAME = "username";
+	public static final String CONFIG_KEY_USERNAME = "username";
 
-    public static final String CONFIG_KEY_PASSWORD = "password";
+	public static final String CONFIG_KEY_PASSWORD = "password";
 
-    public static final String CONFIG_KEY_TIMEOUT_CONNECT = "timeout.connect";
+	public static final String CONFIG_KEY_TIMEOUT_CONNECT = "timeout.connect";
 
-    public static final String CONFIG_KEY_TIMEOUT_SOCKET = "timeout.socket";
+	public static final String CONFIG_KEY_TIMEOUT_SOCKET = "timeout.socket";
 
-    public static final String CONFIG_KEY_THREADS = "threads";
+	public static final String CONFIG_KEY_THREADS = "threads";
 
-    public static final String CONFIG_KEY_KEEP_ALIVE = "keepAlive";
+	public static final String CONFIG_KEY_KEEP_ALIVE = "keepAlive";
 
-    /**
-     * The list of urls to connect to the cluster
-     */
-    public final String[] urls;
+	/**
+	 * The list of urls to connect to the cluster
+	 */
+	public final String[] urls;
 
-    /**
-     * The username to connect to the cluster
-     */
-    public final String username;
+	/**
+	 * The username to connect to the cluster
+	 */
+	public final String username;
 
-    /**
-     * The password to connect to the cluster
-     */
-    public final String password;
+	/**
+	 * The password to connect to the cluster
+	 */
+	public final String password;
 
-    public final int connectTimeout;
+	public final int connectTimeout;
 
-    public final int socketTimeout;
+	public final int socketTimeout;
 
-    public final int threadCount;
+	public final int threadCount;
 
-    public final boolean keepAlive;
+	public final boolean keepAlive;
 
-    public OpenSearchClusterConfig() {
-        urls = null;
-        username = null;
-        password = null;
-        connectTimeout = -1;
-        socketTimeout = -1;
-        threadCount = -1;
-        keepAlive = false;
-    }
+	public OpenSearchClusterConfig() {
+		urls = null;
+		username = null;
+		password = null;
+		connectTimeout = -1;
+		socketTimeout = -1;
+		threadCount = -1;
+		keepAlive = false;
+	}
 
-    public OpenSearchClusterConfig(HierarchicalConfiguration<?> config) {
-        urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
-        username = config.getString(CONFIG_KEY_USERNAME, null);
-        password = config.getString(CONFIG_KEY_PASSWORD, null);
-        connectTimeout = config.getInt(CONFIG_KEY_TIMEOUT_CONNECT, -1);
-        socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, -1);
-        threadCount = config.getInt(CONFIG_KEY_THREADS, -1);
-        keepAlive = config.getBoolean(CONFIG_KEY_KEEP_ALIVE, false);
-    }
+	public OpenSearchClusterConfig(HierarchicalConfiguration<?> config) {
+		urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
+		username = config.getString(CONFIG_KEY_USERNAME, null);
+		password = config.getString(CONFIG_KEY_PASSWORD, null);
+		connectTimeout = config.getInt(CONFIG_KEY_TIMEOUT_CONNECT, -1);
+		socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, -1);
+		threadCount = config.getInt(CONFIG_KEY_THREADS, -1);
+		keepAlive = config.getBoolean(CONFIG_KEY_KEEP_ALIVE, false);
+	}
 
-    public OpenSearchClusterConfig(HierarchicalConfiguration<?> config, String username, String password,
-                                   int connectTimeout, int socketTimeout, int threadCount, boolean keepAlive) {
-        urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
-        this.username = config.getString(CONFIG_KEY_USERNAME, username);
-        this.password = config.getString(CONFIG_KEY_PASSWORD, password);
-        this.connectTimeout = config.getInt(CONFIG_KEY_TIMEOUT_CONNECT, connectTimeout);
-        this.socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, socketTimeout);
-        this.threadCount = config.getInt(CONFIG_KEY_THREADS, threadCount);
-        this.keepAlive = config.getBoolean(CONFIG_KEY_KEEP_ALIVE, keepAlive);
-    }
+	public OpenSearchClusterConfig(HierarchicalConfiguration<?> config, String username, String password,
+				       int connectTimeout, int socketTimeout, int threadCount, boolean keepAlive) {
+		urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
+		this.username = config.getString(CONFIG_KEY_USERNAME, username);
+		this.password = config.getString(CONFIG_KEY_PASSWORD, password);
+		this.connectTimeout = config.getInt(CONFIG_KEY_TIMEOUT_CONNECT, connectTimeout);
+		this.socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, socketTimeout);
+		this.threadCount = config.getInt(CONFIG_KEY_THREADS, threadCount);
+		this.keepAlive = config.getBoolean(CONFIG_KEY_KEEP_ALIVE, keepAlive);
+	}
 
-    /**
-     * Returns a client matching the current configuration of the cluster
-     */
-    public RestHighLevelClient buildClient() {
-        return createClient(urls, username, password, connectTimeout, socketTimeout ,threadCount, keepAlive);
-    }
+	/**
+	 * Returns a client matching the current configuration of the cluster
+	 */
+	public RestHighLevelClient buildClient() {
+		return createClient(urls, username, password, connectTimeout, socketTimeout, threadCount, keepAlive);
+	}
 
 }

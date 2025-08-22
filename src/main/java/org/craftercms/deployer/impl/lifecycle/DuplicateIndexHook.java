@@ -29,23 +29,23 @@ import static org.apache.commons.lang.StringUtils.isEmpty;
  * a source site to a target site.
  */
 public class DuplicateIndexHook extends AbstractIndexAwareLifecycleHook {
-    private final String sourceSiteName;
+	private final String sourceSiteName;
 
-    @ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService", "sourceSiteName"})
-    public DuplicateIndexHook(String siteName, String indexIdFormat, OpenSearchAdminService searchAdminService, String sourceSiteName) {
-        super(siteName, indexIdFormat, searchAdminService);
-        this.sourceSiteName = sourceSiteName;
-    }
+	@ConstructorProperties({"siteName", "indexIdFormat", "searchAdminService", "sourceSiteName"})
+	public DuplicateIndexHook(String siteName, String indexIdFormat, OpenSearchAdminService searchAdminService, String sourceSiteName) {
+		super(siteName, indexIdFormat, searchAdminService);
+		this.sourceSiteName = sourceSiteName;
+	}
 
-    @Override
-    protected void doExecute(Target target) throws DeployerException {
-        if (isEmpty(sourceSiteName)) {
-            throw new DeployerException("'target.sourceSiteName' is required for target duplication");
-        }
-        String sourceIndexIdFormat = target.getConfiguration().getString("target.search.indexIdFormat");
-        String sourceIndexId = format(sourceIndexIdFormat, sourceSiteName);
-        logger.info("Starting index duplicate from '{}' for site '{}' to '{}' for site '{}'", sourceIndexId, sourceSiteName, indexId, siteName);
-        searchAdminService.duplicateIndex(sourceIndexId, indexId);
-        logger.info("Completed index duplicate from '{}' for site '{}' to '{}' for site '{}'", sourceIndexId, sourceSiteName, indexId, siteName);
-    }
+	@Override
+	protected void doExecute(Target target) throws DeployerException {
+		if (isEmpty(sourceSiteName)) {
+			throw new DeployerException("'target.sourceSiteName' is required for target duplication");
+		}
+		String sourceIndexIdFormat = target.getConfiguration().getString("target.search.indexIdFormat");
+		String sourceIndexId = format(sourceIndexIdFormat, sourceSiteName);
+		logger.info("Starting index duplicate from '{}' for site '{}' to '{}' for site '{}'", sourceIndexId, sourceSiteName, indexId, siteName);
+		searchAdminService.duplicateIndex(sourceIndexId, indexId);
+		logger.info("Completed index duplicate from '{}' for site '{}' to '{}' for site '{}'", sourceIndexId, sourceSiteName, indexId, siteName);
+	}
 }

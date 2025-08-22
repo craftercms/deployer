@@ -35,63 +35,63 @@ import static org.craftercms.deployer.impl.DeploymentConstants.PROCESSED_COMMIT_
  */
 public class ProcessedCommitsStoreImpl implements ProcessedCommitsStore {
 
-    private static final Logger logger = LoggerFactory.getLogger(ProcessedCommitsStoreImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(ProcessedCommitsStoreImpl.class);
 
-    protected File storeFolder;
+	protected File storeFolder;
 
-    public void setStoreFolder(File storeFolder) {
-        this.storeFolder = storeFolder;
-    }
+	public void setStoreFolder(File storeFolder) {
+		this.storeFolder = storeFolder;
+	}
 
-    @Override
-    public ObjectId load(String targetId) throws DeployerException {
-        File commitFile = getCommitFile(targetId);
-        try {
-            if (commitFile.exists()) {
-                String commitId = FileUtils.readFileToString(commitFile, "UTF-8").trim();
-                if (StringUtils.isNotEmpty(commitId)) {
-                    logger.debug("Found previous processed commit ID for target '{}': {}", targetId, commitId);
+	@Override
+	public ObjectId load(String targetId) throws DeployerException {
+		File commitFile = getCommitFile(targetId);
+		try {
+			if (commitFile.exists()) {
+				String commitId = FileUtils.readFileToString(commitFile, "UTF-8").trim();
+				if (StringUtils.isNotEmpty(commitId)) {
+					logger.debug("Found previous processed commit ID for target '{}': {}", targetId, commitId);
 
-                    return ObjectId.fromString(commitId);
-                } else {
-                    logger.warn("Processed commit file {} is empty, will be deleted", commitFile);
+					return ObjectId.fromString(commitId);
+				} else {
+					logger.warn("Processed commit file {} is empty, will be deleted", commitFile);
 
-                    FileUtils.deleteQuietly(commitFile);
+					FileUtils.deleteQuietly(commitFile);
 
-                    return null;
-                }
-            } else {
-                return null;
-            }
-        } catch (IOException e) {
-            throw new DeployerException("Error retrieving previous processed commit ID from " + commitFile, e);
-        }
-    }
+					return null;
+				}
+			} else {
+				return null;
+			}
+		} catch (IOException e) {
+			throw new DeployerException("Error retrieving previous processed commit ID from " + commitFile, e);
+		}
+	}
 
-    @Override
-    public void store(String targetId, ObjectId commitId) throws DeployerException {
-        File commitFile = getCommitFile(targetId);
-        try {
-            logger.debug("Storing processed commit ID {} for target '{}'", commitId.name(), targetId);
+	@Override
+	public void store(String targetId, ObjectId commitId) throws DeployerException {
+		File commitFile = getCommitFile(targetId);
+		try {
+			logger.debug("Storing processed commit ID {} for target '{}'", commitId.name(), targetId);
 
-            FileUtils.write(commitFile, commitId.name(), "UTF-8", false);
-        } catch (IOException e) {
-            throw new DeployerException("Error saving processed commit ID to " + commitFile, e);
-        }
-    }
+			FileUtils.write(commitFile, commitId.name(), "UTF-8", false);
+		} catch (IOException e) {
+			throw new DeployerException("Error saving processed commit ID to " + commitFile, e);
+		}
+	}
 
-    @Override
-    public void delete(String targetId) throws DeployerException {
-        File commitFile = getCommitFile(targetId);
-        if (commitFile.exists()) {
-            logger.debug("Deleting processed commit from store for target '{}'", targetId);
+	@Override
+	public void delete(String targetId) throws DeployerException {
+		File commitFile = getCommitFile(targetId);
+		if (commitFile.exists()) {
+			logger.debug("Deleting processed commit from store for target '{}'", targetId);
 
-            FileUtils.deleteQuietly(commitFile);
-        }
-    }
+			FileUtils.deleteQuietly(commitFile);
+		}
+	}
 
-    protected File getCommitFile(String targetId) {
-        return new File(storeFolder, targetId + "." + PROCESSED_COMMIT_FILE_EXTENSION);
-    }
+	protected File getCommitFile(String targetId) {
+		return new File(storeFolder, targetId + "." + PROCESSED_COMMIT_FILE_EXTENSION);
+	}
 
 }

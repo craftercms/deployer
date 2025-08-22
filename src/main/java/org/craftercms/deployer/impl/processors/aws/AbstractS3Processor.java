@@ -19,6 +19,7 @@ import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.aws.AwsUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.commons.http.HttpUtils;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.craftercms.deployer.impl.processors.AbstractMainDeploymentProcessor;
 import org.craftercms.deployer.utils.aws.AwsS3ClientBuilderConfigurer;
@@ -46,102 +47,104 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  */
 public abstract class AbstractS3Processor extends AbstractMainDeploymentProcessor {
 
-    protected static final String CONFIG_KEY_URL = "url";
+	protected static final String CONFIG_KEY_URL = "url";
 
-    protected static final String DELIMITER = "/";
+	protected static final String DELIMITER = "/";
 
-    protected Logger logger = LoggerFactory.getLogger(getClass());
+	protected Logger logger = LoggerFactory.getLogger(getClass());
 
-    /**
-     * Helper class the configures credentials and other properties for a {@link S3Client} client.
-     */
-    protected AwsS3ClientBuilderConfigurer builderConfigurer;
+	/**
+	 * Helper class the configures credentials and other properties for a {@link S3Client} client.
+	 */
+	protected AwsS3ClientBuilderConfigurer builderConfigurer;
 
-    /**
-     * AWS S3 bucket URL
-     */
-    protected S3Uri s3Url;
+	/**
+	 * AWS S3 bucket URL
+	 */
+	protected S3Uri s3Url;
 
-    /**
-     * Thread pool to use for {@link S3TransferManager} instances
-     */
-    protected ThreadPoolTaskExecutor threadPoolTaskExecutor;
+	/**
+	 * Thread pool to use for {@link S3TransferManager} instances
+	 */
+	protected ThreadPoolTaskExecutor threadPoolTaskExecutor;
 
-    public AbstractS3Processor(ThreadPoolTaskExecutor threadPoolTaskExecutor) {
-        this.threadPoolTaskExecutor = threadPoolTaskExecutor;
-    }
+	public AbstractS3Processor(ThreadPoolTaskExecutor threadPoolTaskExecutor) {
+		this.threadPoolTaskExecutor = threadPoolTaskExecutor;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doInit(final Configuration config) throws ConfigurationException {
-        builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
-        URI uri = URI.create(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
-        s3Url = buildClient().utilities().parseUri(uri);
-        // use true as default for backward compatibility
-        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void doInit(final Configuration config) throws ConfigurationException {
+		builderConfigurer = new AwsS3ClientBuilderConfigurer(config);
+		String uri = HttpUtils.encodeUrlMacro(StringUtils.appendIfMissing(getRequiredStringProperty(config, CONFIG_KEY_URL), DELIMITER));
+		s3Url = buildClient().utilities().parseUri(URI.create(uri));
+		// use true as default for backward compatibility
+		failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
+	}
 
-    /**
-     * Returns the base key from the S3 URL, making sure to replace the {@code {siteName}} macro instances
-     */
-    protected String getS3BaseKey() {
-        return AwsS3Utils.getS3BaseKey(s3Url, siteName);
-    }
+	/**
+	 * Returns the base key from the S3 URL, making sure to replace the {@code {siteName}} macro instances
+	 */
+	protected String getS3BaseKey() {
+		return AwsS3Utils.getS3BaseKey(s3Url, siteName);
+	}
 
-    /*
-     * Returns the bucket from the S3 URL, making sure to replace the {@code {siteName}} macro instances
-     */
-    protected String getBucket() {
-        return AwsS3Utils.getBucket(s3Url, siteName);
-    }
+	/*
+	 * Returns the bucket from the S3 URL, making sure to replace the {@code {siteName}} macro instances
+	 */
+	protected String getBucket() {
+		return AwsS3Utils.getBucket(s3Url, siteName);
+	}
 
-    /**
-     * Builds the AWS S3 key for the given file
-     * @param file relative path of the file
-     * @return the full S3 key
-     */
-    protected String getS3Key(String file) {
-        String path = StringUtils.appendIfMissing(getS3BaseKey(), DELIMITER) + StringUtils.stripStart(file, DELIMITER);
-        // S3 key should not start with a delimiter
-        return StringUtils.stripStart(path, DELIMITER);
-    }
+	/**
+	 * Builds the AWS S3 key for the given file
+	 *
+	 * @param file relative path of the file
+	 * @return the full S3 key
+	 */
+	protected String getS3Key(String file) {
+		String path = StringUtils.appendIfMissing(getS3BaseKey(), DELIMITER) + StringUtils.stripStart(file, DELIMITER);
+		// S3 key should not start with a delimiter
+		return StringUtils.stripStart(path, DELIMITER);
+	}
 
-    /**
-     * Builds the {@link S3Client} client.
-     */
-    protected S3Client buildClient() {
-        S3ClientBuilder builder = S3Client.builder();
-        builderConfigurer.configureClientBuilder(builder);
+	/**
+	 * Builds the {@link S3Client} client.
+	 */
+	protected S3Client buildClient() {
+		S3ClientBuilder builder = S3Client.builder();
+		builderConfigurer.configureClientBuilder(builder);
 
-        return builder.build();
-    }
+		return builder.build();
+	}
 
-    /**
-     * Build the {@link S3AsyncClient}
-     * @return
-     */
-    protected S3AsyncClient buildAsyncClient() {
-        S3AsyncClientBuilder builder = S3AsyncClient.builder();
-        builderConfigurer.configureClientBuilder(builder);
+	/**
+	 * Build the {@link S3AsyncClient}
+	 *
+	 * @return
+	 */
+	protected S3AsyncClient buildAsyncClient() {
+		S3AsyncClientBuilder builder = S3AsyncClient.builder();
+		builderConfigurer.configureClientBuilder(builder);
 
-        return builder.build();
-    }
+		return builder.build();
+	}
 
-    /**
-     * Builds the {@link S3TransferManager}
-     */
-    protected S3TransferManager buildTransferManager(S3AsyncClient client) {
-        return AwsUtils.buildTransferManager(client);
-    }
+	/**
+	 * Builds the {@link S3TransferManager}
+	 */
+	protected S3TransferManager buildTransferManager(S3AsyncClient client) {
+		return AwsUtils.buildTransferManager(client);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
 }

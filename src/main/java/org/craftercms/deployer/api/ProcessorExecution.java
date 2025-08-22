@@ -28,56 +28,56 @@ import static org.craftercms.deployer.api.Deployment.Status;
  */
 public class ProcessorExecution {
 
-    protected String processorName;
-    protected volatile ZonedDateTime start;
-    protected volatile ZonedDateTime end;
-    protected volatile Status status;
-    protected volatile Object statusDetails;
+	protected String processorName;
+	protected volatile ZonedDateTime start;
+	protected volatile ZonedDateTime end;
+	protected volatile Status status;
+	protected volatile Object statusDetails;
 
-    public ProcessorExecution(String processorName) {
-        this.processorName = processorName;
-        this.start = ZonedDateTime.now();
-    }
+	public ProcessorExecution(String processorName) {
+		this.processorName = processorName;
+		this.start = ZonedDateTime.now();
+	}
 
-    @JsonProperty("processor_name")
-    public String getProcessorName() {
-        return processorName;
-    }
+	@JsonProperty("processor_name")
+	public String getProcessorName() {
+		return processorName;
+	}
 
-    @JsonProperty("start")
-    public ZonedDateTime getStart() {
-        return start;
-    }
+	@JsonProperty("start")
+	public ZonedDateTime getStart() {
+		return start;
+	}
 
-    @JsonProperty("end")
-    public ZonedDateTime getEnd() {
-        return end;
-    }
+	@JsonProperty("end")
+	public ZonedDateTime getEnd() {
+		return end;
+	}
 
-    @JsonProperty("running")
-    public boolean isRunning() {
-        return end == null;
-    }
+	@JsonProperty("running")
+	public boolean isRunning() {
+		return end == null;
+	}
 
-    @JsonProperty("status")
-    public Status getStatus() {
-        return status;
-    }
+	@JsonProperty("status")
+	public Status getStatus() {
+		return status;
+	}
 
-    @JsonProperty("status_details")
-    public Object getStatusDetails() {
-        return statusDetails;
-    }
+	@JsonProperty("status_details")
+	public Object getStatusDetails() {
+		return statusDetails;
+	}
 
-    public void setStatusDetails(Object statusDetails) {
-        this.statusDetails = statusDetails;
-    }
+	public void setStatusDetails(Object statusDetails) {
+		this.statusDetails = statusDetails;
+	}
 
-    public void endExecution(Status status) {
-        if (isRunning()) {
-            this.end = ZonedDateTime.now();
-            this.status = status;
-        }
-    }
+	public void endExecution(Status status) {
+		if (isRunning()) {
+			this.end = ZonedDateTime.now();
+			this.status = status;
+		}
+	}
 
 }

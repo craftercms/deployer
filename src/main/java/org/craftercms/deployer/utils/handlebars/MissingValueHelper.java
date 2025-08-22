@@ -31,34 +31,34 @@ import org.craftercms.commons.validation.ErrorCodes;
  */
 public class MissingValueHelper implements Helper<Object> {
 
-    public static final MissingValueHelper INSTANCE = new MissingValueHelper();
+	public static final MissingValueHelper INSTANCE = new MissingValueHelper();
 
-    protected ThreadLocal<ValidationResult> validationResult;
+	protected ThreadLocal<ValidationResult> validationResult;
 
-    protected MissingValueHelper() {
-        validationResult = new ThreadLocal<>();
-    }
+	protected MissingValueHelper() {
+		validationResult = new ThreadLocal<>();
+	}
 
-    public ValidationResult getValidationResult() {
-        return validationResult.get();
-    }
+	public ValidationResult getValidationResult() {
+		return validationResult.get();
+	}
 
-    public void clearValidationResult() {
-        validationResult.remove();
-    }
+	public void clearValidationResult() {
+		validationResult.remove();
+	}
 
-    @Override
-    public Object apply(Object context, Options options) throws IOException {
-        ValidationResult result = getValidationResult();
-        if (result == null) {
-            result = new ValidationResult();
+	@Override
+	public Object apply(Object context, Options options) throws IOException {
+		ValidationResult result = getValidationResult();
+		if (result == null) {
+			result = new ValidationResult();
 
-            validationResult.set(result);
-        }
+			validationResult.set(result);
+		}
 
-        result.addError(options.helperName, ErrorCodes.FIELD_MISSING_ERROR_CODE);
+		result.addError(options.helperName, ErrorCodes.FIELD_MISSING_ERROR_CODE);
 
-        return options.fn.text();
-    }
+		return options.fn.text();
+	}
 
 }

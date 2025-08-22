@@ -57,102 +57,102 @@ import static org.craftercms.commons.config.ConfigUtils.*;
  */
 public class CloudFrontInvalidationProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(CloudFrontInvalidationProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(CloudFrontInvalidationProcessor.class);
 
-    protected static final String CONFIG_KEY_DISTRIBUTIONS = "distributions";
+	protected static final String CONFIG_KEY_DISTRIBUTIONS = "distributions";
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    /**
-     * Helper class the configures credentials and other properties for a {@link CloudFrontClient} client.
-     */
-    protected AwsClientBuilderConfigurer builderConfigurer;
-    /**
-     * List of distribution ids
-     */
-    protected String[] distributions;
+	/**
+	 * Helper class the configures credentials and other properties for a {@link CloudFrontClient} client.
+	 */
+	protected AwsClientBuilderConfigurer builderConfigurer;
+	/**
+	 * List of distribution ids
+	 */
+	protected String[] distributions;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doInit(final Configuration config) throws ConfigurationException {
-        builderConfigurer = new AwsClientBuilderConfigurer(config);
-        distributions = getRequiredStringArrayProperty(config, CONFIG_KEY_DISTRIBUTIONS);
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void doInit(final Configuration config) throws ConfigurationException {
+		builderConfigurer = new AwsClientBuilderConfigurer(config);
+		distributions = getRequiredStringArrayProperty(config, CONFIG_KEY_DISTRIBUTIONS);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    @SuppressWarnings("unchecked")
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	@SuppressWarnings("unchecked")
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
 
-        logger.info("Performing Cloudfront invalidation...");
+		logger.info("Performing Cloudfront invalidation...");
 
-        CloudFrontClient client = buildClient();
+		CloudFrontClient client = buildClient();
 
-        List<String> changedFiles =
-            ListUtils.union(filteredChangeSet.getUpdatedFiles(), filteredChangeSet.getDeletedFiles());
+		List<String> changedFiles =
+			ListUtils.union(filteredChangeSet.getUpdatedFiles(), filteredChangeSet.getDeletedFiles());
 
-        if (CollectionUtils.isNotEmpty(changedFiles)) {
-            changedFiles = changedFiles.stream()
-                                       .map(f -> UriUtils.encodePath(f, StandardCharsets.UTF_8))
-                                       .collect(Collectors.toList());
+		if (CollectionUtils.isNotEmpty(changedFiles)) {
+			changedFiles = changedFiles.stream()
+				.map(f -> UriUtils.encodePath(f, StandardCharsets.UTF_8))
+				.collect(Collectors.toList());
 
-            Paths paths = Paths.builder()
-                    .items(changedFiles)
-                    .quantity(changedFiles.size())
-                    .build();
+			Paths paths = Paths.builder()
+				.items(changedFiles)
+				.quantity(changedFiles.size())
+				.build();
 
-            logger.info("Will invalidate {} files", changedFiles.size());
+			logger.info("Will invalidate {} files", changedFiles.size());
 
-            for (String distribution : distributions) {
-                try {
-                    String caller = UUID.randomUUID().toString();
+			for (String distribution : distributions) {
+				try {
+					String caller = UUID.randomUUID().toString();
 
-                    logger.info("Creating invalidation for distribution {} with reference {}", distribution, caller);
+					logger.info("Creating invalidation for distribution {} with reference {}", distribution, caller);
 
-                    InvalidationBatch batch = InvalidationBatch.builder()
-                            .paths(paths)
-                            .callerReference(caller)
-                            .build();
-                    CreateInvalidationRequest request = CreateInvalidationRequest.builder()
-                            .distributionId(distribution)
-                            .invalidationBatch(batch)
-                            .build();
-                    CreateInvalidationResponse result = client.createInvalidation(request);
+					InvalidationBatch batch = InvalidationBatch.builder()
+						.paths(paths)
+						.callerReference(caller)
+						.build();
+					CreateInvalidationRequest request = CreateInvalidationRequest.builder()
+						.distributionId(distribution)
+						.invalidationBatch(batch)
+						.build();
+					CreateInvalidationResponse result = client.createInvalidation(request);
 
-                    logger.info("Created invalidation {} for distribution {}", result.invalidation().id(),
-                                distribution);
-                } catch (Exception e) {
-                    throw new DeployerException("Error invalidating changed files for distribution " + distribution, e);
-                }
-            }
-        } else {
-            logger.info("No actual files that need to be invalidated");
-        }
+					logger.info("Created invalidation {} for distribution {}", result.invalidation().id(),
+						distribution);
+				} catch (Exception e) {
+					throw new DeployerException("Error invalidating changed files for distribution " + distribution, e);
+				}
+			}
+		} else {
+			logger.info("No actual files that need to be invalidated");
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    /**
-     * Builds the {@link CloudFrontClient} client.
-     */
-    protected CloudFrontClient buildClient() {
-        CloudFrontClientBuilder builder = CloudFrontClient.builder();
-        builderConfigurer.configureClientBuilder(builder);
+	/**
+	 * Builds the {@link CloudFrontClient} client.
+	 */
+	protected CloudFrontClient buildClient() {
+		CloudFrontClientBuilder builder = CloudFrontClient.builder();
+		builderConfigurer.configureClientBuilder(builder);
 
-        return builder.build();
-    }
+		return builder.build();
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
 }

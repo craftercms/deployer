@@ -42,45 +42,45 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredConfiguration
 @Component("deploymentPipelineFactory")
 public class DeploymentPipelineFactoryImpl implements DeploymentPipelineFactory {
 
-    private static final Logger logger = LoggerFactory.getLogger(DeploymentPipelineFactoryImpl.class);
+	private static final Logger logger = LoggerFactory.getLogger(DeploymentPipelineFactoryImpl.class);
 
-    @Override
-    public DeploymentPipeline getPipeline(HierarchicalConfiguration<ImmutableNode> configuration,
-                                          ApplicationContext applicationContext, String pipelinePropertyName)
-            throws ConfigurationException, DeployerException {
-        List<HierarchicalConfiguration<ImmutableNode>> processorConfigs =
-                getRequiredConfigurationsAt(configuration, pipelinePropertyName);
-        List<DeploymentProcessor> deploymentProcessors = new ArrayList<>();
+	@Override
+	public DeploymentPipeline getPipeline(HierarchicalConfiguration<ImmutableNode> configuration,
+					      ApplicationContext applicationContext, String pipelinePropertyName)
+		throws ConfigurationException, DeployerException {
+		List<HierarchicalConfiguration<ImmutableNode>> processorConfigs =
+			getRequiredConfigurationsAt(configuration, pipelinePropertyName);
+		List<DeploymentProcessor> deploymentProcessors = new ArrayList<>();
 
-        for (HierarchicalConfiguration processorConfig : processorConfigs) {
-            String processorName = getRequiredStringProperty(processorConfig, PROCESSOR_NAME_CONFIG_KEY);
+		for (HierarchicalConfiguration processorConfig : processorConfigs) {
+			String processorName = getRequiredStringProperty(processorConfig, PROCESSOR_NAME_CONFIG_KEY);
 
-            logger.debug("Initializing pipeline processor '{}'", processorName);
+			logger.debug("Initializing pipeline processor '{}'", processorName);
 
-            try {
-                DeploymentProcessor processor = applicationContext.getBean(processorName, DeploymentProcessor.class);
-                processor.init(processorConfig);
+			try {
+				DeploymentProcessor processor = applicationContext.getBean(processorName, DeploymentProcessor.class);
+				processor.init(processorConfig);
 
-                deploymentProcessors.add(processor);
-            } catch (NoSuchBeanDefinitionException e) {
-                throw new DeployerException("No processor bean found with name '" + processorName + "'", e);
-            } catch (Exception e) {
-                throw new DeployerException("Failed to initialize pipeline processor '" + processorName + "'", e);
-            }
-        }
+				deploymentProcessors.add(processor);
+			} catch (NoSuchBeanDefinitionException e) {
+				throw new DeployerException("No processor bean found with name '" + processorName + "'", e);
+			} catch (Exception e) {
+				throw new DeployerException("Failed to initialize pipeline processor '" + processorName + "'", e);
+			}
+		}
 
-        // Check that no main deployment processor is defined after a post deployment processor
-        boolean postProcessorFound = false;
-        for (DeploymentProcessor processor : deploymentProcessors) {
-            if (!processor.isPostDeployment() && postProcessorFound) {
-                throw new DeployerException("Processor " + processor + " can't be defined after a post processor " +
-                                            "has already being defined");
-            } else if (processor.isPostDeployment()) {
-                postProcessorFound = true;
-            }
-        }
+		// Check that no main deployment processor is defined after a post deployment processor
+		boolean postProcessorFound = false;
+		for (DeploymentProcessor processor : deploymentProcessors) {
+			if (!processor.isPostDeployment() && postProcessorFound) {
+				throw new DeployerException("Processor " + processor + " can't be defined after a post processor " +
+					"has already being defined");
+			} else if (processor.isPostDeployment()) {
+				postProcessorFound = true;
+			}
+		}
 
-        return new DeploymentPipelineImpl(deploymentProcessors);
-    }
+		return new DeploymentPipelineImpl(deploymentProcessors);
+	}
 
 }

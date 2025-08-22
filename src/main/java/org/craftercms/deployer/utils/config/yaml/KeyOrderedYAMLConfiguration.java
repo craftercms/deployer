@@ -29,37 +29,37 @@ import java.util.Map;
  */
 public class KeyOrderedYAMLConfiguration extends YAMLConfiguration {
 
-    @Override
-    protected Map<String, Object> constructMap(ImmutableNode node) {
-        // Use a LinkedHashMap to preserve the order of the keys for each level
-        final Map<String, Object> map = new LinkedHashMap<>(node.getChildren().size());
-        node.forEach(cNode -> addEntry(map, cNode.getNodeName(), cNode.getChildren().isEmpty() ? cNode.getValue() : constructMap(cNode)));
-        return map;
-    }
+	@Override
+	protected Map<String, Object> constructMap(ImmutableNode node) {
+		// Use a LinkedHashMap to preserve the order of the keys for each level
+		final Map<String, Object> map = new LinkedHashMap<>(node.getChildren().size());
+		node.forEach(cNode -> addEntry(map, cNode.getNodeName(), cNode.getChildren().isEmpty() ? cNode.getValue() : constructMap(cNode)));
+		return map;
+	}
 
-    /**
-     * This method is copied from {@link org.apache.commons.configuration2.AbstractYAMLBasedConfiguration},
-     * since it has private access.
-     * Adds a key value pair to a map, taking list structures into account. If a key is added which is already present in
-     * the map, this method ensures that a list is created.
-     *
-     * @param map   the map
-     * @param key   the key
-     * @param value the value
-     */
-    private static void addEntry(final Map<String, Object> map, final String key, final Object value) {
-        final Object oldValue = map.get(key);
-        if (oldValue == null) {
-            map.put(key, value);
-        } else if (oldValue instanceof Collection) {
-            // safe case because the collection was created by ourselves
-            @SuppressWarnings("unchecked") final Collection<Object> values = (Collection<Object>) oldValue;
-            values.add(value);
-        } else {
-            final Collection<Object> values = new ArrayList<>();
-            values.add(oldValue);
-            values.add(value);
-            map.put(key, values);
-        }
-    }
+	/**
+	 * This method is copied from {@link org.apache.commons.configuration2.AbstractYAMLBasedConfiguration},
+	 * since it has private access.
+	 * Adds a key value pair to a map, taking list structures into account. If a key is added which is already present in
+	 * the map, this method ensures that a list is created.
+	 *
+	 * @param map   the map
+	 * @param key   the key
+	 * @param value the value
+	 */
+	private static void addEntry(final Map<String, Object> map, final String key, final Object value) {
+		final Object oldValue = map.get(key);
+		if (oldValue == null) {
+			map.put(key, value);
+		} else if (oldValue instanceof Collection) {
+			// safe case because the collection was created by ourselves
+			@SuppressWarnings("unchecked") final Collection<Object> values = (Collection<Object>) oldValue;
+			values.add(value);
+		} else {
+			final Collection<Object> values = new ArrayList<>();
+			values.add(oldValue);
+			values.add(value);
+			map.put(key, values);
+		}
+	}
 }

@@ -26,8 +26,8 @@ import org.craftercms.deployer.api.Target;
  */
 public class TargetUpgradeContext extends UpgradeContext<Target> {
 
-    public TargetUpgradeContext(Target target) {
-        super(target);
-    }
+	public TargetUpgradeContext(Target target) {
+		super(target);
+	}
 
 }

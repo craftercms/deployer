@@ -1,4 +1,4 @@
 processor: myProcessor
 conditions:
-  - property: foobar
+    -   property: foobar
 newProcessor: myNewProcessor

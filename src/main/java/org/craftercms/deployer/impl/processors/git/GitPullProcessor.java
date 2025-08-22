@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2024 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,11 +15,6 @@
  */
 package org.craftercms.deployer.impl.processors.git;
 
-import java.io.EOFException;
-import java.io.File;
-import java.io.IOException;
-import java.net.URISyntaxException;
-
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.io.FileUtils;
 import org.craftercms.commons.config.ConfigurationException;
@@ -30,23 +25,40 @@ import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
 import org.craftercms.deployer.api.exceptions.DeployerException;
 import org.eclipse.jgit.api.Git;
+import org.eclipse.jgit.api.MergeCommand.FastForwardMode;
 import org.eclipse.jgit.api.MergeResult;
 import org.eclipse.jgit.api.PullResult;
 import org.eclipse.jgit.api.errors.GitAPIException;
 import org.eclipse.jgit.api.errors.JGitInternalException;
 import org.eclipse.jgit.errors.CorruptObjectException;
 import org.eclipse.jgit.lib.Constants;
+import org.eclipse.jgit.merge.ContentMergeStrategy;
 import org.eclipse.jgit.merge.MergeStrategy;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import java.io.EOFException;
+import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
+import java.util.Objects;
+import java.util.function.Function;
+
 import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
+import static org.eclipse.jgit.api.MergeCommand.FastForwardMode.FF;
+import static org.eclipse.jgit.merge.ContentMergeStrategy.CONFLICT;
+import static org.eclipse.jgit.merge.MergeStrategy.THEIRS;
 
 /**
  * Processor that clones/pulls a remote Git repository into a local path in the filesystem. A processor instance
  * can be configured with the following YAML properties:
  *
  * <ul>
+ *     <li><strong>fastForwardMode:</strong> The fast forward mode to use when pulling changes from the remote repo. Supported values are: FF, NO_FF, FF_ONLY.
+ *     Default is FF.</li>
+ *     <li><strong>mergeStrategy:</strong> The merge strategy to use. Supported values are: ours, theirs, simple_two_way_in_core, resolve, recursive. Default is <code>theirs</code></li>
+ *     <li><strong>contentMergeOption:</strong> The content merge strategy to handle conflicts. Supported values are CONFLICT, OURS, THEIRS, UNION. Default is <code>CONFLICT</code></li>
+ *
  *     <li><strong>remoteRepo.url:</strong> The URL of the remote Git repo to pull.</li>
  *     <li><strong>remoteRepo.name:</strong> The name to use for the remote repo when pulling from it (origin by default).</li>
  *     <li><strong>remoteRepo.branch:</strong> The branch of the remote Git repo to pull.</li>
@@ -64,143 +76,175 @@ import static org.craftercms.commons.config.ConfigUtils.getStringProperty;
  */
 public class GitPullProcessor extends AbstractRemoteGitRepoAwareProcessor {
 
-    protected static final String REMOTE_REPO_NAME_CONFIG_KEY = "remoteRepo.name";
+	protected static final String REMOTE_REPO_NAME_CONFIG_KEY = "remoteRepo.name";
 
-    private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
+	protected static final String MERGE_STRATEGY_CONFIG_KEY = "mergeStrategy";
+	protected static final String CONTENT_MERGE_STRATEGY_OPTION_CONFIG_KEY = "contentMergeOption";
+	protected static final String FAST_FORWARD_MODE_CONFIG_KEY = "fastForwardMode";
 
-    // Config properties (populated on init)
+	private static final Logger logger = LoggerFactory.getLogger(GitPullProcessor.class);
 
-    protected String remoteRepoName;
+	// Config properties (populated on init)
 
-    public GitPullProcessor(File localRepoFolder, AuthConfiguratorFactory authConfiguratorFactory) {
-        super(localRepoFolder, authConfiguratorFactory);
-    }
+	protected String remoteRepoName;
+	protected MergeStrategy mergeStrategy;
+	protected ContentMergeStrategy contentMergeStrategy;
+	protected FastForwardMode fastForwardMode;
 
-    @Override
-    protected void doInit(Configuration config) throws ConfigurationException {
-        super.doInit(config);
+	public GitPullProcessor(File localRepoFolder, AuthConfiguratorFactory authConfiguratorFactory) {
+		super(localRepoFolder, authConfiguratorFactory);
+	}
 
-        remoteRepoName = getStringProperty(config, REMOTE_REPO_NAME_CONFIG_KEY, Constants.DEFAULT_REMOTE_NAME);
+	@Override
+	protected void doInit(Configuration config) throws ConfigurationException {
+		super.doInit(config);
 
-        // use true as default for backward compatibility
-        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
-    }
+		remoteRepoName = getStringProperty(config, REMOTE_REPO_NAME_CONFIG_KEY, Constants.DEFAULT_REMOTE_NAME);
 
-    @Override
-    protected boolean failDeploymentOnProcessorFailure() {
-        return true;
-    }
+		mergeStrategy = throwIfNull(config, MERGE_STRATEGY_CONFIG_KEY, THEIRS.getName(),
+			MergeStrategy::get);
 
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        File gitFolder = new File(localRepoFolder, GitUtils.GIT_FOLDER_NAME);
+		contentMergeStrategy = throwIfNull(config, CONTENT_MERGE_STRATEGY_OPTION_CONFIG_KEY, CONFLICT.name(),
+			ContentMergeStrategy::valueOf);
 
-        if (localRepoFolder.exists() && gitFolder.exists()) {
-            doPull(execution);
-        } else {
-            doClone(execution);
-        }
+		fastForwardMode = throwIfNull(config, FAST_FORWARD_MODE_CONFIG_KEY, FF.name(),
+			FastForwardMode::valueOf);
 
-        return null;
-    }
+		// use true as default for backward compatibility
+		failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
+	}
 
-    protected void doPull(ProcessorExecution execution) throws DeployerException {
-        try (Git git = openLocalRepository()) {
-            logger.info("Executing git pull for repository {}...", localRepoFolder);
+	/**
+	 * Throw a {@link ConfigurationException} if the value returned by the mapping function is null.
+	 * Notice that the raw configured value can be null, in which case the default value is used (which we know is supported).
+	 */
+	private <T> T throwIfNull(Configuration config, String configKey, String defaultValue, Function<String, T> mappingFunction)
+		throws ConfigurationException {
+		String rawValue = getStringProperty(config, configKey, defaultValue);
+		T value = mappingFunction.apply(rawValue);
+		if (Objects.isNull(value)) {
+			throw new ConfigurationException("Unsupported value '%s' for configuration key '%s'".formatted(rawValue, configKey));
+		}
 
-            GitUtils.discardAllChanges(git);
+		return value;
+	}
 
-            PullResult pullResult = GitUtils.pull(git, remoteRepoName, remoteRepoUrl, remoteRepoBranch,
-                                                  MergeStrategy.THEIRS, authenticationConfigurator);
-            String details;
+	@Override
+	protected boolean failDeploymentOnProcessorFailure() {
+		return true;
+	}
 
-            if (pullResult != null && pullResult.getMergeResult() != null) {
-                details = checkMergeResult(pullResult.getMergeResult());
-            } else {
-                details = "No pull or merge result returned after pull operation";
-            }
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+		File gitFolder = new File(localRepoFolder, GitUtils.GIT_FOLDER_NAME);
 
-            logger.info(details);
+		if (localRepoFolder.exists() && gitFolder.exists()) {
+			doPull(execution);
+		} else {
+			doClone(execution);
+		}
 
-            execution.setStatusDetails(details);
-        } catch (JGitInternalException e) {
-            if (isRepositoryCorrupted(e)) {
-                logger.warn("The local repository {} is corrupt, trying to fix it", localRepoFolder);
-                try {
-                    GitUtils.deleteGitIndex(localRepoFolder.getAbsolutePath());
-                    logger.info(".git/index is deleted from local repository '{}'", localRepoFolder);
-                } catch (IOException ioe) {
-                    throw new DeployerException("Error deleting index for local repo " + localRepoFolder, ioe);
-                }
-            } else {
-                logger.error("Unknown internal git error in local repository {}", localRepoFolder, e);
-                throw e;
-            }
-        } catch (GitAPIException | URISyntaxException e) {
-            throw new DeployerException("Execution of git pull failed:", e);
-        }
-    }
+		return null;
+	}
 
-    protected String checkMergeResult(MergeResult mergeResult) throws DeployerException {
-        MergeResult.MergeStatus status = mergeResult.getMergeStatus();
-        if (status.isSuccessful()) {
-            switch (status) {
-                case FAST_FORWARD:
-                case MERGED:
-                    return "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " +
-                           localRepoFolder + " (merge result with status " + status + ")";
-                case ALREADY_UP_TO_DATE:
-                    return "Local repository " + localRepoFolder + " up to date (no changes pulled from remote repo " +
-                           remoteRepoUrl + ") (merge result with status " + status + ")";
-                default:
-                    // Non-supported merge results
-                    throw new DeployerException("Received unexpected merge result after executing pull: " + status);
-            }
-        } else {
-            throw new DeployerException("Merge failed with status " + status);
-        }
-    }
+	protected void doPull(ProcessorExecution execution) throws DeployerException {
+		try (Git git = openLocalRepository()) {
+			logger.info("Executing git pull for repository {}...", localRepoFolder);
 
-    protected void doClone(ProcessorExecution execution) throws DeployerException {
-        try (Git git = cloneRemoteRepository()) {
-            String details = "Successfully cloned Git remote repository " + remoteRepoUrl + " into " + localRepoFolder;
+			GitUtils.discardAllChanges(git);
 
-            logger.info(details);
+			PullResult pullResult = GitUtils.pull(git, remoteRepoName, remoteRepoUrl, remoteRepoBranch,
+				mergeStrategy, contentMergeStrategy, fastForwardMode,
+				authenticationConfigurator);
+			String details;
 
-            execution.setStatusDetails(details);
-        }
-    }
+			if (pullResult != null && pullResult.getMergeResult() != null) {
+				details = checkMergeResult(pullResult.getMergeResult());
+			} else {
+				details = "No pull or merge result returned after pull operation";
+			}
 
-    protected Git cloneRemoteRepository() throws DeployerException {
-        try {
-            if (localRepoFolder.exists()) {
-                logger.debug("Deleting existing folder {} before cloning", localRepoFolder);
+			logger.info(details);
 
-                FileUtils.forceDelete(localRepoFolder);
-            } else {
-                logger.debug("Creating folder {} and any nonexistent parents before cloning", localRepoFolder);
+			execution.setStatusDetails(details);
+		} catch (JGitInternalException e) {
+			if (isRepositoryCorrupted(e)) {
+				logger.warn("The local repository {} is corrupt, trying to fix it", localRepoFolder);
+				try {
+					GitUtils.deleteGitIndex(localRepoFolder.getAbsolutePath());
+					logger.info(".git/index is deleted from local repository '{}'", localRepoFolder);
+				} catch (IOException ioe) {
+					throw new DeployerException("Error deleting index for local repo " + localRepoFolder, ioe);
+				}
+			} else {
+				logger.error("Unknown internal git error in local repository {}", localRepoFolder, e);
+				throw e;
+			}
+		} catch (GitAPIException | URISyntaxException e) {
+			throw new DeployerException("Execution of git pull failed:", e);
+		}
+	}
 
-                FileUtils.forceMkdir(localRepoFolder);
-            }
+	protected String checkMergeResult(MergeResult mergeResult) throws DeployerException {
+		MergeResult.MergeStatus status = mergeResult.getMergeStatus();
+		if (status.isSuccessful()) {
+			switch (status) {
+				case FAST_FORWARD:
+				case MERGED:
+					return "Changes successfully pulled from remote repo " + remoteRepoUrl + " into local repo " +
+						localRepoFolder + " (merge result with status " + status + ")";
+				case ALREADY_UP_TO_DATE:
+					return "Local repository " + localRepoFolder + " up to date (no changes pulled from remote repo " +
+						remoteRepoUrl + ") (merge result with status " + status + ")";
+				default:
+					// Non-supported merge results
+					throw new DeployerException("Received unexpected merge result after executing pull: " + status);
+			}
+		} else {
+			throw new DeployerException("Merge failed with status " + status);
+		}
+	}
 
-            logger.info("Cloning Git remote repository {} into {}", remoteRepoUrl, localRepoFolder);
+	protected void doClone(ProcessorExecution execution) throws DeployerException {
+		try (Git git = cloneRemoteRepository()) {
+			String details = "Successfully cloned Git remote repository " + remoteRepoUrl + " into " + localRepoFolder;
 
-            return GitUtils.cloneRemoteRepository(remoteRepoName, remoteRepoUrl, remoteRepoBranch,
-                                                  authenticationConfigurator, localRepoFolder, null,
-                                                  null, null);
-        } catch (IOException | GitAPIException | IllegalArgumentException e) {
-            // Force delete so there's no invalid remains
-            FileUtils.deleteQuietly(localRepoFolder);
+			logger.info(details);
 
-            throw new DeployerException(
-                "Failed to clone Git remote repository " + remoteRepoUrl + " into " + localRepoFolder, e);
-        }
-    }
+			execution.setStatusDetails(details);
+		}
+	}
 
-    protected boolean isRepositoryCorrupted(Throwable ex) {
-        Throwable cause = ex.getCause();
-        return cause instanceof CorruptObjectException || cause instanceof EOFException;
-    }
+	protected Git cloneRemoteRepository() throws DeployerException {
+		try {
+			if (localRepoFolder.exists()) {
+				logger.debug("Deleting existing folder {} before cloning", localRepoFolder);
+
+				FileUtils.forceDelete(localRepoFolder);
+			} else {
+				logger.debug("Creating folder {} and any nonexistent parents before cloning", localRepoFolder);
+
+				FileUtils.forceMkdir(localRepoFolder);
+			}
+
+			logger.info("Cloning Git remote repository {} into {}", remoteRepoUrl, localRepoFolder);
+
+			return GitUtils.cloneRemoteRepository(remoteRepoName, remoteRepoUrl, remoteRepoBranch,
+				authenticationConfigurator, localRepoFolder, null,
+				null, null);
+		} catch (IOException | GitAPIException | IllegalArgumentException e) {
+			// Force delete so there's no invalid remains
+			FileUtils.deleteQuietly(localRepoFolder);
+
+			throw new DeployerException(
+				"Failed to clone Git remote repository " + remoteRepoUrl + " into " + localRepoFolder, e);
+		}
+	}
+
+	protected boolean isRepositoryCorrupted(Throwable ex) {
+		Throwable cause = ex.getCause();
+		return cause instanceof CorruptObjectException || cause instanceof EOFException;
+	}
 
 }

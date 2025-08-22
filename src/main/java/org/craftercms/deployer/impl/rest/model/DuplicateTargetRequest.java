@@ -31,26 +31,26 @@ import static org.craftercms.commons.validation.annotations.param.EsapiValidatio
  */
 @JsonNaming(PropertyNamingStrategies.SnakeCaseStrategy.class)
 public class DuplicateTargetRequest {
-    @NotEmpty
-    @ValidSiteId
-    private String siteName;
+	@NotEmpty
+	@ValidSiteId
+	private String siteName;
 
-    public String getSiteName() {
-        return siteName;
-    }
+	public String getSiteName() {
+		return siteName;
+	}
 
-    public void setSiteName(String siteName) {
-        this.siteName = siteName;
-    }
+	public void setSiteName(String siteName) {
+		this.siteName = siteName;
+	}
 
-    @JsonUnwrapped
-    private TargetTemplateParams targetTemplateParams;
+	@JsonUnwrapped
+	private TargetTemplateParams targetTemplateParams;
 
-    public TargetTemplateParams getTargetTemplateParams() {
-        return targetTemplateParams;
-    }
+	public TargetTemplateParams getTargetTemplateParams() {
+		return targetTemplateParams;
+	}
 
-    public void setTargetTemplateParams(TargetTemplateParams targetTemplateParams) {
-        this.targetTemplateParams = targetTemplateParams;
-    }
+	public void setTargetTemplateParams(TargetTemplateParams targetTemplateParams) {
+		this.targetTemplateParams = targetTemplateParams;
+	}
 }

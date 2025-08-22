@@ -16,6 +16,7 @@
 package org.craftercms.deployer.api;
 
 import java.util.List;
+
 import org.craftercms.deployer.api.exceptions.DeployerException;
 
 /**
@@ -25,23 +26,23 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
  */
 public interface DeploymentPipeline {
 
-    /**
-     * Destroys the pipeline, calling destroy also on all its processors
-     *
-     * @throws DeployerException if an error occurs
-     */
-    void destroy() throws DeployerException;
+	/**
+	 * Destroys the pipeline, calling destroy also on all its processors
+	 *
+	 * @throws DeployerException if an error occurs
+	 */
+	void destroy() throws DeployerException;
 
-    /**
-     * Returns the processors that make up this pipeline. The returned list is unmodifiable.
-     */
-    List<DeploymentProcessor> getProcessors();
+	/**
+	 * Returns the processors that make up this pipeline. The returned list is unmodifiable.
+	 */
+	List<DeploymentProcessor> getProcessors();
 
-    /**
-     * Does a deployment.
-     *
-     * @param deployment    the deployment info
-     */
-    void execute(Deployment deployment);
+	/**
+	 * Does a deployment.
+	 *
+	 * @param deployment the deployment info
+	 */
+	void execute(Deployment deployment);
 
 }

@@ -39,58 +39,58 @@ import static java.lang.String.format;
  */
 public class FileBasedDeploymentEventsStore implements DeploymentEventsStore<Properties, Path>, InitializingBean {
 
-    /**
-     * The folder where all files are stored locally
-     */
-    protected String folderPath;
+	/**
+	 * The folder where all files are stored locally
+	 */
+	protected String folderPath;
 
-    /**
-     * The pattern used to generate the name of the files
-     */
-    protected String filePattern;
+	/**
+	 * The pattern used to generate the name of the files
+	 */
+	protected String filePattern;
 
-    public FileBasedDeploymentEventsStore(String folderPath, String filePattern) {
-        this.folderPath = folderPath;
-        this.filePattern = filePattern;
-    }
+	public FileBasedDeploymentEventsStore(String folderPath, String filePattern) {
+		this.folderPath = folderPath;
+		this.filePattern = filePattern;
+	}
 
-    @Override
-    public void afterPropertiesSet() throws Exception {
-        Files.createDirectories(Paths.get(folderPath));
-    }
+	@Override
+	public void afterPropertiesSet() throws Exception {
+		Files.createDirectories(Paths.get(folderPath));
+	}
 
-    protected Path getPath(Target target) {
-        return Paths.get(folderPath, format(filePattern, target.getId()));
-    }
+	protected Path getPath(Target target) {
+		return Paths.get(folderPath, format(filePattern, target.getId()));
+	}
 
-    @Override
-    public Properties loadDeploymentEvents(Target target) throws DeployerException {
-        Properties deploymentEvents = new Properties();
-        Path deploymentEventsPath = getPath(target);
-        if (Files.exists(deploymentEventsPath)) {
-            try (Reader reader = Files.newBufferedReader(deploymentEventsPath, StandardCharsets.UTF_8)) {
-                deploymentEvents.load(reader);
-            } catch (IOException e) {
-                throw new DeployerException("Error reading loading events file @ " + deploymentEventsPath, e);
-            }
-        }
+	@Override
+	public Properties loadDeploymentEvents(Target target) throws DeployerException {
+		Properties deploymentEvents = new Properties();
+		Path deploymentEventsPath = getPath(target);
+		if (Files.exists(deploymentEventsPath)) {
+			try (Reader reader = Files.newBufferedReader(deploymentEventsPath, StandardCharsets.UTF_8)) {
+				deploymentEvents.load(reader);
+			} catch (IOException e) {
+				throw new DeployerException("Error reading loading events file @ " + deploymentEventsPath, e);
+			}
+		}
 
-        return deploymentEvents;
-    }
+		return deploymentEvents;
+	}
 
-    @Override
-    public void saveDeploymentEvents(Target target, Properties deploymentEvents) throws DeployerException {
-        Path deploymentEventsPath = getPath(target);
-        try (Writer writer = Files.newBufferedWriter(deploymentEventsPath, StandardCharsets.UTF_8)) {
-            deploymentEvents.store(writer, null);
-        } catch (IOException e) {
-            throw new DeployerException("Error saving deployment events file @ " + deploymentEventsPath, e);
-        }
-    }
+	@Override
+	public void saveDeploymentEvents(Target target, Properties deploymentEvents) throws DeployerException {
+		Path deploymentEventsPath = getPath(target);
+		try (Writer writer = Files.newBufferedWriter(deploymentEventsPath, StandardCharsets.UTF_8)) {
+			deploymentEvents.store(writer, null);
+		} catch (IOException e) {
+			throw new DeployerException("Error saving deployment events file @ " + deploymentEventsPath, e);
+		}
+	}
 
-    @Override
-    public Path getSource(Target target) {
-        return getPath(target);
-    }
+	@Override
+	public Path getSource(Target target) {
+		return getPath(target);
+	}
 
 }

@@ -30,76 +30,76 @@ import org.craftercms.deployer.api.exceptions.DeployerException;
  */
 public abstract class AbstractMainDeploymentProcessor extends AbstractDeploymentProcessor {
 
-    public static final String FAIL_DEPLOYMENT_CONFIG_KEY = "failDeploymentOnFailure";
+	public static final String FAIL_DEPLOYMENT_CONFIG_KEY = "failDeploymentOnFailure";
 
-    protected boolean failDeploymentOnFailure;
+	protected boolean failDeploymentOnFailure;
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    public void init(Configuration config) throws ConfigurationException, DeployerException {
-        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, false);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	public void init(Configuration config) throws ConfigurationException, DeployerException {
+		failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, false);
 
-        super.init(config);
-    }
+		super.init(config);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected ChangeSet doExecute(Deployment deployment, ChangeSet filteredChangeSet,
-                                  ChangeSet originalChangeSet) throws Exception {
-        ProcessorExecution execution = new ProcessorExecution(name);
-        deployment.addProcessorExecution(execution);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected ChangeSet doExecute(Deployment deployment, ChangeSet filteredChangeSet,
+				      ChangeSet originalChangeSet) throws Exception {
+		ProcessorExecution execution = new ProcessorExecution(name);
+		deployment.addProcessorExecution(execution);
 
-        try {
-            ChangeSet newChangeSet = doMainProcess(deployment, execution, filteredChangeSet, originalChangeSet);
+		try {
+			ChangeSet newChangeSet = doMainProcess(deployment, execution, filteredChangeSet, originalChangeSet);
 
-            execution.endExecution(Deployment.Status.SUCCESS);
+			execution.endExecution(Deployment.Status.SUCCESS);
 
-            return newChangeSet;
-        } catch (Exception e) {
-            execution.setStatusDetails(e.toString());
-            execution.endExecution(Deployment.Status.FAILURE);
+			return newChangeSet;
+		} catch (Exception e) {
+			execution.setStatusDetails(e.toString());
+			execution.endExecution(Deployment.Status.FAILURE);
 
-            if (failDeploymentOnProcessorFailure()) {
-                deployment.end(Deployment.Status.FAILURE);
-            }
+			if (failDeploymentOnProcessorFailure()) {
+				deployment.end(Deployment.Status.FAILURE);
+			}
 
-            throw e;
-        }
-    }
+			throw e;
+		}
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
-        // Run if the deployment is running and change set is not empty
-        return deployment.isRunning() && (alwaysRun || (filteredChangeSet != null && !filteredChangeSet.isEmpty()));
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected boolean shouldExecute(Deployment deployment, ChangeSet filteredChangeSet) {
+		// Run if the deployment is running and change set is not empty
+		return deployment.isRunning() && (alwaysRun || (filteredChangeSet != null && !filteredChangeSet.isEmpty()));
+	}
 
-    /**
-     * Performs the actual work of processing the files in the {@link ChangeSet}, it is also possible to return a new
-     * {@link ChangeSet} to be used for the following processors in the pipeline
-     *
-     * @param deployment the current deployment
-     * @param execution the current execution
-     * @param filteredChangeSet the filtered change set (as returned by {@link #getFilteredChangeSet(ChangeSet)})
-     * @param originalChangeSet the original change set (as returned by the previous processors in the pipeline)
-     * @return a new {@link ChangeSet} or null
-     * @throws DeployerException if there is any error processing the {@link ChangeSet}
-     */
-    protected abstract ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                               ChangeSet filteredChangeSet, ChangeSet originalChangeSet)
-            throws DeployerException;
+	/**
+	 * Performs the actual work of processing the files in the {@link ChangeSet}, it is also possible to return a new
+	 * {@link ChangeSet} to be used for the following processors in the pipeline
+	 *
+	 * @param deployment        the current deployment
+	 * @param execution         the current execution
+	 * @param filteredChangeSet the filtered change set (as returned by {@link #getFilteredChangeSet(ChangeSet)})
+	 * @param originalChangeSet the original change set (as returned by the previous processors in the pipeline)
+	 * @return a new {@link ChangeSet} or null
+	 * @throws DeployerException if there is any error processing the {@link ChangeSet}
+	 */
+	protected abstract ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+						   ChangeSet filteredChangeSet, ChangeSet originalChangeSet)
+		throws DeployerException;
 
-    /**
-     * Indicates if the deployment should be marked as failed if this processor throws an error
-     */
-    protected boolean failDeploymentOnProcessorFailure() {
-        return failDeploymentOnFailure;
-    }
+	/**
+	 * Indicates if the deployment should be marked as failed if this processor throws an error
+	 */
+	protected boolean failDeploymentOnProcessorFailure() {
+		return failDeploymentOnFailure;
+	}
 
 }

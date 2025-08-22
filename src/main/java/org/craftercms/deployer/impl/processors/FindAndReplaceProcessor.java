@@ -38,7 +38,7 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  * content of the created or updated files of a {@link Deployment}.
  * <p><strong>Note:</strong> the files changed by this processor will not be committed to the git repository and
  * will be discarded when the next deployment starts.</p>
- *
+ * <p>
  * Can be configured with the following YAML properties:
  *
  * <ul>
@@ -50,79 +50,79 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  */
 public class FindAndReplaceProcessor extends AbstractMainDeploymentProcessor {
 
-    private static final Logger logger = LoggerFactory.getLogger(FindAndReplaceProcessor.class);
+	private static final Logger logger = LoggerFactory.getLogger(FindAndReplaceProcessor.class);
 
-    protected static final String CONFIG_KEY_TEXT_PATTERN = "textPattern";
-    protected static final String CONFIG_KEY_REPLACEMENT = "replacement";
+	protected static final String CONFIG_KEY_TEXT_PATTERN = "textPattern";
+	protected static final String CONFIG_KEY_REPLACEMENT = "replacement";
 
-    /**
-     * URL for the local git repository.
-     */
-    protected String localRepoUrl;
+	/**
+	 * URL for the local git repository.
+	 */
+	protected String localRepoUrl;
 
-    // Config properties (populated on init)
+	// Config properties (populated on init)
 
-    /**
-     * Regular expression to search in files.
-     */
-    protected String textPattern;
-    /**
-     * Expression to replace the matches.
-     */
-    protected String replacement;
+	/**
+	 * Regular expression to search in files.
+	 */
+	protected String textPattern;
+	/**
+	 * Expression to replace the matches.
+	 */
+	protected String replacement;
 
-    public void setLocalRepoUrl(final String localRepoUrl) {
-        this.localRepoUrl = localRepoUrl;
-    }
+	public void setLocalRepoUrl(final String localRepoUrl) {
+		this.localRepoUrl = localRepoUrl;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doInit(final Configuration config) throws ConfigurationException {
-        textPattern = getRequiredStringProperty(config, CONFIG_KEY_TEXT_PATTERN);
-        replacement = getRequiredStringProperty(config, CONFIG_KEY_REPLACEMENT);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void doInit(final Configuration config) throws ConfigurationException {
+		textPattern = getRequiredStringProperty(config, CONFIG_KEY_TEXT_PATTERN);
+		replacement = getRequiredStringProperty(config, CONFIG_KEY_REPLACEMENT);
 
-        // use true as default for backward compatibility
-        failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
-    }
+		// use true as default for backward compatibility
+		failDeploymentOnFailure = config.getBoolean(FAIL_DEPLOYMENT_CONFIG_KEY, true);
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
-                                      ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
-        logger.info("Performing find & replace. Pattern '{}' will be replaced with '{}'...", textPattern, replacement);
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected ChangeSet doMainProcess(Deployment deployment, ProcessorExecution execution,
+					  ChangeSet filteredChangeSet, ChangeSet originalChangeSet) throws DeployerException {
+		logger.info("Performing find & replace. Pattern '{}' will be replaced with '{}'...", textPattern, replacement);
 
-        for(String file :
-            ListUtils.union(filteredChangeSet.getCreatedFiles(), filteredChangeSet.getUpdatedFiles())) {
+		for (String file :
+			ListUtils.union(filteredChangeSet.getCreatedFiles(), filteredChangeSet.getUpdatedFiles())) {
 
-            try {
-                Path path = Paths.get(localRepoUrl, file);
-                String content = new String(Files.readAllBytes(path));
-                String updated = content.replaceAll(textPattern, replacement);
+			try {
+				Path path = Paths.get(localRepoUrl, file);
+				String content = new String(Files.readAllBytes(path));
+				String updated = content.replaceAll(textPattern, replacement);
 
-                if(StringUtils.equals(content, updated)) {
-                    logger.debug("No matches found for file {}", file);
-                } else {
-                    logger.debug("Writing changes to file {}", file);
-                    Files.write(path, updated.getBytes());
-                }
-            } catch (Exception e) {
-                throw new DeployerException("Error performing find and replace on file " + file, e);
-            }
-        }
+				if (StringUtils.equals(content, updated)) {
+					logger.debug("No matches found for file {}", file);
+				} else {
+					logger.debug("Writing changes to file {}", file);
+					Files.write(path, updated.getBytes());
+				}
+			} catch (Exception e) {
+				throw new DeployerException("Error performing find and replace on file " + file, e);
+			}
+		}
 
-        return null;
-    }
+		return null;
+	}
 
-    /**
-     * {@inheritDoc}
-     */
-    @Override
-    protected void doDestroy() throws DeployerException {
-        // Do nothing
-    }
+	/**
+	 * {@inheritDoc}
+	 */
+	@Override
+	protected void doDestroy() throws DeployerException {
+		// Do nothing
+	}
 
 }

@@ -28,17 +28,17 @@ import static org.craftercms.commons.config.ConfigUtils.getRequiredStringPropert
  */
 public abstract class AbstractProcessorUpgradeOperation extends ConditionalEnvUpgradeOperation {
 
-    /**
-     * The name of the processor to update
-     */
-    protected String processorName;
+	/**
+	 * The name of the processor to update
+	 */
+	protected String processorName;
 
-    @Override
-    public void init(String currentVersion, String nextVersion, HierarchicalConfiguration config)
-            throws ConfigurationException {
-        processorName = getRequiredStringProperty(config, CONFIG_KEY_PROCESSOR);
+	@Override
+	public void init(String currentVersion, String nextVersion, HierarchicalConfiguration config)
+		throws ConfigurationException {
+		processorName = getRequiredStringProperty(config, CONFIG_KEY_PROCESSOR);
 
-        super.init(currentVersion, nextVersion, config);
-    }
+		super.init(currentVersion, nextVersion, config);
+	}
 
 }

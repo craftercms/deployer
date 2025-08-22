@@ -6,7 +6,7 @@
 *.ear
 
 #Maven
-target/
+/target/
 
 # OS generated files #
 ######################

@@ -44,79 +44,79 @@ import org.springframework.core.io.Resource;
 @Configuration
 public class UpgradeManagerConfig {
 
-    @Bean
-    @SuppressWarnings("rawtypes")
-    public VersionProvider versionProvider(@Value("${deployer.main.upgrade.pipelines.target.defaultVersion}")
-                                                   String defaultVersion) {
-        TargetVersionProvider versionProvider = new TargetVersionProvider();
-        versionProvider.setDefaultValue(defaultVersion);
-        return versionProvider;
-    }
+	@Bean
+	@SuppressWarnings("rawtypes")
+	public VersionProvider versionProvider(@Value("${deployer.main.upgrade.pipelines.target.defaultVersion}")
+					       String defaultVersion) {
+		TargetVersionProvider versionProvider = new TargetVersionProvider();
+		versionProvider.setDefaultValue(defaultVersion);
+		return versionProvider;
+	}
 
-    @Bean
-    @SuppressWarnings("unchecked,rawtypes")
-    public UpgradePipelineFactory<Target> upgradePipelineFactory(
-            @Autowired VersionProvider versionProvider,
-            @Autowired UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider,
-            @Value("${deployer.main.upgrade.pipelines.target.name}") String pipelineName) {
-        return new TargetUpgradePipelineFactory(pipelineName, configurationProvider, versionProvider);
-    }
+	@Bean
+	@SuppressWarnings("unchecked,rawtypes")
+	public UpgradePipelineFactory<Target> upgradePipelineFactory(
+		@Autowired VersionProvider versionProvider,
+		@Autowired UpgradeConfigurationProvider<HierarchicalConfiguration> configurationProvider,
+		@Value("${deployer.main.upgrade.pipelines.target.name}") String pipelineName) {
+		return new TargetUpgradePipelineFactory(pipelineName, configurationProvider, versionProvider);
+	}
 
-    @Bean
-    public UpgradeConfigurationProvider<HierarchicalConfiguration> upgradeConfigurationProvider(
-            @Value("${deployer.main.upgrade.configuration}") Resource configurationFile) {
-        return new YamlConfigurationProvider(configurationFile);
-    }
+	@Bean
+	public UpgradeConfigurationProvider<HierarchicalConfiguration> upgradeConfigurationProvider(
+		@Value("${deployer.main.upgrade.configuration}") Resource configurationFile) {
+		return new YamlConfigurationProvider(configurationFile);
+	}
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public UpgradeOperation<Target> processorUpgrader() {
-        return new ProcessorUpgradeOperation();
-    }
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public UpgradeOperation<Target> processorUpgrader() {
+		return new ProcessorUpgradeOperation();
+	}
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public UpgradeOperation<Target> elasticsearchIndexUpgrader(
-            @Value("${deployer.main.upgrade.operations.elasticsearchIndexUpgrade.enabled}") boolean enabled) {
-        ElasticsearchIndexUpgradeOperation operation = new ElasticsearchIndexUpgradeOperation();
-        operation.setEnabled(enabled);
-        return operation;
-    }
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public UpgradeOperation<Target> elasticsearchIndexUpgrader(
+		@Value("${deployer.main.upgrade.operations.elasticsearchIndexUpgrade.enabled}") boolean enabled) {
+		ElasticsearchIndexUpgradeOperation operation = new ElasticsearchIndexUpgradeOperation();
+		operation.setEnabled(enabled);
+		return operation;
+	}
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public ReplaceProcessorUpgradeOperation replaceProcessorUpgrader() {
-        return new ReplaceProcessorUpgradeOperation();
-    }
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public ReplaceProcessorUpgradeOperation replaceProcessorUpgrader() {
+		return new ReplaceProcessorUpgradeOperation();
+	}
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public EncryptionUpgradeOperation encryptionUpgrader(@Autowired TextEncryptor textEncryptor) {
-        return new EncryptionUpgradeOperation(textEncryptor);
-    }
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public EncryptionUpgradeOperation encryptionUpgrader(@Autowired TextEncryptor textEncryptor) {
+		return new EncryptionUpgradeOperation(textEncryptor);
+	}
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public AddLifecycleHookUpgradeOperation addLifecycleHookUpgrader() {
-        return new AddLifecycleHookUpgradeOperation();
-    }
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public AddLifecycleHookUpgradeOperation addLifecycleHookUpgrader() {
+		return new AddLifecycleHookUpgradeOperation();
+	}
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public AddProcessorUpgradeOperation addProcessorUpgrader() {
-        return new AddProcessorUpgradeOperation();
-    }
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public AddProcessorUpgradeOperation addProcessorUpgrader() {
+		return new AddProcessorUpgradeOperation();
+	}
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public RemovePropertyUpgradeOperation removePropertyUpgrader() {
-        return new RemovePropertyUpgradeOperation();
-    }
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public RemovePropertyUpgradeOperation removePropertyUpgrader() {
+		return new RemovePropertyUpgradeOperation();
+	}
 
-    @Bean
-    @Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
-    public RemoveProcessorUpgradeOperation removeProcessorUpgrader() {
-        return new RemoveProcessorUpgradeOperation();
-    }
+	@Bean
+	@Scope(ConfigurableBeanFactory.SCOPE_PROTOTYPE)
+	public RemoveProcessorUpgradeOperation removeProcessorUpgrader() {
+		return new RemoveProcessorUpgradeOperation();
+	}
 
 }

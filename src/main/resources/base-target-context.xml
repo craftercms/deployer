@@ -127,6 +127,8 @@
 		<constructor-arg name="sandboxEnabled" value="${deployer.main.scripting.sandbox.enabled}"/>
 		<constructor-arg name="blacklistEnabled" value="${deployer.main.scripting.sandbox.blacklist.enabled}"/>
 		<constructor-arg name="blacklist" value="${deployer.main.scripting.sandbox.blacklist.path}"/>
+		<constructor-arg name="whitelistEnabled" value="${deployer.main.scripting.sandbox.whitelist.enabled}"/>
+		<constructor-arg name="whitelist" value="${deployer.main.scripting.sandbox.whitelist.path}"/>
 		<constructor-arg name="whitelistGetEnvRegex" value="${deployer.main.scripting.sandbox.whitelist.getenvRegex}"/>
 	</bean>
 

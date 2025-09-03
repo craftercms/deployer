@@ -16,12 +16,11 @@
 
 package org.craftercms.deployer;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.util.Properties;
-import java.util.concurrent.ExecutorService;
-
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.SerializationFeature;
+import com.github.jknack.handlebars.Handlebars;
+import com.github.jknack.handlebars.io.CompositeTemplateLoader;
+import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 import freemarker.template.TemplateException;
 import org.craftercms.commons.config.ConfigurationResolver;
 import org.craftercms.commons.config.ConfigurationResolverImpl;
@@ -33,10 +32,10 @@ import org.craftercms.commons.crypto.impl.PbkAesTextEncryptor;
 import org.craftercms.commons.git.utils.AuthConfiguratorFactory;
 import org.craftercms.deployer.api.TargetService;
 import org.craftercms.deployer.api.events.DeploymentEventsStore;
-import org.craftercms.deployer.impl.ProcessorStateStore;
-import org.craftercms.deployer.impl.ProcessorStateStoreImpl;
 import org.craftercms.deployer.impl.ProcessedCommitsStore;
 import org.craftercms.deployer.impl.ProcessedCommitsStoreImpl;
+import org.craftercms.deployer.impl.ProcessorStateStore;
+import org.craftercms.deployer.impl.ProcessorStateStoreImpl;
 import org.craftercms.deployer.impl.events.FileBasedDeploymentEventsStore;
 import org.craftercms.deployer.utils.core.TargetAwarePublishingTargetResolver;
 import org.craftercms.deployer.utils.handlebars.ListHelper;
@@ -49,6 +48,7 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
+import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
 import org.springframework.http.converter.json.Jackson2ObjectMapperBuilder;
@@ -58,12 +58,15 @@ import org.springframework.scheduling.concurrent.ThreadPoolTaskScheduler;
 import org.springframework.web.client.RestTemplate;
 import org.springframework.web.servlet.config.annotation.ContentNegotiationConfigurer;
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
-import com.github.jknack.handlebars.Handlebars;
-import com.github.jknack.handlebars.io.CompositeTemplateLoader;
-import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.util.Arrays;
+import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+
+import static java.lang.String.format;
 import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCATION;
 
 /**
@@ -103,6 +106,13 @@ public class DeployerApplication implements WebMvcConfigurer {
 	private String deploymentPoolName;
 	@Value("${deployer.main.deployments.pool.prefix}")
 	private String deploymentPoolPrefix;
+	@Value("${deployer.main.scripting.sandbox.whitelist.path}")
+	private String []whitelistPath;
+	@Value("${deployer.main.scripting.sandbox.blacklist.path}")
+	private String []blacklistPath;
+
+	@Autowired
+	private ResourceLoader resourceLoader;
 
 	@Autowired
 	private TargetService targetService;
@@ -228,4 +238,37 @@ public class DeployerApplication implements WebMvcConfigurer {
 		return new AuthConfiguratorFactory(sshConfig);
 	}
 
+	@Bean
+	public Resource groovySandboxWhitelist() {
+		Resource resource = findFirstExistingResource(whitelistPath);
+		if (resource != null) {
+			return resource;
+		}
+		throw new IllegalArgumentException(format("Could not find whitelist at '%s'", Arrays.toString(whitelistPath)));
+	}
+
+	@Bean
+	public Resource groovySandboxBlacklist() {
+		Resource resource = findFirstExistingResource(blacklistPath);
+		if (resource != null) {
+			return resource;
+		}
+		throw new IllegalArgumentException(format("Could not find blacklist at '%s'", Arrays.toString(blacklistPath)));
+	}
+
+	/**
+	 * Helper method to find the first existing resource in the given list of paths
+	 *
+	 * @param paths the list of paths to check
+	 * @return the first existing resource, or null if none of the paths exist
+	 */
+	private Resource findFirstExistingResource(String[] paths) {
+		for (String path : paths) {
+			Resource resource = resourceLoader.getResource(path);
+			if (resource.exists()) {
+				return resource;
+			}
+		}
+		return null;
+	}
 }

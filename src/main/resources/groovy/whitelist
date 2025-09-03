@@ -42,7 +42,6 @@ method groovy.lang.Range step int
 method groovy.lang.Range step int groovy.lang.Closure
 new groovy.lang.Script
 method groovy.lang.Script getBinding
-method groovy.lang.Script println java.lang.Object
 new groovy.lang.Script groovy.lang.Binding
 staticMethod groovy.xml.XmlUtil escapeXml java.lang.String
 

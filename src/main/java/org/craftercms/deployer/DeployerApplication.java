@@ -22,6 +22,7 @@ import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.CompositeTemplateLoader;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
 import freemarker.template.TemplateException;
+import org.apache.commons.collections4.ListUtils;
 import org.craftercms.commons.config.ConfigurationResolver;
 import org.craftercms.commons.config.ConfigurationResolverImpl;
 import org.craftercms.commons.config.EncryptionAwareConfigurationReader;
@@ -62,7 +63,7 @@ import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Path;
-import java.util.Arrays;
+import java.util.List;
 import java.util.Properties;
 import java.util.concurrent.ExecutorService;
 
@@ -106,10 +107,14 @@ public class DeployerApplication implements WebMvcConfigurer {
 	private String deploymentPoolName;
 	@Value("${deployer.main.deployments.pool.prefix}")
 	private String deploymentPoolPrefix;
+	@Value("${deployer.main.scripting.sandbox.whitelist.enabled}")
+	private boolean whitelistEnabled;
 	@Value("${deployer.main.scripting.sandbox.whitelist.path}")
-	private String []whitelistPath;
+	private List<String> whitelistPath;
+	@Value("${deployer.main.scripting.sandbox.blacklist.enabled}")
+	private boolean blacklistEnabled;
 	@Value("${deployer.main.scripting.sandbox.blacklist.path}")
-	private String []blacklistPath;
+	private List<String> blacklistPath;
 
 	@Autowired
 	private ResourceLoader resourceLoader;
@@ -240,20 +245,26 @@ public class DeployerApplication implements WebMvcConfigurer {
 
 	@Bean
 	public Resource groovySandboxWhitelist() {
+		if (!whitelistEnabled) {
+			return null;
+		}
 		Resource resource = findFirstExistingResource(whitelistPath);
 		if (resource != null) {
 			return resource;
 		}
-		throw new IllegalArgumentException(format("Could not find whitelist at '%s'", Arrays.toString(whitelistPath)));
+		throw new IllegalArgumentException(format("Could not find whitelist at '%s'", whitelistPath));
 	}
 
 	@Bean
 	public Resource groovySandboxBlacklist() {
+		if (!blacklistEnabled) {
+			return null;
+		}
 		Resource resource = findFirstExistingResource(blacklistPath);
 		if (resource != null) {
 			return resource;
 		}
-		throw new IllegalArgumentException(format("Could not find blacklist at '%s'", Arrays.toString(blacklistPath)));
+		throw new IllegalArgumentException(format("Could not find blacklist at '%s'", blacklistPath));
 	}
 
 	/**
@@ -262,8 +273,8 @@ public class DeployerApplication implements WebMvcConfigurer {
 	 * @param paths the list of paths to check
 	 * @return the first existing resource, or null if none of the paths exist
 	 */
-	private Resource findFirstExistingResource(String[] paths) {
-		for (String path : paths) {
+	private Resource findFirstExistingResource(List<String> paths) {
+		for (String path : ListUtils.emptyIfNull(paths)) {
 			Resource resource = resourceLoader.getResource(path);
 			if (resource.exists()) {
 				return resource;

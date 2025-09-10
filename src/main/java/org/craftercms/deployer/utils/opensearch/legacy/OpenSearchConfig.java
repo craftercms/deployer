@@ -86,17 +86,18 @@ public class OpenSearchConfig {
 		}
 		if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_READ_CLUSTER))) {
 			readCluster = new OpenSearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
-				globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
-				globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive);
+					globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
+					globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive,
+					globalCluster.maxTotalConnections, globalCluster.maxConnectionsPerRoute);
 		} else {
 			readCluster = new OpenSearchClusterConfig();
 		}
 		writeClusters = config.configurationsAt(CONFIG_KEY_WRITE_CLUSTERS)
-			.stream()
-			.map(cluster -> new OpenSearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
-				globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount,
-				globalCluster.keepAlive))
-			.collect(toList());
+				.stream()
+				.map(cluster -> new OpenSearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
+						globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount,
+						globalCluster.keepAlive, globalCluster.maxTotalConnections, globalCluster.maxConnectionsPerRoute))
+				.collect(toList());
 		if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
 			throw new IllegalStateException("Invalid OpenSearch configuration");
 		}
@@ -106,7 +107,7 @@ public class OpenSearchConfig {
 
 		indexSettings = new HashMap<>();
 		config.configurationsAt(CONFIG_KEY_INDEX_SETTINGS).forEach(settingConfig ->
-			indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
+				indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
 		ignoredSettings = new HashSet<>(Arrays.asList(config.getStringArray(CONFIG_KEY_IGNORED_INDEX_SETTINGS)));
 
 		reindexSlices = config.getInt(CONFIG_KEY_REINDEX_SLICES);

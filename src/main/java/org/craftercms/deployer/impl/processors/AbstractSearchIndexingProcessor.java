@@ -20,6 +20,7 @@ import org.apache.commons.collections4.ListUtils;
 import org.apache.commons.configuration2.Configuration;
 import org.apache.commons.lang3.StringUtils;
 import org.craftercms.commons.config.ConfigurationException;
+import org.craftercms.core.service.CacheService;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Context;
 import org.craftercms.core.util.cache.CacheTemplate;
@@ -74,7 +75,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
     protected static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
 
-    protected CacheTemplate cacheTemplate;
+    protected CacheService cacheService;
     protected ObjectFactory<Context> contextFactory;
     protected ContentStoreService contentStoreService;
     protected List<BatchIndexer> batchIndexers;
@@ -96,8 +97,8 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         this.itemsThatIncludeComponentQueryRows = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS;
     }
 
-    public void setCacheTemplate(final CacheTemplate cacheTemplate) {
-        this.cacheTemplate = cacheTemplate;
+    public void setCacheService(CacheService cacheService) {
+        this.cacheService = cacheService;
     }
 
     /**
@@ -222,7 +223,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             for (String path : createdFiles) {
                 if (isDescriptor(path)) {
                     addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                                                                    deletedFiles);
+                            deletedFiles);
                 }
                 if (reindexItemsOnComponentUpdates && isComponent(path)) {
                     addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
@@ -234,7 +235,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             for (String path : updatedFiles) {
                 if (isDescriptor(path)) {
                     addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                                                                    deletedFiles);
+                            deletedFiles);
                 }
                 if (reindexItemsOnComponentUpdates && isComponent(path)) {
                     addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
@@ -242,12 +243,11 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             }
         }
 
-
         if (CollectionUtils.isNotEmpty(deletedFiles)) {
             for (String path : deletedFiles) {
                 if (isDescriptor(path)) {
                     addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                                                                    deletedFiles);
+                            deletedFiles);
                 }
                 if (reindexItemsOnComponentUpdates && isComponent(path)) {
                     addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
@@ -281,13 +281,13 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         Context context = contextFactory.getObject();
 
         logger.debug("Clearing cache for context {}", context);
-        cacheTemplate.getCacheService().clearScope(context);
+        cacheService.clearScope(context);
 
         boolean failed = false;
         try {
             for (BatchIndexer indexer : batchIndexers) {
                 indexer.updateIndex(indexId, siteName, contentStoreService, context, updateSet,
-                                    updateStatus);
+                        updateStatus);
 
                 if (updateStatus.getAttemptedUpdatesAndDeletes() > 0) {
                     doCommit(indexId);
@@ -301,7 +301,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
         if (failed) {
             throw new DeployerException("Failed to update or delete some files, please check previous log messages " +
-                    "for the causes of the failures");
+                                        "for the causes of the failures");
         }
 
         return null;
@@ -325,10 +325,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected abstract List<String> getItemsThatInheritDescriptor(String indexId, String descriptorPath);
 
     protected void addItemsThatInheritFromDescriptorToUpdatedFiles(String descriptorPath, List<String> createdFiles,
-                                                                  List<String> updatedFiles,
+                                                                   List<String> updatedFiles,
                                                                    List<String> deletedFiles) {
         addAffectedItemsToUpdatedFiles(descriptorPath, createdFiles, updatedFiles, deletedFiles,
-                                        this::getItemsThatInheritDescriptor);
+                this::getItemsThatInheritDescriptor);
     }
 
     protected abstract List<String> getItemsThatIncludeComponent(String indexId, String componentPath);
@@ -336,7 +336,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected void addItemsThatIncludeComponentToUpdatedFiles(String componentPath, List<String> createdFiles,
                                                               List<String> updatedFiles, List<String> deletedFiles) {
         addAffectedItemsToUpdatedFiles(componentPath, createdFiles, updatedFiles, deletedFiles,
-                                        this::getItemsThatIncludeComponent);
+                this::getItemsThatIncludeComponent);
     }
 
     protected void addAffectedItemsToUpdatedFiles(String path, List<String> createdFiles, List<String> updatedFiles,
@@ -347,7 +347,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             for (String itemPath : itemPaths) {
                 if (!isBeingUpdatedOrDeleted(itemPath, createdFiles, updatedFiles, deletedFiles)) {
                     logger.debug("Item {} is affected by the update of {}. Adding it to list of updated files.",
-                        itemPath, path);
+                            itemPath, path);
 
                     updatedFiles.add(itemPath);
                 }

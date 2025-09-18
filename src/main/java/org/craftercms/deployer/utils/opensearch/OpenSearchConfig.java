@@ -83,7 +83,8 @@ public class OpenSearchConfig {
         if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_READ_CLUSTER))) {
             readCluster = new OpenSearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
                 globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
-                    globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive);
+                    globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive,
+                    globalCluster.maxTotalConnections, globalCluster.maxConnectionsPerRoute);
         } else {
             readCluster = new OpenSearchClusterConfig();
         }
@@ -91,7 +92,7 @@ public class OpenSearchConfig {
             .stream()
             .map(cluster -> new OpenSearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
                     globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount,
-                    globalCluster.keepAlive))
+                    globalCluster.keepAlive, globalCluster.maxTotalConnections, globalCluster.maxConnectionsPerRoute))
             .collect(toList());
         if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
             throw new IllegalStateException("Invalid OpenSearch configuration");

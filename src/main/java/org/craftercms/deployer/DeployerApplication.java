@@ -21,7 +21,7 @@ import com.fasterxml.jackson.databind.SerializationFeature;
 import com.github.jknack.handlebars.Handlebars;
 import com.github.jknack.handlebars.io.CompositeTemplateLoader;
 import com.github.jknack.handlebars.springmvc.SpringTemplateLoader;
-import freemarker.template.TemplateException;
+import groovy.grape.Grape;
 import org.apache.commons.collections4.ListUtils;
 import org.craftercms.commons.config.ConfigurationResolver;
 import org.craftercms.commons.config.ConfigurationResolverImpl;
@@ -49,6 +49,8 @@ import org.springframework.boot.web.client.RestTemplateBuilder;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.ImportResource;
 import org.springframework.context.annotation.Primary;
+import org.springframework.context.event.ContextRefreshedEvent;
+import org.springframework.context.event.EventListener;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.ResourceLoader;
 import org.springframework.http.MediaType;
@@ -61,7 +63,6 @@ import org.springframework.web.servlet.config.annotation.ContentNegotiationConfi
 import org.springframework.web.servlet.config.annotation.WebMvcConfigurer;
 
 import java.io.File;
-import java.io.IOException;
 import java.nio.file.Path;
 import java.util.List;
 import java.util.Properties;
@@ -78,7 +79,8 @@ import static org.craftercms.deployer.DeployerApplication.CORE_APP_CONTEXT_LOCAT
 @SpringBootApplication
 @EnableScheduling
 @ImportResource(CORE_APP_CONTEXT_LOCATION)
-public class DeployerApplication implements WebMvcConfigurer  {
+@SuppressWarnings("unused")
+public class DeployerApplication implements WebMvcConfigurer {
 
 	public static final String CORE_APP_CONTEXT_LOCATION = "classpath:crafter/core/core-context.xml";
 
@@ -115,6 +117,8 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	private boolean blacklistEnabled;
 	@Value("${deployer.main.scripting.sandbox.blacklist.path}")
 	private List<String> blacklistPath;
+	@Value("${deployer.main.scripting.grapes.download.enabled}")
+	private boolean grapesDownloadEnabled;
 
 	@Autowired
 	private ResourceLoader resourceLoader;
@@ -155,7 +159,7 @@ public class DeployerApplication implements WebMvcConfigurer  {
 		return builder.build();
 	}
 
-	@Bean(destroyMethod="shutdown")
+	@Bean(destroyMethod = "shutdown")
 	public ThreadPoolTaskScheduler taskScheduler() {
 		ThreadPoolTaskScheduler taskScheduler = new ThreadPoolTaskScheduler();
 		taskScheduler.setPoolSize(taskSchedulerPoolSize);
@@ -177,7 +181,7 @@ public class DeployerApplication implements WebMvcConfigurer  {
 	}
 
 	@Bean
-	public Handlebars targetConfigTemplateEngine(ResourceLoader resourceLoader) throws IOException, TemplateException {
+	public Handlebars targetConfigTemplateEngine(ResourceLoader resourceLoader) {
 		SpringTemplateLoader templateOverridesLoader = new SpringTemplateLoader(resourceLoader);
 		templateOverridesLoader.setPrefix(targetConfigTemplatesOverrideLocation);
 		templateOverridesLoader.setSuffix(targetConfigTemplatesSuffix);
@@ -281,5 +285,10 @@ public class DeployerApplication implements WebMvcConfigurer  {
 			}
 		}
 		return null;
+	}
+
+	@EventListener(value = ContextRefreshedEvent.class, condition = "event.applicationContext.parent == null")
+	public void configureGrapesDownload() {
+		Grape.setEnableAutoDownload(grapesDownloadEnabled);
 	}
 }

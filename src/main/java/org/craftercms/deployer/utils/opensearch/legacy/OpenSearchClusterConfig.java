@@ -44,6 +44,10 @@ public class OpenSearchClusterConfig {
 
 	public static final String CONFIG_KEY_KEEP_ALIVE = "keepAlive";
 
+	public static final String CONFIG_KEY_MAX_TOTAL_CONNECTIONS = "maxTotalConnections";
+
+	public static final String CONFIG_KEY_MAX_CONNECTIONS_PER_ROUTE = "maxConnectionsPerRoute";
+
 	/**
 	 * The list of urls to connect to the cluster
 	 */
@@ -67,6 +71,10 @@ public class OpenSearchClusterConfig {
 
 	public final boolean keepAlive;
 
+	public final int maxTotalConnections;
+
+	public final int maxConnectionsPerRoute;
+
 	public OpenSearchClusterConfig() {
 		urls = null;
 		username = null;
@@ -75,6 +83,8 @@ public class OpenSearchClusterConfig {
 		socketTimeout = -1;
 		threadCount = -1;
 		keepAlive = false;
+		maxTotalConnections = -1;
+		maxConnectionsPerRoute = -1;
 	}
 
 	public OpenSearchClusterConfig(HierarchicalConfiguration<?> config) {
@@ -85,10 +95,13 @@ public class OpenSearchClusterConfig {
 		socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, -1);
 		threadCount = config.getInt(CONFIG_KEY_THREADS, -1);
 		keepAlive = config.getBoolean(CONFIG_KEY_KEEP_ALIVE, false);
+		maxTotalConnections = config.getInt(CONFIG_KEY_MAX_TOTAL_CONNECTIONS, -1);
+		maxConnectionsPerRoute = config.getInt(CONFIG_KEY_MAX_CONNECTIONS_PER_ROUTE, -1);
 	}
 
 	public OpenSearchClusterConfig(HierarchicalConfiguration<?> config, String username, String password,
-				       int connectTimeout, int socketTimeout, int threadCount, boolean keepAlive) {
+								   int connectTimeout, int socketTimeout, int threadCount, boolean keepAlive,
+								   int maxTotalConnections, int maxConnectionsPerRoute) {
 		urls = (String[]) config.getArray(String.class, CONFIG_KEY_URLS);
 		this.username = config.getString(CONFIG_KEY_USERNAME, username);
 		this.password = config.getString(CONFIG_KEY_PASSWORD, password);
@@ -96,13 +109,15 @@ public class OpenSearchClusterConfig {
 		this.socketTimeout = config.getInt(CONFIG_KEY_TIMEOUT_SOCKET, socketTimeout);
 		this.threadCount = config.getInt(CONFIG_KEY_THREADS, threadCount);
 		this.keepAlive = config.getBoolean(CONFIG_KEY_KEEP_ALIVE, keepAlive);
+		this.maxTotalConnections = config.getInt(CONFIG_KEY_MAX_TOTAL_CONNECTIONS, maxTotalConnections);
+		this.maxConnectionsPerRoute = config.getInt(CONFIG_KEY_MAX_CONNECTIONS_PER_ROUTE, maxConnectionsPerRoute);
 	}
 
 	/**
 	 * Returns a client matching the current configuration of the cluster
 	 */
 	public RestHighLevelClient buildClient() {
-		return createClient(urls, username, password, connectTimeout, socketTimeout, threadCount, keepAlive);
+		return createClient(urls, username, password, connectTimeout, socketTimeout, threadCount, keepAlive, maxTotalConnections, maxConnectionsPerRoute);
 	}
 
 }

@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2025 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -17,14 +17,14 @@
 
 package org.craftercms.deployer.utils.opensearch;
 
+import org.apache.commons.configuration2.Configuration;
+import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.apache.commons.lang3.ArrayUtils;
+
 import java.beans.ConstructorProperties;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
-
-import org.apache.commons.configuration2.Configuration;
-import org.apache.commons.configuration2.HierarchicalConfiguration;
-import org.apache.commons.lang3.ArrayUtils;
 
 import static java.util.stream.Collectors.toList;
 import static org.apache.commons.collections4.CollectionUtils.isEmpty;
@@ -82,17 +82,18 @@ public class OpenSearchConfig {
 		}
 		if (!isEmpty(config.childConfigurationsAt(CONFIG_KEY_READ_CLUSTER))) {
 			readCluster = new OpenSearchClusterConfig(config.configurationAt(CONFIG_KEY_READ_CLUSTER),
-				globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
-				globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive);
+					globalCluster.username, globalCluster.password, globalCluster.connectTimeout,
+					globalCluster.socketTimeout, globalCluster.threadCount, globalCluster.keepAlive,
+					globalCluster.maxTotalConnections, globalCluster.maxConnectionsPerRoute);
 		} else {
 			readCluster = new OpenSearchClusterConfig();
 		}
 		writeClusters = config.configurationsAt(CONFIG_KEY_WRITE_CLUSTERS)
-			.stream()
-			.map(cluster -> new OpenSearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
-				globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount,
-				globalCluster.keepAlive))
-			.collect(toList());
+				.stream()
+				.map(cluster -> new OpenSearchClusterConfig(cluster, globalCluster.username, globalCluster.password,
+						globalCluster.connectTimeout, globalCluster.socketTimeout, globalCluster.threadCount,
+						globalCluster.keepAlive, globalCluster.maxTotalConnections, globalCluster.maxConnectionsPerRoute))
+				.collect(toList());
 		if (useSingleCluster() && ArrayUtils.isEmpty(globalCluster.urls)) {
 			throw new IllegalStateException("Invalid OpenSearch configuration");
 		}
@@ -102,7 +103,7 @@ public class OpenSearchConfig {
 
 		indexSettings = new HashMap<>();
 		config.configurationsAt(CONFIG_KEY_INDEX_SETTINGS).forEach(settingConfig ->
-			indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
+				indexSettings.put(settingConfig.getString(CONFIG_KEY_KEY), settingConfig.getString(CONFIG_KEY_VALUE)));
 	}
 
 	/**

@@ -4,7 +4,7 @@ servers:
 info:
   description: |-
     Crafter Deployer API
-  version: '4.4.5'
+  version: '4.5.0'
   title: Crafter Deployer
   termsOfService: ''
   contact:
@@ -61,7 +61,7 @@ paths:
                   repo_password: crafter
                   repo_branch: live
                   engine_url: http://localhost:8080
-                  notification_addresses: admin1@my-editorial.com", "admin2@my-editorial.com
+                  notification_addresses: "admin1@my-editorial.com, admin2@my-editorial.com"
               withGitPullOptions:
                 summary: Example of request body with git pull options
                 value:
@@ -122,7 +122,7 @@ paths:
                 env: dev
                 siteName: editorial
                 id: editorial-dev
-                load_date: 2023-01-26T10:00:1.234-05:00
+                load_date: 2023-01-26T10:00:01.234-05:00
                 status: INIT_COMPLETED
         '404':
           $ref: '#/components/responses/NotFound'
@@ -260,7 +260,7 @@ paths:
                   description: The id of the commit to start processing changes<br><br> <i>Available since version 4.0.0</i>
                   type: string
                 deployment_mode:
-                  description: "The deployment mode to execute. Possible values: <br> nbsp;&nbsp;&nbsp;<b>PUBLISH</b>: All processors will run<br> &nbsp;&nbsp;&nbsp;<b>SEARCH_INDEX</b>: Only the indexing processor will run <br><br> <i>Available since version 4.0.0</i>"
+                  description: "The deployment mode to execute. Possible values: <br> &nbsp;&nbsp;&nbsp;<b>PUBLISH</b>: All processors will run<br> &nbsp;&nbsp;&nbsp;<b>SEARCH_INDEX</b>: Only the indexing processor will run <br><br> <i>Available since version 4.0.0</i>"
                   type: string
       responses:
         '202':
@@ -956,7 +956,7 @@ components:
           description: "Only use with <i>remote</i> template. The username of the remote Git repo."
         repo_password:
           type: string
-          description: "Only use with <i>remote</i> template. The username of the remote Git repo."
+          description: "Only use with <i>remote</i> template. The password of the remote Git repo."
         ssh_private_key_path:
           type: string
           description: "Only use with <i>remote</i> template. The path for the private key used for the remote Git repo."

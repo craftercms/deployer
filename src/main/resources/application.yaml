@@ -169,7 +169,7 @@ deployer:
                 whitelist:
                     # Indicates if the whitelist should be enabled for all targets
                     # (this will have no effect if the sandbox is disabled)
-                    enabled: true
+                    enabled: false
                     # The location of the whitelist to use for all targets
                     # (this will have no effect if the sandbox is disabled)
                     path: 'file:${deployer.main.config.folderPath}/groovy/whitelist,classpath:groovy/whitelist'

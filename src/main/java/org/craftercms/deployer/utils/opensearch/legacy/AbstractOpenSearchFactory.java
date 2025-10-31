@@ -17,11 +17,14 @@
 
 package org.craftercms.deployer.utils.opensearch.legacy;
 
+import org.craftercms.commons.config.ConfigurationException;
 import org.opensearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+
+import java.util.ArrayList;
 
 /**
  * Base implementation for factories capable of build single or multi-cluster OpenSearch services
@@ -54,7 +57,7 @@ public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends
     }
 
     @Override
-    protected T createInstance() {
+    protected T createInstance() throws ConfigurationException {
         logger.debug("Creating instance for '{}'", name);
         if (config.useSingleCluster()) {
             logger.debug("Using a single cluster configuration for '{}'", name);
@@ -63,14 +66,16 @@ public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends
 
         logger.debug("Using a multi-cluster configuration for '{}'", name);
         RestHighLevelClient readClient = config.readCluster.buildClient();
-        RestHighLevelClient[] writeClients = config.writeClusters.stream()
-            .map(OpenSearchClusterConfig::buildClient)
-            .toArray(RestHighLevelClient[]::new);
-        return doCreateMultiInstance(readClient, writeClients);
+        ArrayList<RestHighLevelClient> writeClientList = new ArrayList<>(config.writeClusters.size());
+        for (OpenSearchClusterConfig writeCluster : config.writeClusters) {
+            writeClientList.add(writeCluster.buildClient());
+        }
+        return doCreateMultiInstance(readClient, writeClientList.toArray(new RestHighLevelClient[0]));
     }
 
     /**
      * Creates a service instance for a single cluster
+     *
      * @param client the OpenSearch client
      * @return the service instance
      */

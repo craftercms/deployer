@@ -65,12 +65,32 @@ public abstract class AbstractOpenSearchFactory<T> extends AbstractFactoryBean<T
 		}
 
 		logger.debug("Using a multi-cluster configuration for '{}'", name);
-		OpenSearchClient readClient = config.readCluster.buildClient();
 		ArrayList<OpenSearchClient> writeClientList = new ArrayList<>(config.writeClusters.size());
-		for (OpenSearchClusterConfig writeCluster : config.writeClusters) {
-			writeClientList.add(writeCluster.buildClient());
+		try {
+			for (OpenSearchClusterConfig writeCluster : config.writeClusters) {
+				writeClientList.add(writeCluster.buildClient());
+			}
+			OpenSearchClient readClient = config.readCluster.buildClient();
+			return doCreateMultiInstance(readClient, writeClientList.toArray(new OpenSearchClient[0]));
+		} catch (ConfigurationException e) {
+			closeClients(writeClientList);
+			throw e;
 		}
-		return doCreateMultiInstance(readClient, writeClientList.toArray(new OpenSearchClient[0]));
+	}
+
+	/**
+	 * Silently closes the given clients
+	 *
+	 * @param writeClientList the clients to close
+	 */
+	private static void closeClients(ArrayList<OpenSearchClient> writeClientList) {
+		for (OpenSearchClient writeClient : writeClientList) {
+			try {
+				writeClient._transport().close();
+			} catch (Exception ex) {
+				logger.warn("Failed to close write client during cleanup", ex);
+			}
+		}
 	}
 
 	/**

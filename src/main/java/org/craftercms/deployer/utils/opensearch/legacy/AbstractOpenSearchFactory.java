@@ -33,7 +33,7 @@ import java.util.ArrayList;
  * @since 3.1.5
  */
 public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends AbstractFactoryBean<T>
-	implements BeanNameAware {
+		implements BeanNameAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOpenSearchFactory.class);
 
@@ -65,12 +65,32 @@ public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends
 		}
 
 		logger.debug("Using a multi-cluster configuration for '{}'", name);
-		RestHighLevelClient readClient = config.readCluster.buildClient();
 		ArrayList<RestHighLevelClient> writeClientList = new ArrayList<>(config.writeClusters.size());
-		for (OpenSearchClusterConfig writeCluster : config.writeClusters) {
-			writeClientList.add(writeCluster.buildClient());
+		try {
+			for (OpenSearchClusterConfig writeCluster : config.writeClusters) {
+				writeClientList.add(writeCluster.buildClient());
+			}
+			RestHighLevelClient readClient = config.readCluster.buildClient();
+			return doCreateMultiInstance(readClient, writeClientList.toArray(new RestHighLevelClient[0]));
+		} catch (ConfigurationException e) {
+			closeClients(writeClientList);
+			throw e;
 		}
-		return doCreateMultiInstance(readClient, writeClientList.toArray(new RestHighLevelClient[0]));
+	}
+
+	/**
+	 * Silently closes all clients in the given list
+	 *
+	 * @param writeClientList the clients to close
+	 */
+	private void closeClients(ArrayList<RestHighLevelClient> writeClientList) {
+		for (RestHighLevelClient client : writeClientList) {
+			try {
+				client.close();
+			} catch (Exception ex) {
+				logger.warn("Could not close OpenSearch client for '{}'", name, ex);
+			}
+		}
 	}
 
 	/**

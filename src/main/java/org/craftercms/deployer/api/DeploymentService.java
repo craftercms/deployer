@@ -49,8 +49,9 @@ public interface DeploymentService {
      * @param params        additional parameters that can be used by the deployment processors
      *
      * @return the deployment info
-     *
+     * @throws TargetNotFoundException if the target for the specified env and site name was not found
      * @throws DeploymentServiceException if there was an error while executing the deployments
+     * @throws TargetNotReadyException if the target is not ready to accept deployments
      */
     Deployment deployTarget(String env, String siteName, boolean waitTillDone,
                             Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException, TargetNotReadyException;

@@ -23,6 +23,7 @@ import org.craftercms.commons.validation.rest.ValidationAwareRestExceptionHandle
 import org.craftercms.core.controller.rest.ValidationFieldError;
 import org.craftercms.deployer.api.exceptions.TargetAlreadyExistsException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
 import org.springframework.core.Ordered;
 import org.springframework.core.annotation.Order;
 import org.springframework.http.HttpHeaders;
@@ -92,6 +93,12 @@ public class ExceptionHandlers extends ValidationAwareRestExceptionHandlers {
     public ResponseEntity<Object> handleInvalidManagementTokenException(InvalidManagementTokenException ex,
                                                                         WebRequest request) {
         return handleExceptionInternal(ex, "Invalid management token", new HttpHeaders(), HttpStatus.UNAUTHORIZED,
+                request);
+    }
+
+    @ExceptionHandler(TargetNotReadyException.class)
+    public ResponseEntity<Object> handleTargetNotReadyException(TargetNotReadyException ex, WebRequest request) {
+        return handleExceptionInternal(ex, ex.getMessage(), new HttpHeaders(), HttpStatus.SERVICE_UNAVAILABLE,
                 request);
     }
 

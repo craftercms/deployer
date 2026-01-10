@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2023 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -82,11 +82,11 @@ public class DeploymentServiceImpl implements DeploymentService {
 
 	@Override
 	public Deployment deployTarget(String env, String siteName, boolean waitTillDone,
-				       Map<String, Object> params) throws TargetNotFoundException,
-		DeploymentServiceException {
+								   Map<String, Object> params) throws TargetNotFoundException,
+			DeploymentServiceException, TargetNotReadyException {
 		try {
 			return targetService.getTarget(env, siteName).deploy(waitTillDone, params);
-		} catch (TargetServiceException | TargetNotReadyException e) {
+		} catch (TargetServiceException e) {
 			throw new DeploymentServiceException(format("Error while deploying target '%s'", TargetImpl.getId(env, siteName)), e);
 		}
 	}

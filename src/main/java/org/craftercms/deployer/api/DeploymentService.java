@@ -1,5 +1,5 @@
 /*
- * Copyright (C) 2007-2022 Crafter Software Corporation. All Rights Reserved.
+ * Copyright (C) 2007-2026 Crafter Software Corporation. All Rights Reserved.
  *
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License version 3 as published by
@@ -15,11 +15,12 @@
  */
 package org.craftercms.deployer.api;
 
-import java.util.List;
-import java.util.Map;
-
 import org.craftercms.deployer.api.exceptions.DeploymentServiceException;
 import org.craftercms.deployer.api.exceptions.TargetNotFoundException;
+import org.craftercms.deployer.api.exceptions.TargetNotReadyException;
+
+import java.util.List;
+import java.util.Map;
 
 /**
  * Service for doing deployments.
@@ -46,9 +47,11 @@ public interface DeploymentService {
 	 * @param waitTillDone if the method should wait till the deployment is done or return immediately
 	 * @param params       additional parameters that can be used by the deployment processors
 	 * @return the deployment info
+	 * @throws TargetNotFoundException    if the target for the specified env and site name was not found
 	 * @throws DeploymentServiceException if there was an error while executing the deployments
+	 * @throws TargetNotReadyException    if the target is not ready to accept deployments
 	 */
 	Deployment deployTarget(String env, String siteName, boolean waitTillDone,
-				Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException;
+							Map<String, Object> params) throws TargetNotFoundException, DeploymentServiceException, TargetNotReadyException;
 
 }

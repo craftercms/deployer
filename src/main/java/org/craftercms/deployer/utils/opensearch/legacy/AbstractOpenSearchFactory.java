@@ -17,11 +17,14 @@
 
 package org.craftercms.deployer.utils.opensearch.legacy;
 
+import org.craftercms.commons.config.ConfigurationException;
 import org.opensearch.client.RestHighLevelClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+
+import java.util.ArrayList;
 
 /**
  * Base implementation for factories capable of build single or multi-cluster OpenSearch services
@@ -30,7 +33,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
  * @since 3.1.5
  */
 public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends AbstractFactoryBean<T>
-	implements BeanNameAware {
+		implements BeanNameAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOpenSearchFactory.class);
 
@@ -54,7 +57,7 @@ public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends
 	}
 
 	@Override
-	protected T createInstance() {
+	protected T createInstance() throws ConfigurationException {
 		logger.debug("Creating instance for '{}'", name);
 		if (config.useSingleCluster()) {
 			logger.debug("Using a single cluster configuration for '{}'", name);
@@ -62,11 +65,32 @@ public abstract class AbstractOpenSearchFactory<T extends AutoCloseable> extends
 		}
 
 		logger.debug("Using a multi-cluster configuration for '{}'", name);
-		RestHighLevelClient readClient = config.readCluster.buildClient();
-		RestHighLevelClient[] writeClients = config.writeClusters.stream()
-			.map(OpenSearchClusterConfig::buildClient)
-			.toArray(RestHighLevelClient[]::new);
-		return doCreateMultiInstance(readClient, writeClients);
+		ArrayList<RestHighLevelClient> writeClientList = new ArrayList<>(config.writeClusters.size());
+		try {
+			for (OpenSearchClusterConfig writeCluster : config.writeClusters) {
+				writeClientList.add(writeCluster.buildClient());
+			}
+			RestHighLevelClient readClient = config.readCluster.buildClient();
+			return doCreateMultiInstance(readClient, writeClientList.toArray(new RestHighLevelClient[0]));
+		} catch (ConfigurationException e) {
+			closeClients(writeClientList);
+			throw e;
+		}
+	}
+
+	/**
+	 * Silently closes all clients in the given list
+	 *
+	 * @param writeClientList the clients to close
+	 */
+	private void closeClients(ArrayList<RestHighLevelClient> writeClientList) {
+		for (RestHighLevelClient client : writeClientList) {
+			try {
+				client.close();
+			} catch (Exception ex) {
+				logger.warn("Could not close OpenSearch client for '{}'", name, ex);
+			}
+		}
 	}
 
 	/**

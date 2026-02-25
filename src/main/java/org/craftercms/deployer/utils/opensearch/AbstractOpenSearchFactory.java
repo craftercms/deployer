@@ -17,11 +17,14 @@
 
 package org.craftercms.deployer.utils.opensearch;
 
+import org.craftercms.commons.config.ConfigurationException;
 import org.opensearch.client.opensearch.OpenSearchClient;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.BeanNameAware;
 import org.springframework.beans.factory.config.AbstractFactoryBean;
+
+import java.util.ArrayList;
 
 /**
  * Base implementation for factories capable of build single or multi-cluster OpenSearch services
@@ -30,7 +33,7 @@ import org.springframework.beans.factory.config.AbstractFactoryBean;
  * @since 3.1.5
  */
 public abstract class AbstractOpenSearchFactory<T> extends AbstractFactoryBean<T>
-	implements BeanNameAware {
+		implements BeanNameAware {
 
 	private static final Logger logger = LoggerFactory.getLogger(AbstractOpenSearchFactory.class);
 
@@ -54,7 +57,7 @@ public abstract class AbstractOpenSearchFactory<T> extends AbstractFactoryBean<T
 	}
 
 	@Override
-	protected T createInstance() {
+	protected T createInstance() throws ConfigurationException {
 		logger.debug("Creating instance for '{}'", name);
 		if (config.useSingleCluster()) {
 			logger.debug("Using a single cluster configuration for '{}'", name);
@@ -62,11 +65,32 @@ public abstract class AbstractOpenSearchFactory<T> extends AbstractFactoryBean<T
 		}
 
 		logger.debug("Using a multi-cluster configuration for '{}'", name);
-		OpenSearchClient readClient = config.readCluster.buildClient();
-		OpenSearchClient[] writeClients = config.writeClusters.stream()
-			.map(OpenSearchClusterConfig::buildClient)
-			.toArray(OpenSearchClient[]::new);
-		return doCreateMultiInstance(readClient, writeClients);
+		ArrayList<OpenSearchClient> writeClientList = new ArrayList<>(config.writeClusters.size());
+		try {
+			for (OpenSearchClusterConfig writeCluster : config.writeClusters) {
+				writeClientList.add(writeCluster.buildClient());
+			}
+			OpenSearchClient readClient = config.readCluster.buildClient();
+			return doCreateMultiInstance(readClient, writeClientList.toArray(new OpenSearchClient[0]));
+		} catch (ConfigurationException e) {
+			closeClients(writeClientList);
+			throw e;
+		}
+	}
+
+	/**
+	 * Silently closes the given clients
+	 *
+	 * @param writeClientList the clients to close
+	 */
+	private static void closeClients(ArrayList<OpenSearchClient> writeClientList) {
+		for (OpenSearchClient writeClient : writeClientList) {
+			try {
+				writeClient._transport().close();
+			} catch (Exception ex) {
+				logger.warn("Failed to close write client during cleanup", ex);
+			}
+		}
 	}
 
 	/**

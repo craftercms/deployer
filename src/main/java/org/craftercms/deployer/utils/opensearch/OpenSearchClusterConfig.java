@@ -18,7 +18,10 @@
 package org.craftercms.deployer.utils.opensearch;
 
 import org.apache.commons.configuration2.HierarchicalConfiguration;
+import org.craftercms.commons.config.ConfigurationException;
 import org.opensearch.client.opensearch.OpenSearchClient;
+
+import java.net.URISyntaxException;
 
 import static org.craftercms.search.opensearch.spring.OpenSearchClientFactory.createClient;
 
@@ -116,8 +119,12 @@ public class OpenSearchClusterConfig {
     /**
      * Returns a client matching the current configuration of the cluster
      */
-    public OpenSearchClient buildClient() {
-        return createClient(urls, username, password, connectTimeout, socketTimeout, threadCount, keepAlive, maxTotalConnections, maxConnectionsPerRoute);
+    public OpenSearchClient buildClient() throws ConfigurationException {
+        try {
+            return createClient(urls, username, password, connectTimeout, socketTimeout, threadCount, keepAlive, maxTotalConnections, maxConnectionsPerRoute);
+        } catch (URISyntaxException e) {
+            throw new ConfigurationException("Error building OpenSearch client. Invalid url", e);
+        }
     }
 
 }

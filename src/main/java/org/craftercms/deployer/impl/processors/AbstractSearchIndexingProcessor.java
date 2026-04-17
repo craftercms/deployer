@@ -72,8 +72,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected static final String CREATE_INDEX_IF_MISSING_CONFIG_KEY = "createIndexIfMissing";
 
     protected static final Pattern DEFAULT_DESCRIPTOR_PATH_PATTERN = Pattern.compile("^/site/.+\\.xml$");
-    protected static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
-    protected static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
 
     protected CacheService cacheService;
     protected ObjectFactory<Context> contextFactory;
@@ -81,8 +79,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected List<BatchIndexer> batchIndexers;
     protected boolean xmlFlatteningEnabled;
     protected Pattern descriptorPathPattern;
-    protected Pattern componentPathPattern;
-    protected int itemsThatIncludeComponentQueryRows;
     protected String indexIdFormat;
 
     // Config properties (populated on init)
@@ -93,8 +89,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
     public AbstractSearchIndexingProcessor() {
         this.descriptorPathPattern = DEFAULT_DESCRIPTOR_PATH_PATTERN;
-        this.componentPathPattern = DEFAULT_COMPONENT_PATH_PATTERN;
-        this.itemsThatIncludeComponentQueryRows = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS;
     }
 
     public void setCacheService(CacheService cacheService) {
@@ -142,21 +136,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
      */
     public void setDescriptorPathRegex(String descriptorPathRegex) {
         descriptorPathPattern = Pattern.compile(descriptorPathRegex);
-    }
-
-    /**
-     * Sets the regex used to match component paths (used when {@code reindexItemsOnComponentUpdates} is enabled).
-     */
-    public void setComponentPathRegex(String componentPathRegex) {
-        componentPathPattern = Pattern.compile(componentPathRegex);
-    }
-
-    /**
-     * Sets the rows to fetch for the search query used to find items that include components (used when
-     * {@code reindexItemsOnComponentUpdates} is enabled).
-     */
-    public void setItemsThatIncludeComponentQueryRows(int itemsThatIncludeComponentQueryRows) {
-        this.itemsThatIncludeComponentQueryRows = itemsThatIncludeComponentQueryRows;
     }
 
     /**
@@ -222,11 +201,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         if (CollectionUtils.isNotEmpty(createdFiles)) {
             for (String path : createdFiles) {
                 if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                            deletedFiles);
-                }
-                if (reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    if (reindexItemsOnComponentUpdates) {
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
                 }
             }
         }
@@ -234,11 +212,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         if (CollectionUtils.isNotEmpty(updatedFiles)) {
             for (String path : updatedFiles) {
                 if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                            deletedFiles);
-                }
-                if (reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    if (reindexItemsOnComponentUpdates) {
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
                 }
             }
         }
@@ -246,11 +223,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         if (CollectionUtils.isNotEmpty(deletedFiles)) {
             for (String path : deletedFiles) {
                 if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                            deletedFiles);
-                }
-                if (reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    if (reindexItemsOnComponentUpdates) {
+                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
                 }
             }
         }
@@ -301,7 +277,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
         if (failed) {
             throw new DeployerException("Failed to update or delete some files, please check previous log messages " +
-                                        "for the causes of the failures");
+                    "for the causes of the failures");
         }
 
         return null;
@@ -311,10 +287,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
     protected boolean isDescriptor(String path) {
         return descriptorPathPattern.matcher(path).matches();
-    }
-
-    protected boolean isComponent(String path) {
-        return componentPathPattern.matcher(path).matches();
     }
 
     protected boolean isBeingUpdatedOrDeleted(String path, List<String> createdFiles, List<String> updatedFiles,

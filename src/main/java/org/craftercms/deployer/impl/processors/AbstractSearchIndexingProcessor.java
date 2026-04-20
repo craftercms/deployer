@@ -23,7 +23,6 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Context;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -69,6 +68,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected static final String INDEX_ID_CONFIG_KEY = "indexId";
     protected static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
     protected static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
+    protected static final String REINDEX_DEPENDENT_ITEMS_ON_DESCRIPTOR_UPDATES = "reindexDependentItemsOnDescriptorUpdates";
     protected static final String CREATE_INDEX_IF_MISSING_CONFIG_KEY = "createIndexIfMissing";
 
     protected static final Pattern DEFAULT_DESCRIPTOR_PATH_PATTERN = Pattern.compile("^/site/.+\\.xml$");
@@ -84,7 +84,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     // Config properties (populated on init)
 
     protected String indexId;
-    protected boolean reindexItemsOnComponentUpdates;
+    protected boolean reindexDependentItemsOnDescriptorUpdates;
     protected boolean createIndexIfMissing;
 
     public AbstractSearchIndexingProcessor() {
@@ -157,8 +157,13 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             }
         }
 
-        reindexItemsOnComponentUpdates = getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES, true);
+        Boolean reindexDependentItems = getBooleanProperty(config, REINDEX_DEPENDENT_ITEMS_ON_DESCRIPTOR_UPDATES, null);
+        // If missing, use the old property
+        if (reindexDependentItems == null) {
+            reindexDependentItems = getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES, true);
+        }
 
+        reindexDependentItemsOnDescriptorUpdates = reindexDependentItems;
         createIndexIfMissing = getBooleanProperty(config, CREATE_INDEX_IF_MISSING_CONFIG_KEY, true);
 
         if (CollectionUtils.isEmpty(batchIndexers)) {
@@ -202,8 +207,8 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             for (String path : createdFiles) {
                 if (isDescriptor(path)) {
                     addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                    if (reindexItemsOnComponentUpdates) {
-                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    if (reindexDependentItemsOnDescriptorUpdates) {
+                        addItemsThatIncludeDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
                     }
                 }
             }
@@ -213,8 +218,8 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             for (String path : updatedFiles) {
                 if (isDescriptor(path)) {
                     addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                    if (reindexItemsOnComponentUpdates) {
-                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    if (reindexDependentItemsOnDescriptorUpdates) {
+                        addItemsThatIncludeDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
                     }
                 }
             }
@@ -224,8 +229,8 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             for (String path : deletedFiles) {
                 if (isDescriptor(path)) {
                     addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
-                    if (reindexItemsOnComponentUpdates) {
-                        addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    if (reindexDependentItemsOnDescriptorUpdates) {
+                        addItemsThatIncludeDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
                     }
                 }
             }
@@ -303,12 +308,12 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
                 this::getItemsThatInheritDescriptor);
     }
 
-    protected abstract List<String> getItemsThatIncludeComponent(String indexId, String componentPath);
+    protected abstract List<String> getItemsThatIncludeDescriptor(String indexId, String descriptorPath);
 
-    protected void addItemsThatIncludeComponentToUpdatedFiles(String componentPath, List<String> createdFiles,
-                                                              List<String> updatedFiles, List<String> deletedFiles) {
-        addAffectedItemsToUpdatedFiles(componentPath, createdFiles, updatedFiles, deletedFiles,
-                this::getItemsThatIncludeComponent);
+    protected void addItemsThatIncludeDescriptorToUpdatedFiles(String descriptorPath, List<String> createdFiles,
+                                                               List<String> updatedFiles, List<String> deletedFiles) {
+        addAffectedItemsToUpdatedFiles(descriptorPath, createdFiles, updatedFiles, deletedFiles,
+                this::getItemsThatIncludeDescriptor);
     }
 
     protected void addAffectedItemsToUpdatedFiles(String path, List<String> createdFiles, List<String> updatedFiles,

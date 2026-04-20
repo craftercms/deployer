@@ -158,7 +158,7 @@
 
 	<bean id="abstractSearchIndexingProcessor" class="org.craftercms.deployer.impl.processors.AbstractSearchIndexingProcessor"
 	      parent="deploymentProcessor" abstract="true">
-		<property name="cacheTemplate" ref="crafter.cacheTemplate"/>
+		<property name="cacheService" ref="crafter.cacheService"/>
 		<property name="contextFactory" ref="contextFactory"/>
 		<property name="contentStoreService" ref="crafter.contentStoreService"/>
 		<property name="xmlFlatteningEnabled" value="${target.search.indexing.xml.flattening.enabled}"/>

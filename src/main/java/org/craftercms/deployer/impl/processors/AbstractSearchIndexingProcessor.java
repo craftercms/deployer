@@ -55,9 +55,9 @@ import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FIL
  *     always be null on update calls.</li>
  *     <li><strong>indexId:</strong> The specific index ID to use</li>
  *     <li><strong>reindexDependentItemsOnDescriptorUpdates:</strong> Flag that indicates that if a descriptor
- *     under {`@code` /site/} is updated, all other items that include it should be re-indexed. This is needed
- *     when XML flattening is enabled. Defaults to {`@code` true}.
- *     The legacy name {`@code` reindexItemsOnComponentUpdates} is also supported for backwards compatibility.</li>
+ *     under {@code /site/} is updated, all other items that include it should be re-indexed. This is needed
+ *     when XML flattening is enabled. Defaults to {@code true}.
+ *     The legacy name {@code reindexItemsOnComponentUpdates} is also supported for backwards compatibility.</li>
  * </ul>
  *
  * @author avasquez
@@ -125,7 +125,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     }
 
     /**
-     * Sets whether XML flattening is enabled. Only used in conjunction with {`@code` reindexDependentItemsOnDescriptorUpdates}
+     * Sets whether XML flattening is enabled. Only used in conjunction with {@code reindexDependentItemsOnDescriptorUpdates}
      * to see if pages/components should be re-indexed when components they include are updated.
      */
     public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {
@@ -185,10 +185,13 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected abstract void doCreateIndexIfMissing();
 
     /**
-     * Expand changeSet by adding pages/components that need to be updated because a component that they include was updated.
+     * Expand the change set by adding items that need to be updated because a descriptor they include or inherit from
+     * was created, updated, or deleted. Applies to any descriptor under {@code /site/} (see
+     * {@link `#DEFAULT_DESCRIPTOR_PATH_PATTERN`}) and is gated by {@code xmlFlatteningEnabled} and, for include-based
+     * expansion, {@code reindexDependentItemsOnDescriptorUpdates}.
      *
      * @param changeSet original change set
-     * @return filtered change set
+     * @return expanded change set
      */
     protected ChangeSet expandChangeSet(ChangeSet changeSet) {
         if (createIndexIfMissing) {

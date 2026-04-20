@@ -126,7 +126,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
     /**
      * Sets whether XML flattening is enabled. Only used in conjunction with {@code reindexDependentItemsOnDescriptorUpdates}
-     * to see if pages/components should be re-indexed when components they include are updated.
+     * to decide whether items should be re-indexed when descriptors they include are updated.
      */
     public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {
         this.xmlFlatteningEnabled = xmlFlatteningEnabled;
@@ -187,7 +187,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     /**
      * Expand the change set by adding items that need to be updated because a descriptor they include or inherit from
      * was created, updated, or deleted. Applies to any descriptor under {@code /site/} (see
-     * {@link `#DEFAULT_DESCRIPTOR_PATH_PATTERN`}) and is gated by {@code xmlFlatteningEnabled} and, for include-based
+     * {@link #DEFAULT_DESCRIPTOR_PATH_PATTERN}) and is gated by {@code xmlFlatteningEnabled} and, for include-based
      * expansion, {@code reindexDependentItemsOnDescriptorUpdates}.
      *
      * @param changeSet original change set

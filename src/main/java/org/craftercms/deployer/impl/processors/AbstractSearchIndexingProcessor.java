@@ -54,9 +54,10 @@ import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FIL
  *     <li><strong>ignoreIndexId:</strong> If the index ID should be ignored, in other words, if the index ID should
  *     always be null on update calls.</li>
  *     <li><strong>indexId:</strong> The specific index ID to use</li>
- *     <li><strong>reindexItemsOnComponentUpdates:</strong> Flag that indicates that if a component is updated, all
- *     other pages and components that include it should be updated too. This needs to be done when flattening is
- *     enabled, since the component needs to be re-included in pages/components. By default is true.</li>
+ *     <li><strong>reindexDependentItemsOnDescriptorUpdates:</strong> Flag that indicates that if a descriptor
+ *     under {`@code` /site/} is updated, all other items that include it should be re-indexed. This is needed
+ *     when XML flattening is enabled. Defaults to {`@code` true}.
+ *     The legacy name {`@code` reindexItemsOnComponentUpdates} is also supported for backwards compatibility.</li>
  * </ul>
  *
  * @author avasquez
@@ -124,7 +125,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     }
 
     /**
-     * Sets whether XML flattening is enabled. Only used in conjunction with {@code reindexItemsOnComponentUpdates}
+     * Sets whether XML flattening is enabled. Only used in conjunction with {`@code` reindexDependentItemsOnDescriptorUpdates}
      * to see if pages/components should be re-indexed when components they include are updated.
      */
     public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {

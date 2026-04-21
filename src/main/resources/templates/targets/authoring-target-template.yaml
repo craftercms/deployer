@@ -16,7 +16,7 @@ target:
         includeGitLog: true
       - processorName: authoringSearchIndexingProcessor
         excludeFiles: ['^/sources/.*$', '^/\.crafter/.*$']
-        reindexItemsOnComponentUpdates: false
+        reindexDependentItemsOnDescriptorUpdates: false
       - processorName: httpMethodCallProcessor
         includeFiles: [ "^/?config/studio/scripts/classes/.*$" ]
         method: GET

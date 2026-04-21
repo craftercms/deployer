@@ -56,7 +56,7 @@ public class OpenSearchIndexingProcessor extends AbstractSearchIndexingProcessor
 
 	@ConstructorProperties({"searchService", "searchAdminService"})
 	public OpenSearchIndexingProcessor(OpenSearchService searchService,
-					   OpenSearchAdminService searchAdminService) {
+									   OpenSearchAdminService searchAdminService) {
 		this.searchService = searchService;
 		this.searchAdminService = searchAdminService;
 	}
@@ -105,7 +105,7 @@ public class OpenSearchIndexingProcessor extends AbstractSearchIndexingProcessor
 	}
 
 	@Override
-	protected List<String> getItemsThatIncludeComponent(final String indexId, final String componentPath) {
+	protected List<String> getItemsThatIncludeDescriptor(final String indexId, final String descriptorPath) {
 		try {
 			Query query = Query.of(q -> q
 				.bool(b -> b
@@ -113,7 +113,7 @@ public class OpenSearchIndexingProcessor extends AbstractSearchIndexingProcessor
 						.match(m -> m
 							.field(includedDescriptorsFieldName)
 							.query(v -> v
-								.stringValue(componentPath)
+								.stringValue(descriptorPath)
 							)
 						)
 					)
@@ -127,7 +127,7 @@ public class OpenSearchIndexingProcessor extends AbstractSearchIndexingProcessor
 			return searchService.searchField(indexId, localIdFieldName, query);
 		} catch (OpenSearchException e) {
 			throw new SearchException(indexId,
-				"Error executing search of descriptors that include component " + componentPath, e);
+				"Error executing search of items that include descriptor " + descriptorPath, e);
 		}
 	}
 

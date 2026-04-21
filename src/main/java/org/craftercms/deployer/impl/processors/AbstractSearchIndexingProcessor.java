@@ -23,7 +23,6 @@ import org.craftercms.commons.config.ConfigurationException;
 import org.craftercms.core.service.CacheService;
 import org.craftercms.core.service.ContentStoreService;
 import org.craftercms.core.service.Context;
-import org.craftercms.core.util.cache.CacheTemplate;
 import org.craftercms.deployer.api.ChangeSet;
 import org.craftercms.deployer.api.Deployment;
 import org.craftercms.deployer.api.ProcessorExecution;
@@ -55,9 +54,10 @@ import static org.craftercms.deployer.impl.DeploymentConstants.REPROCESS_ALL_FIL
  *     <li><strong>ignoreIndexId:</strong> If the index ID should be ignored, in other words, if the index ID should
  *     always be null on update calls.</li>
  *     <li><strong>indexId:</strong> The specific index ID to use</li>
- *     <li><strong>reindexItemsOnComponentUpdates:</strong> Flag that indicates that if a component is updated, all
- *     other pages and components that include it should be updated too. This needs to be done when flattening is
- *     enabled, since the component needs to be re-included in pages/components. By default is true.</li>
+ *     <li><strong>reindexDependentItemsOnDescriptorUpdates:</strong> Flag that indicates that if a descriptor
+ *     under {@code /site/} is updated, all other items that include it should be re-indexed. This is needed
+ *     when XML flattening is enabled. Defaults to {@code true}.
+ *     The legacy name {@code reindexItemsOnComponentUpdates} is also supported for backwards compatibility.</li>
  * </ul>
  *
  * @author avasquez
@@ -69,11 +69,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected static final String INDEX_ID_CONFIG_KEY = "indexId";
     protected static final String IGNORE_INDEX_ID_CONFIG_KEY = "ignoreIndexId";
     protected static final String REINDEX_ITEMS_ON_COMPONENT_UPDATES = "reindexItemsOnComponentUpdates";
+    protected static final String REINDEX_DEPENDENT_ITEMS_ON_DESCRIPTOR_UPDATES = "reindexDependentItemsOnDescriptorUpdates";
     protected static final String CREATE_INDEX_IF_MISSING_CONFIG_KEY = "createIndexIfMissing";
 
     protected static final Pattern DEFAULT_DESCRIPTOR_PATH_PATTERN = Pattern.compile("^/site/.+\\.xml$");
-    protected static final Pattern DEFAULT_COMPONENT_PATH_PATTERN = Pattern.compile("^/site/components/.+$");
-    protected static final int DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS = 100;
 
     protected CacheService cacheService;
     protected ObjectFactory<Context> contextFactory;
@@ -81,20 +80,16 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected List<BatchIndexer> batchIndexers;
     protected boolean xmlFlatteningEnabled;
     protected Pattern descriptorPathPattern;
-    protected Pattern componentPathPattern;
-    protected int itemsThatIncludeComponentQueryRows;
     protected String indexIdFormat;
 
     // Config properties (populated on init)
 
     protected String indexId;
-    protected boolean reindexItemsOnComponentUpdates;
+    protected boolean reindexDependentItemsOnDescriptorUpdates;
     protected boolean createIndexIfMissing;
 
     public AbstractSearchIndexingProcessor() {
         this.descriptorPathPattern = DEFAULT_DESCRIPTOR_PATH_PATTERN;
-        this.componentPathPattern = DEFAULT_COMPONENT_PATH_PATTERN;
-        this.itemsThatIncludeComponentQueryRows = DEFAULT_ITEMS_THAT_INCLUDE_COMPONENT_QUERY_ROWS;
     }
 
     public void setCacheService(CacheService cacheService) {
@@ -130,8 +125,8 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     }
 
     /**
-     * Sets whether XML flattening is enabled. Only used in conjunction with {@code reindexItemsOnComponentUpdates}
-     * to see if pages/components should be re-indexed when components they include are updated.
+     * Sets whether XML flattening is enabled. Only used in conjunction with {@code reindexDependentItemsOnDescriptorUpdates}
+     * to decide whether items should be re-indexed when descriptors they include are updated.
      */
     public void setXmlFlatteningEnabled(boolean xmlFlatteningEnabled) {
         this.xmlFlatteningEnabled = xmlFlatteningEnabled;
@@ -142,21 +137,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
      */
     public void setDescriptorPathRegex(String descriptorPathRegex) {
         descriptorPathPattern = Pattern.compile(descriptorPathRegex);
-    }
-
-    /**
-     * Sets the regex used to match component paths (used when {@code reindexItemsOnComponentUpdates} is enabled).
-     */
-    public void setComponentPathRegex(String componentPathRegex) {
-        componentPathPattern = Pattern.compile(componentPathRegex);
-    }
-
-    /**
-     * Sets the rows to fetch for the search query used to find items that include components (used when
-     * {@code reindexItemsOnComponentUpdates} is enabled).
-     */
-    public void setItemsThatIncludeComponentQueryRows(int itemsThatIncludeComponentQueryRows) {
-        this.itemsThatIncludeComponentQueryRows = itemsThatIncludeComponentQueryRows;
     }
 
     /**
@@ -178,8 +158,13 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
             }
         }
 
-        reindexItemsOnComponentUpdates = getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES, true);
+        Boolean reindexDependentItems = getBooleanProperty(config, REINDEX_DEPENDENT_ITEMS_ON_DESCRIPTOR_UPDATES, null);
+        // If missing, use the old property
+        if (reindexDependentItems == null) {
+            reindexDependentItems = getBooleanProperty(config, REINDEX_ITEMS_ON_COMPONENT_UPDATES, true);
+        }
 
+        reindexDependentItemsOnDescriptorUpdates = reindexDependentItems;
         createIndexIfMissing = getBooleanProperty(config, CREATE_INDEX_IF_MISSING_CONFIG_KEY, true);
 
         if (CollectionUtils.isEmpty(batchIndexers)) {
@@ -200,10 +185,13 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
     protected abstract void doCreateIndexIfMissing();
 
     /**
-     * Expand changeSet by adding pages/components that need to be updated because a component that they include was updated.
+     * Expand the change set by adding items that need to be updated because a descriptor they include or inherit from
+     * was created, updated, or deleted. Applies to any descriptor under {@code /site/} (see
+     * {@link #DEFAULT_DESCRIPTOR_PATH_PATTERN}) and is gated by {@code xmlFlatteningEnabled} and, for include-based
+     * expansion, {@code reindexDependentItemsOnDescriptorUpdates}.
      *
      * @param changeSet original change set
-     * @return filtered change set
+     * @return expanded change set
      */
     protected ChangeSet expandChangeSet(ChangeSet changeSet) {
         if (createIndexIfMissing) {
@@ -222,11 +210,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         if (CollectionUtils.isNotEmpty(createdFiles)) {
             for (String path : createdFiles) {
                 if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                            deletedFiles);
-                }
-                if (reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    if (reindexDependentItemsOnDescriptorUpdates) {
+                        addItemsThatIncludeDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
                 }
             }
         }
@@ -234,11 +221,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         if (CollectionUtils.isNotEmpty(updatedFiles)) {
             for (String path : updatedFiles) {
                 if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                            deletedFiles);
-                }
-                if (reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    if (reindexDependentItemsOnDescriptorUpdates) {
+                        addItemsThatIncludeDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
                 }
             }
         }
@@ -246,11 +232,10 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
         if (CollectionUtils.isNotEmpty(deletedFiles)) {
             for (String path : deletedFiles) {
                 if (isDescriptor(path)) {
-                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles,
-                            deletedFiles);
-                }
-                if (reindexItemsOnComponentUpdates && isComponent(path)) {
-                    addItemsThatIncludeComponentToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    addItemsThatInheritFromDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    if (reindexDependentItemsOnDescriptorUpdates) {
+                        addItemsThatIncludeDescriptorToUpdatedFiles(path, createdFiles, newUpdatedFiles, deletedFiles);
+                    }
                 }
             }
         }
@@ -301,7 +286,7 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
         if (failed) {
             throw new DeployerException("Failed to update or delete some files, please check previous log messages " +
-                                        "for the causes of the failures");
+                    "for the causes of the failures");
         }
 
         return null;
@@ -311,10 +296,6 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
 
     protected boolean isDescriptor(String path) {
         return descriptorPathPattern.matcher(path).matches();
-    }
-
-    protected boolean isComponent(String path) {
-        return componentPathPattern.matcher(path).matches();
     }
 
     protected boolean isBeingUpdatedOrDeleted(String path, List<String> createdFiles, List<String> updatedFiles,
@@ -331,12 +312,12 @@ public abstract class AbstractSearchIndexingProcessor extends AbstractMainDeploy
                 this::getItemsThatInheritDescriptor);
     }
 
-    protected abstract List<String> getItemsThatIncludeComponent(String indexId, String componentPath);
+    protected abstract List<String> getItemsThatIncludeDescriptor(String indexId, String descriptorPath);
 
-    protected void addItemsThatIncludeComponentToUpdatedFiles(String componentPath, List<String> createdFiles,
-                                                              List<String> updatedFiles, List<String> deletedFiles) {
-        addAffectedItemsToUpdatedFiles(componentPath, createdFiles, updatedFiles, deletedFiles,
-                this::getItemsThatIncludeComponent);
+    protected void addItemsThatIncludeDescriptorToUpdatedFiles(String descriptorPath, List<String> createdFiles,
+                                                               List<String> updatedFiles, List<String> deletedFiles) {
+        addAffectedItemsToUpdatedFiles(descriptorPath, createdFiles, updatedFiles, deletedFiles,
+                this::getItemsThatIncludeDescriptor);
     }
 
     protected void addAffectedItemsToUpdatedFiles(String path, List<String> createdFiles, List<String> updatedFiles,

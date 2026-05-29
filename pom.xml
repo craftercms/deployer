@@ -142,11 +142,11 @@
 
 		<!-- Handlebars -->
 		<dependency>
-			<groupId>com.github.jknack</groupId>
+			<groupId>org.craftercms</groupId>
 			<artifactId>handlebars</artifactId>
 		</dependency>
 		<dependency>
-			<groupId>com.github.jknack</groupId>
+			<groupId>org.craftercms</groupId>
 			<artifactId>handlebars-springmvc</artifactId>
 		</dependency>
 

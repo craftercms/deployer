@@ -29,7 +29,9 @@ paths:
             tags:
                 - target
             summary: Create a Crafter Deployer target
-            description: "Target creation is based on templates. The deployer comes with two out of the box: remote and local. The remote template creates targets that pull changes from a remote Git repository, making it ideal to create targets for delivery environments. The local template instead generates targets that use a local Git repo and the last processed commit to infer the changes, without executing a pull, so it's used mostly to create targets for authoring environments. <br><br> If a target already exists and <b><i>replace</i></b> is true, then the new target will replace the existing one. If <b><i>replace</i></b> is false and the target exists, a 409 is returned."
+            description: |
+                    Module: Deployer <br>
+                    "Target creation is based on templates. The deployer comes with two out of the box: remote and local. The remote template creates targets that pull changes from a remote Git repository, making it ideal to create targets for delivery environments. The local template instead generates targets that use a local Git repo and the last processed commit to infer the changes, without executing a pull, so it's used mostly to create targets for authoring environments. <br><br> If a target already exists and <b><i>replace</i></b> is true, then the new target will replace the existing one. If <b><i>replace</i></b> is false and the target exists, a 409 is returned."
             operationId: createTarget
             requestBody:
                 description: Create target request body
@@ -41,6 +43,7 @@ paths:
                         examples:
                             simpleExample:
                                 summary: Simple example of the request body
+                                description: "Module: Deployer"
                                 value:
                                     env: preview
                                     site_name: my-editorial
@@ -51,6 +54,7 @@ paths:
                                     engine_url: http://localhost:8080
                             withNotificationAddresses:
                                 summary: Example of request body with notification addresses
+                                description: "Module: Deployer"
                                 value:
                                     env: dev
                                     site_name: my-editorial
@@ -64,6 +68,7 @@ paths:
                                     notification_addresses: admin1@my-editorial.com", "admin2@my-editorial.com
                             withGitPullOptions:
                                 summary: Example of request body with git pull options
+                                description: "Module: Deployer"
                                 value:
                                     env: dev
                                     site_name: my-editorial
@@ -94,6 +99,7 @@ paths:
             tags:
                 - target
             summary: Get a Crafter Deployer target.
+            description: "Module: Deployer"
             operationId: getTarget
             parameters:
                 - name: env
@@ -136,6 +142,7 @@ paths:
             tags:
                 - target
             summary: Get all Crafter Deployer targets.
+            description: "Module: Deployer"
             operationId: getAllTargets
             responses:
                 '200':
@@ -166,6 +173,7 @@ paths:
             tags:
                 - target
             summary: Delete a Crafter Deployer target.
+            description: "Module: Deployer"
             operationId: deleteTarget
             parameters:
                 - name: env
@@ -198,6 +206,7 @@ paths:
             tags:
                 - target
             summary: Delete a Crafter Deployer target if it exists.
+            description: "Module: Deployer"
             operationId: deleteTargetIfExists
             parameters:
                 - name: env
@@ -232,6 +241,7 @@ paths:
             tags:
                 - target
             summary: Deploy a Crafter Deployer target.
+            description: "Module: Deployer"
             operationId: deployTarget
             parameters:
                 - name: env
@@ -287,6 +297,7 @@ paths:
             tags:
                 - target
             summary: Deploy all Crafter Deployer targets.
+            description: "Module: Deployer"
             operationId: deployAllTargets
             requestBody:
                 content:
@@ -314,6 +325,7 @@ paths:
             tags:
                 - target
             summary: Get the pending deployments for a target.
+            description: "Module: Deployer"
             operationId: getPendingDeployments
             parameters:
                 - name: env
@@ -397,6 +409,7 @@ paths:
             tags:
                 - target
             summary: Get the current deployment for a target.
+            description: "Module: Deployer"
             operationId: getCurrentDeployments
             parameters:
                 - name: env
@@ -499,6 +512,7 @@ paths:
             tags:
                 - target
             summary: Get the current and pending deployments for a target.
+            description: "Module: Deployer"
             operationId: getAllDeployments
             parameters:
                 - name: env
@@ -582,6 +596,7 @@ paths:
             tags:
                 - target
             summary: Clear git lock of a Crafter Deployer target.
+            description: "Module: Deployer"
             operationId: unlockTarget
             parameters:
                 - name: env
@@ -625,6 +640,7 @@ paths:
             tags:
                 - target
             summary: Recreate the underlying search index for a Crafter Deployer target.
+            description: "Module: Deployer"
             operationId: recreateIndex
             parameters:
                 - name: env
@@ -667,6 +683,7 @@ paths:
             tags:
                 - target
             summary: Duplicate a target
+            description: "Module: Deployer"
             operationId: duplicateTarget
             parameters:
                 - name: env
@@ -710,6 +727,7 @@ paths:
             tags:
                 - monitoring
             summary: Get a Crafter Deployer's version details.
+            description: "Module: Deployer"
             operationId: version
             parameters:
                 - name: token
@@ -774,6 +792,7 @@ paths:
             tags:
                 - monitoring
             summary: Get a Crafter Deployer's status details.
+            description: "Module: Deployer"
             operationId: status
             parameters:
                 - name: token
@@ -814,6 +833,7 @@ paths:
             tags:
                 - monitoring
             summary: Get a Crafter Deployer's memory details.
+            description: "Module: Deployer"
             operationId: memory
             parameters:
                 - name: token

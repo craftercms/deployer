@@ -745,46 +745,81 @@ paths:
                             schema:
                                 type: object
                                 properties:
-                                    VersionInfo:
-                                        type: object
-                                        properties:
-                                            packageName:
-                                                type: string
-                                            packageVersion:
-                                                type: string
-                                            packageBuild:
-                                                type: string
-                                            packageBuildDate:
-                                                type: string
-                                            osName:
-                                                type: string
-                                            osVersion:
-                                                type: string
-                                            osArch:
-                                                type: string
-                                            javaVersion:
-                                                type: string
-                                            javaVendor:
-                                                type: string
-                                            javaVm:
-                                                type: string
-                                        example:
-                                            packageName: Crafter Deployer
-                                            packageVersion: 4.1.0-SNAPSHOT
-                                            packageBuild: f33f1804c95dd0df4902c9732203841d22022459
-                                            packageBuildDate: 2023-04-17T21:28:40.642Z
-                                            osName: Mac OS X
-                                            osVersion: 13.2.1
-                                            osArch: x86_64
-                                            javaVersion: 17
-                                            javaVendor: Oracle Corporation
-                                            javaVm: OpenJDK 64-Bit Server VM
+                                    packageName:
+                                        type: string
+                                    packageVersion:
+                                        type: string
+                                    packageBuild:
+                                        type: string
+                                    packageBuildDate:
+                                        type: string
+                                example:
+                                    packageName: Crafter Deployer
+                                    packageVersion: 4.1.0-SNAPSHOT
+                                    packageBuild: f33f1804c95dd0df4902c9732203841d22022459
+                                    packageBuildDate: 2023-04-17T21:28:40.642Z
                 '400':
                     $ref: '#/components/responses/BadRequest'
                 '401':
                     $ref: '#/components/responses/Unauthorized'
                 '500':
                     $ref: '#/components/responses/InternalServerError'
+
+    /api/1/monitoring/sysinfo:
+        get:
+            security: []
+            tags:
+                - monitoring
+            summary: Get a Crafter Deployer's version details.
+            description: "Module: Deployer"
+            operationId: sysinfo
+            parameters:
+                - name: token
+                  in: query
+                  description: The authorization token
+                  required: true
+                  schema:
+                      type: string
+                  example: defaultManagementToken
+            responses:
+                '200':
+                    description: OK
+                    content:
+                        application/json:
+                            schema:
+                                type: object
+                                properties:
+                                    packageName:
+                                        type: string
+                                    packageVersion:
+                                        type: string
+                                    packageBuild:
+                                        type: string
+                                    packageBuildDate:
+                                        type: string
+                                    osName:
+                                        type: string
+                                    osVersion:
+                                        type: string
+                                    osArch:
+                                        type: string
+                                    javaVersion:
+                                        type: string
+                                    javaVendor:
+                                        type: string
+                                    javaVm:
+                                        type: string
+                                example:
+                                    packageName: Crafter Deployer
+                                    packageVersion: 4.1.0-SNAPSHOT
+                                    packageBuild: f33f1804c95dd0df4902c9732203841d22022459
+                                    packageBuildDate: 2023-04-17T21:28:40.642Z
+                                    osName: Mac OS X
+                                    osVersion: 13.2.1
+                                    osArch: x86_64
+                                    javaVersion: 17
+                                    javaVendor: Oracle Corporation
+                                    javaVm: OpenJDK 64-Bit Server VM
 
     /api/1/monitoring/status:
         get:

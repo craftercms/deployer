@@ -725,7 +725,7 @@ paths:
       security: []
       tags:
         - monitoring
-      summary: Get a Crafter Deployer's version details.
+      summary: Get Crafter Deployer's version details.
       description: "Module: Deployer"
       operationId: version
       parameters:
@@ -769,7 +769,7 @@ paths:
       security: []
       tags:
         - monitoring
-      summary: Get a Crafter Deployer's version details.
+      summary: Get Crafter Deployer's system information details.
       description: "Module: Deployer"
       operationId: sysinfo
       parameters:
@@ -831,7 +831,7 @@ paths:
       security: []
       tags:
         - monitoring
-      summary: Get a Crafter Deployer's status details.
+      summary: Get Crafter Deployer's status details.
       description: "Module: Deployer"
       operationId: status
       parameters:
@@ -872,7 +872,7 @@ paths:
       security: []
       tags:
         - monitoring
-      summary: Get a Crafter Deployer's memory details.
+      summary: Get Crafter Deployer's memory details.
       description: "Module: Deployer"
       operationId: memory
       parameters:
